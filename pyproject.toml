@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zipmi"
+version = "0.0.1"
+description = "Scapy-based IPMI library, CLI, and virtual BMC"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Dan Farmer" }]
+dependencies = [
+    "scapy>=2.6",
+    "cryptography>=45",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+zipmi  = "zipmi.cli.zipmi:main"
+bmc-id = "zipmi.cli.bmc_id:main"
+
+[tool.setuptools.packages.find]
+include = ["zipmi*"]
+
+[tool.pytest.ini_options]
+markers = [
+    "live: requires ZIPMI_LIVE_TARGET env var pointing at a real BMC",
+]

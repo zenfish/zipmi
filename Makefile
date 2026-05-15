@@ -1,0 +1,84 @@
+# zipmi — build / install / uninstall.
+#
+#   make                 (default) build sdist + wheel into dist/.
+#                        Does NOT install anything.
+#   make install        normal pip install; auto-falls back to --user
+#                        if the global write is refused (PEP 668).
+#                        Gives you the zipmi/bmc-id commands on PATH AND
+#                        an importable `import zipmi`.
+#   make dev             editable install + dev extras (live source edits)
+#   make uninstall       drain every layer (global / --user / editable
+#                        .pth / pipx) using the SAME interpreter.
+#   make verify          show what's installed where
+#   make clean           BLOW IT ALL AWAY: build/ dist/ egg-info/
+#                        __pycache__ *.pyc caches AND .venv.
+#                        Keeps only .git. Regen venv with `make dev`.
+#
+# Override the interpreter:  make install PY=python3.12
+
+PY ?= python3
+
+SHELL := bash
+.ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+.PHONY: all build install dev uninstall verify clean
+.DEFAULT_GOAL := build
+
+all: build
+
+build:
+	@echo ">> building sdist + wheel into dist/"
+	@if $(PY) -m build 2>/tmp/zipmi-build.err; then \
+		echo ">> built:"; ls -1 dist/; \
+	else \
+		echo ">> 'python -m build' unavailable — wheel-only via pip" >&2; \
+		sed 's/^/   build: /' /tmp/zipmi-build.err >&2 || true; \
+		$(PY) -m pip wheel . -w dist --no-deps; \
+		echo ">> built:"; ls -1 dist/; \
+	fi
+
+install:
+	@echo ">> interpreter: $$($(PY) -c 'import sys;print(sys.executable)')"
+	@if $(PY) -m pip install . 2>/tmp/zipmi-pip.err; then \
+		echo ">> installed (global/venv)"; \
+	else \
+		echo ">> global install refused — falling back to --user" >&2; \
+		sed 's/^/   pip: /' /tmp/zipmi-pip.err >&2 || true; \
+		$(PY) -m pip install --user --break-system-packages .; \
+		echo ">> installed (--user)"; \
+	fi
+	@$(MAKE) -s verify PY=$(PY)
+
+dev:
+	@$(PY) -m pip install -e '.[dev]' || \
+	 $(PY) -m pip install --user --break-system-packages -e '.[dev]'
+	@$(MAKE) -s verify PY=$(PY)
+
+uninstall:
+	@if command -v pipx >/dev/null 2>&1 && pipx list 2>/dev/null | grep -qw zipmi; then \
+		echo ">> pipx uninstall zipmi"; pipx uninstall zipmi || true; \
+	fi
+	@n=0; while $(PY) -m pip show zipmi >/dev/null 2>&1; do \
+		n=$$((n+1)); echo ">> pip uninstall pass $$n"; \
+		$(PY) -m pip uninstall -y zipmi; \
+		if [ $$n -ge 8 ]; then echo "error: still present after 8 passes" >&2; exit 1; fi; \
+	done
+	@if $(PY) -c 'import zipmi' >/dev/null 2>&1; then \
+		echo ">> note: import zipmi still resolves -> $$($(PY) -c 'import zipmi;print(zipmi.__file__)')"; \
+		echo "   (harmless if that's this checkout and you're cd'd into it)"; \
+	else \
+		echo ">> clean: import zipmi -> ModuleNotFoundError"; \
+	fi
+
+clean:
+	@echo ">> BLOWING AWAY build artifacts + .venv (keeping .git only)"
+	@rm -rf build dist *.egg-info .pytest_cache .ruff_cache .mypy_cache .venv venv
+	@find . -path ./.git -prune -o \
+		-name __pycache__ -type d -print0 | xargs -0 rm -rf 2>/dev/null || true
+	@find . -path ./.git -prune -o \
+		-name '*.py[co]' -type f -print0 | xargs -0 rm -f 2>/dev/null || true
+	@echo ">> clean — regen env with: make dev"
+
+verify:
+	@$(PY) -c "import zipmi,scapy,cryptography; print(f'>> import zipmi OK ({zipmi.__file__})'); print(f'>> scapy {scapy.__version__}, cryptography {cryptography.__version__}')"
+	@for c in zipmi bmc-id; do command -v $$c >/dev/null 2>&1 && echo ">> $$c -> $$(command -v $$c)" || echo ">> $$c not on PATH (check the --user scripts dir)"; done

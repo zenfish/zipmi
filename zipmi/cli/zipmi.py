@@ -1,0 +1,1195 @@
+"""
+zipmi.cli.zipmi — argparse front-end for the zipmi library.
+
+WHAT     The `zipmi` shell entry point. Mirrors the most common
+         `ipmitool` verbs (`mc info`, `chassis status/power`, `sel info`,
+         `raw`, `mc reset`) plus a `scan` extra for sessionless probing.
+
+WHY      A real CLI gives us an apples-to-apples ipmitool replacement for
+         live BMC work plus a stable surface for shell scripts and
+         experiments.
+
+SUCCESS  `zipmi -H 192.168.0.23 -U root -P calvin mc info` prints a
+         block of fields matching ipmitool's `mc info` output for the
+         same target.
+
+TARGET   IPMI 1.5 LAN today (Phase 2). RMCP+ ('-I lanplus') comes in
+         Phase 3.
+
+BUILD    `pip install -e .` — exposes the `zipmi` console script via
+         pyproject.toml [project.scripts].
+
+RUN      zipmi [-H host] [-U user] [-P pass] [-A auth] [-t timeout]
+                <verb> ...
+
+         Verbs:
+           mc info | mc reset cold|warm
+           chassis status | chassis power on|off|cycle|reset|soft
+           sel info
+           raw <netfn> <cmd> [byte ...]
+           scan auth-caps     # sessionless Get Channel Auth Caps
+           scan asf-ping
+           scan cipher-suites
+           scan all
+
+EXIT     0 on success; 1 on IPMI / transport error; 2 on usage error.
+
+RELATED  zipmi/core.py, zipmi/scapy_ipmi/commands.py
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import socket
+import sys
+
+from ..consts import COMP_CODE, IANA, guess_bmc_generation
+from ..core import (
+    AUTH_MD5,
+    AUTH_NONE,
+    AUTH_STRAIGHT,
+    IPMIError,
+    Session,
+    Transport,
+)
+from ..scapy_ipmi.asf import build_ping, parse_pong
+from ..scapy_ipmi.commands import (
+    BOOT_DEVICE,
+    CHASSIS_CTRL,
+    ChassisControlReq,
+    GetChanAuthCapsReq,
+    GetChannelInfoReq,
+    GetSDRReq,
+    GetSELEntryReq,
+    GetSensorReadingReq,
+    GetSystemBootOptionsReq,
+    GetUserAccessReq,
+    GetUserNameReq,
+    SetSystemBootOptionsReq,
+    encode_boot_flags,
+)
+from ..scapy_ipmi.rmcp import RMCP
+
+
+AUTH_BY_NAME = {
+    "none":     AUTH_NONE,
+    "password": AUTH_STRAIGHT,
+    "md5":      AUTH_MD5,
+}
+
+
+# Commands the IPMI 2.0 spec lists as sendable outside a session
+# (Table 22-25 + §13.6). The vendor/channel config still gates whether
+# the BMC will actually answer — see VIRTUAL-BMC.md / docs for nuance.
+PRE_SESSION_CMDS: dict[tuple[int, int], str] = {
+    (0x06, 0x37): "Get System GUID",
+    (0x06, 0x38): "Get Channel Authentication Capabilities",
+    (0x06, 0x39): "Get Session Challenge",
+    (0x06, 0x3A): "Activate Session",
+    (0x06, 0x54): "Get Channel Cipher Suites",
+}
+
+
+# -- argument plumbing ----------------------------------------------------
+
+
+def _add_conn_args(p: argparse.ArgumentParser) -> None:
+    p.add_argument("-H", "--host",
+                   default=os.environ.get("ZIPMI_TARGET"),
+                   help="BMC IP/hostname (env: ZIPMI_TARGET)")
+    p.add_argument("-p", "--port", type=int, default=623,
+                   help="UDP port (default 623)")
+    p.add_argument("-U", "--user",
+                   default=os.environ.get("ZIPMI_USER"),
+                   help="username (env: ZIPMI_USER). If neither -U nor -P is "
+                        "given, requests are sent sessionless (no auth).")
+    p.add_argument("-P", "--password",
+                   default=os.environ.get("ZIPMI_PASS"),
+                   help="password (env: ZIPMI_PASS)")
+    p.add_argument("-A", "--auth",
+                   choices=AUTH_BY_NAME.keys(),
+                   default="md5",
+                   help="auth type for IPMI 1.5 session (default md5)")
+    p.add_argument("-I", "--interface",
+                   choices=["lan", "lanplus"],
+                   default="lan",
+                   help="lan = IPMI 1.5; lanplus = IPMI 2.0 RMCP+ (default lan)")
+    p.add_argument("-C", "--cipher", type=int, default=3,
+                   help="lanplus cipher suite (default 3 = HMAC-SHA1+AES-CBC-128)")
+    p.add_argument("-t", "--timeout", type=float, default=3.0,
+                   help="UDP timeout in seconds (default 3.0)")
+
+
+# Shared parent parser for verbosity flags. Added via parents=[_TRACE]
+# on every leaf subparser so `zipmi mc info -v` works as well as
+# `zipmi -v mc info`. Two trace levels:
+#   -v / --verbose : human-readable events with timestamps — "contacting
+#                    <target>", "→ send <netfn>/<cmd>", "← recv cc=0x00",
+#                    "timeout", "session activated". No hex.
+#   -d / --debug   : everything -v shows PLUS hex dump of every packet
+#                    in/out (including session setup chatter).
+# In fuzz verbs the same flags also enable streaming output.
+_TRACE = argparse.ArgumentParser(add_help=False)
+# default=SUPPRESS so a subparser without the flag doesn't clobber the
+# value set at the top level (and vice-versa). main() reads via getattr
+# with a False fallback.
+_TRACE.add_argument("-v", "--verbose", action="store_true",
+                    default=argparse.SUPPRESS,
+                    help="log high-level events with timestamps (no hex)")
+_TRACE.add_argument("-d", "--debug", action="store_true",
+                    default=argparse.SUPPRESS,
+                    help="-v + hex-dump every packet (incl. session setup)")
+_TRACE.add_argument("-n", "--no-color", action="store_true",
+                    default=argparse.SUPPRESS,
+                    help="disable ANSI colour in wire-trace hex output")
+_TRACE.add_argument("--palette", default=argparse.SUPPRESS,
+                    choices=["auto", "a", "pastel", "p",
+                             "set", "s", "dark", "d"],
+                    metavar="{auto/a,pastel/p,set/s,dark/d}",
+                    help="colour palette (default: auto — detects "
+                         "terminal background and picks pastel for dark, "
+                         "set for light)")
+
+
+def _require_host(args: argparse.Namespace) -> str:
+    if not args.host:
+        print("error: --host required (or set ZIPMI_TARGET)", file=sys.stderr)
+        sys.exit(2)
+    return args.host
+
+
+def _apply_trace(transport, args: argparse.Namespace) -> None:
+    """Push -v/-d/-n/-p flags onto a Transport instance.
+
+    Used by both `_open_session` and the sessionless `scan` verbs so
+    that `zipmi scan asf-ping -v` traces the wire just like
+    `zipmi mc info -v` does.
+    """
+    if getattr(args, "debug", False):
+        transport.wire_trace = 2
+    elif getattr(args, "verbose", False):
+        transport.wire_trace = 1
+    # Wire-trace colour: on by default when stdout is a TTY and the
+    # caller hasn't disabled it via -n / --no-color or the NO_COLOR
+    # environment variable (https://no-color.org).
+    from ..scapy_ipmi.colorize import (
+        color_enabled, normalize_palette_name, resolve_palette, set_palette,
+    )
+    transport.wire_color = (
+        color_enabled() and not getattr(args, "no_color", False)
+    )
+    palette = getattr(args, "palette", None)
+    if palette:
+        try:
+            set_palette(resolve_palette(normalize_palette_name(palette)))
+        except ValueError as e:
+            print(f"error: {e}", file=sys.stderr)
+            sys.exit(2)
+
+
+def _open_session(args: argparse.Namespace) -> Session:
+    """Build a Session; the caller activates via `with` block.
+
+    No creds (both -U and -P unset) → sessionless mode: Session skips the
+    handshake and every send goes out auth_type=0, session_id=0. The BMC
+    decides what it'll answer at that privilege.
+    """
+    if (args.user is None) != (args.password is None):
+        print("error: -U and -P must both be given (or neither). "
+              "Pass nothing for sessionless mode.", file=sys.stderr)
+        sys.exit(2)
+    lanplus = (args.interface == "lanplus")
+    s = Session(
+        host=_require_host(args),
+        username=args.user,
+        password=args.password,
+        auth_type=AUTH_BY_NAME[args.auth],
+        timeout=args.timeout,
+        lanplus=lanplus,
+        cipher_suite=args.cipher,
+    )
+    s.transport.port = args.port
+    _apply_trace(s.transport, args)
+    return s
+
+
+# -- verb handlers --------------------------------------------------------
+
+
+def cmd_mc_info(args: argparse.Namespace) -> int:
+    with _open_session(args) as s:
+        d = s.get_device_id()
+    iana = d.manufacturer_id_int()
+    print(f"Device ID                 : {d.device_id}")
+    print(f"Device Revision           : {d.device_revision & 0x0F}")
+    print(f"Firmware Revision         : {d.fw_revision()}")
+    print(f"IPMI Version              : 0x{d.ipmi_version:02x}")
+    print(f"Manufacturer ID           : {iana}")
+    print(f"Manufacturer Name         : {IANA.get(iana, 'unknown')}")
+    print(f"Manufacturer Generation   : {guess_bmc_generation(iana, d.product_id)}")
+    print(f"Product ID                : {d.product_id} (0x{d.product_id:04x})")
+    print(f"Device Available          : {'yes' if not (d.fw_revision_1 & 0x80) else 'no (init)'}")
+    print(f"Provides Device SDRs      : {'yes' if (d.device_revision & 0x80) else 'no'}")
+    print(f"Additional Device Support : 0x{d.additional_dev_support:02x}")
+    return 0
+
+
+def cmd_mc_reset(args: argparse.Namespace) -> int:
+    cmd = 0x02 if args.kind == "cold" else 0x03
+    with _open_session(args) as s:
+        # Reset commands sometimes reply, sometimes the BMC just goes away
+        # mid-response. Tolerate timeout.
+        try:
+            s.send_cmd(0x06, cmd)
+        except (OSError, socket.timeout):
+            pass
+    print(f"Sent {args.kind} reset to {args.host}")
+    return 0
+
+
+def cmd_chassis_status(args: argparse.Namespace) -> int:
+    with _open_session(args) as s:
+        c = s.get_chassis_status()
+    print(f"System Power         : {'on' if c.power_on() else 'off'}")
+    print(f"Power Restore Policy : {(c.current_power_state >> 5) & 0x3}")
+    print(f"Power Control Fault  : {(c.current_power_state >> 4) & 0x1}")
+    print(f"Power Fault          : {(c.current_power_state >> 3) & 0x1}")
+    print(f"Power Interlock      : {(c.current_power_state >> 2) & 0x1}")
+    print(f"Main Power Fault     : {(c.current_power_state >> 1) & 0x1}")
+    print(f"Last Power Event     : 0x{c.last_power_event:02x}")
+    print(f"Misc Chassis State   : 0x{c.misc_chassis_state:02x}")
+    return 0
+
+
+def cmd_chassis_power(args: argparse.Namespace) -> int:
+    code_by_name = {v: k for k, v in CHASSIS_CTRL.items()}
+    if args.action not in code_by_name:
+        print(f"error: unknown power action '{args.action}'", file=sys.stderr)
+        return 2
+    if args.action != "status" and not args.yes:
+        print(f"warning: '{args.action}' affects host power. Pass --yes to proceed.",
+              file=sys.stderr)
+        return 2
+    with _open_session(args) as s:
+        s.send_cmd(0x00, 0x02, ChassisControlReq(action=code_by_name[args.action]))
+    print(f"chassis power {args.action} sent to {args.host}")
+    return 0
+
+
+def cmd_sel_info(args: argparse.Namespace) -> int:
+    with _open_session(args) as s:
+        si = s.send_cmd(0x0A, 0x40)
+    print(f"SEL Version          : 0x{si.version:02x}")
+    print(f"Entries              : {si.entries}")
+    print(f"Free Space (bytes)   : {si.free_space}")
+    print(f"Last Add Timestamp   : {si.last_add_ts}")
+    print(f"Last Erase Timestamp : {si.last_del_ts}")
+    print(f"Operation Support    : 0x{si.op_support:02x}")
+    return 0
+
+
+def _decode_sel_record(rec: bytes) -> str:
+    """Decode a 16-byte standard SEL record into a one-line summary."""
+    if len(rec) < 16:
+        return f"  short record ({len(rec)} bytes)"
+    record_id = int.from_bytes(rec[0:2], "little")
+    rec_type = rec[2]
+    ts = int.from_bytes(rec[3:7], "little")
+    gen_id = int.from_bytes(rec[7:9], "little")
+    sensor_type = rec[10]
+    sensor_num = rec[11]
+    ev_byte = rec[12]
+    ev_data = rec[13:16]
+    direction = "asserted" if not (ev_byte & 0x80) else "deasserted"
+    return (
+        f"{record_id:5d} | type=0x{rec_type:02x} ts={ts} "
+        f"gen=0x{gen_id:04x} sensor=0x{sensor_type:02x}/{sensor_num} "
+        f"ev=0x{ev_byte:02x} ({direction}) data={ev_data.hex()}"
+    )
+
+
+def cmd_sel_list(args: argparse.Namespace) -> int:
+    """Walk the SEL via Reserve + Get Entry sequence."""
+    with _open_session(args) as s:
+        info = s.send_cmd(0x0A, 0x40)
+        if info.entries == 0:
+            print("(SEL is empty)")
+            return 0
+        # Reserve SEL.
+        rsv = s.send_cmd(0x0A, 0x42)
+        rid = rsv.reservation_id
+        print(f"SEL: {info.entries} entries (reservation 0x{rid:04x})")
+        record_id = 0x0000
+        seen = 0
+        max_iter = info.entries + 4   # safety stop for circular nextids
+        while seen < max_iter:
+            try:
+                resp = s.send_cmd(
+                    0x0A, 0x43,
+                    GetSELEntryReq(reservation_id=rid, record_id=record_id,
+                                   offset=0, count=0xFF),
+                )
+            except Exception as e:
+                print(f"  abort at record 0x{record_id:04x}: {e}", file=sys.stderr)
+                return 1
+            print(_decode_sel_record(bytes(resp.record)))
+            seen += 1
+            next_id = resp.next_record_id
+            if next_id == 0xFFFF:
+                break
+            record_id = next_id
+    return 0
+
+
+def cmd_sdr_list(args: argparse.Namespace) -> int:
+    """Walk the SDR repository.
+
+    Prints record_id and record_type for each record. Full record decode
+    is deferred to a future revision (variable layouts per Type 1/2/11/12).
+    """
+    with _open_session(args) as s:
+        info = s.send_cmd(0x0A, 0x20)
+        print(f"SDR Version    : 0x{info.sdr_version:02x}")
+        print(f"Record Count   : {info.record_count}")
+        print(f"Free Space     : {info.free_space} bytes")
+        if info.record_count == 0:
+            return 0
+        rsv = s.send_cmd(0x0A, 0x22)
+        rid = rsv.reservation_id
+        record_id = 0x0000
+        seen = 0
+        while seen < info.record_count + 4:
+            # First read 5-byte SDR header to learn record length.
+            try:
+                resp = s.send_cmd(
+                    0x0A, 0x23,
+                    GetSDRReq(reservation_id=rid, record_id=record_id,
+                              offset=0, count=5),
+                )
+            except Exception as e:
+                print(f"  abort at SDR 0x{record_id:04x}: {e}", file=sys.stderr)
+                return 1
+            data = bytes(resp.record_data)
+            if len(data) >= 5:
+                rec_id = int.from_bytes(data[0:2], "little")
+                version = data[2]
+                rec_type = data[3]
+                length = data[4]
+                print(f"  SDR 0x{rec_id:04x}: type=0x{rec_type:02x} "
+                      f"version=0x{version:02x} len={length}")
+            seen += 1
+            next_id = resp.next_record_id
+            if next_id == 0xFFFF:
+                break
+            record_id = next_id
+    return 0
+
+
+def cmd_user_list(args: argparse.Namespace) -> int:
+    """Walk users 1..max via Get User Access + Get User Name."""
+    with _open_session(args) as s:
+        # Probe user 1 to discover max_user_count.
+        ua1 = s.send_cmd(0x06, 0x44, GetUserAccessReq(channel=0xE, user_id=1))
+        max_users = ua1.max_user_count & 0x3F
+        print(f"max_user_count={max_users}  enabled={ua1.enabled_user_count & 0x3F}")
+        print(f"{'ID':>3}  {'Name':16}  {'Access':10}")
+        for uid in range(1, max_users + 1):
+            try:
+                ua = s.send_cmd(0x06, 0x44,
+                                GetUserAccessReq(channel=0xE, user_id=uid))
+                un = s.send_cmd(0x06, 0x46, GetUserNameReq(user_id=uid))
+            except Exception as e:
+                print(f"  user {uid}: {e}", file=sys.stderr)
+                continue
+            name = bytes(un.user_name).rstrip(b"\x00").decode("utf-8", errors="replace")
+            access = ua.user_access
+            print(f"{uid:3}  {name:16}  0x{access:02x}")
+    return 0
+
+
+def cmd_mc_selftest(args: argparse.Namespace) -> int:
+    with _open_session(args) as s:
+        r = s.send_cmd(0x06, 0x04)
+    from ..scapy_ipmi.commands import GET_SELF_TEST
+    name = GET_SELF_TEST.get(r.result, f"0x{r.result:02x}")
+    print(f"Self Test Result : {name}")
+    print(f"Info             : 0x{r.info:02x}")
+    return 0
+
+
+def cmd_mc_guid(args: argparse.Namespace) -> int:
+    with _open_session(args) as s:
+        d = s.send_cmd(0x06, 0x08)
+        sy = s.send_cmd(0x06, 0x37)
+    print(f"Device GUID : {bytes(d.guid).hex()}")
+    print(f"System GUID : {bytes(sy.guid).hex()}")
+    return 0
+
+
+def cmd_chassis_bootdev(args: argparse.Namespace) -> int:
+    """Set boot device override via System Boot Options selector 5."""
+    devices = list(BOOT_DEVICE.values())
+    if args.device == "list":
+        print("supported devices:", " ".join(sorted(set(devices))))
+        return 0
+    if args.device not in devices:
+        print(f"unknown device {args.device!r}; try `chassis bootdev list`",
+              file=sys.stderr)
+        return 2
+    if not args.yes and args.device != "no_override":
+        print(f"warning: setting boot device to {args.device!r} affects host's "
+              f"next boot. Pass --yes to proceed.", file=sys.stderr)
+        return 2
+    payload = encode_boot_flags(args.device,
+                                persistent=args.persistent,
+                                uefi=args.uefi)
+    with _open_session(args) as s:
+        s.send_cmd(0x00, 0x08, SetSystemBootOptionsReq(
+            mark_valid=1, parameter_selector=5,
+            parameter_data=payload,
+        ))
+    print(f"boot device override set to {args.device}"
+          f"{' (persistent)' if args.persistent else ''}"
+          f"{' (UEFI)' if args.uefi else ''}")
+    return 0
+
+
+def cmd_chassis_bootflags(args: argparse.Namespace) -> int:
+    """Read current boot flags via Get System Boot Options selector 5."""
+    with _open_session(args) as s:
+        resp = s.send_cmd(0x00, 0x09, GetSystemBootOptionsReq(
+            parameter_selector=5, set_selector=0, block_selector=0,
+        ))
+    data = bytes(resp.parameter_data)
+    if len(data) < 2:
+        print(f"empty response: param_rev=0x{resp.parameter_revision:02x}")
+        return 1
+    valid = bool(data[0] & 0x80)
+    persistent = bool(data[0] & 0x40)
+    uefi = bool(data[0] & 0x20)
+    dev_code = (data[1] >> 2) & 0x0F
+    dev = BOOT_DEVICE.get(dev_code, f"unknown_0x{dev_code:x}")
+    print(f"valid={valid}  persistent={persistent}  uefi={uefi}  device={dev}")
+    return 0
+
+
+def cmd_chassis_identify(args: argparse.Namespace) -> int:
+    """Chassis Identify (NetFn 0x00, Cmd 0x04). Default 15-second blink."""
+    with _open_session(args) as s:
+        secs = bytes([args.duration]) if args.duration is not None else b""
+        cc, _ = s.send_raw(0x00, 0x04, secs)
+    if cc != 0:
+        print(f"identify: cc=0x{cc:02x}", file=sys.stderr)
+        return 1
+    if args.duration == 0:
+        print("identify off")
+    else:
+        d = args.duration if args.duration is not None else 15
+        print(f"identify on for {d}s")
+    return 0
+
+
+def cmd_lan_print(args: argparse.Namespace) -> int:
+    """Print LAN config: IP source, IP, netmask, MAC, gateway.
+
+    Channel defaults to 0x0E ("this channel" — IPMI's self-reference).
+    Pass a channel number (0-15) to query a specific LAN channel.
+    """
+    PARAMS = {
+        4:  ("IP Source",      lambda b: {1: "static", 2: "dhcp", 3: "bios", 4: "other"}.get(b[0], f"0x{b[0]:02x}")),
+        3:  ("IP Address",     lambda b: ".".join(str(x) for x in b[:4])),
+        6:  ("Subnet Mask",    lambda b: ".".join(str(x) for x in b[:4])),
+        5:  ("MAC Address",    lambda b: ":".join(f"{x:02x}" for x in b[:6])),
+        12: ("Gateway IP",     lambda b: ".".join(str(x) for x in b[:4])),
+    }
+    channel = int(args.channel, 0) if args.channel is not None else 0x0E
+    if not 0 <= channel <= 0x0F:
+        print(f"error: channel must be 0..15, got {channel}", file=sys.stderr)
+        return 2
+    print(f"channel {channel}" + (" (this channel)" if channel == 0x0E else ""))
+    with _open_session(args) as s:
+        for sel, (label, fmt) in PARAMS.items():
+            cc, data = s.send_raw(0x0C, 0x02, bytes([channel, sel, 0, 0]))
+            if cc != 0 or len(data) < 2:
+                print(f"  {label:14}: cc=0x{cc:02x}")
+                continue
+            # data[0] = parameter revision, data[1:] = parameter data
+            try:
+                val = fmt(data[1:])
+            except Exception:
+                val = data[1:].hex()
+            print(f"  {label:14}: {val}")
+    return 0
+
+
+def _read_sdr_record(session, rid: int, record_id: int, total_len: int,
+                     chunk: int = 16) -> tuple[int, bytes]:
+    """Read a full SDR record in chunks; return (next_record_id, record_bytes).
+
+    Some BMCs (Dell iDRAC6 included) reject count=0xFF on Get SDR with
+    CannotReturnRequested. Reading in 16-byte chunks works on every BMC
+    we've tested.
+    """
+    record = b""
+    offset = 0
+    next_id = 0xFFFF
+    # `total_len` already includes the 5 header bytes we passed in via the
+    # caller's first read.
+    while offset < total_len:
+        n = min(chunk, total_len - offset)
+        resp = session.send_cmd(
+            0x0A, 0x23,
+            GetSDRReq(reservation_id=rid, record_id=record_id,
+                      offset=offset, count=n),
+        )
+        record += bytes(resp.record_data)
+        next_id = resp.next_record_id
+        offset += n
+    return next_id, record
+
+
+def cmd_sensor_list(args: argparse.Namespace) -> int:
+    """Sensor list via SDR walk + Get Sensor Reading per sensor.
+
+    For each Type 1 (Full Sensor) and Type 2 (Compact Sensor) SDR, extract
+    the sensor number and name, then issue Get Sensor Reading.
+    """
+    with _open_session(args) as s:
+        info = s.send_cmd(0x0A, 0x20)
+        if info.record_count == 0:
+            print("(no SDR records)")
+            return 0
+        rsv = s.send_cmd(0x0A, 0x22)
+        rid = rsv.reservation_id
+        record_id = 0x0000
+        seen = 0
+        while seen < info.record_count + 4:
+            try:
+                hdr = s.send_cmd(
+                    0x0A, 0x23,
+                    GetSDRReq(reservation_id=rid, record_id=record_id,
+                              offset=0, count=5),
+                )
+            except Exception as e:
+                print(f"  abort: {e}", file=sys.stderr)
+                return 1
+            d = bytes(hdr.record_data)
+            if len(d) < 5:
+                break
+            rec_type = d[3]
+            length = d[4]
+            total_len = 5 + length     # header + body
+            next_id = hdr.next_record_id
+
+            if rec_type in (0x01, 0x02):
+                next_id, full = _read_sdr_record(s, rid, record_id, total_len)
+                # Full sensor record (Type 1) and Compact sensor record (Type 2)
+                # share these key offsets:
+                #   byte 5  sensor_owner_id
+                #   byte 6  sensor_owner_LUN/channel
+                #   byte 7  sensor_number
+                # The id_string starts at:
+                #   Full record    : offset 47 (1 byte type/len + name bytes)
+                #   Compact record : offset 31
+                if len(full) >= 8:
+                    sensor_num = full[7]
+                    name_offset = 47 if rec_type == 0x01 else 31
+                    name = (full[name_offset + 1:]
+                            .rstrip(b"\x00")
+                            .decode("utf-8", errors="replace")
+                            if len(full) > name_offset + 1
+                            else f"sensor_{sensor_num:#x}")
+                    try:
+                        reading = s.send_cmd(0x04, 0x2D,
+                                             GetSensorReadingReq(sensor_number=sensor_num))
+                        if reading.status & 0x20:
+                            val_str = "n/a"
+                        else:
+                            val_str = f"raw=0x{reading.reading:02x}"
+                    except Exception as e:
+                        val_str = f"err={e}"
+                    print(f"  0x{sensor_num:02x}  {name:20}  {val_str}")
+            seen += 1
+            if next_id == 0xFFFF:
+                break
+            record_id = next_id
+    return 0
+
+
+def cmd_fuzz_rakp(args: argparse.Namespace) -> int:
+    """Run the RAKP1 mutation suite against a target.
+
+    Verbosity:
+        default       — summary table only.
+        -v / --verbose — stream rows as each mutation completes.
+        -d / --debug   — same as -v, plus print the raw RAKP2 reply hex.
+    """
+    from ..fuzz.rakp_mut import fuzz_rakp1
+    from ..fuzz.cipher_confuse import RMCP_STATUS
+    host = _require_host(args)
+    streaming = args.verbose or args.debug
+    show_raw = args.debug
+
+    header = (f"  {'mutation':<22}  {'status':<6}  "
+              f"{'auth_len':<8}  meaning")
+
+    if streaming:
+        print(f"rakp1 fuzz on {host}:{args.port}: (streaming)")
+        print(header)
+
+    def _fmt(r: dict) -> str:
+        mut = r.get("mutation", "?")
+        if "error" in r:
+            return f"  {mut:<22}  {'—':<6}  {'—':<8}  [error] {r['error']}"
+        if r.get("result") == "timeout":
+            return f"  {mut:<22}  {'—':<6}  {'—':<8}  [no reply]"
+        if r.get("result") == "no_RAKP2":
+            return (f"  {mut:<22}  {'—':<6}  {'—':<8}  "
+                    f"non-RAKP2 reply ({r.get('raw_len',0)}B)")
+        st = r.get("rmcp_status")
+        meaning = RMCP_STATUS.get(st, f"unknown 0x{st:02x}")
+        return (f"  {mut:<22}  0x{st:02x}    {r['auth_code_len']:<8}  "
+                f"{meaning}")
+
+    def _emit(r: dict) -> None:
+        print(_fmt(r), flush=True)
+        if show_raw and r.get("reply"):
+            print(f"      raw ({len(r['reply'])}B): "
+                  f"{r['reply'].hex()}", flush=True)
+
+    results = fuzz_rakp1(
+        host=host, port=args.port, user=args.user,
+        timeout=args.timeout, on_result=_emit if streaming else None,
+    )
+    if not streaming:
+        print(f"rakp1 fuzz on {host}:{args.port}")
+        print(header)
+        for r in results:
+            print(_fmt(r))
+    return 0
+
+
+def cmd_fuzz_length(args: argparse.Namespace) -> int:
+    """IPMI 1.5 msg_length corruption against an active session."""
+    from ..fuzz.length import length_corrupt
+    netfn = int(args.netfn, 0)
+    cmd = int(args.cmd, 0)
+    host = _require_host(args)
+    with _open_session(args) as s:
+        if s.lanplus:
+            print("error: length fuzzer requires IPMI 1.5; rerun without -I lanplus",
+                  file=sys.stderr)
+            return 2
+        results = length_corrupt(s, netfn, cmd, b"")
+    print(f"length-corrupt cmd 0x{netfn:02x}/0x{cmd:02x} on {host}:")
+    print(f"  {'mutation':<12}  {'sent_len':>8}  {'actual':>6}  reply")
+    for r in results:
+        if r.error:
+            tag = f"[error] {r.error}"
+        elif r.reply is None:
+            tag = "[no reply]"
+        else:
+            tag = f"{len(r.reply)}B: {r.reply.hex()}"
+        print(f"  {r.mutation:<12}  {r.sent_msg_length:>8}  "
+              f"{r.actual_ipmb_len:>6}  {tag}")
+    return 0
+
+
+def cmd_fuzz_cipher(args: argparse.Namespace) -> int:
+    """RMCP+ cipher-suite negotiation fuzz; pre-auth, no session needed."""
+    from ..fuzz.cipher_confuse import cipher_confuse, RMCP_STATUS
+    host = _require_host(args)
+    results = cipher_confuse(host=host, port=args.port, timeout=args.timeout)
+    print(f"cipher-confuse on {host}:{args.port}")
+    print(f"  {'mutation':<28}  {'A/I/C':<10}  {'status':<6}  meaning")
+    for r in results:
+        algs = f"{r.auth_alg:02x}/{r.integrity_alg:02x}/{r.conf_alg:02x}"
+        if r.error:
+            status_str = "—"
+            meaning = f"[error] {r.error}"
+        elif r.response_status is None:
+            status_str = "—"
+            meaning = "[no reply]"
+        elif r.session_opened:
+            status_str = "0x00"
+            meaning = "session opened"
+            if r.warning:
+                meaning += f"  ⚠ {r.warning}"
+        else:
+            status_str = f"0x{r.response_status:02x}"
+            meaning = RMCP_STATUS.get(r.response_status, "unknown status")
+        print(f"  {r.mutation:<28}  {algs:<10}  {status_str:<6}  {meaning}")
+    return 0
+
+
+def cmd_fuzz_list(args: argparse.Namespace) -> int:
+    """List the fuzz harnesses zipmi ships."""
+    print("zipmi fuzz inventory:")
+    print()
+    rows = [
+        ("sweep",  "wired", "NetFn × Cmd surface enumeration",
+         "zipmi.fuzz.sweep"),
+        ("rakp",   "wired", "RAKP1 field mutation (pre-auth)",
+         "zipmi.fuzz.rakp_mut"),
+        ("length", "wired", "IPMI 1.5 msg_length corruption (session)",
+         "zipmi.fuzz.length"),
+        ("cipher", "wired", "RMCP+ cipher-suite negotiation (pre-auth)",
+         "zipmi.fuzz.cipher_confuse"),
+    ]
+    print(f"  {'verb':<8}  {'state':<6}  {'module':<28}  description")
+    for verb, state, desc, mod in rows:
+        print(f"  {verb:<8}  {state:<6}  {mod:<28}  {desc}")
+    print()
+    print("see docs/fuzz-sweep.md and docs/fuzz.md for full coverage notes.")
+    return 0
+
+
+def cmd_fuzz_sweep(args: argparse.Namespace) -> int:
+    """Walk every cmd of one NetFn against the target.
+
+    Output verbosity:
+        default       — summary only.
+        -v / --verbose — stream rows the BMC accepted + skipped rows;
+                         omit the (usually huge) cc=0xC1 noise.
+        -d / --debug   — stream every probe including 0xC1 InvalidCommand.
+    """
+    from ..fuzz.sweep import sweep_netfn, summarize
+    netfn = int(args.netfn, 0)
+    if netfn in (0x30, 0x2E):
+        import zipmi
+        zipmi.load_vendor("idrac6")
+
+    streaming = args.verbose or args.debug
+    show_rejects = args.debug
+
+    if streaming:
+        # Header up front so the user sees the column key before rows arrive.
+        print(f"sweep NetFn 0x{netfn:02x} on {args.host}: (streaming)")
+        print(f"  {'Cmd':>4}  {'CC':>4}  {'len':>3}  "
+              f"{'completion code':<55}  name")
+
+    def _emit(r) -> None:
+        bucket = r.bucket
+        if bucket == "skipped":
+            tag = "[skipped]"
+            name = _cmd_name(netfn, r.cmd) or "—"
+            print(f"  0x{r.cmd:02x}    --    -  "
+                  f"{tag:<55}  {name}", flush=True)
+            return
+        if bucket == "transport_or_parse_error":
+            tag = f"[error] {r.error}"
+            print(f"  0x{r.cmd:02x}    --    -  {tag:<55}", flush=True)
+            return
+        if bucket == "bmc_rejected_invalid_cmd":
+            if not show_rejects:
+                return
+            print(f"  0x{r.cmd:02x}  0x{r.cc:02x}  {len(r.body):3d}  "
+                  f"{r.cc_name:<55}  —", flush=True)
+            return
+        # bmc_responded
+        name = _cmd_name(netfn, r.cmd) or "—"
+        print(f"  0x{r.cmd:02x}  0x{r.cc:02x}  {len(r.body):3d}  "
+              f"{r.cc_name:<55}  {name}", flush=True)
+
+    with _open_session(args) as s:
+        results = sweep_netfn(
+            s, netfn=netfn, rate_hz=args.rate,
+            on_result=_emit if streaming else None,
+        )
+    summary = summarize(results)
+
+    if streaming:
+        print()
+    print(f"sweep NetFn 0x{netfn:02x} on {args.host}:")
+    print(f"  BMC responded            : {len(summary['bmc_responded'])}")
+    print(f"  BMC rejected (0xC1)      : "
+          f"{len(summary['bmc_rejected_invalid_cmd'])}")
+    print(f"  transport/parse errors   : "
+          f"{len(summary['transport_or_parse_error'])}")
+    print(f"  skipped (destructive)    : {len(summary['skipped'])}")
+    return 0
+
+
+def cmd_sessionless_list(args: argparse.Namespace) -> int:
+    """List commands the IPMI 2.0 spec permits outside a session."""
+    print("Commands sendable without a session (per IPMI 2.0 spec):")
+    print()
+    for (netfn, cmd), name in sorted(PRE_SESSION_CMDS.items()):
+        print(f"  0x{netfn:02x} 0x{cmd:02x}   {name}")
+    print()
+    print("Notes:")
+    print("  - The BMC's channel access config may still refuse them.")
+    print("  - Run any zipmi verb without -U/-P to send sessionless.")
+    print("  - ASF Presence Ping is also pre-session (RMCP class 0x06,")
+    print("    not IPMI). Use `zipmi scan asf-ping`.")
+    return 0
+
+
+def cmd_vbmc_serve(args: argparse.Namespace) -> int:
+    """Run a virtual BMC on a loopback or specified address."""
+    import asyncio
+    from ..vbmc.server import run
+    trace = 2 if getattr(args, "debug", False) else (
+        1 if getattr(args, "verbose", False) else 0)
+    color = not getattr(args, "no_color", False)
+    palette = getattr(args, "palette", None)
+    if palette:
+        from ..scapy_ipmi.colorize import (
+            normalize_palette_name, resolve_palette, set_palette,
+        )
+        try:
+            set_palette(resolve_palette(normalize_palette_name(palette)))
+        except ValueError as e:
+            print(f"error: {e}", file=sys.stderr)
+            return 2
+    try:
+        asyncio.run(run(persona_name=args.persona,
+                        host=args.bind, port=args.port,
+                        trace=trace, color=color))
+    except KeyboardInterrupt:
+        print()
+    return 0
+
+
+def cmd_scan_cipher_zero(args: argparse.Namespace) -> int:
+    """RMCP+ cipher suite 0 detection.
+
+    Cipher 0 = no auth + no integrity + no conf. If the BMC accepts a
+    cipher-0 Open Session (and proceeds through RAKP without checking
+    the password), an attacker has full IPMI access without credentials.
+    Famous CVE-2013-4786 / Dan Farmer's IPMI WOOT13 paper.
+    """
+    host = _require_host(args)
+    s = Session(
+        host=host, username=args.user, password=args.password,
+        lanplus=True, cipher_suite=0, timeout=args.timeout,
+    )
+    s.transport.port = args.port
+    _apply_trace(s.transport, args)
+    try:
+        s.activate()
+        print(f"cipher-zero {host}: VULNERABLE — session opened with cipher 0")
+        s.close()
+        return 0
+    except Exception as e:
+        print(f"cipher-zero {host}: not vulnerable ({e})")
+        s.transport.close()
+        return 1
+
+
+def _cmd_name(netfn: int, cmd: int) -> str:
+    """Look up a human-readable name from OEM + base registries."""
+    from ..scapy_ipmi.oem._registry import OEM_CMD_NAMES
+    from ..scapy_ipmi.commands import CMD_PAYLOADS
+    name = OEM_CMD_NAMES.get((netfn, cmd))
+    if name:
+        return name
+    entry = CMD_PAYLOADS.get((netfn, cmd))
+    if entry:
+        _, resp_cls = entry
+        n = resp_cls.__name__
+        return n.removesuffix("Resp")
+    return ""
+
+
+def cmd_raw(args: argparse.Namespace) -> int:
+    netfn = int(args.netfn, 0)
+    cmd = int(args.cmd, 0)
+    data = bytes(int(b, 0) & 0xFF for b in args.data)
+    # Auto-load iDRAC6 vendor for OEM NetFns so names appear by default.
+    if netfn in (0x30, 0x2E):
+        import zipmi
+        zipmi.load_vendor("idrac6")
+    with _open_session(args) as s:
+        cc, resp = s.send_raw(netfn, cmd, data)
+    cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
+    name = _cmd_name(netfn, cmd)
+    if name:
+        print(f"# {name}", file=sys.stderr)
+    if cc != 0:
+        print(f"completion code: {cc_name}", file=sys.stderr)
+        return 1
+    if resp:
+        print(" ".join(f"{b:02x}" for b in resp))
+    return 0
+
+
+def cmd_scan_asf_ping(args: argparse.Namespace) -> int:
+    host = _require_host(args)
+    pkt = RMCP(msg_class=0x06) / build_ping(msg_tag=0x42)
+    # Use Transport (not a bare socket) so -v / -d / colour flags
+    # produce a wire trace just like every other verb.
+    t = Transport(host=host, port=args.port, timeout=args.timeout)
+    _apply_trace(t, args)
+    try:
+        data = t.send_recv(bytes(pkt))
+    except socket.timeout:
+        print(f"asf-ping {host}: no reply within {args.timeout}s")
+        return 1
+    finally:
+        t.close()
+    reply = RMCP(data)
+    asf = reply.getlayer("ASF")
+    pong = parse_pong(asf) if asf else None
+    if pong is None:
+        print(f"asf-ping {host}: reply was not a Pong")
+        return 1
+    iana = pong.oem_iana
+    print(
+        f"asf-ping {host}: oem_iana={iana} ({IANA.get(iana, 'unknown')})  "
+        f"ipmi={'yes' if pong.supported_entities & 0x80 else 'no'}"
+    )
+    return 0
+
+
+def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
+    host = _require_host(args)
+    t = Transport(host=host, port=args.port, timeout=args.timeout)
+    _apply_trace(t, args)
+    try:
+        _, resp = t.sessionless_request(
+            0x06, 0x38, GetChanAuthCapsReq(v20_ext=1, channel=0xE, max_priv=0x4)
+        )
+    except (OSError, socket.timeout) as e:
+        print(f"auth-caps {host}: {e}")
+        return 1
+    finally:
+        t.close()
+    if resp is None or resp.comp_code != 0:
+        print(f"auth-caps {host}: no decoded reply")
+        return 1
+    iana = resp.oem_iana_int()
+    print(
+        f"auth-caps {host}: ch=0x{resp.channel:02x}  "
+        f"auth=[{', '.join(resp.auth_types()) or '—'}]  "
+        f"status=0x{resp.status:02x}  "
+        f"ext=0x{resp.ext_caps:02x}  "
+        f"oem_iana={iana} ({IANA.get(iana, 'unknown') if iana else '—'})"
+    )
+    if resp.auth_type_support & 0x01:
+        print(f"  WARNING: 'None' auth advertised — cipher-zero / null-auth risk")
+    return 0
+
+
+def cmd_scan_all(args: argparse.Namespace) -> int:
+    rc = 0
+    rc |= cmd_scan_asf_ping(args)
+    rc |= cmd_scan_auth_caps(args)
+    return rc
+
+
+# -- argparse wiring ------------------------------------------------------
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="zipmi",
+        description="Scapy-based IPMI client.",
+        parents=[_TRACE],
+    )
+    _add_conn_args(p)
+
+    sub = p.add_subparsers(dest="verb", required=True)
+
+    # mc
+    mc = sub.add_parser("mc", help="management controller")
+    mc_sub = mc.add_subparsers(dest="action", required=True)
+    mc_info = mc_sub.add_parser("info", help="get device id (manufacturer/firmware)")
+    mc_info.set_defaults(func=cmd_mc_info)
+    mc_reset = mc_sub.add_parser("reset", help="cold or warm BMC reset")
+    mc_reset.add_argument("kind", choices=["cold", "warm"])
+    mc_reset.set_defaults(func=cmd_mc_reset)
+    mc_st = mc_sub.add_parser("selftest", help="get self test results")
+    mc_st.set_defaults(func=cmd_mc_selftest)
+    mc_g = mc_sub.add_parser("guid", help="get device + system GUIDs")
+    mc_g.set_defaults(func=cmd_mc_guid)
+
+    # chassis
+    ch = sub.add_parser("chassis", help="chassis subsystem")
+    ch_sub = ch.add_subparsers(dest="action", required=True)
+    ch_status = ch_sub.add_parser("status", help="get chassis status")
+    ch_status.set_defaults(func=cmd_chassis_status)
+    ch_power = ch_sub.add_parser("power", help="chassis power control")
+    ch_power.add_argument("action", choices=list(CHASSIS_CTRL.values()) + ["status"])
+    ch_power.add_argument("--yes", action="store_true",
+                          help="confirm destructive power action")
+    ch_power.set_defaults(func=cmd_chassis_power)
+    ch_id = ch_sub.add_parser("identify", help="blink chassis identify LED")
+    ch_id.add_argument("duration", type=int, nargs="?", default=15,
+                       help="seconds (0 = off; default 15)")
+    ch_id.set_defaults(func=cmd_chassis_identify)
+    ch_bd = ch_sub.add_parser("bootdev",
+                              help="set host boot device (pxe/cd_dvd/hd/...)")
+    ch_bd.add_argument("device", help="`list` to see options")
+    ch_bd.add_argument("--persistent", action="store_true",
+                       help="apply on every subsequent boot, not just next")
+    ch_bd.add_argument("--uefi", action="store_true",
+                       help="boot in UEFI mode rather than legacy")
+    ch_bd.add_argument("--yes", action="store_true",
+                       help="confirm setting boot override")
+    ch_bd.set_defaults(func=cmd_chassis_bootdev)
+    ch_bf = ch_sub.add_parser("bootflags",
+                              help="read current boot flags (selector 5)")
+    ch_bf.set_defaults(func=cmd_chassis_bootflags)
+
+    # sel
+    sel = sub.add_parser("sel", help="system event log")
+    sel_sub = sel.add_subparsers(dest="action", required=True)
+    sel_info = sel_sub.add_parser("info", help="SEL repository info")
+    sel_info.set_defaults(func=cmd_sel_info)
+    sel_list = sel_sub.add_parser("list", help="walk and decode SEL entries")
+    sel_list.set_defaults(func=cmd_sel_list)
+
+    # sdr
+    sdr = sub.add_parser("sdr", help="sensor data records")
+    sdr_sub = sdr.add_subparsers(dest="action", required=True)
+    sdr_list = sdr_sub.add_parser("list", help="walk SDR repository")
+    sdr_list.set_defaults(func=cmd_sdr_list)
+
+    # sensor
+    sn = sub.add_parser("sensor", help="sensor readings")
+    sn_sub = sn.add_subparsers(dest="action", required=True)
+    sn_list = sn_sub.add_parser("list", help="walk SDR + read each sensor")
+    sn_list.set_defaults(func=cmd_sensor_list)
+
+    # lan
+    lan = sub.add_parser("lan", help="LAN configuration")
+    lan_sub = lan.add_subparsers(dest="action", required=True)
+    lan_print = lan_sub.add_parser("print", help="show IP/MAC/gateway/source")
+    lan_print.add_argument("channel", nargs="?", default=None,
+                           help="channel number 0..15 (default 0x0E "
+                                "= 'this channel'); accepts decimal or 0x hex")
+    lan_print.set_defaults(func=cmd_lan_print)
+
+    # user
+    user = sub.add_parser("user", help="user accounts")
+    user_sub = user.add_subparsers(dest="action", required=True)
+    user_list = user_sub.add_parser("list", help="list users via Get User Access/Name")
+    user_list.set_defaults(func=cmd_user_list)
+
+    # raw
+    raw = sub.add_parser("raw", help="send arbitrary NetFn/Cmd/Data")
+    raw.add_argument("netfn")
+    raw.add_argument("cmd")
+    raw.add_argument("data", nargs="*")
+    raw.set_defaults(func=cmd_raw)
+
+    # OEM verbs: `zipmi oem` + per-vendor shortcuts (dell, supermicro, ...).
+    from .oem_cmds import add_oem_subparsers
+    add_oem_subparsers(sub)
+
+    # Group Extension verbs: `zipmi groups` + per-body shortcuts (dcmi, ...).
+    from .groups_cmds import add_groups_subparsers
+    add_groups_subparsers(sub)
+
+    # fuzz
+    fz = sub.add_parser("fuzz", help="fuzzing / sweep harness")
+    fz_sub = fz.add_subparsers(dest="action", required=True)
+    fz_sweep = fz_sub.add_parser("sweep", help="walk every cmd of one NetFn")
+    fz_sweep.add_argument("--netfn", default="0x06", help="NetFn to sweep")
+    fz_sweep.add_argument("--rate", type=float, default=10.0,
+                          help="probe rate in Hz (default 10)")
+    fz_sweep.set_defaults(func=cmd_fuzz_sweep)
+    fz_rakp = fz_sub.add_parser("rakp", help="RAKP1 field mutation suite")
+    fz_rakp.set_defaults(func=cmd_fuzz_rakp)
+    fz_len = fz_sub.add_parser("length",
+                               help="IPMI 1.5 msg_length corruption")
+    fz_len.add_argument("--netfn", default="0x06", help="NetFn (default 0x06)")
+    fz_len.add_argument("--cmd", default="0x01", help="Cmd (default 0x01 GetDeviceID)")
+    fz_len.set_defaults(func=cmd_fuzz_length)
+    fz_ciph = fz_sub.add_parser("cipher",
+                                help="RMCP+ cipher-suite negotiation fuzz")
+    fz_ciph.set_defaults(func=cmd_fuzz_cipher)
+    fz_list = fz_sub.add_parser("list",
+                                help="enumerate available fuzzers + status")
+    fz_list.set_defaults(func=cmd_fuzz_list)
+
+    # vbmc
+    vb = sub.add_parser("vbmc", help="virtual BMC server")
+    vb_sub = vb.add_subparsers(dest="action", required=True)
+    vb_serve = vb_sub.add_parser("serve", help="run a virtual BMC")
+    vb_serve.add_argument("--persona", default="generic",
+                          help="generic | dell_idrac6 (default generic)")
+    vb_serve.add_argument("--bind", default="127.0.0.1",
+                          help="bind address (default 127.0.0.1)")
+    vb_serve.add_argument("--port", type=int, default=6230,
+                          help="UDP port (default 6230)")
+    vb_serve.set_defaults(func=cmd_vbmc_serve)
+
+    # scan
+    # sessionless — list pre-session commands per IPMI 2.0 spec
+    sl = sub.add_parser(
+        "sessionless",
+        help="list commands spec-permitted outside a session",
+    )
+    sl.set_defaults(func=cmd_sessionless_list)
+
+    sc = sub.add_parser("scan", help="sessionless probes")
+    sc_sub = sc.add_subparsers(dest="action", required=True)
+    for name, fn in [("asf-ping", cmd_scan_asf_ping),
+                     ("auth-caps", cmd_scan_auth_caps),
+                     ("cipher-zero", cmd_scan_cipher_zero),
+                     ("all", cmd_scan_all)]:
+        s = sc_sub.add_parser(name)
+        s.set_defaults(func=fn)
+
+    # Add wire-trace -v / -d to every leaf subparser. Walk the action tree
+    # and re-add the flags wherever a `func` default is set (i.e. it's a
+    # terminal verb that actually does work). Keeps the flags reachable
+    # via `zipmi mc info -v` AND `zipmi -v mc info`.
+    def _add_trace_to_leaves(parser: argparse.ArgumentParser) -> None:
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for sp in action.choices.values():
+                    if sp.get_default("func") is not None:
+                        # Already a leaf; merge in trace flags if missing.
+                        # default=SUPPRESS so a leaf without the flag given
+                        # doesn't overwrite a value set at the top level.
+                        names = {a.dest for a in sp._actions}
+                        if "verbose" not in names:
+                            sp.add_argument("-v", "--verbose",
+                                            action="store_true",
+                                            default=argparse.SUPPRESS,
+                                            help="human-readable event log")
+                        if "debug" not in names:
+                            sp.add_argument("-d", "--debug",
+                                            action="store_true",
+                                            default=argparse.SUPPRESS,
+                                            help="-v + hex of every packet")
+                        if "no_color" not in names:
+                            sp.add_argument("-n", "--no-color",
+                                            action="store_true",
+                                            default=argparse.SUPPRESS,
+                                            help="disable ANSI colour")
+                        if "palette" not in names:
+                            sp.add_argument("--palette",
+                                            default=argparse.SUPPRESS,
+                                            choices=["auto", "a",
+                                                     "pastel", "p",
+                                                     "set", "s",
+                                                     "dark", "d"],
+                                            metavar=("{auto/a,pastel/p,"
+                                                     "set/s,dark/d}"),
+                                            help="colour palette")
+                    _add_trace_to_leaves(sp)
+    _add_trace_to_leaves(p)
+
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    try:
+        return args.func(args)
+    except IPMIError as e:
+        print(f"IPMI error: {e}", file=sys.stderr)
+        return 1
+    except (OSError, socket.timeout) as e:
+        print(f"transport error: {e}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

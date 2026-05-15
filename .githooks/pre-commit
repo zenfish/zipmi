@@ -1,0 +1,10 @@
+#!/bin/bash
+# what: zipmi doc/code symmetry guard
+# why: STATUS.md / README.md / attacks-dell.md drift from code state.
+# success: exit 0 = commit allowed, exit 1 = block.
+# bypass: git commit --no-verify (only for emergency, document why).
+set -e
+ROOT="$(git rev-parse --show-toplevel)"
+PY="$ROOT/.venv/bin/python"
+[ -x "$PY" ] || PY="$(command -v python3)"
+"$PY" "$ROOT/scripts/check_doc_sync.py"
