@@ -819,6 +819,12 @@ def cmd_sessionless_list(args: argparse.Namespace) -> int:
         print(f"  0x{netfn:02x} 0x{cmd:02x}   {name}")
     print()
     print("Notes:")
+    print("""
+    To run one of the above, use the "raw" option; e.g.:
+
+        # send a "Get System GUID" request
+        $ zipmi -H 192.168.0.23 -P calvin -U root raw 0x06 0x37
+    """)
     print("  - The BMC's channel access config may still refuse them.")
     print("  - Run any zipmi verb without -U/-P to send sessionless.")
     print("  - ASF Presence Ping is also pre-session (RMCP class 0x06,")
@@ -992,8 +998,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub = p.add_subparsers(dest="verb", required=True)
 
-    # mc
-    mc = sub.add_parser("mc", help="management controller")
+    # mc (bmc = backwards-compat alias, mirrors ipmitool's deprecated "bmc")
+    mc = sub.add_parser("mc", aliases=["bmc"], help="management controller")
     mc_sub = mc.add_subparsers(dest="action", required=True)
     mc_info = mc_sub.add_parser("info", help="get device id (manufacturer/firmware)")
     mc_info.set_defaults(func=cmd_mc_info)

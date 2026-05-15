@@ -13,6 +13,9 @@
 #   make clean           BLOW IT ALL AWAY: build/ dist/ egg-info/
 #                        __pycache__ *.pyc caches AND .venv.
 #                        Keeps only .git. Regen venv with `make dev`.
+#   make wire-trace      regenerate docs/img/wire-trace.svg: spin a
+#                        throwaway vbmc, run `bmc info -d` against it with
+#                        FORCE_COLOR, freeze the coloured trace to SVG.
 #
 # Override the interpreter:  make install PY=python3.12
 
@@ -21,7 +24,7 @@ PY ?= python3
 SHELL := bash
 .ONESHELL:
 .SHELLFLAGS := -eu -o pipefail -c
-.PHONY: all build install dev uninstall verify clean
+.PHONY: all build install dev uninstall verify clean wire-trace
 .DEFAULT_GOAL := build
 
 all: build
@@ -82,3 +85,21 @@ clean:
 verify:
 	@$(PY) -c "import zipmi,scapy,cryptography; print(f'>> import zipmi OK ({zipmi.__file__})'); print(f'>> scapy {scapy.__version__}, cryptography {cryptography.__version__}')"
 	@for c in zipmi bmc-id; do command -v $$c >/dev/null 2>&1 && echo ">> $$c -> $$(command -v $$c)" || echo ">> $$c not on PATH (check the --user scripts dir)"; done
+
+# Throwaway vbmc on a high port so it can't collide with a real BMC or a
+# dev instance on 6230. FORCE_COLOR keeps the -d trace coloured through the
+# pipe (colorize.color_enabled() is otherwise TTY-gated). trap kills the
+# server even if the capture fails.
+wire-trace:
+	@echo ">> rendering docs/img/wire-trace.svg from a throwaway vbmc"
+	@mkdir -p docs/img
+	@$(PY) -m zipmi.cli.zipmi vbmc serve --persona dell_idrac6 --port 16230 >/dev/null 2>&1 &
+	@vb=$$!; trap "kill $$vb 2>/dev/null || true" EXIT; \
+	 for i in $$(seq 1 40); do \
+	   $(PY) -m zipmi.cli.zipmi -H 127.0.0.1 -p 16230 -U root -P calvin bmc info >/dev/null 2>&1 && break; \
+	   sleep 0.25; \
+	   if [ $$i -eq 40 ]; then echo "error: vbmc never came up" >&2; exit 1; fi; \
+	 done; \
+	 FORCE_COLOR=1 $(PY) -m zipmi.cli.zipmi -H 127.0.0.1 -p 16230 -U root -P calvin bmc info -d \
+	   | $(PY) scripts/ansi_to_svg.py docs/img/wire-trace.svg
+	@echo ">> done — embed: ![wire trace](docs/img/wire-trace.svg)"

@@ -241,7 +241,13 @@ def color_enabled(stream=None) -> bool:
     """Default policy: TTY out, NO_COLOR honoured (no-color.org).
 
     Callers that have an explicit user preference should override this.
+
+    FORCE_COLOR / CLICOLOR_FORCE (CI and BSD conventions, the inverse of
+    no-color.org's NO_COLOR) force colour on even off a TTY — needed to
+    capture the -d wire trace into a pipe for the docs SVG.
     """
+    if os.environ.get("FORCE_COLOR") or os.environ.get("CLICOLOR_FORCE"):
+        return True
     if os.environ.get("NO_COLOR"):
         return False
     s = stream if stream is not None else sys.stdout

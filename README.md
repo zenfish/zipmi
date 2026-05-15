@@ -4,11 +4,23 @@ Scapy-based IPMI library, CLI, and virtual BMC for security research.
 
 ## What
 
-Pure-Python IPMI stack built as Scapy layers. Lets you dissect, build, fuzz, and
-replay IPMI traffic with full byte-level visibility — every field of every
-packet is a real Scapy field, not an opaque blob.
+An ipmitool-like thing that is also a pure-Python IPMI stack built as 
+Scapy layers. Lets you dissect, build, fuzz, and replay IPMI traffic with 
+full byte-level visibility — every field of every packet is a real Scapy field, 
+not an opaque blob.
 
-Components:
+It's *somewhat* compatible with the basics of `ipmitool` (most definitely not all!),
+so things like this should work -
+```
+# print out the details of the default channel
+zipmi -H 10.0.0.1 -U root -P calvin lan print
+
+# some potentially interesting new things
+zipmi oem
+```
+Type "zipmi" or "zipmi --help" for other things it can do.
+
+Other components:
 
 - `zipmi.scapy_ipmi` — Scapy `Packet` classes for RMCP, ASF (DSP0136), IPMI 1.5
   session/message, IPMI 2.0 RMCP+, RAKP 1–4, and per-NetFn command payloads.
@@ -30,13 +42,16 @@ Components:
 
 ## Why
 
-`ipmitool` is a great oracle but is a black box for research. `pyghmi` is a
-solid library but its packet format lives in hand-rolled bytes. Neither makes
-it easy to drop into the middle of a session and ask "what does this byte
-mean?" or "what happens if I corrupt field X?". Scapy gives us that for free
-once the layers are defined.
+`freeipmi`/`ipmitool`/`ipmiutil`/etc. are great oracles and much more
+expansive in their scope but are a bit opaque/unweildy/difficult to change 
+for my research. `pyghmi` is a a wonderful library but its packet format 
+lives in hand-rolled bytes.  Neither makes it easy to drop into the middle 
+of a session and ask "what does this byte mean?" or "what happens if I 
+corrupt field X?". Scapy gives us that for free once the layers are defined.
 
 ## Targets
+
+(From the museum :))
 
 - Dell PowerEdge T710 / iDRAC6 — IPMI 1.5, NetFn 0x30 OEM (Dell IANA 674)
 - Supermicro X11SSZ-QF — IPMI 2.0 RMCP+, NetFn 0x30 OEM (SM IANA 10876)
@@ -360,6 +375,11 @@ session header, AuthCode, IPMB framing, NetFn, cmd / payload-type,
 data, and the completion-code byte of every response each get their
 own colour. Colour is on by default when stdout is a TTY.
 
+![zipmi bmc info -d wire trace](docs/img/wire-trace.svg)
+
+*`zipmi -H … -U root -P calvin bmc info -d` against a virtual BMC.
+Regenerate with `make wire-trace`.*
+
 Three palettes ship; pick one with `--palette`:
 
 - `auto` (default) — detects terminal background, picks pastel for
@@ -372,7 +392,8 @@ Three palettes ship; pick one with `--palette`:
 
 Single-letter forms accepted: `-p a` / `-p p` / `-p s` / `-p d`.
 Disable colour entirely with `-n` / `--no-color` or `NO_COLOR=1`
-(https://no-color.org).
+(https://no-color.org). Force it *on* off a TTY (e.g. capturing the
+trace into a pipe) with `FORCE_COLOR=1` or `CLICOLOR_FORCE=1`.
 
 Palette + role mapping live in a single `COLOR CONFIG` block at the
 top of `zipmi/scapy_ipmi/colorize.py`. Add a new palette by appending
