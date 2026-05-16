@@ -375,7 +375,7 @@ session header, AuthCode, IPMB framing, NetFn, cmd / payload-type,
 data, and the completion-code byte of every response each get their
 own colour. Colour is on by default when stdout is a TTY.
 
-[![zipmi bmc info -d wire trace](docs/img/wire-trace.svg)](https://raw.githubusercontent.com/zenfish/zipmi/main/docs/img/wire-trace.svg)
+[![zipmi bmc info -d wire trace](docs/img/wire-trace.svg)](docs/img/wire-trace.svg?raw=true)
 
 Three palettes ship; pick one with `--palette`:
 
