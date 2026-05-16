@@ -29,10 +29,10 @@ play-by-play; this doc is the bird's-eye view.
 ```
 $ pytest tests/ -q
 ..................................................................       [100%]
-80 passed in 2.91s
+90 passed in 2.91s
 ```
 
-Eight integration tests + 72 unit tests covering RMCP / ASF / IPMI 1.5
+Eight integration tests + 82 unit tests covering RMCP / ASF / IPMI 1.5
 checksums + auth code / RAKP HMACs + SIK derivation / OEM dispatch / Dell
 fullfw codegen + iDRAC9 dispatch-table codegen + Dell attack primitives
 + BMC generation fingerprinting.
@@ -62,7 +62,7 @@ fullfw codegen + iDRAC9 dispatch-table codegen + Dell attack primitives
 ## Live verification (vbmc loopback, Dell persona)
 
 ```
-$ zipmi vbmc serve --persona dell_idrac6 --port 6231 &
+$ zipmi vbmc serve --vpersona dell_idrac6 --vport 6231 &
 $ zipmi -H 127.0.0.1 -p 6231 mc info        # fingerprint = Dell
 $ zipmi -H 127.0.0.1 -p 6231 -I lanplus mc info  # same via RMCP+
 $ zipmi -H 127.0.0.1 -p 6231 fuzz sweep --netfn 0x06   # 8 impl, 0 errors
@@ -90,7 +90,7 @@ zipmi groups [body [cmd-name [byte ...]]]   # IPMI Group Ext dispatcher (NetFn 0
 zipmi dcmi [cmd-name [byte ...]]            # Group Ext shortcut (DCMI 1.5)
 zipmi scan {asf-ping, auth-caps, cipher-zero, all}
 zipmi fuzz sweep --netfn 0xNN [--rate Hz] [-v]
-zipmi vbmc serve --persona <name> [--bind addr] [--port n]
+zipmi vbmc serve --vpersona <name> [--vbind addr] [--vport n]
 ```
 
 Common flags: `-H -p -U -P -A {none,password,md5} -I {lan,lanplus} -C N -t T`,

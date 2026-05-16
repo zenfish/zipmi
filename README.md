@@ -171,7 +171,7 @@ zipmi -H 192.168.0.23 raw 0x06 0x38 0x01 0x04   # Get Chan Auth Caps
 zipmi sessionless                                # list pre-session cmds
 
 # In-process target for tests / fuzzing / CI
-zipmi vbmc serve --persona dell_idrac6 --port 6231 &
+zipmi vbmc serve --vpersona dell_idrac6 --vport 6231 &
 zipmi -H 127.0.0.1 -p 6231 mc info
 ```
 
@@ -202,7 +202,7 @@ dcmi        [cmd-name [byte ...]]          # shortcut for `groups dcmi ...`
 scan         {asf-ping, auth-caps, cipher-zero, all}
 sessionless                                # list spec-permitted pre-session cmds
 fuzz         {sweep --netfn 0xNN, rakp}
-vbmc         serve [--persona dell_idrac6|generic] [--port N]
+vbmc         serve [--vpersona dell_idrac6|generic] [--vport N]
                                                 # see VIRTUAL-BMC.md
 ```
 
@@ -455,7 +455,7 @@ docs/              — architecture, ipmi notes, fuzzing, vbmc
 <details>
 <summary><h2>Status</h2></summary>
 
-**Phases 0–13 done.** 80/80 tests pass. Live-verified against Dell iDRAC6
+**Phases 0–13 done.** 90/90 tests pass. Live-verified against Dell iDRAC6
 1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
 `lan print`, `user list`, `chassis bootflags`, `raw`,
 `scan {asf-ping, auth-caps, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
