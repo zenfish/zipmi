@@ -71,3 +71,21 @@ def test_vendor_listing_title_unchanged(capsys):
     _print_vendor_listing("supermicro")
     first = capsys.readouterr().out.splitlines()[0]
     assert "OEM commands" in first
+
+
+import zipmi
+
+
+def test_cmd_oem_run_skips_load_vendor_for_ipmi(monkeypatch, capsys):
+    """ipmi must NOT trigger zipmi.load_vendor (would raise)."""
+    def boom(v):
+        raise AssertionError(f"load_vendor({v!r}) must not be called for ipmi")
+    monkeypatch.setattr(zipmi, "load_vendor", boom)
+
+    from zipmi.cli.oem_cmds import cmd_oem_run
+    import argparse
+    # No cmd_name -> listing path: must not call load_vendor, returns 0.
+    args = argparse.Namespace(cmd_name=None, data=[])
+    rc = cmd_oem_run(args, "ipmi")
+    assert rc == 0
+    assert "Table G-1" in capsys.readouterr().out

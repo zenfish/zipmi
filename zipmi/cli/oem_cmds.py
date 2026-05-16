@@ -805,7 +805,8 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     import zipmi
     from .zipmi import _open_session  # noqa: WPS433 (intentional)
 
-    zipmi.load_vendor(vendor)
+    if vendor != "ipmi":
+        zipmi.load_vendor(vendor)   # standard cmds need no OEM table
     with _open_session(args) as s:
         cc, resp = s.send_raw(netfn, cmd, data_bytes)
 
