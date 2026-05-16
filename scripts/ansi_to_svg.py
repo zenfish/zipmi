@@ -19,13 +19,12 @@ RELATED  Makefile (wire-trace target), zipmi/scapy_ipmi/colorize.py
 
 from __future__ import annotations
 
-import re
 import sys
 
 from rich.console import Console
 from rich.text import Text
 
-TITLE = "zipmi bmc info -d  (vs. virtual BMC)"
+TITLE = "zipmi -H 127.0.0.1 -p 16230 -U root -P calvin bmc info -d"
 
 
 def main(argv: list[str]) -> int:
@@ -50,26 +49,24 @@ def main(argv: list[str]) -> int:
     console.print(Text.from_ansi(raw))
     console.save_svg(out, title=TITLE)
 
-    # rich emits only a viewBox, no width/height -> renderers (incl.
-    # GitHub's raw/blob view when you click through) size it to whatever
-    # box they have, which is also narrow, so it never gets bigger.
-    # Stamp explicit pixel dims from the viewBox: inline still scales to
-    # the column (max-width:100%), but click-through now opens full size.
-    _stamp_intrinsic_size(out)
+    # rich emits only a viewBox. Make the root responsive (width=100%):
+    # inline, GitHub's <img> still fits it to the README column; opened
+    # standalone it fills the browser viewport instead of being boxed
+    # *smaller* than the column (which is what fixed pixel width/height
+    # caused -- GitHub's blob SVG viewer shrinks a fixed-size SVG).
+    _make_responsive(out)
     print(f">> wrote {out}", file=sys.stderr)
     return 0
 
 
-def _stamp_intrinsic_size(path: str) -> None:
-    """Add width/height attrs to the <svg> root, derived from its viewBox."""
+def _make_responsive(path: str) -> None:
+    """Set width=100% on the <svg> root; viewBox keeps the aspect ratio."""
     svg = open(path, encoding="utf-8").read()
-    m = re.search(r'<svg\b[^>]*\bviewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
-    if not m:
+    head = svg.split(">", 1)[0]
+    if "viewBox=" not in head or "width=" in head:
         return
-    w, h = round(float(m.group(1))), round(float(m.group(2)))
-    if "width=" not in svg.split(">", 1)[0]:
-        svg = svg.replace("<svg ", f'<svg width="{w}" height="{h}" ', 1)
-        open(path, "w", encoding="utf-8").write(svg)
+    svg = svg.replace("<svg ", '<svg width="100%" ', 1)
+    open(path, "w", encoding="utf-8").write(svg)
     return
 
 
