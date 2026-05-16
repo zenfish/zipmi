@@ -2,7 +2,8 @@
 
 Scapy-based IPMI library, CLI, and virtual BMC for security research.
 
-## What
+<details open>
+<summary><h2>What</h2></summary>
 
 An ipmitool-like thing that is also a pure-Python IPMI stack built as 
 Scapy layers. Lets you dissect, build, fuzz, and replay IPMI traffic with 
@@ -34,13 +35,15 @@ Type "zipmi" or "zipmi --help" for other things it can do.
 - `zipmi.core` — high-level `Session` / `Transport` API.
 - `zipmi.cli` — `zipmi` command-line tool covering the common ipmitool verbs
   plus extras (`scan`, `dump`, `replay`, `diff`, `oem`, `vbmc`, `fuzz`).
-- `zipmi.vbmc` — minimal virtual BMC server. Useful as a CI fixture and a
-  fuzz target you can wedge on demand.
-- `zipmi.fuzz` — fuzzers built on top of the layer hierarchy and the vbmc.
+- `zipmi.vbmc` — minimal virtual BMC server that answers IPMI commands. 
+- `zipmi.fuzz` — simple fuzzers built on top of the layer hierarchy and the vbmc.
 - `zipmi.parsers.{md_table, idrac9_md}` — codegen scripts that ingest
   the BMC research markdown into Python data + markdown docs.
 
-## Why
+</details>
+
+<details>
+<summary><h2>Why</h2></summary>
 
 `freeipmi`/`ipmitool`/`ipmiutil`/etc. are great oracles and much more
 expansive in their scope but are a bit opaque/unweildy/difficult to change 
@@ -50,19 +53,25 @@ of a session and ask "what does this byte mean?" or "what happens if I
 corrupt field X?". Leveraging scapy helps give various interesting 
 capabilities once all the work is done.
 
-## Targets
+</details>
 
-(From the museum :))
+<details>
+<summary><h2>Targets</h2></summary>
+
+(From my museum :))
 
 - Dell PowerEdge T710 / iDRAC6 — IPMI 1.5, NetFn 0x30 OEM (Dell IANA 674)
 - Supermicro X11SSZ-QF — IPMI 2.0 RMCP+, NetFn 0x30 OEM (SM IANA 10876)
 
-## Install
+</details>
+
+<details>
+<summary><h2>Install</h2></summary>
 
 Recommended — clone, then:
 
 ```bash
-git clone https://github.com/.../zipmi.git && cd zipmi
+git clone https://github.com/zenfish/zipmi.git && cd zipmi
 make install                 # make dev for editable + dev extras
 ```
 
@@ -131,7 +140,10 @@ pip install -e '.[dev]'
 > find /opt/homebrew/lib/python3.11/site-packages -name 'zipmi*' -o -name '__editable__.zipmi*'
 > ```
 
-## Quickstart
+</details>
+
+<details open>
+<summary><h2>Quickstart</h2></summary>
 
 ```bash
 export ZIPMI_TARGET=192.168.0.23 ZIPMI_USER=root ZIPMI_PASS=calvin
@@ -163,7 +175,10 @@ zipmi vbmc serve --persona dell_idrac6 --port 6231 &
 zipmi -H 127.0.0.1 -p 6231 mc info
 ```
 
-## zipmi verbs
+</details>
+
+<details>
+<summary><h2>zipmi verbs</h2></summary>
 
 Full list of things zipmi understands
 
@@ -190,7 +205,28 @@ vbmc         serve [--persona dell_idrac6|generic] [--port N]
                                                 # see VIRTUAL-BMC.md
 ```
 
-## OEMs
+</details>
+
+<details>
+<summary><h2>bmc-id</h2></summary>
+
+`bmc-id` is a standalone, **unauthenticated** BMC identification +
+vulnerability probe shipped alongside `zipmi` (installed as its own
+`bmc-id` console script). It chains a handful of sessionless IPMI
+probes — plus an optional HTTPS/Redfish grab — to fingerprint a BMC's
+*real* vendor, generation, firmware revision, and security posture in
+roughly four UDP packets. Cheap enough to fan out at scan velocity;
+reads targets from argv or stdin and can emit a full report, JSON, or
+one TSV line per host.
+
+See **[BMC-ID.md](BMC-ID.md)** for the full writeup — every probe, the
+IPMI "tuple" fingerprint, the fleet knowledge-base, confidence
+scoring, output modes, and worked examples.
+
+</details>
+
+<details>
+<summary><h2>OEMs</h2></summary>
 
 The IPMI specification allows vendors to extend the protocol with a set of reserved
 codes. All the vendors - Dell, HP, Supermicro, etc. - use these, but rarely document
@@ -296,7 +332,10 @@ unique integer the IANA registry hands out to organisations
 (https://www.iana.org/assignments/enterprise-numbers/). Dell = 674,
 Supermicro = 10876, HPE = 11, Intel = 343, IBM = 2.
 
-## Group Extension cmds (DCMI, PICMG, HPM, ...)
+</details>
+
+<details>
+<summary><h2>Group Extension cmds (DCMI, PICMG, HPM, ...)</h2></summary>
 
 Standardised cmds that ride NetFn 0x2C/0x2D with a *group code* as
 the first data byte (0xDC=DCMI, 0x00=PICMG, 0x03=VITA, 0x04=HPM).
@@ -389,7 +428,10 @@ the per-palette role dict.
 In fuzz verbs the same flags additionally enable streaming output
 (rows print as each probe lands).
 
-## Repo Layout
+</details>
+
+<details>
+<summary><h2>Repo Layout</h2></summary>
 
 ```
 zipmi/scapy_ipmi/  — Scapy layers (rmcp, asf, ipmi15, ipmi20, rakp, oem/, ...)
@@ -402,7 +444,10 @@ tests/             — unit + integration + golden pcap diffs
 docs/              — architecture, ipmi notes, fuzzing, vbmc
 ```
 
-## Status
+</details>
+
+<details>
+<summary><h2>Status</h2></summary>
 
 **Phases 0–13 done.** 66/66 tests pass. Live-verified against Dell iDRAC6
 1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
@@ -424,6 +469,8 @@ mapping, monolithic vs modular split), `docs/fuzz.md` for the
 fuzzer inventory (sweep, rakp, length, cipher), `docs/fuzz-sweep.md`
 for the verbosity / bucket / skip-list details of `fuzz sweep`, and
 `docs/tutorial.md` for a Scapy-style REPL walkthrough.
+
+</details>
 
 # License
 
