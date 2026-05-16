@@ -24,3 +24,32 @@ def test_ipmi_listing_shape_and_size():
 def test_ipmi_stats_total_equals_named():
     total, named = _vendor_stats("ipmi")
     assert total == named == len(IPMI_CMD_NAMES)
+
+
+from zipmi.cli.oem_cmds import _find_cmd
+
+
+def _hits(query):
+    return _find_cmd(_vendor_listing("ipmi"), query)
+
+
+def test_exact_name_unique():
+    hits = _hits("Get Device ID")
+    assert len(hits) == 1
+    assert hits[0][0] == (0x06, 0x01)
+
+
+def test_normalized_forms_unique():
+    for q in ("get-device-id", "GetDeviceID", "get_device_id"):
+        hits = _hits(q)
+        assert len(hits) == 1, q
+        assert hits[0][0] == (0x06, 0x01)
+
+
+def test_ambiguous_substring_lists_many():
+    hits = _hits("Get Chassis")
+    assert len(hits) >= 2  # Capabilities + Status (+ more)
+
+
+def test_no_match_returns_empty():
+    assert _hits("DefinitelyNotAnIpmiCommandXYZ") == []
