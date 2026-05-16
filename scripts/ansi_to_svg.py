@@ -55,23 +55,30 @@ def main(argv: list[str]) -> int:
     console.print(Text.from_ansi(raw))
     console.save_svg(out, title=TITLE)
 
-    # rich emits only a viewBox. Make the root responsive (width=100%):
-    # inline, GitHub's <img> still fits it to the README column; opened
-    # standalone it fills the browser viewport instead of being boxed
-    # *smaller* than the column (which is what fixed pixel width/height
-    # caused -- GitHub's blob SVG viewer shrinks a fixed-size SVG).
-    _make_responsive(out)
+    # rich emits only a viewBox. Stamp explicit pixel width/height from
+    # it so the SVG has a real intrinsic size. width="100%" was wrong:
+    # opened standalone an SVG is a replaced element, and percentage
+    # width with no resolvable height collapses to the CSS default
+    # (~300x150) -- the tiny clicked view. README links the image
+    # straight to the raw file so the click bypasses GitHub's blob
+    # viewer and renders this at full intrinsic size.
+    _stamp_pixel_size(out)
     print(f">> wrote {out}", file=sys.stderr)
     return 0
 
 
-def _make_responsive(path: str) -> None:
-    """Set width=100% on the <svg> root; viewBox keeps the aspect ratio."""
+def _stamp_pixel_size(path: str) -> None:
+    """Add width/height/preserveAspectRatio to <svg>, from its viewBox."""
     svg = open(path, encoding="utf-8").read()
     head = svg.split(">", 1)[0]
     if "viewBox=" not in head or "width=" in head:
         return
-    svg = svg.replace("<svg ", '<svg width="100%" ', 1)
+    a, b = head.split('viewBox="0 0 ', 1)[1].split('"', 1)[0].split()
+    w, h = round(float(a)), round(float(b))
+    svg = svg.replace(
+        "<svg ",
+        f'<svg width="{w}" height="{h}" '
+        'preserveAspectRatio="xMidYMid meet" ', 1)
     open(path, "w", encoding="utf-8").write(svg)
     return
 
