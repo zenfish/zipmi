@@ -20,7 +20,7 @@ zipmi oem
 ```
 Type "zipmi" or "zipmi --help" for other things it can do.
 
-Other components:
+### Other components:
 
 - `zipmi.scapy_ipmi` — Scapy `Packet` classes for RMCP, ASF (DSP0136), IPMI 1.5
   session/message, IPMI 2.0 RMCP+, RAKP 1–4, and per-NetFn command payloads.
@@ -190,14 +190,14 @@ vbmc         serve [--persona dell_idrac6|generic] [--port N]
                                                 # see VIRTUAL-BMC.md
 ```
 
-# OEMs
+## OEMs
 
 The IPMI specification allows vendors to extend the protocol with a set of reserved
 codes. All the vendors - Dell, HP, Supermicro, etc. - use these, but rarely document
 them. What follows are some guesses, information gathering, and following the bytes
 for a couple of them (from my own Dell and Supermicro servers.)
 
-## OEM discovery and usage
+### OEM discovery and usage
 
 **OEM by name** — instead of `zipmi raw 0x00 0x01`, use the vendor's
 own catalogue:
@@ -296,7 +296,7 @@ unique integer the IANA registry hands out to organisations
 (https://www.iana.org/assignments/enterprise-numbers/). Dell = 674,
 Supermicro = 10876, HPE = 11, Intel = 343, IBM = 2.
 
-# Group Extension cmds (DCMI, PICMG, HPM, ...)
+## Group Extension cmds (DCMI, PICMG, HPM, ...)
 
 Standardised cmds that ride NetFn 0x2C/0x2D with a *group code* as
 the first data byte (0xDC=DCMI, 0x00=PICMG, 0x03=VITA, 0x04=HPM).
@@ -425,7 +425,7 @@ fuzzer inventory (sweep, rakp, length, cipher), `docs/fuzz-sweep.md`
 for the verbosity / bucket / skip-list details of `fuzz sweep`, and
 `docs/tutorial.md` for a Scapy-style REPL walkthrough.
 
-## License
+# License
 
 MIT. `third_party/pyghmi` (when cloned) is Apache-2.0 — used as algorithmic
 reference only, no code copy. Per-file headers cite pyghmi where relevant.
