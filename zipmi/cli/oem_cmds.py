@@ -79,6 +79,10 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "supermicro":
         listing = _vendor_listing("supermicro")
         return len(listing), len(listing)
+    if vendor == "ipmi":
+        from ..scapy_ipmi.cmd_names import IPMI_CMD_NAMES
+        n = len(IPMI_CMD_NAMES)
+        return n, n
     return 0, 0
 
 
@@ -527,6 +531,22 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             if ctx.get("reservation_from"):
                 row["reservation_from"] = ctx["reservation_from"]
         return _normalize_listing(out, vendor)
+    if vendor == "ipmi":
+        from ..scapy_ipmi.cmd_names import IPMI_CMD_NAMES
+        out: dict[tuple[int, int], dict] = {
+            (netfn, cmd): {
+                "name": name,
+                "priv": None,
+                "desc": "",
+                "live": None,
+                "missing": False,
+                "prefix": None,
+                "args": "",
+                "src": "IPMI 2.0 spec, Table G-1",
+            }
+            for (netfn, cmd), name in IPMI_CMD_NAMES.items()
+        }
+        return _normalize_listing(out, "ipmi")
     raise KeyError(f"unknown vendor: {vendor}")
 
 
