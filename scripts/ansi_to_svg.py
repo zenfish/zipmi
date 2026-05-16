@@ -36,16 +36,18 @@ def main(argv: list[str]) -> int:
     out = argv[1]
     raw = sys.stdin.buffer.read().decode("utf-8", "replace")
 
-    # width=100: rich wraps the long hex rows (the SEND/RECV blobs run
-    # ~130-177 cols) onto continuation lines instead of producing a single
-    # ~180-col canvas. GitHub fits the SVG to the ~880px text column, so
-    # apparent font size ~= column_px / cols: halving the column count
-    # roughly doubles the on-page font. Non-hex lines top out at ~94 cols,
-    # so 100 leaves them un-wrapped.
+    # width=178: keep every SEND/RECV line whole. The label+hex rows run
+    # up to 177 cols; a narrower console wraps the coloured byte string
+    # onto its own line, splitting it from its "→ SEND <cmd>" label and
+    # making the trace harder to read. rich uses a fixed glyph cell, so a
+    # wider canvas does NOT shrink the font in the click-through full-size
+    # view -- it only enlarges the canvas and removes the wrap. (Trade:
+    # the GitHub-inline thumbnail, scaled to the ~880px column, is
+    # smaller; full-size click-through is the intended reading path.)
     # color_system="truecolor" + force_terminal: the trace uses 24-bit
     # \x1b[38;2;R;G;Bm escapes. Without these rich sees a non-tty sink
     # (/dev/null), picks color_system=None, and records monochrome.
-    console = Console(record=True, width=100, color_system="truecolor",
+    console = Console(record=True, width=178, color_system="truecolor",
                       force_terminal=True, file=open("/dev/null", "w"))
     # Prompt line first, same font/flow as the trace (not the window
     # title) so it reads like a real shell session: `$ zipmi …`.
