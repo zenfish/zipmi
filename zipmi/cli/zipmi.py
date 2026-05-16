@@ -94,62 +94,66 @@ PRE_SESSION_CMDS: dict[tuple[int, int], str] = {
 # -- argument plumbing ----------------------------------------------------
 
 
-def _add_conn_args(p: argparse.ArgumentParser) -> None:
-    p.add_argument("-H", "--host",
-                   default=os.environ.get("ZIPMI_TARGET"),
-                   help="BMC IP/hostname (env: ZIPMI_TARGET)")
-    p.add_argument("-p", "--port", type=int, default=623,
-                   help="UDP port (default 623)")
-    p.add_argument("-U", "--user",
-                   default=os.environ.get("ZIPMI_USER"),
-                   help="username (env: ZIPMI_USER). If neither -U nor -P is "
-                        "given, requests are sent sessionless (no auth).")
-    p.add_argument("-P", "--password",
-                   default=os.environ.get("ZIPMI_PASS"),
-                   help="password (env: ZIPMI_PASS)")
-    p.add_argument("-A", "--auth",
-                   choices=AUTH_BY_NAME.keys(),
-                   default="md5",
-                   help="auth type for IPMI 1.5 session (default md5)")
-    p.add_argument("-I", "--interface",
-                   choices=["lan", "lanplus"],
-                   default="lan",
-                   help="lan = IPMI 1.5; lanplus = IPMI 2.0 RMCP+ (default lan)")
-    p.add_argument("-C", "--cipher", type=int, default=3,
-                   help="lanplus cipher suite (default 3 = HMAC-SHA1+AES-CBC-128)")
-    p.add_argument("-t", "--timeout", type=float, default=3.0,
-                   help="UDP timeout in seconds (default 3.0)")
+def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
+    """Position-independent global flags.
+
+    suppress=True => every default is argparse.SUPPRESS, so re-parsing the
+    globals-stripped remainder never clobbers values the pre-pass set.
+    """
+    def d(real):
+        return argparse.SUPPRESS if suppress else real
+
+    parser.add_argument("-H", "--host",
+                        default=d(os.environ.get("ZIPMI_TARGET")),
+                        help="BMC IP/hostname (env: ZIPMI_TARGET)")
+    parser.add_argument("-p", "--port", type=int, default=d(623),
+                        help="UDP port (default 623)")
+    parser.add_argument("-U", "--user",
+                        default=d(os.environ.get("ZIPMI_USER")),
+                        help="username (env: ZIPMI_USER). If neither -U nor "
+                             "-P is given, requests are sent sessionless.")
+    parser.add_argument("-P", "--password",
+                        default=d(os.environ.get("ZIPMI_PASS")),
+                        help="password (env: ZIPMI_PASS)")
+    parser.add_argument("-A", "--auth", choices=AUTH_BY_NAME.keys(),
+                        default=d("md5"),
+                        help="auth type for IPMI 1.5 session (default md5)")
+    parser.add_argument("-I", "--interface", choices=["lan", "lanplus"],
+                        default=d("lan"),
+                        help="lan = IPMI 1.5; lanplus = IPMI 2.0 RMCP+ "
+                             "(default lan)")
+    parser.add_argument("-C", "--cipher", type=int, default=d(3),
+                        help="lanplus cipher suite (default 3 = "
+                             "HMAC-SHA1+AES-CBC-128)")
+    parser.add_argument("-t", "--timeout", type=float, default=d(3.0),
+                        help="UDP timeout in seconds (default 3.0)")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        default=d(False),
+                        help="log high-level events with timestamps (no hex)")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        default=d(False),
+                        help="-v + hex-dump every packet (incl. session "
+                             "setup)")
+    parser.add_argument("-n", "--no-color", action="store_true",
+                        default=d(False),
+                        help="disable ANSI colour in wire-trace hex output")
+    parser.add_argument("--palette", default=d(None),
+                        choices=["auto", "a", "pastel", "p",
+                                 "set", "s", "dark", "d"],
+                        metavar="{auto/a,pastel/p,set/s,dark/d}",
+                        help="colour palette (default: auto — detects "
+                             "terminal background)")
 
 
-# Shared parent parser for verbosity flags. Added via parents=[_TRACE]
-# on every leaf subparser so `zipmi mc info -v` works as well as
-# `zipmi -v mc info`. Two trace levels:
-#   -v / --verbose : human-readable events with timestamps — "contacting
-#                    <target>", "→ send <netfn>/<cmd>", "← recv cc=0x00",
-#                    "timeout", "session activated". No hex.
-#   -d / --debug   : everything -v shows PLUS hex dump of every packet
-#                    in/out (including session setup chatter).
-# In fuzz verbs the same flags also enable streaming output.
-_TRACE = argparse.ArgumentParser(add_help=False)
-# default=SUPPRESS so a subparser without the flag doesn't clobber the
-# value set at the top level (and vice-versa). main() reads via getattr
-# with a False fallback.
-_TRACE.add_argument("-v", "--verbose", action="store_true",
-                    default=argparse.SUPPRESS,
-                    help="log high-level events with timestamps (no hex)")
-_TRACE.add_argument("-d", "--debug", action="store_true",
-                    default=argparse.SUPPRESS,
-                    help="-v + hex-dump every packet (incl. session setup)")
-_TRACE.add_argument("-n", "--no-color", action="store_true",
-                    default=argparse.SUPPRESS,
-                    help="disable ANSI colour in wire-trace hex output")
-_TRACE.add_argument("--palette", default=argparse.SUPPRESS,
-                    choices=["auto", "a", "pastel", "p",
-                             "set", "s", "dark", "d"],
-                    metavar="{auto/a,pastel/p,set/s,dark/d}",
-                    help="colour palette (default: auto — detects "
-                         "terminal background and picks pastel for dark, "
-                         "set for light)")
+def parse_cli(argv: list[str] | None = None) -> argparse.Namespace:
+    """Two-pass parse: strip globals from anywhere, then parse the
+    verb/action remainder into the same namespace."""
+    pre = argparse.ArgumentParser(add_help=False)
+    add_globals(pre, suppress=False)
+    ns, rest = pre.parse_known_args(argv)
+    parser = build_parser()
+    parser.parse_args(rest, namespace=ns)
+    return ns
 
 
 def _require_host(args: argparse.Namespace) -> str:
@@ -850,8 +854,8 @@ def cmd_vbmc_serve(args: argparse.Namespace) -> int:
             print(f"error: {e}", file=sys.stderr)
             return 2
     try:
-        asyncio.run(run(persona_name=args.persona,
-                        host=args.bind, port=args.port,
+        asyncio.run(run(persona_name=args.vpersona,
+                        host=args.vbind, port=args.vport,
                         trace=trace, color=color))
     except KeyboardInterrupt:
         print()
@@ -992,9 +996,8 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="zipmi",
         description="Scapy-based IPMI client.",
-        parents=[_TRACE],
     )
-    _add_conn_args(p)
+    add_globals(p, suppress=True)
 
     sub = p.add_subparsers(dest="verb", required=True)
 
@@ -1115,12 +1118,12 @@ def build_parser() -> argparse.ArgumentParser:
     vb = sub.add_parser("vbmc", help="virtual BMC server")
     vb_sub = vb.add_subparsers(dest="action", required=True)
     vb_serve = vb_sub.add_parser("serve", help="run a virtual BMC")
-    vb_serve.add_argument("--persona", default="generic",
+    vb_serve.add_argument("--vpersona", dest="vpersona", default="generic",
                           help="generic | dell_idrac6 (default generic)")
-    vb_serve.add_argument("--bind", default="127.0.0.1",
+    vb_serve.add_argument("--vbind", dest="vbind", default="127.0.0.1",
                           help="bind address (default 127.0.0.1)")
-    vb_serve.add_argument("--port", type=int, default=6230,
-                          help="UDP port (default 6230)")
+    vb_serve.add_argument("--vport", dest="vport", type=int, default=6230,
+                          help="vBMC UDP listen port (default 6230)")
     vb_serve.set_defaults(func=cmd_vbmc_serve)
 
     # scan
@@ -1140,53 +1143,11 @@ def build_parser() -> argparse.ArgumentParser:
         s = sc_sub.add_parser(name)
         s.set_defaults(func=fn)
 
-    # Add wire-trace -v / -d to every leaf subparser. Walk the action tree
-    # and re-add the flags wherever a `func` default is set (i.e. it's a
-    # terminal verb that actually does work). Keeps the flags reachable
-    # via `zipmi mc info -v` AND `zipmi -v mc info`.
-    def _add_trace_to_leaves(parser: argparse.ArgumentParser) -> None:
-        for action in parser._actions:
-            if isinstance(action, argparse._SubParsersAction):
-                for sp in action.choices.values():
-                    if sp.get_default("func") is not None:
-                        # Already a leaf; merge in trace flags if missing.
-                        # default=SUPPRESS so a leaf without the flag given
-                        # doesn't overwrite a value set at the top level.
-                        names = {a.dest for a in sp._actions}
-                        if "verbose" not in names:
-                            sp.add_argument("-v", "--verbose",
-                                            action="store_true",
-                                            default=argparse.SUPPRESS,
-                                            help="human-readable event log")
-                        if "debug" not in names:
-                            sp.add_argument("-d", "--debug",
-                                            action="store_true",
-                                            default=argparse.SUPPRESS,
-                                            help="-v + hex of every packet")
-                        if "no_color" not in names:
-                            sp.add_argument("-n", "--no-color",
-                                            action="store_true",
-                                            default=argparse.SUPPRESS,
-                                            help="disable ANSI colour")
-                        if "palette" not in names:
-                            sp.add_argument("--palette",
-                                            default=argparse.SUPPRESS,
-                                            choices=["auto", "a",
-                                                     "pastel", "p",
-                                                     "set", "s",
-                                                     "dark", "d"],
-                                            metavar=("{auto/a,pastel/p,"
-                                                     "set/s,dark/d}"),
-                                            help="colour palette")
-                    _add_trace_to_leaves(sp)
-    _add_trace_to_leaves(p)
-
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
+    args = parse_cli(argv)
     try:
         return args.func(args)
     except IPMIError as e:
