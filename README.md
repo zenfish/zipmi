@@ -455,7 +455,7 @@ docs/              — architecture, ipmi notes, fuzzing, vbmc
 <details>
 <summary><h2>Status</h2></summary>
 
-**Phases 0–13 done.** 90/90 tests pass. Live-verified against Dell iDRAC6
+**Phases 0–13 done.** 91/91 tests pass. Live-verified against Dell iDRAC6
 1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
 `lan print`, `user list`, `chassis bootflags`, `raw`,
 `scan {asf-ping, auth-caps, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /

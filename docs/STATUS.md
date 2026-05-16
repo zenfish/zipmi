@@ -29,10 +29,10 @@ play-by-play; this doc is the bird's-eye view.
 ```
 $ pytest tests/ -q
 ..................................................................       [100%]
-90 passed in 2.91s
+91 passed in 2.91s
 ```
 
-Eight integration tests + 82 unit tests covering RMCP / ASF / IPMI 1.5
+Eight integration tests + 83 unit tests covering RMCP / ASF / IPMI 1.5
 checksums + auth code / RAKP HMACs + SIK derivation / OEM dispatch / Dell
 fullfw codegen + iDRAC9 dispatch-table codegen + Dell attack primitives
 + BMC generation fingerprinting.

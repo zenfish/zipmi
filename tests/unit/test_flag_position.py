@@ -58,6 +58,17 @@ def test_top_help_lists_globals():
     assert "--debug" in help_text
 
 
+def test_leaf_help_omits_globals(capsys):
+    # Spec decision 4: the per-leaf trace-flag hack is removed, so globals
+    # are documented only at the top level, never in leaf --help. The
+    # pre-pass still makes them work positionally regardless.
+    with pytest.raises(SystemExit):
+        parse_cli(["mc", "info", "--help"])
+    leaf_help = capsys.readouterr().out
+    assert "--host" not in leaf_help
+    assert "--palette" not in leaf_help
+
+
 def test_vbmc_flags_renamed_with_v_prefix():
     ns = parse_cli(["vbmc", "serve", "--vport", "7000",
                     "--vbind", "0.0.0.0", "--vpersona", "dell_idrac6"])
