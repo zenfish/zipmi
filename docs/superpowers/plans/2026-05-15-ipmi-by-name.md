@@ -50,7 +50,10 @@ def test_ipmi_listing_shape_and_size():
     for k in ("name", "priv", "desc", "live", "missing",
               "prefix", "args", "src"):
         assert k in row, f"row missing key {k!r}"
-    assert row["name"] == "Get Device ID"
+    # _normalize_listing camelizes display names (same as OEM
+    # catalogues): "Get Device ID" -> "GetDeviceID". Resolution still
+    # accepts the spaced form (covered in Task 2).
+    assert row["name"] == "GetDeviceID"
     assert row["prefix"] is None
     assert "Table G-1" in row["src"]
 
@@ -197,7 +200,7 @@ def test_ipmi_listing_title_not_oem(capsys):
     first = out.splitlines()[0]
     assert "Table G-1" in first
     assert "OEM" not in first
-    assert "Get Device ID" in out  # a real row rendered
+    assert "GetDeviceID" in out  # a real row rendered (camelized)
 
 
 def test_vendor_listing_title_unchanged(capsys):
@@ -457,7 +460,9 @@ def test_ipmi_verb_send_device_id(vbmc_dell, capsys):
                "ipmi", "Get Device ID"])
     out = capsys.readouterr().out
     assert rc == 0
-    assert "Get Device ID" in out
+    # name resolves from the spaced form; output prints the camelized
+    # display name + wire address.
+    assert "GetDeviceID" in out
 
 
 def test_ipmi_verb_listing_needs_no_host(capsys):
@@ -466,7 +471,7 @@ def test_ipmi_verb_listing_needs_no_host(capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "Table G-1" in out
-    assert "Get Device ID" in out
+    assert "GetDeviceID" in out
 ```
 
 - [ ] **Step 2: Run test to verify it passes**
