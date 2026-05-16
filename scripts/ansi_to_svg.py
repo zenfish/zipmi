@@ -24,7 +24,8 @@ import sys
 from rich.console import Console
 from rich.text import Text
 
-TITLE = "zipmi -H 127.0.0.1 -p 16230 -U root -P calvin bmc info -d"
+TITLE = "zipmi — bmc info -d wire trace"
+CMD = "zipmi -H 127.0.0.1 -p 16230 -U root -P calvin bmc info -d"
 
 
 def main(argv: list[str]) -> int:
@@ -46,6 +47,11 @@ def main(argv: list[str]) -> int:
     # (/dev/null), picks color_system=None, and records monochrome.
     console = Console(record=True, width=100, color_system="truecolor",
                       force_terminal=True, file=open("/dev/null", "w"))
+    # Prompt line first, same font/flow as the trace (not the window
+    # title) so it reads like a real shell session: `$ zipmi …`.
+    prompt = Text("$ ", style="bold")
+    prompt.append(CMD, style="bold")
+    console.print(prompt)
     console.print(Text.from_ansi(raw))
     console.save_svg(out, title=TITLE)
 

@@ -377,9 +377,6 @@ own colour. Colour is on by default when stdout is a TTY.
 
 ![zipmi bmc info -d wire trace](docs/img/wire-trace.svg)
 
-*`zipmi -H … -U root -P calvin bmc info -d` against a virtual BMC.
-Regenerate with `make wire-trace`.*
-
 Three palettes ship; pick one with `--palette`:
 
 - `auto` (default) — detects terminal background, picks pastel for
