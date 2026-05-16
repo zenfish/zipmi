@@ -47,7 +47,8 @@ expansive in their scope but are a bit opaque/unweildy/difficult to change
 for my research. `pyghmi` is a a wonderful library but its packet format 
 lives in hand-rolled bytes.  Neither makes it easy to drop into the middle 
 of a session and ask "what does this byte mean?" or "what happens if I 
-corrupt field X?". Scapy gives us that for free once the layers are defined.
+corrupt field X?". Leveraging scapy helps give various interesting 
+capabilities once all the work is done.
 
 ## Targets
 
@@ -55,29 +56,6 @@ corrupt field X?". Scapy gives us that for free once the layers are defined.
 
 - Dell PowerEdge T710 / iDRAC6 — IPMI 1.5, NetFn 0x30 OEM (Dell IANA 674)
 - Supermicro X11SSZ-QF — IPMI 2.0 RMCP+, NetFn 0x30 OEM (SM IANA 10876)
-
-## Status
-
-**Phases 0–13 done.** 66/66 tests pass. Live-verified against Dell iDRAC6
-1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
-`lan print`, `user list`, `chassis bootflags`, `raw`,
-`scan {asf-ping, auth-caps, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
-RAKP / cipher 3 lanplus session. 192 Dell OEM dispatch entries auto-loaded
-from `fullfw-ipmi-commands.md`; 313 iDRAC9 handler names from rootfs `.so`
-catalog **plus 271 (NetFn, cmd, priv) tuples from static dispatch-table
-extraction**; 11 static + 2 factory Dell attack primitives in
-`attacks/dell.py`.
-
-See `docs/STATUS.md` for the per-commit phase log, `docs/command-table.md`
-for spec coverage, `docs/dell-command-table.md` for the full Dell iDRAC6
-dispatch surface (192 entries), `docs/idrac9-command-table.md` for the
-iDRAC9 handler catalog (313 entries), `docs/attacks-dell.md` for the
-attack primitives catalog, `docs/bmc-generations.md` for the
-`Manufacturer Generation` heuristic (Dell product-ID → iDRAC6/8/9
-mapping, monolithic vs modular split), `docs/fuzz.md` for the
-fuzzer inventory (sweep, rakp, length, cipher), `docs/fuzz-sweep.md`
-for the verbosity / bucket / skip-list details of `fuzz sweep`, and
-`docs/tutorial.md` for a Scapy-style REPL walkthrough.
 
 ## Install
 
@@ -185,7 +163,9 @@ zipmi vbmc serve --persona dell_idrac6 --port 6231 &
 zipmi -H 127.0.0.1 -p 6231 mc info
 ```
 
-## CLI surface
+## zipmi verbs
+
+Full list of things zipmi understands
 
 ```
 mc       {info, reset cold|warm, selftest, guid}
@@ -209,6 +189,15 @@ fuzz         {sweep --netfn 0xNN, rakp}
 vbmc         serve [--persona dell_idrac6|generic] [--port N]
                                                 # see VIRTUAL-BMC.md
 ```
+
+# OEMs
+
+The IPMI specification allows vendors to extend the protocol with a set of reserved
+codes. All the vendors - Dell, HP, Supermicro, etc. - use these, but rarely document
+them. What follows are some guesses, information gathering, and following the bytes
+for a couple of them (from my own Dell and Supermicro servers.)
+
+## OEM discovery and usage
 
 **OEM by name** — instead of `zipmi raw 0x00 0x01`, use the vendor's
 own catalogue:
@@ -240,7 +229,7 @@ appear in the listing as `(unnamed: ...)` with their originating
 dispatch-table name in the description so you can still send raw
 bytes via `zipmi raw`.
 
-Source-of-truth per vendor:
+Source-of-truth (hahah... well, for some value of truth) per vendor:
 
 - **idrac6**: handler symbols recovered from `T710-bmc/bin/fullfw`
   with radare2 auto-analysis (ARM debug-string residue carried function
@@ -307,7 +296,7 @@ unique integer the IANA registry hands out to organisations
 (https://www.iana.org/assignments/enterprise-numbers/). Dell = 674,
 Supermicro = 10876, HPE = 11, Intel = 343, IBM = 2.
 
-### Group Extension cmds (DCMI, PICMG, HPM, ...)
+# Group Extension cmds (DCMI, PICMG, HPM, ...)
 
 Standardised cmds that ride NetFn 0x2C/0x2D with a *group code* as
 the first data byte (0xDC=DCMI, 0x00=PICMG, 0x03=VITA, 0x04=HPM).
@@ -400,7 +389,7 @@ the per-palette role dict.
 In fuzz verbs the same flags additionally enable streaming output
 (rows print as each probe lands).
 
-## Layout
+## Repo Layout
 
 ```
 zipmi/scapy_ipmi/  — Scapy layers (rmcp, asf, ipmi15, ipmi20, rakp, oem/, ...)
@@ -412,6 +401,29 @@ examples/          — runnable demos
 tests/             — unit + integration + golden pcap diffs
 docs/              — architecture, ipmi notes, fuzzing, vbmc
 ```
+
+## Status
+
+**Phases 0–13 done.** 66/66 tests pass. Live-verified against Dell iDRAC6
+1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
+`lan print`, `user list`, `chassis bootflags`, `raw`,
+`scan {asf-ping, auth-caps, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
+RAKP / cipher 3 lanplus session. 192 Dell OEM dispatch entries auto-loaded
+from `fullfw-ipmi-commands.md`; 313 iDRAC9 handler names from rootfs `.so`
+catalog **plus 271 (NetFn, cmd, priv) tuples from static dispatch-table
+extraction**; 11 static + 2 factory Dell attack primitives in
+`attacks/dell.py`.
+
+See `docs/STATUS.md` for the per-commit phase log, `docs/command-table.md`
+for spec coverage, `docs/dell-command-table.md` for the full Dell iDRAC6
+dispatch surface (192 entries), `docs/idrac9-command-table.md` for the
+iDRAC9 handler catalog (313 entries), `docs/attacks-dell.md` for the
+attack primitives catalog, `docs/bmc-generations.md` for the
+`Manufacturer Generation` heuristic (Dell product-ID → iDRAC6/8/9
+mapping, monolithic vs modular split), `docs/fuzz.md` for the
+fuzzer inventory (sweep, rakp, length, cipher), `docs/fuzz-sweep.md`
+for the verbosity / bucket / skip-list details of `fuzz sweep`, and
+`docs/tutorial.md` for a Scapy-style REPL walkthrough.
 
 ## License
 
