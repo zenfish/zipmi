@@ -89,3 +89,26 @@ def test_cmd_oem_run_skips_load_vendor_for_ipmi(monkeypatch, capsys):
     rc = cmd_oem_run(args, "ipmi")
     assert rc == 0
     assert "Table G-1" in capsys.readouterr().out
+
+
+from zipmi.cli.oem_cmds import VENDORS
+from zipmi.cli.zipmi import build_parser
+
+
+def test_ipmi_is_not_an_oem_vendor():
+    assert "ipmi" not in VENDORS
+
+
+def test_ipmi_verb_parses_and_dispatches():
+    parser = build_parser()
+    ns = parser.parse_args(["ipmi", "Get Device ID", "0x01"])
+    assert ns.cmd_name == "Get Device ID"
+    assert ns.data == ["0x01"]
+    assert callable(ns.func)
+
+
+def test_ipmi_verb_listing_no_args():
+    parser = build_parser()
+    ns = parser.parse_args(["ipmi"])
+    assert getattr(ns, "cmd_name", None) in (None, [])
+    assert callable(ns.func)
