@@ -19,6 +19,7 @@ RELATED  Makefile (wire-trace target), zipmi/scapy_ipmi/colorize.py
 
 from __future__ import annotations
 
+import re
 import sys
 
 from rich.console import Console
@@ -35,17 +36,41 @@ def main(argv: list[str]) -> int:
     out = argv[1]
     raw = sys.stdin.buffer.read().decode("utf-8", "replace")
 
-    # width=180: the -d hex rows are wide (~177 visible cols); a narrower
-    # console would wrap the trace and wreck the alignment we're showing off.
+    # width=100: rich wraps the long hex rows (the SEND/RECV blobs run
+    # ~130-177 cols) onto continuation lines instead of producing a single
+    # ~180-col canvas. GitHub fits the SVG to the ~880px text column, so
+    # apparent font size ~= column_px / cols: halving the column count
+    # roughly doubles the on-page font. Non-hex lines top out at ~94 cols,
+    # so 100 leaves them un-wrapped.
     # color_system="truecolor" + force_terminal: the trace uses 24-bit
     # \x1b[38;2;R;G;Bm escapes. Without these rich sees a non-tty sink
     # (/dev/null), picks color_system=None, and records monochrome.
-    console = Console(record=True, width=180, color_system="truecolor",
+    console = Console(record=True, width=100, color_system="truecolor",
                       force_terminal=True, file=open("/dev/null", "w"))
     console.print(Text.from_ansi(raw))
     console.save_svg(out, title=TITLE)
+
+    # rich emits only a viewBox, no width/height -> renderers (incl.
+    # GitHub's raw/blob view when you click through) size it to whatever
+    # box they have, which is also narrow, so it never gets bigger.
+    # Stamp explicit pixel dims from the viewBox: inline still scales to
+    # the column (max-width:100%), but click-through now opens full size.
+    _stamp_intrinsic_size(out)
     print(f">> wrote {out}", file=sys.stderr)
     return 0
+
+
+def _stamp_intrinsic_size(path: str) -> None:
+    """Add width/height attrs to the <svg> root, derived from its viewBox."""
+    svg = open(path, encoding="utf-8").read()
+    m = re.search(r'<svg\b[^>]*\bviewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
+    if not m:
+        return
+    w, h = round(float(m.group(1))), round(float(m.group(2)))
+    if "width=" not in svg.split(">", 1)[0]:
+        svg = svg.replace("<svg ", f'<svg width="{w}" height="{h}" ', 1)
+        open(path, "w", encoding="utf-8").write(svg)
+    return
 
 
 if __name__ == "__main__":
