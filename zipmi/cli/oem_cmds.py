@@ -606,7 +606,9 @@ def _print_vendor_listing(vendor: str) -> None:
         print(f"# {vendor}: no commands registered", file=sys.stderr)
         return
     total, named = _vendor_stats(vendor)
-    if total != named:
+    if vendor == "ipmi":
+        title = f"IPMI 2.0 standard commands (Table G-1) — {named} total"
+    elif total != named:
         title = (f"{vendor} OEM commands — {named} named "
                  f"of {total} known dispatch slots")
     else:

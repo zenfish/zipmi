@@ -53,3 +53,21 @@ def test_ambiguous_substring_lists_many():
 
 def test_no_match_returns_empty():
     assert _hits("DefinitelyNotAnIpmiCommandXYZ") == []
+
+
+from zipmi.cli.oem_cmds import _print_vendor_listing
+
+
+def test_ipmi_listing_title_not_oem(capsys):
+    _print_vendor_listing("ipmi")
+    out = capsys.readouterr().out
+    first = out.splitlines()[0]
+    assert "Table G-1" in first
+    assert "OEM" not in first
+    assert "GetDeviceID" in out  # a real row rendered (camelized)
+
+
+def test_vendor_listing_title_unchanged(capsys):
+    _print_vendor_listing("supermicro")
+    first = capsys.readouterr().out.splitlines()[0]
+    assert "OEM commands" in first
