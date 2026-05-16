@@ -50,7 +50,10 @@ def test_ipmi_listing_shape_and_size():
     for k in ("name", "priv", "desc", "live", "missing",
               "prefix", "args", "src"):
         assert k in row, f"row missing key {k!r}"
-    assert row["name"] == "Get Device ID"
+    # _normalize_listing camelizes display names (same as OEM
+    # catalogues): "Get Device ID" -> "GetDeviceID". Resolution still
+    # accepts the spaced form (covered in Task 2).
+    assert row["name"] == "GetDeviceID"
     assert row["prefix"] is None
     assert "Table G-1" in row["src"]
 
@@ -197,7 +200,7 @@ def test_ipmi_listing_title_not_oem(capsys):
     first = out.splitlines()[0]
     assert "Table G-1" in first
     assert "OEM" not in first
-    assert "Get Device ID" in out  # a real row rendered
+    assert "GetDeviceID" in out  # a real row rendered (camelized)
 
 
 def test_vendor_listing_title_unchanged(capsys):
@@ -455,9 +458,15 @@ def test_ipmi_verb_send_device_id(vbmc_dell, capsys):
     from zipmi.cli.zipmi import main
     rc = main(["-H", "127.0.0.1", "-p", str(vbmc_dell),
                "ipmi", "Get Device ID"])
-    out = capsys.readouterr().out
+    cap = capsys.readouterr()
     assert rc == 0
-    assert "Get Device ID" in out
+    # zipmi CLI convention (same as `raw`): the resolved name + wire
+    # address is human annotation on stderr; stdout carries the raw
+    # hex response bytes of the successful send. rc == 0 with a
+    # non-empty response also proves the Task 4 load_vendor guard let
+    # the ipmi send through (load_vendor("ipmi") would have raised).
+    assert "GetDeviceID" in cap.err
+    assert cap.out.strip()  # non-empty hex response => send executed
 
 
 def test_ipmi_verb_listing_needs_no_host(capsys):
@@ -466,7 +475,7 @@ def test_ipmi_verb_listing_needs_no_host(capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "Table G-1" in out
-    assert "Get Device ID" in out
+    assert "GetDeviceID" in out
 ```
 
 - [ ] **Step 2: Run test to verify it passes**

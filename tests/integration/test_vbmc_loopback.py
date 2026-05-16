@@ -109,3 +109,27 @@ def test_vbmc_send_raw_15(vbmc_dell):
     assert cc == 0
     # 6 fixed fields + 3 manuf + 2 product + 4 aux = 15 bytes.
     assert len(body) == 15
+
+
+def test_ipmi_verb_send_device_id(vbmc_dell, capsys):
+    from zipmi.cli.zipmi import main
+    rc = main(["-H", "127.0.0.1", "-p", str(vbmc_dell),
+               "ipmi", "Get Device ID"])
+    cap = capsys.readouterr()
+    assert rc == 0
+    # zipmi CLI convention (same as `raw`): the resolved name + wire
+    # address is human annotation on stderr; stdout carries the raw
+    # hex response bytes of the successful send. rc == 0 with a
+    # non-empty response also proves the Task 4 load_vendor guard let
+    # the ipmi send through (load_vendor("ipmi") would have raised).
+    assert "GetDeviceID" in cap.err
+    assert cap.out.strip()  # non-empty hex response => send executed
+
+
+def test_ipmi_verb_listing_needs_no_host(capsys):
+    from zipmi.cli.zipmi import main
+    rc = main(["ipmi"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "Table G-1" in out
+    assert "GetDeviceID" in out

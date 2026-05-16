@@ -79,6 +79,10 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "supermicro":
         listing = _vendor_listing("supermicro")
         return len(listing), len(listing)
+    if vendor == "ipmi":
+        from ..scapy_ipmi.cmd_names import IPMI_CMD_NAMES
+        n = len(IPMI_CMD_NAMES)
+        return n, n
     return 0, 0
 
 
@@ -527,6 +531,22 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             if ctx.get("reservation_from"):
                 row["reservation_from"] = ctx["reservation_from"]
         return _normalize_listing(out, vendor)
+    if vendor == "ipmi":
+        from ..scapy_ipmi.cmd_names import IPMI_CMD_NAMES
+        out: dict[tuple[int, int], dict] = {
+            (netfn, cmd): {
+                "name": name,
+                "priv": None,
+                "desc": "",
+                "live": None,
+                "missing": False,
+                "prefix": None,
+                "args": "",
+                "src": "IPMI 2.0 spec, Table G-1",
+            }
+            for (netfn, cmd), name in IPMI_CMD_NAMES.items()
+        }
+        return _normalize_listing(out, "ipmi")
     raise KeyError(f"unknown vendor: {vendor}")
 
 
@@ -586,7 +606,9 @@ def _print_vendor_listing(vendor: str) -> None:
         print(f"# {vendor}: no commands registered", file=sys.stderr)
         return
     total, named = _vendor_stats(vendor)
-    if total != named:
+    if vendor == "ipmi":
+        title = f"IPMI 2.0 standard commands (Table G-1) — {named} total"
+    elif total != named:
         title = (f"{vendor} OEM commands — {named} named "
                  f"of {total} known dispatch slots")
     else:
@@ -783,7 +805,8 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     import zipmi
     from .zipmi import _open_session  # noqa: WPS433 (intentional)
 
-    zipmi.load_vendor(vendor)
+    if vendor != "ipmi":
+        zipmi.load_vendor(vendor)   # standard cmds need no OEM table
     with _open_session(args) as s:
         cc, resp = s.send_raw(netfn, cmd, data_bytes)
 
@@ -894,10 +917,11 @@ def _add_vendor_parser(
     parent_sub,
     vendor_key: str,
     blurb: str,
+    cmd_noun: str = "OEM cmd",
 ) -> argparse.ArgumentParser:
     sp = parent_sub.add_parser(vendor_key, help=blurb)
     sp.add_argument("cmd_name", nargs="?",
-                    help="OEM cmd name (substring match; omit to list)")
+                    help=f"{cmd_noun} name (substring match; omit to list)")
     sp.add_argument("data", nargs="*",
                     help="optional data bytes (hex like 0x01 or decimal)")
     sp.set_defaults(func=lambda a, v=vendor_key: cmd_oem_run(a, v))
@@ -909,6 +933,15 @@ def add_oem_subparsers(top_sub) -> None:
     # Top-level shortcuts: `zipmi dell ...`, `zipmi supermicro ...`, etc.
     for vkey, vinfo in VENDORS.items():
         _add_vendor_parser(top_sub, vkey, vinfo["blurb"])
+
+    # Standard IPMI 2.0 (Table G-1) commands by name. A catalogue, not
+    # an OEM vendor -> registered as a top-level verb only, never added
+    # to VENDORS, so `zipmi oem` does not list it.
+    _add_vendor_parser(
+        top_sub, "ipmi",
+        "standard IPMI cmd by name (omit to list Table G-1)",
+        cmd_noun="IPMI cmd",
+    )
 
     # Dispatcher: `zipmi oem` and `zipmi oem <vendor> ...`
     oem = top_sub.add_parser("oem",

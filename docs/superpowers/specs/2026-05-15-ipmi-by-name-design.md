@@ -98,6 +98,15 @@ behaviour, no new code).
    read these keys via `.get(...)` with defaults (verified in
    `_print_vendor_listing`, `cmd_oem_run`, `_cmd_oem_help`).
 
+   **Display-name note:** `_normalize_listing` camelizes every name
+   (`"Get Device ID"` → `"GetDeviceID"`), same as for OEM catalogues —
+   this is intentional and keeps `zipmi ipmi` listings visually
+   consistent with `zipmi idrac6`/`supermicro`. Name *resolution* is
+   unaffected: `_find_cmd` Phase-2 normalizes both sides, so
+   `zipmi ipmi "Get Device ID"` still resolves (the spec's spaced,
+   human form is what users type; the camelized form is only the
+   listing display).
+
 2. **`_vendor_stats()`** — add `if vendor == "ipmi": return (n, n)`
    where `n = len(IPMI_CMD_NAMES)` (total == named; no unnamed stubs).
 
