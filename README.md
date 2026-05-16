@@ -192,6 +192,7 @@ sensor   list
 lan      print
 user     list
 raw      <netfn> <cmd> [byte ...]
+ipmi     [cmd-name [byte ...]]           # standard IPMI cmd by name; no args = list Table G-1
 oem      [vendor [cmd-name [byte ...]]]   # OEM cmd dispatcher; no args = list vendors
 idrac6      [cmd-name [byte ...]]          # shortcut for `oem idrac6 ...`
 idrac9      [cmd-name [byte ...]]          # shortcut for `oem idrac9 ...`
@@ -244,6 +245,11 @@ zipmi idrac6                                     # list iDRAC6's 192 cmds (RE'd 
 zipmi -H <bmc> dell GetChassisStatus             # run by name (substring match)
 zipmi -H <bmc> oem supermicro UtilRestoreConfig  # `oem <vendor>` form
 ```
+
+The standard IPMI 2.0 set has the same by-name UX — `zipmi ipmi`
+lists Table G-1, `zipmi -H <bmc> ipmi "Get Channel Authentication
+Capabilities" 0x01 0x04` resolves the name and sends the bytes you
+supply (same raw-data model as `raw`/`oem`).
 
 Names are case-insensitive and tolerate hyphens/underscores; the
 `Cmd`/`OEM`/`Dell` prefixes are stripped before matching. Multiple
@@ -449,7 +455,7 @@ docs/              — architecture, ipmi notes, fuzzing, vbmc
 <details>
 <summary><h2>Status</h2></summary>
 
-**Phases 0–13 done.** 66/66 tests pass. Live-verified against Dell iDRAC6
+**Phases 0–13 done.** 80/80 tests pass. Live-verified against Dell iDRAC6
 1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
 `lan print`, `user list`, `chassis bootflags`, `raw`,
 `scan {asf-ping, auth-caps, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
