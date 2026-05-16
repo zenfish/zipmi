@@ -32,7 +32,7 @@ $ pytest tests/ -q
 80 passed in 2.91s
 ```
 
-Eight vbmc integration tests + 72 unit tests covering RMCP / ASF / IPMI 1.5
+Eight integration tests + 72 unit tests covering RMCP / ASF / IPMI 1.5
 checksums + auth code / RAKP HMACs + SIK derivation / OEM dispatch / Dell
 fullfw codegen + iDRAC9 dispatch-table codegen + Dell attack primitives
 + BMC generation fingerprinting.
