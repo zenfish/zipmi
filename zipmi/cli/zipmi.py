@@ -854,8 +854,8 @@ def cmd_vbmc_serve(args: argparse.Namespace) -> int:
             print(f"error: {e}", file=sys.stderr)
             return 2
     try:
-        asyncio.run(run(persona_name=args.persona,
-                        host=args.bind, port=args.port,
+        asyncio.run(run(persona_name=args.vpersona,
+                        host=args.vbind, port=args.vport,
                         trace=trace, color=color))
     except KeyboardInterrupt:
         print()
@@ -1118,12 +1118,12 @@ def build_parser() -> argparse.ArgumentParser:
     vb = sub.add_parser("vbmc", help="virtual BMC server")
     vb_sub = vb.add_subparsers(dest="action", required=True)
     vb_serve = vb_sub.add_parser("serve", help="run a virtual BMC")
-    vb_serve.add_argument("--persona", default="generic",
+    vb_serve.add_argument("--vpersona", dest="vpersona", default="generic",
                           help="generic | dell_idrac6 (default generic)")
-    vb_serve.add_argument("--bind", default="127.0.0.1",
+    vb_serve.add_argument("--vbind", dest="vbind", default="127.0.0.1",
                           help="bind address (default 127.0.0.1)")
-    vb_serve.add_argument("--port", type=int, default=6230,
-                          help="UDP port (default 6230)")
+    vb_serve.add_argument("--vport", dest="vport", type=int, default=6230,
+                          help="vBMC UDP listen port (default 6230)")
     vb_serve.set_defaults(func=cmd_vbmc_serve)
 
     # scan
