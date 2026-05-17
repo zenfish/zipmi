@@ -31,7 +31,9 @@ token position**.
 3. **Unknown flag → hard error + usage, exit non-zero.** A typo like
    `--hots` must not pass silently.
 4. **Remove `_add_trace_to_leaves`** entirely. Pre-pass becomes the single
-   source of truth for all globals (~40 lines deleted).
+   source of truth for all globals. (Net `zipmi.py` delta after
+   implementation: −39 lines — ~107 removed across the three legacy
+   helpers, ~68 re-added as the consolidated `add_globals`/`parse_cli`.)
 5. **vbmc flags get a `v` prefix:** `--bind→--vbind`, `--port→--vport`,
    `--persona→--vpersona`. Resolves the global `-p/--port` vs
    `vbmc serve --port` collision. Implemented via argparse `dest=` so the
