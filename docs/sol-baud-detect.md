@@ -7,6 +7,19 @@
 192.168.0.23 (volatile bit rate 19.2 kbps = 19200, matching `ipmitool sol
 info`). See `zipmi/sol.py`, `zipmi/cli/zipmi.py`, `examples/03_sol_info.py`.
 
+**Important caveat — config readout vs the actual wire.** `sol info`/`sol
+baud` (like `ipmitool sol info`) report the BMC's *configured* rate. They
+CANNOT detect a host whose UART physically runs at a different rate — the
+classic cause of a garbled `sol activate`. On 192.168.0.23 the BMC was
+configured for 19200 but the host serial was actually **57600**, so the
+console was pure garbage. For that, `zipmi sol autobaud` retunes the BMC's
+volatile rate to each candidate (115200/57600/38400/19200/9600), samples
+the live host output, scores printable-ASCII ratio, and applies the rate
+that yields clean text — a host-side detector that neither ipmitool nor
+`sol baud` provides. Verified: autobaud picked 57600 (100% printable;
+19200 scored 0%), after which `sol activate` showed the real `Password:`
+prompt.
+
 ## Why
 
 Booting a host over PXE/serial requires the kernel `console=ttyS1,<baud>` to match

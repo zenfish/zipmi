@@ -23,21 +23,21 @@ play-by-play; this doc is the bird's-eye view.
 | 11 | doc-sync cleanup after codegen | `20ef102` |
 | 12 | iDRAC9 handler catalog (313 entries) + Supermicro OEM expansion + Dell attack primitives | `23d5aea` |
 | 13 | iDRAC9 dispatch-table codegen — 271 (NetFn, cmd, priv) tuples from rootfs ELF static parse | `c12aa52` (RE) + this commit |
-| 14 | Serial-Over-LAN: `sol` verb (info/baud/payload/set/activate/deactivate/looptest) + payload-type-1 transport | this commit |
+| 14 | Serial-Over-LAN: `sol` verb (info/baud/payload/set/activate/deactivate/looptest/autobaud) + payload-type-1 transport + host-side baud autodetect | this commit |
 
 ## Tests
 
 ```
 $ pytest tests/ -q
 ..................................................................       [100%]
-126 passed in 3.15s
+130 passed in 3.10s
 ```
 
-Eight integration tests + 118 unit tests covering RMCP / ASF / IPMI 1.5
+Eight integration tests + 122 unit tests covering RMCP / ASF / IPMI 1.5
 checksums + auth code / RAKP HMACs + SIK derivation / OEM dispatch / Dell
 fullfw codegen + iDRAC9 dispatch-table codegen + Dell attack primitives
 + BMC generation fingerprinting + SOL config/payload codecs + SOL console
-state machine.
+state machine + autobaud printable-ratio scoring.
 
 ## Live verification (Dell PowerEdge T710 / iDRAC6 1.70 @ 192.168.0.23)
 

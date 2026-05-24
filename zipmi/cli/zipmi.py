@@ -1290,6 +1290,40 @@ def cmd_sol_looptest(args: argparse.Namespace) -> int:
     return 0 if acked else 1
 
 
+def cmd_sol_autobaud(args: argparse.Namespace) -> int:
+    """Probe SOL bit rates against the live host serial and apply the rate
+    that yields readable output. Catches a host UART whose baud differs from
+    the BMC's configured value (the cause of garbled `sol activate`)."""
+    rc = _require_lanplus_creds(args, "autobaud")
+    if rc is not None:
+        return rc
+    from ..sol import autobaud
+    with _open_session(args) as s:
+        channel = _sol_channel(args, s)
+        orig = _sol_get_param(s, channel, 6)        # save volatile rate
+        results = autobaud(s, channel=channel, dwell=args.dwell)
+        best_baud, best_score = (results[0][0], results[0][1]) if results else (None, 0.0)
+        applied = None
+        if best_baud is not None and best_score >= args.threshold:
+            code = encode_sol_bitrate(best_baud)
+            s.send_raw(0x0C, 0x21, bytes([channel & 0x0F, 6, code & 0x0F]))
+            applied = best_baud
+        elif orig:                                  # nothing clean — restore
+            s.send_raw(0x0C, 0x21, bytes([channel & 0x0F, 6, orig[0] & 0x0F]))
+
+    for baud, score, sample in results:
+        bar = "#" * int(score * 20)
+        print(f"  {baud:>6} baud : {score * 100:5.1f}% printable  {bar}")
+    if applied is not None:
+        print(f"\n=> {applied} baud — set as volatile SOL rate. Now run:")
+        print(f"   zipmi -I lanplus -H {args.host} -U {args.user} -P … sol activate")
+        return 0
+    print("\nno rate produced clean text — host may be idle or powered off. "
+          "Try --dwell 5, ensure the host is actively printing, or lower "
+          "--threshold.", file=sys.stderr)
+    return 1
+
+
 # -- argparse wiring ------------------------------------------------------
 
 
@@ -1413,6 +1447,15 @@ def build_parser() -> argparse.ArgumentParser:
     sol_loop.add_argument("iterations", nargs="?", type=int, default=10)
     sol_loop.add_argument("interval", nargs="?", type=float, default=0.1)
     sol_loop.set_defaults(func=cmd_sol_looptest)
+    sol_ab = sol_sub.add_parser(
+        "autobaud",
+        help="probe bit rates against live host serial; apply the readable one")
+    sol_ab.add_argument("channel", nargs="?", default=None)
+    sol_ab.add_argument("--dwell", type=float, default=2.5,
+                        help="seconds to sample per rate (default 2.5)")
+    sol_ab.add_argument("--threshold", type=float, default=0.7,
+                        help="min printable ratio to accept (default 0.7)")
+    sol_ab.set_defaults(func=cmd_sol_autobaud)
 
     # user
     user = sub.add_parser("user", help="user accounts")

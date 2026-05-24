@@ -36,6 +36,7 @@ from .scapy_ipmi.commands import (
     ActivatePayloadReq,
     DeactivatePayloadReq,
     GetPayloadActivationStatusReq,
+    encode_sol_bitrate,
 )
 
 PAYLOAD_TYPE_SOL = 0x01
@@ -372,3 +373,110 @@ def looptest(session: Session, iterations: int = 10, interval: float = 0.1,
         sock.settimeout(session.transport.timeout)
         console.deactivate()
     return acked, iterations
+
+
+# -- auto bit-rate detection ----------------------------------------------
+#
+# Neither ipmitool nor `sol baud` can catch a host whose UART runs at a
+# different rate than the BMC is configured for — they only report the
+# BMC's *configured* value. autobaud() measures the actual wire: it retunes
+# the BMC's volatile SOL bit rate to each candidate, samples the host's
+# serial output, and scores how much of it is printable ASCII. The rate
+# that yields clean text is the host's real baud.
+
+# Printable = tab, LF, CR + the printable ASCII range. Control bytes and
+# high bytes (the hallmark of a baud mismatch) score as non-printable.
+_PRINTABLE = frozenset({0x09, 0x0A, 0x0D}) | frozenset(range(0x20, 0x7F))
+
+# Standard SOL rates, fastest first (most modern hosts boot fast).
+AUTOBAUD_CANDIDATES = (115200, 57600, 38400, 19200, 9600)
+
+
+def printable_ratio(data: bytes) -> float:
+    """Fraction of bytes that are printable ASCII (0.0–1.0). Empty → 0.0."""
+    if not data:
+        return 0.0
+    return sum(b in _PRINTABLE for b in data) / len(data)
+
+
+def _set_volatile_bitrate(session: Session, channel: int, baud: int) -> None:
+    code = encode_sol_bitrate(baud)
+    if code is None:
+        raise IPMIError(f"unsupported SOL baud {baud}")
+    session.send_raw(0x0C, 0x21, bytes([channel & 0x0F, 6, code & 0x0F]))
+
+
+def _safe_deactivate(session: Session) -> None:
+    try:
+        session.send_raw(0x06, 0x49, bytes(DeactivatePayloadReq(
+            payload_type=PAYLOAD_TYPE_SOL, payload_instance=1)))
+    except Exception:
+        pass
+
+
+def _capture(session: Session, console: SOLConsole, dwell: float,
+             prompt: bytes) -> bytes:
+    """Send `prompt` (to elicit output) and collect SOL char data for
+    `dwell` seconds, acknowledging BMC packets so it keeps streaming."""
+    sock = session.transport._socket()
+    sock.setblocking(False)
+    proto = console.proto
+    if prompt:
+        pkt = proto.make_data_packet(prompt)
+        if pkt is not None:
+            session.send_sol_payload(pkt)
+    got = bytearray()
+    end = time.time() + dwell
+    try:
+        while time.time() < end:
+            rlist, _, _ = select.select([sock], [], [], max(0.0, end - time.time()))
+            if not rlist:
+                continue
+            try:
+                raw = sock.recv(4096)
+            except (BlockingIOError, InterruptedError):
+                continue
+            res = session.decode_rmcp_payload(raw)
+            if res is None or res[0] != PAYLOAD_TYPE_SOL:
+                continue
+            p = parse_sol_packet(res[1])
+            if p is None:
+                continue
+            out = proto.on_recv(p)
+            if out["display"]:
+                got += out["display"]
+            if out["ack"] is not None:
+                session.send_sol_payload(out["ack"])
+    finally:
+        sock.setblocking(True)
+        sock.settimeout(session.transport.timeout)
+    return bytes(got)
+
+
+def autobaud(session: Session, *, channel: int = 0x0E,
+             candidates: tuple[int, ...] = AUTOBAUD_CANDIDATES,
+             dwell: float = 2.5, prompt: bytes = b"\r") -> list[tuple[int, float, bytes]]:
+    """Probe each candidate SOL bit rate against the live host serial.
+
+    For each rate: deactivate any active payload, set the BMC's *volatile*
+    SOL bit rate, activate SOL, send `prompt`, capture `dwell` seconds, and
+    score printable-ASCII ratio. Returns [(baud, ratio, sample), ...] sorted
+    best-first. Does NOT persist a choice — the caller decides what to set.
+    """
+    results: list[tuple[int, float, bytes]] = []
+    for baud in candidates:
+        if encode_sol_bitrate(baud) is None:
+            continue
+        _safe_deactivate(session)
+        _set_volatile_bitrate(session, channel, baud)
+        console = SOLConsole(session)
+        try:
+            console.activate()
+        except IPMIError:
+            results.append((baud, 0.0, b""))
+            continue
+        sample = _capture(session, console, dwell, prompt)
+        _safe_deactivate(session)
+        results.append((baud, printable_ratio(sample), sample))
+    results.sort(key=lambda r: r[1], reverse=True)
+    return results

@@ -168,3 +168,25 @@ def test_escape_resets_after_newline():
     # After a CR, we're at line start again, so ~. exits.
     assert c._process_input(b"ls\r") == b"ls\r"
     assert c._process_input(b"~.") is None
+
+
+# -- autobaud scoring -----------------------------------------------------
+
+from zipmi.sol import printable_ratio
+
+
+def test_printable_ratio_clean_text():
+    assert printable_ratio(b"login: root\r\n") == 1.0
+
+
+def test_printable_ratio_baud_garbage():
+    # High bytes / control noise = baud mismatch → low score.
+    assert printable_ratio(bytes([0xfd, 0x80, 0x01, 0xff])) == 0.0
+
+
+def test_printable_ratio_mixed():
+    assert printable_ratio(b"ok" + bytes([0xfd, 0x80])) == 0.5
+
+
+def test_printable_ratio_empty():
+    assert printable_ratio(b"") == 0.0
