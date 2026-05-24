@@ -42,12 +42,17 @@ build:
 
 install:
 	@echo ">> interpreter: $$($(PY) -c 'import sys;print(sys.executable)')"
-	@if $(PY) -m pip install . 2>/tmp/zipmi-pip.err; then \
+	@# Two-step: resolve deps (no-op if satisfied), then force-overwrite the
+	@# package itself. Plain `pip install .` is a no-op when the version is
+	@# unchanged, so without --force-reinstall an edited tree never ships.
+	@if $(PY) -m pip install . 2>/tmp/zipmi-pip.err \
+	   && $(PY) -m pip install --force-reinstall --no-deps . 2>/tmp/zipmi-pip.err; then \
 		echo ">> installed (global/venv)"; \
 	else \
 		echo ">> global install refused — falling back to --user" >&2; \
 		sed 's/^/   pip: /' /tmp/zipmi-pip.err >&2 || true; \
-		$(PY) -m pip install --user --break-system-packages .; \
+		$(PY) -m pip install --user --break-system-packages . \
+		&& $(PY) -m pip install --user --break-system-packages --force-reinstall --no-deps .; \
 		echo ">> installed (--user)"; \
 	fi
 	@$(MAKE) -s verify PY=$(PY)
