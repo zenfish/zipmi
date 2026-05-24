@@ -67,7 +67,9 @@ from ..scapy_ipmi.commands import (
     GetUserAccessReq,
     GetUserNameReq,
     SetSystemBootOptionsReq,
+    decode_sol_bitrate,
     encode_boot_flags,
+    encode_sol_bitrate,
 )
 from ..scapy_ipmi.rmcp import RMCP
 
@@ -989,6 +991,249 @@ def cmd_scan_all(args: argparse.Namespace) -> int:
     return rc
 
 
+# -- SOL (Serial Over LAN) ------------------------------------------------
+
+SOL_PRIV = {1: "CALLBACK", 2: "USER", 3: "OPERATOR", 4: "ADMINISTRATOR", 5: "OEM"}
+
+
+def _sol_get_param(s: Session, channel: int, selector: int) -> bytes | None:
+    """Get one SOL config parameter; return its data bytes (param-rev stripped)
+    or None if the BMC rejected the selector."""
+    cc, data = s.send_raw(0x0C, 0x22, bytes([channel, selector, 0, 0]))
+    if cc != 0 or len(data) < 1:
+        return None
+    return data[1:]                     # data[0] is the parameter revision
+
+
+def _sol_set_param(s: Session, channel: int, selector: int, data: bytes) -> int:
+    """Set one SOL config parameter; return the completion code."""
+    cc, _ = s.send_raw(0x0C, 0x21, bytes([channel & 0x0F, selector]) + data)
+    return cc
+
+
+def _sol_channel(args: argparse.Namespace, s: Session | None = None) -> int:
+    """Resolve the channel: explicit -> given; else SOL payload channel
+    (param 7) if a session is open; else 0x0E ('this channel')."""
+    if getattr(args, "channel", None) is not None:
+        return int(args.channel, 0)
+    if s is not None:
+        d = _sol_get_param(s, 0x0E, 7)
+        if d:
+            return d[0] & 0x0F
+    return 0x0E
+
+
+def _fmt_kbps(baud: int) -> str:
+    return f"{baud / 1000:g}"
+
+
+def cmd_sol_info(args: argparse.Namespace) -> int:
+    """Dump SOL configuration parameters, ipmitool `sol info` style."""
+    with _open_session(args) as s:
+        channel = _sol_channel(args, s)
+
+        sip = _sol_get_param(s, channel, 0)
+        en = _sol_get_param(s, channel, 1)
+        auth = _sol_get_param(s, channel, 2)
+        accum = _sol_get_param(s, channel, 3)
+        retry = _sol_get_param(s, channel, 4)
+        nv = _sol_get_param(s, channel, 5)
+        vol = _sol_get_param(s, channel, 6)
+        chan = _sol_get_param(s, channel, 7)
+        port = _sol_get_param(s, channel, 8)
+
+    def line(label: str, val) -> None:
+        print(f"{label:32}: {val}")
+
+    if sip is not None:
+        line("Set in progress",
+             {0: "set-complete", 1: "set-in-progress",
+              2: "commit-write"}.get(sip[0] & 0x03, f"0x{sip[0]:02x}"))
+    if en is not None:
+        line("Enabled", "true" if en[0] & 0x01 else "false")
+    if auth is not None:
+        line("Force Encryption", "true" if auth[0] & 0x80 else "false")
+        line("Force Authentication", "true" if auth[0] & 0x40 else "false")
+        priv = auth[0] & 0x0F
+        line("Privilege Level", SOL_PRIV.get(priv, f"0x{priv:02x}"))
+    if accum is not None and len(accum) >= 2:
+        line("Character Accumulate Level (ms)", accum[0] * 5)
+        line("Character Send Threshold", accum[1])
+    if retry is not None and len(retry) >= 2:
+        line("Retry Count", retry[0] & 0x07)
+        line("Retry Interval (ms)", retry[1] * 10)
+    if vol is not None:
+        baud = decode_sol_bitrate(vol[0])
+        line("Volatile Bit Rate (kbps)",
+             _fmt_kbps(baud) if baud else f"code 0x{vol[0] & 0x0F:x}")
+    if nv is not None:
+        baud = decode_sol_bitrate(nv[0])
+        line("Non-Volatile Bit Rate (kbps)",
+             _fmt_kbps(baud) if baud else f"code 0x{nv[0] & 0x0F:x}")
+    # Param 7 is read-only and unsupported on some BMCs (e.g. iDRAC6);
+    # fall back to the resolved channel, mirroring ipmitool.
+    pc = chan[0] if chan is not None else channel
+    line("Payload Channel", f"{pc} (0x{pc:02x})")
+    if port is not None and len(port) >= 2:
+        line("Payload Port", port[0] | (port[1] << 8))
+    return 0
+
+
+def cmd_sol_baud(args: argparse.Namespace) -> int:
+    """Print just the live SOL baud rate (script-friendly). Reads the
+    volatile bit rate (param 6), falling back to non-volatile (param 5)."""
+    with _open_session(args) as s:
+        channel = _sol_channel(args, s)
+        for sel in (6, 5):
+            d = _sol_get_param(s, channel, sel)
+            if d:
+                baud = decode_sol_bitrate(d[0])
+                if baud:
+                    print(baud)
+                    return 0
+    print("error: could not read SOL bit rate", file=sys.stderr)
+    return 1
+
+
+def cmd_sol_payload(args: argparse.Namespace) -> int:
+    """enable | disable | status — per-user SOL payload access
+    (Set/Get User Payload Access, NetFn 0x06 cmd 0x4C/0x4D)."""
+    userid = args.userid
+    with _open_session(args) as s:
+        channel = _sol_channel(args, s)
+        if args.op == "status":
+            if userid is None:
+                userid = 1
+            cc, data = s.send_raw(0x06, 0x4D, bytes([channel & 0x0F, userid & 0x3F]))
+            if cc != 0 or len(data) < 1:
+                print(f"Get User Payload Access: cc=0x{cc:02x}", file=sys.stderr)
+                return 1
+            enabled = bool(data[0] & 0x02)        # std payload 1 = SOL
+            print(f"User {userid} on channel {channel}: "
+                  f"SOL payload {'enabled' if enabled else 'disabled'}")
+            return 0
+        # enable / disable both WRITE config.
+        if userid is None:
+            print("error: enable/disable require a user id "
+                  "(`sol payload enable <channel> <userid>`)", file=sys.stderr)
+            return 2
+        if not args.yes:
+            print(f"warning: '{args.op}' changes SOL access for user {userid}. "
+                  f"Pass --yes to proceed.", file=sys.stderr)
+            return 2
+        operation = 0x00 if args.op == "enable" else (0x01 << 6)
+        req = bytes([channel & 0x0F, operation | (userid & 0x3F), 0x02, 0, 0, 0])
+        cc, _ = s.send_raw(0x06, 0x4C, req)
+    if cc != 0:
+        print(f"Set User Payload Access: cc=0x{cc:02x}", file=sys.stderr)
+        return 1
+    print(f"SOL payload {args.op}d for user {userid} on channel {channel}")
+    return 0
+
+
+def _parse_bitrate_value(v: str) -> int | None:
+    """Accept '19.2'/'115.2' (kbps) or '19200'/'9600' (baud) → baud int."""
+    v = v.strip().lower().rstrip("k")
+    try:
+        if "." in v:
+            return int(round(float(v) * 1000))
+        n = int(v)
+        return n if n >= 1000 else n * 1000
+    except ValueError:
+        return None
+
+
+def cmd_sol_set(args: argparse.Namespace) -> int:
+    """Set a SOL configuration parameter (writes BMC config; --yes gated).
+
+    Multi-field params (authentication, accumulate, retry) are read-modify-
+    written so a single field change doesn't clobber the others.
+    """
+    param = args.parameter
+    value = args.value
+    if not args.yes:
+        print(f"warning: 'sol set {param}' writes BMC SOL config. "
+              f"Pass --yes to proceed.", file=sys.stderr)
+        return 2
+
+    def truth(v: str) -> bool:
+        return v.strip().lower() in ("1", "true", "on", "yes", "enable", "enabled")
+
+    with _open_session(args) as s:
+        channel = _sol_channel(args, s)
+
+        if param == "enable":
+            cc = _sol_set_param(s, channel, 1, bytes([0x01 if truth(value) else 0x00]))
+
+        elif param in ("force-encryption", "force-authentication", "privilege-level"):
+            cur = _sol_get_param(s, channel, 2) or bytes([0x00])
+            b = cur[0]
+            if param == "force-encryption":
+                b = (b | 0x80) if truth(value) else (b & ~0x80)
+            elif param == "force-authentication":
+                b = (b | 0x40) if truth(value) else (b & ~0x40)
+            else:
+                names = {v.lower(): k for k, v in SOL_PRIV.items()}
+                pv = names.get(value.lower())
+                if pv is None:
+                    try:
+                        pv = int(value, 0)
+                    except ValueError:
+                        print(f"error: bad privilege level {value!r}", file=sys.stderr)
+                        return 2
+                b = (b & ~0x0F) | (pv & 0x0F)
+            cc = _sol_set_param(s, channel, 2, bytes([b & 0xFF]))
+
+        elif param in ("character-accumulate-level", "character-send-threshold"):
+            cur = _sol_get_param(s, channel, 3) or bytes([0x00, 0x00])
+            cur = (cur + b"\x00\x00")[:2]
+            try:
+                n = int(value, 0)
+            except ValueError:
+                print(f"error: {param} needs an integer", file=sys.stderr)
+                return 2
+            if param == "character-accumulate-level":
+                accum = max(1, round(n / 5)) & 0xFF      # value is ms, units of 5ms
+                data = bytes([accum, cur[1]])
+            else:
+                data = bytes([cur[0], n & 0xFF])
+            cc = _sol_set_param(s, channel, 3, data)
+
+        elif param in ("retry-count", "retry-interval"):
+            cur = _sol_get_param(s, channel, 4) or bytes([0x00, 0x00])
+            cur = (cur + b"\x00\x00")[:2]
+            try:
+                n = int(value, 0)
+            except ValueError:
+                print(f"error: {param} needs an integer", file=sys.stderr)
+                return 2
+            if param == "retry-count":
+                data = bytes([n & 0x07, cur[1]])
+            else:
+                data = bytes([cur[0], (round(n / 10)) & 0xFF])  # value ms, 10ms units
+            cc = _sol_set_param(s, channel, 4, data)
+
+        elif param in ("volatile-bit-rate", "non-volatile-bit-rate"):
+            baud = _parse_bitrate_value(value)
+            code = encode_sol_bitrate(baud) if baud else None
+            if code is None:
+                print(f"error: unsupported bit rate {value!r} "
+                      f"(use 9.6/19.2/38.4/57.6/115.2)", file=sys.stderr)
+                return 2
+            sel = 6 if param == "volatile-bit-rate" else 5
+            cc = _sol_set_param(s, channel, sel, bytes([code & 0x0F]))
+
+        else:
+            print(f"error: unknown sol parameter {param!r}", file=sys.stderr)
+            return 2
+
+    if cc != 0:
+        print(f"sol set {param}: cc=0x{cc:02x}", file=sys.stderr)
+        return 1
+    print(f"sol set {param} = {value} (channel {channel})")
+    return 0
+
+
 # -- argparse wiring ------------------------------------------------------
 
 
@@ -1070,6 +1315,37 @@ def build_parser() -> argparse.ArgumentParser:
                            help="channel number 0..15 (default 0x0E "
                                 "= 'this channel'); accepts decimal or 0x hex")
     lan_print.set_defaults(func=cmd_lan_print)
+
+    # sol (Serial Over LAN)
+    SOL_SET_PARAMS = [
+        "enable", "force-encryption", "force-authentication", "privilege-level",
+        "character-accumulate-level", "character-send-threshold",
+        "retry-count", "retry-interval",
+        "volatile-bit-rate", "non-volatile-bit-rate",
+    ]
+    sol = sub.add_parser("sol", help="serial over LAN")
+    sol_sub = sol.add_subparsers(dest="action", required=True)
+    sol_info = sol_sub.add_parser("info", help="dump SOL configuration parameters")
+    sol_info.add_argument("channel", nargs="?", default=None,
+                          help="channel (default = SOL payload channel)")
+    sol_info.set_defaults(func=cmd_sol_info)
+    sol_baud = sol_sub.add_parser("baud", help="print live SOL baud (script-friendly)")
+    sol_baud.add_argument("channel", nargs="?", default=None)
+    sol_baud.set_defaults(func=cmd_sol_baud)
+    sol_pl = sol_sub.add_parser("payload", help="per-user SOL payload access")
+    sol_pl.add_argument("op", choices=["enable", "disable", "status"])
+    sol_pl.add_argument("channel", nargs="?", default=None)
+    sol_pl.add_argument("userid", nargs="?", type=int, default=None)
+    sol_pl.add_argument("--yes", action="store_true",
+                        help="confirm enable/disable (writes config)")
+    sol_pl.set_defaults(func=cmd_sol_payload)
+    sol_set = sol_sub.add_parser("set", help="set a SOL configuration parameter")
+    sol_set.add_argument("parameter", choices=SOL_SET_PARAMS)
+    sol_set.add_argument("value")
+    sol_set.add_argument("channel", nargs="?", default=None)
+    sol_set.add_argument("--yes", action="store_true",
+                         help="confirm write to BMC SOL config")
+    sol_set.set_defaults(func=cmd_sol_set)
 
     # user
     user = sub.add_parser("user", help="user accounts")

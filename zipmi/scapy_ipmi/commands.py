@@ -741,6 +741,151 @@ class GetLANConfigParamReq(Packet):
         return b"", s
 
 
+# -- Transport: Get/Set SOL Configuration Parameters (0x0C, 0x22 / 0x21) --
+#
+# Serial-Over-LAN config. The live console baud lives in the volatile
+# bit-rate param (6); the persisted value in the non-volatile param (5).
+# Spec: IPMI 2.0 §26.3 (SOL Configuration Parameters), §15.
+
+# Bit-rate code (bits[3:0] of the param data byte) → baud.
+SOL_BITRATE = {0x06: 9600, 0x07: 19200, 0x08: 38400, 0x09: 57600, 0x0A: 115200}
+
+# SOL Configuration parameter selectors (subset we model).
+SOL_PARAM = {
+    0: "set_in_progress",
+    1: "enable",
+    2: "authentication",
+    3: "char_accum_interval",   # 2 bytes: accumulate (5ms units), threshold
+    4: "retry",                 # 2 bytes: retry count, interval (10ms units)
+    5: "bit_rate_nonvolatile",
+    6: "bit_rate_volatile",
+    7: "payload_channel",       # read-only
+    8: "payload_port",          # 2 bytes LE
+}
+
+
+def decode_sol_bitrate(code: int) -> int | None:
+    """Map a SOL bit-rate code (low nibble of the param byte) to baud."""
+    return SOL_BITRATE.get(code & 0x0F)
+
+
+def encode_sol_bitrate(baud: int) -> int | None:
+    """Map a baud rate to its SOL bit-rate code, or None if unsupported."""
+    return {v: k for k, v in SOL_BITRATE.items()}.get(baud)
+
+
+class GetSOLConfigParamReq(Packet):
+    name = "Get SOL Config Parameters Request"
+    fields_desc = [
+        BitField("get_param_revision", 0, 1),
+        BitField("reserved", 0, 3),
+        BitField("channel", 0xE, 4),
+        ByteField("parameter_selector", 0),
+        ByteField("set_selector", 0),
+        ByteField("block_selector", 0),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetSOLConfigParamResp(Packet):
+    name = "Get SOL Config Parameters Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        XByteField("parameter_revision", 0),
+        StrField("data", b""),          # param data, consume to end
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class SetSOLConfigParamReq(Packet):
+    name = "Set SOL Config Parameters Request"
+    fields_desc = [
+        BitField("reserved", 0, 4),
+        BitField("channel", 0xE, 4),
+        ByteField("parameter_selector", 0),
+        StrField("parameter_data", b""),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- App: Activate / Deactivate Payload (0x06, 0x48 / 0x49) --
+# Spec: IPMI 2.0 §24.1-24.2. Used to launch/terminate the SOL payload
+# (payload type 1) over an RMCP+ session.
+
+class ActivatePayloadReq(Packet):
+    name = "Activate Payload Request"
+    fields_desc = [
+        BitField("reserved1", 0, 2),
+        BitField("payload_type", 0x01, 6),     # 1 = SOL
+        BitField("reserved2", 0, 4),
+        BitField("payload_instance", 1, 4),
+        # SOL aux byte 1: bit7 encrypt, bit6 auth, bit5 test mode,
+        # bits3:2 shared-serial-alert behavior, bit1 startup handshake.
+        XByteField("aux1", 0xC0),              # default: encrypt + authenticate
+        StrFixedLenField("aux_rest", b"\x00\x00\x00", 3),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class ActivatePayloadResp(Packet):
+    name = "Activate Payload Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        LEIntField("aux", 0),                  # aux resp (bit0 = test mode)
+        LEShortField("inbound_size", 0),       # max console→BMC payload data
+        LEShortField("outbound_size", 0),      # max BMC→console payload data
+        LEShortField("payload_udp_port", 0),
+        LEShortField("payload_vlan", 0xFFFF),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class DeactivatePayloadReq(Packet):
+    name = "Deactivate Payload Request"
+    fields_desc = [
+        BitField("reserved1", 0, 2),
+        BitField("payload_type", 0x01, 6),
+        BitField("reserved2", 0, 4),
+        BitField("payload_instance", 1, 4),
+        StrFixedLenField("aux", b"\x00\x00\x00\x00", 4),   # SOL: write 0
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- App: Get Payload Activation Status (0x06, 0x4A) — §24.5 --
+
+class GetPayloadActivationStatusReq(Packet):
+    name = "Get Payload Activation Status Request"
+    fields_desc = [ByteField("payload_type", 0x01)]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetPayloadActivationStatusResp(Packet):
+    name = "Get Payload Activation Status Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        XByteField("instance_capacity", 0),    # bits3:0 = max instances
+        LEShortField("activated_instances", 0),  # bitmask, 1 bit per instance
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
 # Registry: (request_netfn, cmd) → (RequestPacket | None, ResponsePacket).
 # Request payload of None means the command takes no data field.
 CMD_PAYLOADS: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet]]] = {
@@ -772,6 +917,11 @@ CMD_PAYLOADS: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet]]] = 
     (0x0A, 0x42): (None,                    ReserveSELResp),
     (0x0A, 0x43): (GetSELEntryReq,          GetSELEntryResp),
     (0x0C, 0x02): (GetLANConfigParamReq,    _BareCCResp),       # variable resp
+    (0x0C, 0x21): (SetSOLConfigParamReq,    _BareCCResp),
+    (0x0C, 0x22): (GetSOLConfigParamReq,    GetSOLConfigParamResp),
+    (0x06, 0x48): (ActivatePayloadReq,      ActivatePayloadResp),
+    (0x06, 0x49): (DeactivatePayloadReq,    _BareCCResp),
+    (0x06, 0x4A): (GetPayloadActivationStatusReq, GetPayloadActivationStatusResp),
 }
 
 
@@ -796,5 +946,10 @@ __all__ = [
     "GetSDRRepositoryInfoResp", "ReserveSDRRepoResp", "GetSDRReq", "GetSDRResp",
     "GetSELInfoResp", "ReserveSELResp", "GetSELEntryReq", "GetSELEntryResp",
     "GetLANConfigParamReq", "GetChannelCipherSuitesReq",
+    "GetSOLConfigParamReq", "GetSOLConfigParamResp", "SetSOLConfigParamReq",
+    "ActivatePayloadReq", "ActivatePayloadResp",
+    "DeactivatePayloadReq",
+    "GetPayloadActivationStatusReq", "GetPayloadActivationStatusResp",
+    "SOL_BITRATE", "SOL_PARAM", "decode_sol_bitrate", "encode_sol_bitrate",
     "CHASSIS_CTRL", "CMD_PAYLOADS", "lookup",
 ]
