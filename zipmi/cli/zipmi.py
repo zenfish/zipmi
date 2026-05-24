@@ -1234,6 +1234,62 @@ def cmd_sol_set(args: argparse.Namespace) -> int:
     return 0
 
 
+def _require_lanplus_creds(args: argparse.Namespace, verb: str) -> int | None:
+    """SOL payloads need an encrypted RMCP+ session. Return an exit code to
+    abort, or None if the prerequisites are met."""
+    if args.interface != "lanplus":
+        print(f"error: 'sol {verb}' requires -I lanplus "
+              f"(SOL rides an IPMI 2.0 RMCP+ session)", file=sys.stderr)
+        return 2
+    if args.user is None or args.password is None:
+        print(f"error: 'sol {verb}' requires credentials (-U and -P)",
+              file=sys.stderr)
+        return 2
+    return None
+
+
+def cmd_sol_activate(args: argparse.Namespace) -> int:
+    """Open an interactive SOL console (ipmitool `sol activate`)."""
+    rc = _require_lanplus_creds(args, "activate")
+    if rc is not None:
+        return rc
+    from ..sol import SOLConsole
+    with _open_session(args) as s:
+        return SOLConsole(s).run()
+
+
+def cmd_sol_deactivate(args: argparse.Namespace) -> int:
+    """Deactivate the SOL payload (frees it for another session)."""
+    rc = _require_lanplus_creds(args, "deactivate")
+    if rc is not None:
+        return rc
+    from ..scapy_ipmi.commands import DeactivatePayloadReq
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x49, bytes(DeactivatePayloadReq(
+            payload_type=1, payload_instance=args.instance)))
+    if cc == 0x80:
+        print("SOL payload already deactivated")
+        return 0
+    if cc != 0:
+        print(f"Deactivate Payload: cc=0x{cc:02x}", file=sys.stderr)
+        return 1
+    print("SOL payload deactivated")
+    return 0
+
+
+def cmd_sol_looptest(args: argparse.Namespace) -> int:
+    """SOL round-trip test (ipmitool `sol looptest`)."""
+    rc = _require_lanplus_creds(args, "looptest")
+    if rc is not None:
+        return rc
+    from ..sol import looptest
+    with _open_session(args) as s:
+        acked, total = looptest(s, iterations=args.iterations,
+                                interval=args.interval)
+    print(f"SOL looptest: {acked}/{total} packets acknowledged")
+    return 0 if acked else 1
+
+
 # -- argparse wiring ------------------------------------------------------
 
 
@@ -1346,6 +1402,17 @@ def build_parser() -> argparse.ArgumentParser:
     sol_set.add_argument("--yes", action="store_true",
                          help="confirm write to BMC SOL config")
     sol_set.set_defaults(func=cmd_sol_set)
+    sol_act = sol_sub.add_parser("activate",
+                                 help="open interactive SOL console (needs -I lanplus)")
+    sol_act.set_defaults(func=cmd_sol_activate)
+    sol_deact = sol_sub.add_parser("deactivate", help="deactivate the SOL payload")
+    sol_deact.add_argument("--instance", type=int, default=1,
+                           help="payload instance (default 1)")
+    sol_deact.set_defaults(func=cmd_sol_deactivate)
+    sol_loop = sol_sub.add_parser("looptest", help="SOL round-trip test")
+    sol_loop.add_argument("iterations", nargs="?", type=int, default=10)
+    sol_loop.add_argument("interval", nargs="?", type=float, default=0.1)
+    sol_loop.set_defaults(func=cmd_sol_looptest)
 
     # user
     user = sub.add_parser("user", help="user accounts")

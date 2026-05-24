@@ -455,11 +455,13 @@ docs/              — architecture, ipmi notes, fuzzing, vbmc
 <details>
 <summary><h2>Status</h2></summary>
 
-**Phases 0–13 done.** 91/91 tests pass. Live-verified against Dell iDRAC6
+**Phases 0–14 done.** 126/126 tests pass. Live-verified against Dell iDRAC6
 1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
 `lan print`, `user list`, `chassis bootflags`, `raw`,
+`sol {info, baud, payload, set, activate, deactivate, looptest}`,
 `scan {asf-ping, auth-caps, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
-RAKP / cipher 3 lanplus session. 192 Dell OEM dispatch entries auto-loaded
+RAKP / cipher 3 lanplus session (incl. SOL payload type 1 over the encrypted
+session). 192 Dell OEM dispatch entries auto-loaded
 from `fullfw-ipmi-commands.md`; 313 iDRAC9 handler names from rootfs `.so`
 catalog **plus 271 (NetFn, cmd, priv) tuples from static dispatch-table
 extraction**; 11 static + 2 factory Dell attack primitives in

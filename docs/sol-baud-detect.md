@@ -1,6 +1,11 @@
 # SOL bit-rate detection (`zipmi sol info`)
 
-**Status:** spec / not yet implemented. Written 2026-05-23.
+**Status:** implemented 2026-05-23 (spec written same day). Shipped as the
+`zipmi sol` verb — `sol info`/`sol baud` cover the bit-rate detection below;
+`sol activate`/`deactivate`/`looptest`/`set`/`payload` add the full
+`ipmitool sol` surface (RMCP+ payload type 1). Live-verified vs Dell iDRAC6
+192.168.0.23 (volatile bit rate 19.2 kbps = 19200, matching `ipmitool sol
+info`). See `zipmi/sol.py`, `zipmi/cli/zipmi.py`, `examples/03_sol_info.py`.
 
 ## Why
 

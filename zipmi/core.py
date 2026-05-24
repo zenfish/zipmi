@@ -539,36 +539,22 @@ class Session:
         wire = bytes(RMCP(msg_class=0x07) / sess / Raw(payload))
         return RMCP(self.transport.send_recv(wire))
 
-    def _send_lanplus(
-        self,
-        netfn: int,
-        cmd: int,
-        req_payload: Packet | bytes | None,
-    ) -> tuple[IPMI_Message, Packet | None]:
-        """Send authenticated+encrypted IPMI message (cipher 3 style)."""
+    def _wrap_lanplus(self, payload_type: int, payload: bytes) -> bytes:
+        """Encrypt + integrity-wrap `payload` into a complete RMCP+ wire
+        packet for the active session. Increments the outbound session
+        sequence number. Used for both IPMI messages (payload type 0) and
+        SOL payloads (payload type 1).
+        """
         cs = self.cipher
         if cs is None or self.session_id == 0:
             raise IPMIError("lanplus session not active")
 
-        data = _payload_bytes(req_payload)
-        ipmb = IPMI_Message(
-            rs_addr=self.transport.rs_addr,
-            net_fn=netfn,
-            rs_lun=0,
-            rq_addr=self.transport.rq_addr,
-            rq_seq=self._next_rq_seq(),
-            rq_lun=0,
-            cmd=cmd,
-            data=data,
-        )
-        ipmb_bytes = bytes(ipmb)
-
         # Confidentiality (AES-CBC-128 if conf_alg == 1).
         if cs.conf_alg == 1:
-            conf_body = aes_encrypt(self.k2, ipmb_bytes)
+            conf_body = aes_encrypt(self.k2, payload)
             encrypted_bit = 1
         elif cs.conf_alg == 0:
-            conf_body = ipmb_bytes
+            conf_body = payload
             encrypted_bit = 0
         else:
             raise IPMIError(f"conf_alg {cs.conf_alg} not implemented")
@@ -581,7 +567,7 @@ class Session:
             auth_type=AUTH_RMCP_PLUS,
             encrypted=encrypted_bit,
             authenticated=1 if cs.integrity_alg else 0,
-            payload_type=0x00,                 # IPMI message
+            payload_type=payload_type,
             session_id=self.session_id,
             session_seq=seq,
         )
@@ -594,36 +580,69 @@ class Session:
         ipad = b"\xFF" * pad_len + bytes([pad_len]) + b"\x07"  # 0x07 = trailer
         covered = sess_with_body + ipad
 
-        if cs.integrity_alg != 0:
-            mac = integrity_hmac(cs, self.k1, covered)
-        else:
-            mac = b""
+        mac = integrity_hmac(cs, self.k1, covered) if cs.integrity_alg != 0 else b""
+        return bytes(RMCP(msg_class=0x07)) + covered + mac
 
-        full_session_pkt = covered + mac
-        wire = bytes(RMCP(msg_class=0x07)) + full_session_pkt
-
+    def _send_lanplus(
+        self,
+        netfn: int,
+        cmd: int,
+        req_payload: Packet | bytes | None,
+    ) -> tuple[IPMI_Message, Packet | None]:
+        """Send authenticated+encrypted IPMI message (cipher 3 style)."""
+        data = _payload_bytes(req_payload)
+        ipmb = IPMI_Message(
+            rs_addr=self.transport.rs_addr,
+            net_fn=netfn,
+            rs_lun=0,
+            rq_addr=self.transport.rq_addr,
+            rq_seq=self._next_rq_seq(),
+            rq_lun=0,
+            cmd=cmd,
+            data=data,
+        )
+        wire = self._wrap_lanplus(0x00, bytes(ipmb))
         reply = RMCP(self.transport.send_recv(wire))
         return self._unwrap_lanplus(reply)
 
-    def _unwrap_lanplus(self, reply: Packet) -> tuple[IPMI_Message, Packet | None]:
+    # -- SOL payload transport (payload type 0x01) -------------------------
+
+    def send_sol_payload(self, sol_payload: bytes) -> None:
+        """Send one SOL payload packet (RMCP+ payload type 0x01) on the
+        active lanplus session. Fire-and-forget: SOL replies arrive
+        asynchronously and are read via the raw socket / decode_rmcp_payload.
+        """
+        self.transport._socket().send(self._wrap_lanplus(0x01, sol_payload))
+
+    def decode_rmcp_payload(self, datagram: bytes) -> tuple[int, bytes] | None:
+        """Decrypt+unwrap a raw RMCP+ datagram into (payload_type, plaintext),
+        or None if it has no IPMI 2.0 session layer. Used by the SOL console
+        select() loop, which reads the socket itself."""
+        return self._unwrap_payload(RMCP(datagram))
+
+    def _unwrap_payload(self, reply: Packet) -> tuple[int, bytes] | None:
+        """Return (payload_type, decrypted payload bytes) for an RMCP+ reply,
+        or None if there's no session layer / no body."""
         from scapy.packet import Raw
         cs = self.cipher
         sess = reply.getlayer(IPMI20_Session)
         if sess is None:
-            raise IPMIError("lanplus reply: no IPMI20_Session layer")
-
-        # The payload chain is Raw(payload_length bytes) + Padding(trailer +
-        # HMAC). We only want the Raw load. bytes(sess.payload) would
-        # include the Padding chain — slice instead.
+            return None
         raw_layer = sess.getlayer(Raw)
         if raw_layer is None:
-            return None, None
+            return None
         body = bytes(raw_layer.load)[: sess.payload_length]
+        if sess.encrypted and cs is not None and cs.conf_alg == 1:
+            body = aes_decrypt(self.k2, body)
+        return int(sess.payload_type), body
 
-        if sess.encrypted and cs.conf_alg == 1:
-            ipmb_bytes = aes_decrypt(self.k2, body)
-        else:
-            ipmb_bytes = body
+    def _unwrap_lanplus(self, reply: Packet) -> tuple[IPMI_Message, Packet | None]:
+        res = self._unwrap_payload(reply)
+        if res is None:
+            if reply.getlayer(IPMI20_Session) is None:
+                raise IPMIError("lanplus reply: no IPMI20_Session layer")
+            return None, None
+        _ptype, ipmb_bytes = res
 
         # Manually carve the IPMB plaintext: 6 fixed pre-data header bytes,
         # variable data, 1 trailing chk2. Avoids needing a parent
