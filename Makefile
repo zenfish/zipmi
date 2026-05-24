@@ -30,6 +30,7 @@ SHELL := bash
 all: build
 
 build:
+	@rm -rf build dist *.egg-info       # setuptools reuses build/ by mtime → stale wheels
 	@echo ">> building sdist + wheel into dist/"
 	@if $(PY) -m build 2>/tmp/zipmi-build.err; then \
 		echo ">> built:"; ls -1 dist/; \
@@ -42,6 +43,8 @@ build:
 
 install:
 	@echo ">> interpreter: $$($(PY) -c 'import sys;print(sys.executable)')"
+	@# CRITICAL: setuptools reuses build/ by mtime and ships stale code, so wipe it.
+	@rm -rf build dist *.egg-info
 	@# Two-step: resolve deps (no-op if satisfied), then force-overwrite the
 	@# package itself. Plain `pip install .` is a no-op when the version is
 	@# unchanged; --force-reinstall fixes that, and --no-cache-dir stops pip
@@ -89,7 +92,22 @@ clean:
 	@echo ">> clean — regen env with: make dev"
 
 verify:
-	@$(PY) -c "import zipmi,scapy,cryptography; print(f'>> import zipmi OK ({zipmi.__file__})'); print(f'>> scapy {scapy.__version__}, cryptography {cryptography.__version__}')"
+	@# Import from a NON-repo dir so we resolve the INSTALLED package, not the
+	@# ./zipmi shadow on sys.path[0] (which would mask a stale install).
+	@cd / && $(PY) -c "import zipmi,scapy,cryptography; print(f'>> import zipmi OK ({zipmi.__file__})'); print(f'>> scapy {scapy.__version__}, cryptography {cryptography.__version__}')"
+	@# Freshness guard: the installed CLI must byte-match this checkout. Catches
+	@# stale build/ dirs, pip wheel-cache hits, and version-pin no-op installs —
+	@# all of which silently shipped old code before. Generic; never rots.
+	@inst=$$(cd / && $(PY) -c "import zipmi.cli.zipmi as m; print(m.__file__)"); \
+	 if cmp -s "$$inst" zipmi/cli/zipmi.py; then \
+		echo ">> freshness OK: installed CLI matches checkout"; \
+	 else \
+		echo "error: installed zipmi is STALE — does not match this checkout" >&2; \
+		echo "       installed: $$inst" >&2; \
+		echo "       checkout : $$(pwd)/zipmi/cli/zipmi.py" >&2; \
+		echo "       fix: make clean && make install   (or: make dev)" >&2; \
+		exit 1; \
+	 fi
 	@for c in zipmi bmc-id; do command -v $$c >/dev/null 2>&1 && echo ">> $$c -> $$(command -v $$c)" || echo ">> $$c not on PATH (check the --user scripts dir)"; done
 
 # Throwaway vbmc on a high port so it can't collide with a real BMC or a
