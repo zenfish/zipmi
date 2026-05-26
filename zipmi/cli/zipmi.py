@@ -348,6 +348,100 @@ def cmd_sel_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def _build_sdr_sensor_map(s) -> dict:
+    """Walk the SDR repository, return {sensor_num: SensorInfo} for Type 1/2.
+
+    Best-effort: any per-record failure is logged to stderr and skipped, the
+    walk continues. Returns {} if the SDR repo is empty or initial reserve
+    fails — `elist` then degrades to '#0xNN' sensor labels.
+    """
+    from ..sel_decode import decode_sdr_record
+    out: dict = {}
+    try:
+        info = s.send_cmd(0x0A, 0x20)
+        if info.record_count == 0:
+            return out
+        rsv = s.send_cmd(0x0A, 0x22)
+        rid = rsv.reservation_id
+    except Exception as e:
+        print(f"  SDR walk skipped: {e}", file=sys.stderr)
+        return out
+    record_id = 0x0000
+    seen = 0
+    while seen < info.record_count + 4:
+        try:
+            hdr = s.send_cmd(
+                0x0A, 0x23,
+                GetSDRReq(reservation_id=rid, record_id=record_id,
+                          offset=0, count=5),
+            )
+        except Exception as e:
+            print(f"  SDR abort at 0x{record_id:04x}: {e}", file=sys.stderr)
+            return out
+        d = bytes(hdr.record_data)
+        if len(d) < 5:
+            break
+        rec_type = d[3]
+        length = d[4]
+        total_len = 5 + length
+        next_id = hdr.next_record_id
+        if rec_type in (0x01, 0x02):
+            try:
+                next_id, full = _read_sdr_record(s, rid, record_id, total_len)
+                info_rec = decode_sdr_record(full)
+                if info_rec is not None and info_rec.name:
+                    out[info_rec.sensor_num] = info_rec
+            except Exception as e:
+                print(f"  SDR record 0x{record_id:04x}: {e}", file=sys.stderr)
+        seen += 1
+        if next_id == 0xFFFF:
+            break
+        record_id = next_id
+    return out
+
+
+def cmd_sel_elist(args: argparse.Namespace) -> int:
+    """Extended SEL list. Mirrors ipmitool's `sel elist`:
+
+      - Resolves sensor names via SDR walk (degrades to '#0xNN' on failure).
+      - Decodes timestamps to MM/DD/YYYY HH:MM:SS UTC.
+      - Decodes event-type/offset to human text (generic + sensor-specific).
+      - Prints Asserted/Deasserted from event direction bit.
+    """
+    from ..sel_decode import format_sel_record_extended
+    with _open_session(args) as s:
+        sdr_map = _build_sdr_sensor_map(s)
+        info = s.send_cmd(0x0A, 0x40)
+        if info.entries == 0:
+            print("(SEL is empty)")
+            return 0
+        rsv = s.send_cmd(0x0A, 0x42)
+        rid = rsv.reservation_id
+        print(f"SEL: {info.entries} entries "
+              f"({len(sdr_map)} sensors named via SDR)")
+        record_id = 0x0000
+        seen = 0
+        max_iter = info.entries + 4
+        while seen < max_iter:
+            try:
+                resp = s.send_cmd(
+                    0x0A, 0x43,
+                    GetSELEntryReq(reservation_id=rid, record_id=record_id,
+                                   offset=0, count=0xFF),
+                )
+            except Exception as e:
+                print(f"  abort at record 0x{record_id:04x}: {e}",
+                      file=sys.stderr)
+                return 1
+            print(format_sel_record_extended(bytes(resp.record), sdr_map))
+            seen += 1
+            next_id = resp.next_record_id
+            if next_id == 0xFFFF:
+                break
+            record_id = next_id
+    return 0
+
+
 def cmd_sdr_list(args: argparse.Namespace) -> int:
     """Walk the SDR repository.
 
@@ -1384,6 +1478,11 @@ def build_parser() -> argparse.ArgumentParser:
     sel_info.set_defaults(func=cmd_sel_info)
     sel_list = sel_sub.add_parser("list", help="walk and decode SEL entries")
     sel_list.set_defaults(func=cmd_sel_list)
+    sel_elist = sel_sub.add_parser(
+        "elist",
+        help="extended SEL list — SDR-resolved sensor names + decoded events",
+    )
+    sel_elist.set_defaults(func=cmd_sel_elist)
 
     # sdr
     sdr = sub.add_parser("sdr", help="sensor data records")
