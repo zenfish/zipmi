@@ -159,6 +159,17 @@ def test_fru_print_explicit_device_id():
     assert args.device_id == 2
 
 
+def test_sensor_get_dispatches():
+    args = parse_cli(["-H", "x", "sensor", "get", "Ambient Temp"])
+    assert args.func.__name__ == "cmd_sensor_get"
+    assert args.name == "Ambient Temp"
+
+
+def test_sensor_get_requires_name(capsys):
+    with pytest.raises(SystemExit):
+        parse_cli(["-H", "x", "sensor", "get"])
+
+
 def test_mc_watchdog_off_requires_yes_and_dispatches():
     args = parse_cli(["-H", "x", "mc", "watchdog", "off"])
     assert args.func.__name__ == "cmd_mc_watchdog_off"

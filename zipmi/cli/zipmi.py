@@ -1022,6 +1022,84 @@ def cmd_mc_watchdog_off(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sensor_get(args: argparse.Namespace) -> int:
+    """Look up a sensor by name in the SDR, fetch its reading, and decode.
+
+    Walks the SDR repository checking Type 1 (Full Sensor) records for an
+    exact-match name; on hit, issues Get Sensor Reading (0x04/0x2D) and
+    applies the spec-defined linear conversion using M/B/Rexp/Bexp + the
+    linearization function from the SDR record.
+    """
+    from ..sdr_full import parse_full_sdr, cook_reading, unit_name
+    target = args.name
+    with _open_session(args) as s:
+        info = s.send_cmd(0x0A, 0x20)
+        if info.record_count == 0:
+            print("(no SDR records)", file=sys.stderr)
+            return 1
+        rsv = s.send_cmd(0x0A, 0x22)
+        rid = rsv.reservation_id
+        record_id = 0x0000
+        seen = 0
+        found = None
+        while seen < info.record_count + 4:
+            try:
+                hdr = s.send_cmd(
+                    0x0A, 0x23,
+                    GetSDRReq(reservation_id=rid, record_id=record_id,
+                              offset=0, count=5),
+                )
+            except Exception as e:
+                print(f"  SDR abort at 0x{record_id:04x}: {e}", file=sys.stderr)
+                return 1
+            d = bytes(hdr.record_data)
+            if len(d) < 5:
+                break
+            rec_type = d[3]
+            length = d[4]
+            total_len = 5 + length
+            next_id = hdr.next_record_id
+            if rec_type == 0x01:
+                try:
+                    next_id, full = _read_sdr_record(s, rid, record_id, total_len)
+                    meta = parse_full_sdr(full)
+                    if meta is not None and meta.name == target:
+                        found = meta
+                        break
+                except Exception as e:
+                    print(f"  SDR record 0x{record_id:04x}: {e}",
+                          file=sys.stderr)
+            seen += 1
+            if next_id == 0xFFFF:
+                break
+            record_id = next_id
+        if found is None:
+            print(f"  no Type-1 sensor named {target!r} in SDR", file=sys.stderr)
+            return 1
+        # send_raw because some BMCs (e.g. iDRAC6) omit the trailing thresh2
+        # byte; the scapy resp packet requires all 5 fields and silently
+        # zero-fills on a short response. send_raw gives us the actual bytes.
+        cc, rdata = s.send_raw(0x04, 0x2D, bytes([found.sensor_number]))
+        if cc != 0x00 or len(rdata) < 2:
+            print(f"  Get Sensor Reading cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    raw = rdata[0]
+    status = rdata[1]
+    print(f"Sensor name      : {found.name}")
+    print(f"Sensor number    : 0x{found.sensor_number:02x}")
+    print(f"Sensor type      : 0x{found.sensor_type:02x}")
+    print(f"Unit             : {unit_name(found.unit_code)}")
+    print(f"Raw value        : 0x{raw:02x}")
+    print(f"Status byte      : 0x{status:02x}  "
+          f"(bit7=unavail bit6=scan-disabled bit5=event-msgs-disabled)")
+    cooked = cook_reading(found, raw)
+    if cooked is None:
+        print("Cooked value     : (non-analog or unsupported linearization)")
+    else:
+        print(f"Cooked value     : {cooked:.3f} {unit_name(found.unit_code)}")
+    return 0
+
+
 def _read_fru_blob(s, device_id: int, total: int, chunk: int = 16) -> bytes:
     """Read Read FRU Data (0x0A/0x11) in chunks until `total` bytes accumulated.
 
@@ -2124,6 +2202,10 @@ def build_parser() -> argparse.ArgumentParser:
     sn_sub = sn.add_subparsers(dest="action", required=True)
     sn_list = sn_sub.add_parser("list", help="walk SDR + read each sensor")
     sn_list.set_defaults(func=cmd_sensor_list)
+    sn_get = sn_sub.add_parser("get", help="get one sensor's decoded reading")
+    sn_get.add_argument("name",
+                        help="exact sensor name as it appears in `sensor list`")
+    sn_get.set_defaults(func=cmd_sensor_get)
 
     # lan
     lan = sub.add_parser("lan", help="LAN configuration")
