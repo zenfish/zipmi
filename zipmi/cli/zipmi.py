@@ -783,6 +783,155 @@ def cmd_user_priv(args: argparse.Namespace) -> int:
     return 0
 
 
+CHANNEL_MEDIUM: dict[int, str] = {
+    0x00: "reserved",
+    0x01: "IPMB (I2C)",
+    0x02: "ICMB v1.0",
+    0x03: "ICMB v0.9",
+    0x04: "802.3 LAN",
+    0x05: "asynch serial/modem",
+    0x06: "other LAN",
+    0x07: "PCI SMBus",
+    0x08: "SMBus v1.0/1.1",
+    0x09: "SMBus v2.0",
+    0x0A: "USB 1.x",
+    0x0B: "USB 2.x",
+    0x0C: "system interface (KCS/SMIC/BT)",
+}
+
+CHANNEL_PROTOCOL: dict[int, str] = {
+    0x00: "reserved",
+    0x01: "IPMB-1.0",
+    0x02: "ICMB v1.0",
+    0x04: "IPMI-over-LAN (RMCP+)",
+    0x05: "IPMI-over-Serial",
+    0x06: "TMODE",
+    0x07: "OEM 1",
+    0x08: "OEM 2",
+    0x09: "OEM 3",
+    0x0A: "OEM 4",
+}
+
+SESSION_SUPPORT: dict[int, str] = {
+    0b00: "session-less",
+    0b01: "single-session",
+    0b10: "multi-session",
+    0b11: "session-based (auto)",
+}
+
+
+def cmd_channel_info(args: argparse.Namespace) -> int:
+    """Get Channel Info Command (0x06/0x42)."""
+    chan = args.channel
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x42, bytes([chan & 0x0F]))
+        if cc != 0x00 or len(data) < 9:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    actual = data[0] & 0x0F
+    medium = data[1] & 0x7F
+    proto = data[2] & 0x1F
+    sess_support = (data[3] >> 6) & 0x03
+    active = data[3] & 0x3F
+    vendor_id = data[4] | (data[5] << 8) | (data[6] << 16)
+    print(f"Channel 0x{actual:x} info:")
+    print(f"  Medium type      : {CHANNEL_MEDIUM.get(medium, f'0x{medium:02x}')}")
+    print(f"  Protocol type    : {CHANNEL_PROTOCOL.get(proto, f'0x{proto:02x}')}")
+    print(f"  Session support  : {SESSION_SUPPORT[sess_support]}")
+    print(f"  Active sessions  : {active}")
+    print(f"  Vendor IANA      : 0x{vendor_id:06x}")
+    print(f"  Aux info         : 0x{data[7]:02x}{data[8]:02x}")
+    return 0
+
+
+def cmd_channel_getaccess(args: argparse.Namespace) -> int:
+    """Get User Access (0x06/0x44) on a specific channel + user."""
+    payload = bytes([args.channel & 0x0F, args.user_id & 0x3F])
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x44, payload)
+        if cc != 0x00 or len(data) < 4:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    # IPMI 2.0 §22.27 Table 22-9:
+    #   byte 1 [5:0]  = max user IDs
+    #   byte 2 [7:6]  = enabled status (0=unspec, 1=enabled, 2=disabled)
+    #          [5:0]  = enabled user count
+    #   byte 3 [5:0]  = fixed-name user count
+    #   byte 4 [6]    = callin/callback access available
+    #          [5]    = link auth enabled
+    #          [4]    = IPMI messaging enabled
+    #          [3:0]  = privilege limit
+    max_uid = data[0] & 0x3F
+    enabled_status = (data[1] >> 6) & 0x03
+    enabled_count = data[1] & 0x3F
+    fixed_users = data[2] & 0x3F
+    # Byte 4 bit semantics per ipmitool / observed BMC behavior:
+    #   [6] 1 = restricted to callback only (no call-in); 0 = both allowed
+    #   [5] 1 = link auth enabled
+    #   [4] 1 = IPMI messaging enabled
+    access = data[3]
+    priv = access & 0x0F
+    callin = not bool(access & 0x40)
+    link_auth = bool(access & 0x20)
+    ipmi_msg = bool(access & 0x10)
+    priv_name = next((n for n, v in PRIV_LEVELS.items() if v == priv),
+                     f"0x{priv:x}")
+    enabled = {0: "unspecified", 1: "enabled", 2: "disabled"}.get(enabled_status, "?")
+    print(f"Channel 0x{args.channel:x}, user {args.user_id}:")
+    print(f"  Max user IDs       : {max_uid}")
+    print(f"  Enabled user count : {enabled_count}")
+    print(f"  Fixed-name users   : {fixed_users}")
+    print(f"  Enable status      : {enabled}")
+    print(f"  IPMI messaging     : {'on' if ipmi_msg else 'off'}")
+    print(f"  Link authentication: {'on' if link_auth else 'off'}")
+    print(f"  Callin/callback    : {'on' if callin else 'off'}")
+    print(f"  Privilege level    : {priv_name}")
+    return 0
+
+
+def cmd_session_info(args: argparse.Namespace) -> int:
+    """Get Session Info (0x06/0x3D).
+
+    selector 0x00 = current active session (most useful — returns info
+    about the session we just opened to talk to the BMC).
+    """
+    sel = args.selector
+    if sel == "active":
+        payload = b"\x00"
+    elif sel.startswith("0x") or sel.startswith("0X"):
+        idx = int(sel, 16)
+        payload = bytes([idx])
+    else:
+        idx = int(sel)
+        payload = bytes([idx & 0xFF])
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x3D, payload)
+        if cc != 0x00 or len(data) < 6:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    handle = data[0]
+    possible = data[1] & 0x3F
+    active = data[2] & 0x3F
+    uid = data[3] & 0x3F
+    op_priv = data[4] & 0x0F
+    chan = data[5] & 0x0F
+    priv_name = next((n for n, v in PRIV_LEVELS.items() if v == op_priv),
+                     f"0x{op_priv:x}")
+    print(f"Session handle        : 0x{handle:02x}")
+    print(f"Slot total / active   : {possible} / {active}")
+    print(f"User ID               : {uid}")
+    print(f"Operating privilege   : {priv_name}")
+    print(f"Channel               : 0x{chan:x}")
+    if len(data) >= 18:
+        ip = ".".join(str(b) for b in data[6:10])
+        mac = ":".join(f"{b:02x}" for b in data[10:16])
+        port = data[16] | (data[17] << 8)
+        print(f"Remote IP             : {ip}")
+        print(f"Remote MAC            : {mac}")
+        print(f"Remote port           : {port}")
+    return 0
+
+
 def cmd_mc_selftest(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         r = s.send_cmd(0x06, 0x04)
@@ -1893,6 +2042,28 @@ def build_parser() -> argparse.ArgumentParser:
                            help="channel number (default 0x0E = this channel)")
     user_priv.add_argument("--yes", action="store_true")
     user_priv.set_defaults(func=cmd_user_priv)
+
+    # channel
+    chn = sub.add_parser("channel", help="channel info + access")
+    chn_sub = chn.add_subparsers(dest="action", required=True)
+    chn_info = chn_sub.add_parser("info", help="Get Channel Info")
+    chn_info.add_argument("channel", nargs="?", type=lambda s: int(s, 0),
+                          default=0x0E,
+                          help="channel number (default 0x0E = this channel)")
+    chn_info.set_defaults(func=cmd_channel_info)
+    chn_ga = chn_sub.add_parser("getaccess", help="Get User Access on a channel")
+    chn_ga.add_argument("channel", type=lambda s: int(s, 0))
+    chn_ga.add_argument("user_id", type=int)
+    chn_ga.set_defaults(func=cmd_channel_getaccess)
+
+    # session
+    sess = sub.add_parser("session", help="session info")
+    sess_sub = sess.add_subparsers(dest="action", required=True)
+    sess_info = sess_sub.add_parser("info",
+                                    help="Get Session Info (default: active)")
+    sess_info.add_argument("selector", nargs="?", default="active",
+                           help="'active' or session index (decimal or 0x...)")
+    sess_info.set_defaults(func=cmd_session_info)
 
     # raw
     raw = sub.add_parser("raw", help="send arbitrary NetFn/Cmd/Data")

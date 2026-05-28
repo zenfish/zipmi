@@ -109,3 +109,32 @@ def test_user_priv_channel_default():
 def test_user_priv_rejects_unknown_level(capsys):
     with pytest.raises(SystemExit):
         parse_cli(["-H", "x", "user", "priv", "2", "godmode"])
+
+
+def test_channel_info_dispatch_default_channel():
+    args = parse_cli(["-H", "x", "channel", "info"])
+    assert args.func.__name__ == "cmd_channel_info"
+    assert args.channel == 0x0E
+
+
+def test_channel_info_explicit_channel():
+    args = parse_cli(["-H", "x", "channel", "info", "1"])
+    assert args.channel == 1
+
+
+def test_channel_getaccess_dispatch():
+    args = parse_cli(["-H", "x", "channel", "getaccess", "1", "2"])
+    assert args.func.__name__ == "cmd_channel_getaccess"
+    assert args.channel == 1
+    assert args.user_id == 2
+
+
+def test_session_info_default_active():
+    args = parse_cli(["-H", "x", "session", "info"])
+    assert args.func.__name__ == "cmd_session_info"
+    assert args.selector == "active"
+
+
+def test_session_info_explicit_index():
+    args = parse_cli(["-H", "x", "session", "info", "3"])
+    assert args.selector == "3"
