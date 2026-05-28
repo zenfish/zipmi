@@ -932,6 +932,96 @@ def cmd_session_info(args: argparse.Namespace) -> int:
     return 0
 
 
+WDT_USE: dict[int, str] = {
+    0x00: "reserved",
+    0x01: "BIOS FRB2",
+    0x02: "BIOS/POST",
+    0x03: "OS Load",
+    0x04: "SMS/OS",
+    0x05: "OEM",
+}
+
+WDT_ACTION: dict[int, str] = {
+    0x00: "no action",
+    0x01: "hard reset",
+    0x02: "power down",
+    0x03: "power cycle",
+}
+
+WDT_PRE_INT: dict[int, str] = {
+    0x00: "none",
+    0x01: "SMI",
+    0x02: "NMI / diagnostic",
+    0x03: "messaging interrupt",
+}
+
+
+def cmd_mc_watchdog_get(args: argparse.Namespace) -> int:
+    """Get Watchdog Timer (0x06/0x25)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x25, b"")
+        if cc != 0x00 or len(data) < 8:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    use_byte = data[0]
+    use = use_byte & 0x07
+    running = bool(use_byte & 0x40)
+    dont_log = bool(use_byte & 0x80)
+    actions_byte = data[1]
+    action = actions_byte & 0x07
+    pre_int = (actions_byte >> 4) & 0x07
+    pre_to = data[2]
+    expir_flags = data[3]
+    initial = int.from_bytes(data[4:6], "little") / 10.0
+    present = int.from_bytes(data[6:8], "little") / 10.0
+    print(f"Watchdog Timer       : {'running' if running else 'stopped'}")
+    print(f"Timer use            : {WDT_USE.get(use, f'0x{use:x}')}")
+    print(f"Don't log            : {'on' if dont_log else 'off'}")
+    print(f"Timer action         : {WDT_ACTION.get(action, f'0x{action:x}')}")
+    print(f"Pre-timeout interrupt: {WDT_PRE_INT.get(pre_int, f'0x{pre_int:x}')}")
+    print(f"Pre-timeout interval : {pre_to} s")
+    print(f"Initial countdown    : {initial:.1f} s")
+    print(f"Present countdown    : {present:.1f} s")
+    print(f"Expiration flags     : 0x{expir_flags:02x}")
+    return 0
+
+
+def cmd_mc_watchdog_reset(args: argparse.Namespace) -> int:
+    """Reset Watchdog Timer (0x06/0x22). Pats the dog."""
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x22, b"")
+        if cc != 0x00:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    print("Watchdog timer reset (kicked)")
+    return 0
+
+
+def cmd_mc_watchdog_off(args: argparse.Namespace) -> int:
+    """Disable watchdog by writing Set Watchdog Timer (0x06/0x24) with
+    the stop bit cleared. Reads current config first to preserve everything
+    else, then turns the timer off.
+    """
+    if not args.yes:
+        print("warning: 'mc watchdog off' modifies BMC watchdog state. Pass --yes.",
+              file=sys.stderr)
+        return 2
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x25, b"")
+        if cc != 0x00 or len(data) < 8:
+            print(f"  get cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+        # Clear running bit (0x40) on the timer-use byte so the BMC stops it.
+        use_byte = data[0] & ~0x40
+        payload = bytes([use_byte, data[1], data[2], data[3]]) + data[4:6]
+        cc, _ = s.send_raw(0x06, 0x24, payload)
+        if cc != 0x00:
+            print(f"  set cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    print("Watchdog timer disabled")
+    return 0
+
+
 def cmd_mc_selftest(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         r = s.send_cmd(0x06, 0x04)
@@ -1866,6 +1956,16 @@ def build_parser() -> argparse.ArgumentParser:
     mc_st.set_defaults(func=cmd_mc_selftest)
     mc_g = mc_sub.add_parser("guid", help="get device + system GUIDs")
     mc_g.set_defaults(func=cmd_mc_guid)
+    mc_wd = mc_sub.add_parser("watchdog", help="watchdog timer get/reset/off")
+    mc_wd_sub = mc_wd.add_subparsers(dest="wd_action", required=True)
+    mc_wdg = mc_wd_sub.add_parser("get", help="read current watchdog state")
+    mc_wdg.set_defaults(func=cmd_mc_watchdog_get)
+    mc_wdr = mc_wd_sub.add_parser("reset", help="pat the watchdog (Reset cmd)")
+    mc_wdr.set_defaults(func=cmd_mc_watchdog_reset)
+    mc_wdo = mc_wd_sub.add_parser("off", help="stop the watchdog")
+    mc_wdo.add_argument("--yes", action="store_true",
+                        help="confirm — disabling the watchdog changes BMC state")
+    mc_wdo.set_defaults(func=cmd_mc_watchdog_off)
 
     # chassis
     ch = sub.add_parser("chassis", help="chassis subsystem")

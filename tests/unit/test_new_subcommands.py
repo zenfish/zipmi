@@ -138,3 +138,19 @@ def test_session_info_default_active():
 def test_session_info_explicit_index():
     args = parse_cli(["-H", "x", "session", "info", "3"])
     assert args.selector == "3"
+
+
+def test_mc_watchdog_get_dispatches():
+    assert _func_name(["-H", "x", "mc", "watchdog", "get"]) == "cmd_mc_watchdog_get"
+
+
+def test_mc_watchdog_reset_dispatches():
+    assert _func_name(["-H", "x", "mc", "watchdog", "reset"]) == "cmd_mc_watchdog_reset"
+
+
+def test_mc_watchdog_off_requires_yes_and_dispatches():
+    args = parse_cli(["-H", "x", "mc", "watchdog", "off"])
+    assert args.func.__name__ == "cmd_mc_watchdog_off"
+    assert args.yes is False
+    args2 = parse_cli(["-H", "x", "mc", "watchdog", "off", "--yes"])
+    assert args2.yes is True
