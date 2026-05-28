@@ -442,6 +442,79 @@ def cmd_sel_elist(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sel_clear(args: argparse.Namespace) -> int:
+    """Clear the SEL via Reserve + Clear SEL (0x0A/0x47).
+
+    Spec (§31.9): payload = reservation_id LE + 'C' 'L' 'R' + opcode.
+    opcode 0xAA = initiate erase; 0x00 = get erase status.
+    Response byte 0: bit 0..3 = erase status (0=in-progress, 1=complete).
+    """
+    with _open_session(args) as s:
+        rsv = s.send_cmd(0x0A, 0x42)
+        rid = rsv.reservation_id
+        clr = bytes([rid & 0xFF, (rid >> 8) & 0xFF]) + b"CLR" + b"\xAA"
+        cc, data = s.send_raw(0x0A, 0x47, clr)
+        if cc != 0x00:
+            print(f"  clear initiate failed: cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+        # Poll erase status. Most BMCs complete in <1s but spec allows longer.
+        import time
+        for _ in range(20):
+            poll = bytes([rid & 0xFF, (rid >> 8) & 0xFF]) + b"CLR" + b"\x00"
+            cc, data = s.send_raw(0x0A, 0x47, poll)
+            if cc != 0x00:
+                print(f"  status poll failed: cc=0x{cc:02x}", file=sys.stderr)
+                return 1
+            status = data[0] & 0x0F if data else 0
+            if status == 1:
+                print("SEL cleared")
+                return 0
+            time.sleep(0.25)
+        print("  clear timed out (still in progress)", file=sys.stderr)
+        return 1
+
+
+def cmd_sel_time_get(args: argparse.Namespace) -> int:
+    """Get SEL Time (0x0A/0x48). 4-byte LE seconds since 1970-01-01 UTC."""
+    from datetime import datetime, timezone
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x48, b"")
+        if cc != 0x00 or len(data) < 4:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    ts = int.from_bytes(data[:4], "little")
+    if ts < 0x20000000:
+        print(f"SEL Time : Pre-Init (raw=0x{ts:08x})")
+    else:
+        dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
+        print(f"SEL Time : {dt.strftime('%m/%d/%Y %H:%M:%S %Z')} (raw=0x{ts:08x})")
+    return 0
+
+
+def cmd_sel_time_set(args: argparse.Namespace) -> int:
+    """Set SEL Time (0x0A/0x49). Argument is either an epoch int or 'now'."""
+    from datetime import datetime, timezone
+    raw = args.timestamp
+    if raw == "now":
+        ts = int(datetime.now(tz=timezone.utc).timestamp())
+    else:
+        try:
+            ts = int(raw, 0)
+        except ValueError:
+            print(f"  bad timestamp: {raw!r} (use 'now' or seconds-since-epoch)",
+                  file=sys.stderr)
+            return 1
+    payload = ts.to_bytes(4, "little")
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x0A, 0x49, payload)
+        if cc != 0x00:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
+    print(f"SEL Time set: {dt.strftime('%m/%d/%Y %H:%M:%S %Z')}")
+    return 0
+
+
 def cmd_sdr_list(args: argparse.Namespace) -> int:
     """Walk the SDR repository.
 
@@ -1483,6 +1556,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="extended SEL list — SDR-resolved sensor names + decoded events",
     )
     sel_elist.set_defaults(func=cmd_sel_elist)
+    sel_clear = sel_sub.add_parser("clear", help="erase all SEL entries")
+    sel_clear.set_defaults(func=cmd_sel_clear)
+    sel_time = sel_sub.add_parser("time", help="get/set BMC SEL clock")
+    sel_time_sub = sel_time.add_subparsers(dest="time_action", required=True)
+    sel_tg = sel_time_sub.add_parser("get", help="read current SEL time")
+    sel_tg.set_defaults(func=cmd_sel_time_get)
+    sel_ts = sel_time_sub.add_parser("set", help="set SEL time")
+    sel_ts.add_argument("timestamp",
+                        help="'now' or seconds-since-1970-UTC (decimal or 0x...)")
+    sel_ts.set_defaults(func=cmd_sel_time_set)
 
     # sdr
     sdr = sub.add_parser("sdr", help="sensor data records")
