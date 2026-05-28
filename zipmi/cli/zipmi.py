@@ -1022,6 +1022,93 @@ def cmd_mc_watchdog_off(args: argparse.Namespace) -> int:
     return 0
 
 
+def _read_fru_blob(s, device_id: int, total: int, chunk: int = 16) -> bytes:
+    """Read Read FRU Data (0x0A/0x11) in chunks until `total` bytes accumulated.
+
+    Some BMCs reject chunk >= 32. 16 is a safe default that always works.
+    Returns whatever the BMC handed back (may be shorter than requested).
+    """
+    out = bytearray()
+    while len(out) < total:
+        want = min(chunk, total - len(out))
+        offset = len(out)
+        req = bytes([device_id & 0xFF,
+                     offset & 0xFF, (offset >> 8) & 0xFF,
+                     want & 0xFF])
+        cc, data = s.send_raw(0x0A, 0x11, req)
+        if cc != 0x00 or len(data) < 1:
+            break
+        got = data[0]
+        out.extend(data[1: 1 + got])
+        if got == 0:
+            break
+    return bytes(out)
+
+
+def cmd_fru_print(args: argparse.Namespace) -> int:
+    """Print FRU Common Header, Board Info, and Product Info areas.
+
+    Default device ID is 0 (the BMC's own FRU). Chassis Info, Internal
+    Use, and MultiRecord areas are summarized by offset only.
+    """
+    from ..fru import (
+        parse_common_header, parse_board_info, parse_product_info,
+    )
+    dev_id = args.device_id
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x10, bytes([dev_id]))
+        if cc != 0x00 or len(data) < 3:
+            print(f"  FRU inventory info cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+        size = data[0] | (data[1] << 8)
+        access_word = bool(data[2] & 0x01)
+        print(f"FRU Device {dev_id}: {size} bytes "
+              f"({'word' if access_word else 'byte'} access)")
+        blob = _read_fru_blob(s, dev_id, size)
+    if len(blob) < 8:
+        print(f"  short FRU blob ({len(blob)} bytes)", file=sys.stderr)
+        return 1
+    hdr = parse_common_header(blob)
+    if hdr is None:
+        print("  invalid Common Header", file=sys.stderr)
+        return 1
+    print(f"Common Header        : v{hdr.format_version}"
+          f"  checksum {'OK' if hdr.checksum_ok else 'BAD'}")
+    print(f"  internal_use offset: {hdr.internal_off}")
+    print(f"  chassis_info offset: {hdr.chassis_off}")
+    print(f"  board_info offset  : {hdr.board_off}")
+    print(f"  product_info offset: {hdr.product_off}")
+    print(f"  multirecord offset : {hdr.multirec_off}")
+    if hdr.board_off:
+        b = parse_board_info(blob, hdr.board_off)
+        if b is not None:
+            print(f"Board Info           : checksum {'OK' if b.checksum_ok else 'BAD'}")
+            mfg = b.mfg_date.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z") \
+                  if b.mfg_date else "Unspecified"
+            print(f"  Mfg date           : {mfg}")
+            print(f"  Manufacturer       : {b.manufacturer}")
+            print(f"  Product            : {b.product}")
+            print(f"  Serial             : {b.serial}")
+            print(f"  Part number        : {b.part_number}")
+            print(f"  FRU file ID        : {b.fru_file_id}")
+            for i, c in enumerate(s for s in b.custom_fields if s):
+                print(f"  Custom {i:2}          : {c}")
+    if hdr.product_off:
+        p = parse_product_info(blob, hdr.product_off)
+        if p is not None:
+            print(f"Product Info         : checksum {'OK' if p.checksum_ok else 'BAD'}")
+            print(f"  Manufacturer       : {p.manufacturer}")
+            print(f"  Product Name       : {p.name}")
+            print(f"  Part/Model         : {p.part_model}")
+            print(f"  Version            : {p.version}")
+            print(f"  Serial             : {p.serial}")
+            print(f"  Asset Tag          : {p.asset_tag}")
+            print(f"  FRU file ID        : {p.fru_file_id}")
+            for i, c in enumerate(s for s in p.custom_fields if s):
+                print(f"  Custom {i:2}          : {c}")
+    return 0
+
+
 def cmd_mc_selftest(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         r = s.send_cmd(0x06, 0x04)
@@ -2164,6 +2251,14 @@ def build_parser() -> argparse.ArgumentParser:
     sess_info.add_argument("selector", nargs="?", default="active",
                            help="'active' or session index (decimal or 0x...)")
     sess_info.set_defaults(func=cmd_session_info)
+
+    # fru
+    fru = sub.add_parser("fru", help="FRU inventory")
+    fru_sub = fru.add_subparsers(dest="action", required=True)
+    fru_p = fru_sub.add_parser("print", help="dump FRU device contents")
+    fru_p.add_argument("device_id", nargs="?", type=lambda s: int(s, 0),
+                       default=0, help="FRU device ID (default 0)")
+    fru_p.set_defaults(func=cmd_fru_print)
 
     # raw
     raw = sub.add_parser("raw", help="send arbitrary NetFn/Cmd/Data")

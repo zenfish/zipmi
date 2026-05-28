@@ -148,6 +148,17 @@ def test_mc_watchdog_reset_dispatches():
     assert _func_name(["-H", "x", "mc", "watchdog", "reset"]) == "cmd_mc_watchdog_reset"
 
 
+def test_fru_print_dispatch_default_device_id():
+    args = parse_cli(["-H", "x", "fru", "print"])
+    assert args.func.__name__ == "cmd_fru_print"
+    assert args.device_id == 0
+
+
+def test_fru_print_explicit_device_id():
+    args = parse_cli(["-H", "x", "fru", "print", "2"])
+    assert args.device_id == 2
+
+
 def test_mc_watchdog_off_requires_yes_and_dispatches():
     args = parse_cli(["-H", "x", "mc", "watchdog", "off"])
     assert args.func.__name__ == "cmd_mc_watchdog_off"
