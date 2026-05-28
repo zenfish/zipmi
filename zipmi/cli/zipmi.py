@@ -649,6 +649,140 @@ def cmd_user_list(args: argparse.Namespace) -> int:
     return 0
 
 
+PRIV_LEVELS: dict[str, int] = {
+    "callback":  0x01,
+    "user":      0x02,
+    "operator":  0x03,
+    "admin":     0x04,
+    "oem":       0x05,
+    "no-access": 0x0F,
+}
+
+
+def _guard_write_user(args: argparse.Namespace, what: str) -> bool:
+    """User-table writes can lock you out of the BMC. Require --yes."""
+    if not args.yes:
+        print(f"warning: '{what}' modifies the BMC user table. Pass --yes to proceed.",
+              file=sys.stderr)
+        return False
+    return True
+
+
+def cmd_user_set_name(args: argparse.Namespace) -> int:
+    """Set User Name (0x06/0x45). Name padded to 16 bytes with NULs."""
+    if not _guard_write_user(args, "user set name"):
+        return 2
+    uid = args.user_id
+    if not 1 <= uid <= 63:
+        print(f"  user_id {uid} out of range 1..63", file=sys.stderr)
+        return 2
+    name = args.name.encode("utf-8")
+    if len(name) > 16:
+        print(f"  name too long ({len(name)} > 16 bytes)", file=sys.stderr)
+        return 2
+    payload = bytes([uid & 0x3F]) + name.ljust(16, b"\x00")
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x45, payload)
+        if cc != 0x00:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    print(f"user {uid}: name set to {args.name!r}")
+    return 0
+
+
+def _user_password_op(args: argparse.Namespace, op: int, password: bytes = b"") -> int:
+    """Set User Password (0x06/0x47).
+
+    op: 0=disable, 1=enable, 2=set, 3=test.
+    password buffer pads to 16 (or 20 with bit 7 in byte 0).
+    """
+    uid = args.user_id
+    if not 1 <= uid <= 63:
+        print(f"  user_id {uid} out of range 1..63", file=sys.stderr)
+        return 2
+    size = getattr(args, "size", 16)
+    if size not in (16, 20):
+        print(f"  password size must be 16 or 20", file=sys.stderr)
+        return 2
+    if len(password) > size:
+        print(f"  password too long ({len(password)} > {size})", file=sys.stderr)
+        return 2
+    size_bit = 0x80 if size == 20 else 0x00
+    payload = bytes([(uid & 0x3F) | size_bit, op & 0x03])
+    if op in (0x02, 0x03):
+        payload += password.ljust(size, b"\x00")
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x47, payload)
+        if cc != 0x00:
+            # CC 0x80 = password test failed.
+            if op == 0x03 and cc == 0x80:
+                print("password test: MISMATCH")
+                return 1
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    return 0
+
+
+def cmd_user_enable(args: argparse.Namespace) -> int:
+    if not _guard_write_user(args, "user enable"):
+        return 2
+    rc = _user_password_op(args, op=0x01)
+    if rc == 0:
+        print(f"user {args.user_id}: enabled")
+    return rc
+
+
+def cmd_user_disable(args: argparse.Namespace) -> int:
+    if not _guard_write_user(args, "user disable"):
+        return 2
+    rc = _user_password_op(args, op=0x00)
+    if rc == 0:
+        print(f"user {args.user_id}: disabled")
+    return rc
+
+
+def cmd_user_set_password(args: argparse.Namespace) -> int:
+    if not _guard_write_user(args, "user set password"):
+        return 2
+    pw = args.new_password.encode("utf-8")
+    rc = _user_password_op(args, op=0x02, password=pw)
+    if rc == 0:
+        print(f"user {args.user_id}: password set ({args.size}-byte slot)")
+    return rc
+
+
+def cmd_user_test_password(args: argparse.Namespace) -> int:
+    """Test User Password (0x06/0x47 op 0x03). Read-only — no --yes guard."""
+    pw = args.test_password.encode("utf-8")
+    rc = _user_password_op(args, op=0x03, password=pw)
+    if rc == 0:
+        print("password test: OK")
+    return rc
+
+
+def cmd_user_priv(args: argparse.Namespace) -> int:
+    """Set User Access (0x06/0x43). Updates privilege level for the given
+    user on the given channel. Leaves callin/link-auth/ipmi-msg bits alone
+    (byte-0 bit 7 = 0 = don't change those bits)."""
+    if not _guard_write_user(args, "user priv"):
+        return 2
+    uid = args.user_id
+    level = PRIV_LEVELS[args.level]
+    chan = args.channel
+    # byte 0: bit 7 = 0 (don't touch the byte-1 flags); bits 3:0 = channel
+    # byte 1: bits 3:0 = user_id (callin/link/ipmi bits ignored without bit 7)
+    # byte 2: bits 3:0 = privilege
+    # byte 3: bits 3:0 = session limit (0 = no limit)
+    payload = bytes([chan & 0x0F, uid & 0x3F, level & 0x0F, 0x00])
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x43, payload)
+        if cc != 0x00:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    print(f"user {uid} channel 0x{chan:x}: privilege set to {args.level}")
+    return 0
+
+
 def cmd_mc_selftest(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         r = s.send_cmd(0x06, 0x04)
@@ -1720,6 +1854,45 @@ def build_parser() -> argparse.ArgumentParser:
     user_sub = user.add_subparsers(dest="action", required=True)
     user_list = user_sub.add_parser("list", help="list users via Get User Access/Name")
     user_list.set_defaults(func=cmd_user_list)
+    user_set = user_sub.add_parser("set", help="set username or password")
+    user_set_sub = user_set.add_subparsers(dest="set_action", required=True)
+    user_set_name = user_set_sub.add_parser("name", help="Set User Name")
+    user_set_name.add_argument("user_id", type=int)
+    user_set_name.add_argument("name")
+    user_set_name.add_argument("--yes", action="store_true",
+                               help="confirm BMC user-table modification")
+    user_set_name.set_defaults(func=cmd_user_set_name)
+    user_set_pw = user_set_sub.add_parser("password", help="Set User Password")
+    user_set_pw.add_argument("user_id", type=int)
+    user_set_pw.add_argument("new_password", metavar="password")
+    user_set_pw.add_argument("size", nargs="?", type=int, default=16,
+                             choices=[16, 20],
+                             help="password slot size (16 or 20 bytes)")
+    user_set_pw.add_argument("--yes", action="store_true",
+                             help="confirm BMC user-table modification")
+    user_set_pw.set_defaults(func=cmd_user_set_password)
+    user_en = user_sub.add_parser("enable", help="enable user (op 1)")
+    user_en.add_argument("user_id", type=int)
+    user_en.add_argument("--yes", action="store_true")
+    user_en.set_defaults(func=cmd_user_enable, size=16)
+    user_dis = user_sub.add_parser("disable", help="disable user (op 0)")
+    user_dis.add_argument("user_id", type=int)
+    user_dis.add_argument("--yes", action="store_true")
+    user_dis.set_defaults(func=cmd_user_disable, size=16)
+    user_test = user_sub.add_parser("test", help="test password (op 3, read-only)")
+    user_test.add_argument("user_id", type=int)
+    user_test.add_argument("test_password", metavar="password")
+    user_test.add_argument("size", nargs="?", type=int, default=16,
+                           choices=[16, 20])
+    user_test.set_defaults(func=cmd_user_test_password)
+    user_priv = user_sub.add_parser("priv", help="Set User Access privilege")
+    user_priv.add_argument("user_id", type=int)
+    user_priv.add_argument("level", choices=list(PRIV_LEVELS.keys()))
+    user_priv.add_argument("channel", nargs="?", type=lambda s: int(s, 0),
+                           default=0x0E,
+                           help="channel number (default 0x0E = this channel)")
+    user_priv.add_argument("--yes", action="store_true")
+    user_priv.set_defaults(func=cmd_user_priv)
 
     # raw
     raw = sub.add_parser("raw", help="send arbitrary NetFn/Cmd/Data")
