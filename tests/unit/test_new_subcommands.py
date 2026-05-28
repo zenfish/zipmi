@@ -36,3 +36,25 @@ def test_sel_time_set_dispatches_with_epoch():
 def test_sel_time_set_requires_timestamp_arg(capsys):
     with pytest.raises(SystemExit):
         parse_cli(["-H", "x", "sel", "time", "set"])
+
+
+def test_chassis_restart_cause_dispatches():
+    assert (_func_name(["-H", "x", "chassis", "restart_cause"])
+            == "cmd_chassis_restart_cause")
+
+
+def test_chassis_policy_list_dispatches():
+    args = parse_cli(["-H", "x", "chassis", "policy", "list"])
+    assert args.func.__name__ == "cmd_chassis_policy"
+    assert args.policy == "list"
+
+
+def test_chassis_policy_set_each_value():
+    for pol in ("always-off", "previous", "always-on"):
+        args = parse_cli(["-H", "x", "chassis", "policy", pol])
+        assert args.policy == pol
+
+
+def test_chassis_policy_rejects_unknown(capsys):
+    with pytest.raises(SystemExit):
+        parse_cli(["-H", "x", "chassis", "policy", "bogus"])

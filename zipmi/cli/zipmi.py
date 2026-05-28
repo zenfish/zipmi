@@ -283,6 +283,74 @@ def cmd_chassis_power(args: argparse.Namespace) -> int:
     return 0
 
 
+RESTART_CAUSE: dict[int, str] = {
+    0x00: "unknown",
+    0x01: "chassis control command",
+    0x02: "reset button",
+    0x03: "power button",
+    0x04: "watchdog expiration",
+    0x05: "OEM",
+    0x06: "auto power-up: always restore",
+    0x07: "auto power-up: restore previous",
+    0x08: "PEF reset",
+    0x09: "PEF power cycle",
+    0x0A: "soft reset",
+    0x0B: "RTC wake-up",
+}
+
+POWER_POLICY: dict[str, int] = {
+    "always-off": 0x00,
+    "previous":   0x01,
+    "always-on":  0x02,
+}
+
+
+def cmd_chassis_restart_cause(args: argparse.Namespace) -> int:
+    """Get System Restart Cause (0x00/0x07).
+
+    Response: byte 0 bits 3:0 = cause, byte 1 = channel of remote command.
+    """
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x00, 0x07, b"")
+        if cc != 0x00 or len(data) < 2:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    cause = data[0] & 0x0F
+    chan = data[1] & 0x0F
+    name = RESTART_CAUSE.get(cause, f"0x{cause:02x}")
+    print(f"System restart cause : {name}")
+    print(f"Channel              : 0x{chan:x}")
+    return 0
+
+
+def cmd_chassis_policy(args: argparse.Namespace) -> int:
+    """Set Power Restore Policy (0x00/0x06).
+
+    Action 'list' uses the no-change variant (0x03) to ask which policies
+    the BMC supports without changing state. Otherwise the named policy
+    is applied.
+    """
+    if args.policy == "list":
+        with _open_session(args) as s:
+            cc, data = s.send_raw(0x00, 0x06, b"\x03")
+        if cc != 0x00 or not data:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+        bits = data[0]
+        supported = [name for name, code in POWER_POLICY.items()
+                     if bits & (1 << code)]
+        print(f"Supported policies: {', '.join(supported) or '(none reported)'}")
+        return 0
+    code = POWER_POLICY[args.policy]
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x00, 0x06, bytes([code]))
+        if cc != 0x00:
+            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            return 1
+    print(f"Power restore policy set: {args.policy}")
+    return 0
+
+
 def cmd_sel_info(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         si = s.send_cmd(0x0A, 0x40)
@@ -1543,6 +1611,14 @@ def build_parser() -> argparse.ArgumentParser:
     ch_bf = ch_sub.add_parser("bootflags",
                               help="read current boot flags (selector 5)")
     ch_bf.set_defaults(func=cmd_chassis_bootflags)
+    ch_rc = ch_sub.add_parser("restart_cause",
+                              help="get system restart cause")
+    ch_rc.set_defaults(func=cmd_chassis_restart_cause)
+    ch_pp = ch_sub.add_parser("policy", help="get/set power restore policy")
+    ch_pp.add_argument("policy",
+                       choices=["list", "always-off", "previous", "always-on"],
+                       help="'list' queries supported; others set the policy")
+    ch_pp.set_defaults(func=cmd_chassis_policy)
 
     # sel
     sel = sub.add_parser("sel", help="system event log")
