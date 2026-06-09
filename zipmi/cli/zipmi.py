@@ -44,6 +44,7 @@ import os
 import socket
 import sys
 
+from .. import __version__
 from ..consts import COMP_CODE, IANA, guess_bmc_generation
 from ..core import (
     AUTH_MD5,
@@ -145,6 +146,9 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                         metavar="{auto/a,pastel/p,set/s,dark/d}",
                         help="colour palette (default: auto — detects "
                              "terminal background)")
+    parser.add_argument("-V", "--version", action="version",
+                        version=f"zipmi version {__version__}",
+                        help="show program version and exit")
 
 
 def parse_cli(argv: list[str] | None = None) -> argparse.Namespace:
@@ -1396,6 +1400,144 @@ def cmd_sensor_list(args: argparse.Namespace) -> int:
     return 0
 
 
+# -- i2c / spd helpers ----------------------------------------------------
+
+
+def _parse_i2c_bus_chan(tokens: list[str]) -> tuple[int, list[str]]:
+    """Strip leading bus=... / chan=... tokens; return (bus_byte, rest).
+
+    bus byte layout per IPMI 2.0 §22.11 Master Write-Read:
+        [7:4] channel number   [3:1] private bus id   [0] bus type (1=private)
+
+    Matches ipmitool's CLI:
+        bus=public [chan=N]    → public bus on channel N (default 0)
+        bus=N                  → private bus N (chan ignored)
+        no bus= token          → public bus, chan=0
+    """
+    private = False
+    priv_bus = 0
+    chan = 0
+    chan_given = False
+    bus_given = False
+    rest = list(tokens)
+    while rest and (rest[0].startswith("bus=") or rest[0].startswith("chan=")):
+        tok = rest.pop(0)
+        key, _, val = tok.partition("=")
+        if key == "bus":
+            bus_given = True
+            if val == "public":
+                private = False
+            else:
+                private = True
+                priv_bus = int(val, 0) & 0x07
+        else:  # chan=
+            chan_given = True
+            chan = int(val, 0) & 0x0F
+    if chan_given and not bus_given:
+        raise ValueError("chan= requires bus= (per ipmitool semantics)")
+    bus_byte = (chan << 4) | (priv_bus << 1) | (1 if private else 0)
+    return bus_byte, rest
+
+
+def _master_write_read(s, bus_byte: int, slave: int,
+                       read_count: int, write_data: bytes) -> tuple[int, bytes]:
+    """Issue Master Write-Read (NetFn App 0x06, Cmd 0x52).
+
+    slave is the 7-bit address; the BMC expects it left-shifted (LSB clear).
+    Returns (completion_code, read_bytes).
+    """
+    payload = bytes([bus_byte, (slave & 0x7F) << 1, read_count & 0xFF]) + write_data
+    return s.send_raw(0x06, 0x52, payload)
+
+
+def _hex_dump(data: bytes, *, base: int = 0) -> str:
+    """16-byte-per-row hex dump with offset + ASCII gutter."""
+    out = []
+    for off in range(0, len(data), 16):
+        row = data[off:off + 16]
+        hexs = " ".join(f"{b:02x}" for b in row)
+        ascii_ = "".join(chr(b) if 32 <= b < 127 else "." for b in row)
+        out.append(f"{base + off:05x}: {hexs:<47}  {ascii_}")
+    return "\n".join(out)
+
+
+def cmd_i2c(args: argparse.Namespace) -> int:
+    """Master Write-Read passthrough. Mirrors `ipmitool i2c`."""
+    try:
+        bus_byte, rest = _parse_i2c_bus_chan(list(args.tokens))
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    if len(rest) < 2:
+        print("usage: i2c [bus=public|#] [chan=#] <i2caddr> <read bytes> "
+              "[write data]", file=sys.stderr)
+        return 2
+    try:
+        slave = int(rest[0], 0)
+        read_count = int(rest[1], 0)
+        write_data = bytes(int(b, 0) & 0xFF for b in rest[2:])
+    except ValueError as e:
+        print(f"error: bad numeric arg ({e})", file=sys.stderr)
+        return 2
+    if not (0 < slave <= 0x7F):
+        print(f"error: slave address 0x{slave:02x} out of range (1..0x7f)",
+              file=sys.stderr)
+        return 2
+    if not (0 <= read_count <= 0xFF):
+        print("error: read count must be 0..255", file=sys.stderr)
+        return 2
+    with _open_session(args) as s:
+        cc, resp = _master_write_read(s, bus_byte, slave, read_count, write_data)
+    if cc != 0:
+        cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
+        print(f"Master Write-Read failed: {cc_name}", file=sys.stderr)
+        return 1
+    if resp:
+        print(" ".join(f"{b:02x}" for b in resp))
+    return 0
+
+
+def cmd_spd(args: argparse.Namespace) -> int:
+    """Read a DIMM SPD EEPROM via Master Write-Read. Mirrors `ipmitool spd`."""
+    try:
+        bus_byte, rest = _parse_i2c_bus_chan(list(args.tokens))
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    if len(rest) != 1:
+        print("usage: spd [bus=public|#] [chan=#] <i2caddr>", file=sys.stderr)
+        return 2
+    try:
+        slave = int(rest[0], 0)
+    except ValueError:
+        print(f"error: bad slave addr {rest[0]!r}", file=sys.stderr)
+        return 2
+    if not (0x50 <= slave <= 0x57):
+        # warn but proceed — JEDEC SPD lives at 0x50..0x57 but users may
+        # have non-standard EEPROMs at other addresses
+        print(f"warning: 0x{slave:02x} outside JEDEC SPD range 0x50..0x57",
+              file=sys.stderr)
+    total = args.size
+    chunk = 16  # safe IPMB payload
+    buf = bytearray()
+    with _open_session(args) as s:
+        for off in range(0, total, chunk):
+            n = min(chunk, total - off)
+            cc, resp = _master_write_read(
+                s, bus_byte, slave, n, bytes([off & 0xFF])
+            )
+            if cc != 0:
+                cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
+                print(f"SPD read failed at offset 0x{off:02x}: {cc_name}",
+                      file=sys.stderr)
+                if buf:
+                    print(_hex_dump(bytes(buf)))
+                return 1
+            buf.extend(resp)
+    print(_hex_dump(bytes(buf)))
+    return 0
+
+
 def cmd_fuzz_rakp(args: argparse.Namespace) -> int:
     """Run the RAKP1 mutation suite against a target.
 
@@ -2348,6 +2490,27 @@ def build_parser() -> argparse.ArgumentParser:
     raw.add_argument("cmd")
     raw.add_argument("data", nargs="*")
     raw.set_defaults(func=cmd_raw)
+
+    # i2c / spd — IPMI Master Write-Read (NetFn App, Cmd 0x52)
+    i2c = sub.add_parser(
+        "i2c",
+        help="Master Write-Read I2C passthrough "
+             "(bus=public|# [chan=#] <i2caddr> <read bytes> [write data])",
+    )
+    i2c.add_argument("tokens", nargs="*",
+                     help="bus=public|# [chan=#] <i2caddr> <read bytes> "
+                          "[write data ...]")
+    i2c.set_defaults(func=cmd_i2c)
+    spd = sub.add_parser(
+        "spd",
+        help="read DIMM SPD EEPROM via Master Write-Read "
+             "(spd [bus=public|#] [chan=#] <i2caddr>)",
+    )
+    spd.add_argument("tokens", nargs="*",
+                     help="[bus=public|#] [chan=#] <i2caddr>")
+    spd.add_argument("--size", type=lambda s: int(s, 0), default=256,
+                     help="bytes to read (default 256; use 512 for DDR4)")
+    spd.set_defaults(func=cmd_spd)
 
     # OEM verbs: `zipmi oem` + per-vendor shortcuts (dell, supermicro, ...).
     from .oem_cmds import add_oem_subparsers

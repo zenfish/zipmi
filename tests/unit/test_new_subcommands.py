@@ -176,3 +176,89 @@ def test_mc_watchdog_off_requires_yes_and_dispatches():
     assert args.yes is False
     args2 = parse_cli(["-H", "x", "mc", "watchdog", "off", "--yes"])
     assert args2.yes is True
+
+
+# -- -V / --version global -----------------------------------------------
+
+
+def test_version_flag_short_exits_zero(capsys):
+    from zipmi import __version__
+    with pytest.raises(SystemExit) as e:
+        parse_cli(["-V"])
+    assert e.value.code == 0
+    assert __version__ in capsys.readouterr().out
+
+
+def test_version_flag_long_exits_zero(capsys):
+    from zipmi import __version__
+    with pytest.raises(SystemExit) as e:
+        parse_cli(["--version"])
+    assert e.value.code == 0
+    assert __version__ in capsys.readouterr().out
+
+
+# -- i2c / spd parser shape ----------------------------------------------
+
+
+def test_i2c_dispatches():
+    args = parse_cli(["-H", "x", "i2c", "bus=public", "chan=0",
+                      "0x50", "16", "0x00"])
+    assert args.func.__name__ == "cmd_i2c"
+    assert args.tokens == ["bus=public", "chan=0", "0x50", "16", "0x00"]
+
+
+def test_spd_dispatches():
+    args = parse_cli(["-H", "x", "spd", "bus=public", "chan=0", "0x50"])
+    assert args.func.__name__ == "cmd_spd"
+    assert args.tokens == ["bus=public", "chan=0", "0x50"]
+    assert args.size == 256
+
+
+def test_spd_custom_size():
+    args = parse_cli(["-H", "x", "spd", "--size", "512", "bus=public", "0x50"])
+    assert args.size == 512
+
+
+# -- bus byte construction (IPMI 2.0 §22.11) -----------------------------
+
+
+def test_i2c_bus_byte_public_chan0():
+    from zipmi.cli.zipmi import _parse_i2c_bus_chan
+    bus, rest = _parse_i2c_bus_chan(["bus=public", "chan=0", "0x50", "16"])
+    assert bus == 0x00
+    assert rest == ["0x50", "16"]
+
+
+def test_i2c_bus_byte_public_chan_set():
+    from zipmi.cli.zipmi import _parse_i2c_bus_chan
+    bus, _ = _parse_i2c_bus_chan(["bus=public", "chan=7", "0x50", "1"])
+    # chan=7 in [7:4], priv_bus=0, private=0 → 0x70
+    assert bus == 0x70
+
+
+def test_i2c_bus_byte_private():
+    from zipmi.cli.zipmi import _parse_i2c_bus_chan
+    bus, _ = _parse_i2c_bus_chan(["bus=3", "0x50", "1"])
+    # chan=0, priv_bus=3 in [3:1] → (3<<1)|1 = 0x07
+    assert bus == 0x07
+
+
+def test_i2c_bus_byte_default_no_tokens():
+    from zipmi.cli.zipmi import _parse_i2c_bus_chan
+    bus, rest = _parse_i2c_bus_chan(["0x50", "16"])
+    assert bus == 0x00
+    assert rest == ["0x50", "16"]
+
+
+def test_i2c_chan_without_bus_rejected():
+    from zipmi.cli.zipmi import _parse_i2c_bus_chan
+    with pytest.raises(ValueError):
+        _parse_i2c_bus_chan(["chan=5", "0x50", "1"])
+
+
+def test_hex_dump_format():
+    from zipmi.cli.zipmi import _hex_dump
+    out = _hex_dump(b"hello world\x00\x01\x02\x03\x04")
+    lines = out.splitlines()
+    assert lines[0].startswith("00000: 68 65 6c 6c 6f 20 77 6f 72 6c 64 00 01 02 03 04")
+    assert lines[0].endswith("hello world.....")
