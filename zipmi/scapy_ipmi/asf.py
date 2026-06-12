@@ -30,6 +30,7 @@ from scapy.fields import (
     ByteField,
     FieldLenField,
     IntField,
+    LEIntField,
     StrLenField,
 )
 from scapy.packet import Packet, bind_layers
@@ -74,7 +75,10 @@ class ASFPresencePong(Packet):
 
     name = "ASF Presence Pong"
     fields_desc = [
-        IntField("oem_iana", 0),       # vendor-specific (0 = no OEM extension)
+        # OEM IANA Enterprise Number. Emitted LSB-first on the wire by real
+        # BMCs (e.g. OpenBMC sends ASF's own 4542 as be 11 00 00); decoding
+        # this big-endian yields garbage like 3188785152 instead of 4542.
+        LEIntField("oem_iana", 0),     # vendor-specific (0 = no OEM extension)
         IntField("oem_defined", 0),
         ByteField("supported_entities", 0),    # bit 7 = IPMI
         ByteField("supported_interactions", 0),

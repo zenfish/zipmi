@@ -1795,14 +1795,18 @@ def cmd_scan_cipher_zero(args: argparse.Namespace) -> int:
     s.transport.port = args.port
     _apply_trace(s.transport, args)
     try:
-        s.activate()
-        print(f"cipher-zero {host}: VULNERABLE — session opened with cipher 0")
+        vulnerable, detail = s.probe_cipher_zero()
+    except Exception as e:
+        print(f"cipher-zero {host}: error ({e})")
+        s.transport.close()
+        return 2
+    if vulnerable:
+        print(f"cipher-zero {host}: VULNERABLE — {detail}")
         s.close()
         return 0
-    except Exception as e:
-        print(f"cipher-zero {host}: not vulnerable ({e})")
-        s.transport.close()
-        return 1
+    print(f"cipher-zero {host}: not vulnerable — {detail}")
+    s.transport.close()
+    return 1
 
 
 def _cmd_name(netfn: int, cmd: int) -> str:

@@ -1,0 +1,67 @@
+"""
+zipmi.scapy_ipmi.oem.facebook — Facebook/Meta OpenBMC OEM commands.
+
+WHAT     The `fb-ipmi-oem` provider used across Meta's OpenBMC platforms
+         (Yosemite, Tioga Pass, etc). Commands ride raw vendor NetFns
+         0x30, 0x36, 0x38. NetFn 0x38 is the Bridge-IC (BIC) passthrough
+         family — many sleds put a satellite Bridge-IC behind the BMC.
+
+WHY      Meta is one of the largest OpenBMC deployers. BIC passthrough
+         (0x38/0x01,0x03) exposes per-sled GPIO/info, Set Host Power State
+         (0x38/0x0C) is host power control, Crashdump (0x30/0x70) pulls host
+         crash data, and Set System GUID (0x30/0xEF) rewrites identity.
+
+WIRE     Raw vendor NetFns, no IANA on the wire. Meta's enterprise number
+         (4337, "Facebook") is the zipmi vendor key only — passed as None to
+         the registry so it never claims an integer enterprise-id slot.
+
+NOTE     fb-ipmi-oem also overrides the DCMI group (0x2C/0xDC) power cmds;
+         those are already covered by groups/dcmi.py.
+
+LOAD     `zipmi.load_vendor("facebook")`  (alias: "meta")
+
+SOURCE   github.com/openbmc/fb-ipmi-oem (oemcommands.cpp, biccommands.cpp,
+         appcommands.cpp). Catalogued in
+         /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.2.
+"""
+
+from __future__ import annotations
+
+from ._registry import register
+
+
+# Informational only — NOT on the wire. Registered as None below so a
+# Get Device ID manufacturer-id lookup never resolves to "facebook".
+FACEBOOK_IANA = 4337
+
+FACEBOOK_CMD_NAMES: dict[tuple[int, int], str] = {
+    (0x30, 0x49): "Facebook Get 80-Port POST Record",
+    (0x30, 0x52): "Facebook Set Boot Order",
+    (0x30, 0x53): "Facebook Get Boot Order",
+    (0x30, 0x57): "Facebook Get HTTPS Boot Data",
+    (0x30, 0x58): "Facebook Get HTTPS Boot Attr",
+    (0x30, 0x70): "Facebook Crashdump",
+    (0x30, 0xEF): "Facebook Set System GUID",
+    (0x36, 0x10): "Facebook Q Set Proc Info",
+    (0x36, 0x11): "Facebook Q Get Proc Info",
+    (0x36, 0x12): "Facebook Q Set DIMM Info",
+    (0x36, 0x13): "Facebook Q Get DIMM Info",
+    (0x38, 0x01): "Facebook BIC Info",
+    (0x38, 0x03): "Facebook Get BIC GPIO State",
+    (0x38, 0x08): "Facebook Send POST Buffer to BMC",
+    (0x38, 0x0C): "Facebook Set Host Power State",
+    (0x38, 0x19): "Facebook Get BIOS Flash Size",
+    (0x38, 0x25): "Facebook Clear CMOS",
+    (0x38, 0x33): "Facebook 1S 4-byte POST Buffer",
+}
+
+
+# Vendor detection: "BIC Info" (0x38/0x01) is a strong Meta positive — the
+# Bridge-IC NetFn 0x38 family is Meta-specific.
+FACEBOOK_DETECT_PROBE = (0x38, 0x01)
+
+
+register("facebook", None, FACEBOOK_CMD_NAMES)
+
+
+__all__ = ["FACEBOOK_IANA", "FACEBOOK_CMD_NAMES", "FACEBOOK_DETECT_PROBE"]

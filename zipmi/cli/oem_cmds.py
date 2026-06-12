@@ -49,6 +49,46 @@ VENDORS: dict[str, dict] = {
         "iana": 10876,
         "blurb": "Supermicro X11 (top-level + sub-cmd dispatch via 1st data byte)",
     },
+    # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---
+    # All registered via the simple register(vendor, iana, {(netfn,cmd):name})
+    # pattern, so `cmd_names` points the generic listing branch at the module's
+    # name table. Adding a new OpenBMC vendor = one oem/<v>.py + one row here.
+    "intel": {
+        "iana": 343, "cmd_names": ("intel", "INTEL_CMD_NAMES"),
+        "blurb": "Intel OpenBMC (intel-ipmi-oem; NetFn 0x30/0x32/0x3E + fw 0x08)",
+    },
+    "facebook": {
+        "iana": 4337, "cmd_names": ("facebook", "FACEBOOK_CMD_NAMES"),
+        "blurb": "Facebook/Meta OpenBMC (fb-ipmi-oem; NetFn 0x30/0x36/0x38 + BIC)",
+    },
+    "google": {
+        "iana": 11129, "cmd_names": ("google", "GOOGLE_CMD_NAMES"),
+        "blurb": "Google OpenBMC (google-ipmi-sys; NetFn 0x2E IANA + sub-cmds)",
+    },
+    "ampere": {
+        "iana": 40981, "cmd_names": ("ampere", "AMPERE_CMD_NAMES"),
+        "blurb": "Ampere OpenBMC (ampere-ipmi-oem; NetFn 0x3C, ARM)",
+    },
+    "openpower": {
+        "iana": 2, "cmd_names": ("openpower", "OPENPOWER_CMD_NAMES"),
+        "blurb": "IBM/OpenPOWER OpenBMC (openpower-host-ipmi-oem; NetFn 0x32/0x3A)",
+    },
+    "inspur": {
+        "iana": 37945, "cmd_names": ("inspur", "INSPUR_CMD_NAMES"),
+        "blurb": "Inspur OpenBMC (inspur-ipmi-oem; NetFn 0x3C)",
+    },
+    "foxconn": {
+        "iana": None, "cmd_names": ("foxconn", "FOXCONN_CMD_NAMES"),
+        "blurb": "Foxconn OpenBMC (foxconn-ipmi-oem; NetFn 0x34)",
+    },
+    "wistron": {
+        "iana": None, "cmd_names": ("wistron", "WISTRON_CMD_NAMES"),
+        "blurb": "Wistron OpenBMC (wistron-ipmi-oem; NetFn 0x30)",
+    },
+    "nvidia": {
+        "iana": None, "cmd_names": ("nvidia", "NVIDIA_GROUP_CMD_NAMES"),
+        "blurb": "Nvidia OpenBMC (group 0x3C under NetFn 0x2C)",
+    },
 }
 
 
@@ -78,6 +118,9 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
         return len(all_keys), len(named_keys)
     if vendor == "supermicro":
         listing = _vendor_listing("supermicro")
+        return len(listing), len(listing)
+    if VENDORS.get(vendor, {}).get("cmd_names") is not None:
+        listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if vendor == "ipmi":
         from ..scapy_ipmi.cmd_names import IPMI_CMD_NAMES
@@ -317,6 +360,22 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
     Imports the per-vendor module on demand so a stale entry in
     VENDORS doesn't blow up zipmi --help.
     """
+    # Generic branch: OpenBMC-style vendors whose manifest entry carries a
+    # `cmd_names` pointer (module, ATTR) to a {(netfn,cmd): name} dict. One
+    # branch serves every such vendor — no per-vendor code needed.
+    spec = VENDORS.get(vendor, {}).get("cmd_names")
+    if spec is not None:
+        import importlib
+        mod = importlib.import_module(f"zipmi.scapy_ipmi.oem.{spec[0]}")
+        names = getattr(mod, spec[1])
+        prefix = re.compile(rf"^{re.escape(vendor)}\s+", re.IGNORECASE)
+        return {
+            key: {
+                "name": prefix.sub("", nm),
+                "priv": None, "desc": "", "live": None, "missing": False,
+            }
+            for key, nm in names.items()
+        }
     if vendor == "idrac6":
         from ..scapy_ipmi.oem.dell_generated import DELL_DISPATCH
         from ..scapy_ipmi.oem.dell import (
@@ -714,7 +773,9 @@ def _print_vendor_catalog() -> None:
             count = f"{named} cmds"
         else:
             count = f"{named} named / {total} known"
-        print(f"  {key:<14s}  IANA {info['iana']:<6d}  "
+        iana = info["iana"]
+        iana_str = f"IANA {iana:<6d}" if iana is not None else "IANA —    "
+        print(f"  {key:<14s}  {iana_str}  "
               f"{count:<22s}  {info['blurb']}")
     print()
     print("# IANA = Private Enterprise Number (per-vendor namespace tag).")

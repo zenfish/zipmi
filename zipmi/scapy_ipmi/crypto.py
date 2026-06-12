@@ -245,20 +245,33 @@ def rakp4_icv(
     return full[: cipher.integrity_truncate]
 
 
+# IPMI 2.0 §13.32 key-derivation constants. Const_n is a FIXED 20-byte
+# run of the byte value n (Const1 = 0x01*20, Const2 = 0x02*20) regardless
+# of the negotiated auth hash. This is NOT len(SIK): for HMAC-SHA256
+# (cipher suite 17) the SIK is 32 bytes, but the constant stays 20.
+# Verified against the target BMC's own source — phosphor-net-ipmid
+# rmcp.hpp defines `Const_n` as a 20-element array — and against ipmitool
+# (lanplus LANPLUS_HMAC_CONST_* are 20 bytes). Using len(SIK) here silently
+# breaks cipher 17: K1/K2 come out wrong, so the integrity HMAC and AES key
+# mismatch and the BMC drops every encrypted in-session message. Cipher 3
+# (SHA1, SIK=20) was unaffected only because 20 == len(SIK) there.
+_KEY_DERIV_CONST_LEN = 20
+
+
 def derive_k1(cipher: CipherSuite, sik: bytes) -> bytes:
-    """K1 = HMAC(SIK, 0x01 * sik_len). Used for integrity HMAC of in-session messages."""
+    """K1 = HMAC(SIK, 0x01 * 20). Used for integrity HMAC of in-session messages."""
     h = cipher.auth_hash
     if h is None:
         return b""
-    return _hmac.new(sik, b"\x01" * len(sik), h).digest()
+    return _hmac.new(sik, b"\x01" * _KEY_DERIV_CONST_LEN, h).digest()
 
 
 def derive_k2(cipher: CipherSuite, sik: bytes) -> bytes:
-    """K2 = HMAC(SIK, 0x02 * sik_len). First 16 bytes used as AES-128 key."""
+    """K2 = HMAC(SIK, 0x02 * 20). First 16 bytes used as AES-128 key."""
     h = cipher.auth_hash
     if h is None:
         return b""
-    return _hmac.new(sik, b"\x02" * len(sik), h).digest()
+    return _hmac.new(sik, b"\x02" * _KEY_DERIV_CONST_LEN, h).digest()
 
 
 # -- AES-CBC-128 confidentiality (§13.29) ---------------------------------

@@ -62,6 +62,9 @@ capabilities once all the work is done.
 
 - Dell PowerEdge T710 / iDRAC6 — IPMI 1.5, NetFn 0x30 OEM (Dell IANA 674)
 - Supermicro X11SSZ-QF — IPMI 2.0 RMCP+, NetFn 0x30 OEM (SM IANA 10876)
+- OpenBMC (Phosphor) romulus / AST2500 — IPMI 2.0 RMCP+ cipher-17 only
+  (HMAC-SHA256 / AES-CBC-128). The open BMC stack behind Meta/Google/Intel/
+  IBM/Ampere/Nvidia fleets. Nine vendor OEM tables (see OEMs section).
 
 </details>
 
@@ -325,6 +328,37 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
      NetFn 0x30 0x32 InfiniBand control, and a long tail of
      manufacturing/diagnostic cmds. Sub-cmds dispatched via 1st data
      byte; zipmi prepends it on `<verb-name>` resolution.
+- **OpenBMC** (open source — no firmware RE needed): nine vendor flavors
+  catalogued straight from the upstream provider repos. Unlike a single
+  proprietary BMC, OpenBMC spans many vendor IANAs and reuses the raw
+  vendor NetFns 0x30..0x3E, so the **same `(NetFn, cmd)` means different
+  things per vendor** — load exactly the vendor you target.
+
+  | vendor | IANA | NetFns | provider repo |
+  |--------|------|--------|---------------|
+  | `intel` | 343 | 0x30/0x32/0x3E + fw 0x08 | intel-ipmi-oem |
+  | `facebook` (`meta`) | 4337¹ | 0x30/0x36/0x38 + BIC | fb-ipmi-oem |
+  | `google` | 11129 | 0x2E + IANA, sub-cmds | google-ipmi-sys |
+  | `ampere` | 40981 | 0x3C (ARM) | ampere-ipmi-oem |
+  | `openpower` (`ibm`) | 2 | 0x32/0x3A | openpower-host-ipmi-oem |
+  | `inspur` | 37945¹ | 0x3C | inspur-ipmi-oem |
+  | `foxconn` | — | 0x34 | foxconn-ipmi-oem |
+  | `wistron` | — | 0x30 | wistron-ipmi-oem |
+  | `nvidia` | — | group 0x3C / NetFn 0x2C | phosphor-host-ipmid oem/nvidia |
+
+  ¹ informational; NOT on the wire (raw vendor NetFns carry no IANA — only
+  Google uses the real NetFn 0x2E + IANA group form). `zipmi.load_vendor("openbmc")`
+  loads all nine at once (for pcap dissection); the manifest lives at
+  `zipmi/scapy_ipmi/oem/openbmc.py` and adding a vendor is one `oem/<v>.py`
+  module + one manifest row. Full source catalogue + per-cmd security notes:
+  `~/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md`.
+
+  **Note on OpenBMC RMCP+:** OpenBMC commonly offers **only cipher suite 17**
+  (HMAC-SHA256 / SHA256-128 / AES-CBC-128) — use `-C 17`. Its Get Device ID
+  advertises manufacturer-id 0 ("Unknown"), so IPMI alone won't tell you the
+  vendor; fingerprint over Redfish (`GET /redfish/v1/Managers/bmc` → a manager
+  named `bmc` with `Oem.OpenBmc`). See `~/phd/bmc/openbmc/` for the live
+  romulus walkthrough and the internet-survey prevalence study.
 
 ### IANA: why each vendor has a number
 

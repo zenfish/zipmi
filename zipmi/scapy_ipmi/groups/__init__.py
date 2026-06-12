@@ -29,5 +29,6 @@ RELATED  groups/_registry.py (registry + register()), oem/_registry.py
 """
 from . import _registry
 from . import dcmi  # noqa: F401  — auto-register on package import
+from . import sbmr  # noqa: F401  — ARM SBMR boot-progress group (0xAE)
 
-__all__ = ["_registry", "dcmi"]
+__all__ = ["_registry", "dcmi", "sbmr"]

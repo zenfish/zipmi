@@ -97,6 +97,15 @@ class Transport:
     timeout: float = 3.0
     rq_addr: int = 0x81
     rs_addr: int = 0x20
+    # Per-request retransmit count on timeout. IPMI rides UDP (unreliable),
+    # so a single dropped datagram must not fail the whole command — every
+    # real IPMI client retransmits (ipmitool defaults to 4). This also covers
+    # an OpenBMC netipmid race where the *first* encrypted message after the
+    # RAKP4 reply can arrive before netipmid has finished installing the
+    # session integrity key, so that one packet is dropped ("Packet Integrity
+    # check failed") while an immediate resend succeeds. `retries` is the
+    # number of *extra* attempts after the first (so total tries = retries+1).
+    retries: int = 3
     # Wire trace level:
     #   0 — off (default)
     #   1 — human-readable timestamped events: "→ send …", "← recv …",
@@ -152,12 +161,20 @@ class Transport:
             self._event(f"→ send {len(wire):3d}B  {label:<40s}  {self.host}:{self.port}")
         if do_hex:
             self._dump("→ SEND", wire, name=True, is_response=False)
-        s.send(wire)
-        try:
-            data, _ = s.recvfrom(4096)
-        except socket.timeout:
-            self._event(f"!! timeout after {self.timeout}s waiting for {self.host}:{self.port}")
-            raise
+        attempts = self.retries + 1
+        for attempt in range(attempts):
+            s.send(wire)
+            try:
+                data, _ = s.recvfrom(4096)
+                break
+            except socket.timeout:
+                if attempt + 1 < attempts:
+                    self._event(
+                        f"!! timeout after {self.timeout}s "
+                        f"(retransmit {attempt + 1}/{self.retries})")
+                    continue
+                self._event(f"!! timeout after {self.timeout}s waiting for {self.host}:{self.port}")
+                raise
         if self.wire_trace >= 1:
             self._event(f"← recv {len(data):3d}B  (reply)                                  "
                         f"{self.host}:{self.port}")
@@ -279,6 +296,48 @@ class Session:
                 self._set_privilege(self.priv)
         finally:
             self.transport.in_setup = False
+
+    def probe_cipher_zero(self) -> tuple[bool, str]:
+        """Actively test RMCP+ cipher-suite-0 (no-auth) access.
+
+        Cipher 0 = no auth + no integrity + no confidentiality. A BMC that
+        accepts it hands an attacker a full session with no password
+        (CVE-2013-4786 / Farmer WOOT'13). This sends REAL packets and only
+        returns vulnerable when the BMC both opens a cipher-0 session AND
+        executes a privileged command with no credentials — it never
+        concludes from silence, so dead/unroutable hosts read as not
+        vulnerable, not as a false positive.
+
+        Returns (vulnerable, detail).
+        """
+        if self.cipher_suite != 0:
+            raise IPMIError("probe_cipher_zero requires cipher_suite=0")
+        # Force the RMCP+ handshake even though no creds are set: cipher 0
+        # uses null auth, so the username/password are empty by design and
+        # the sessionless short-circuit (which exists for IPMI 1.5 pre-session
+        # commands) must NOT apply here.
+        self.lanplus = True
+        if self.username is None:
+            self.username = ""
+        if self.password is None:
+            self.password = ""
+        self.transport.in_setup = True
+        try:
+            self._activate_lanplus()
+        except IPMIError as e:
+            return (False, f"cipher-0 session not opened ({e})")
+        except Exception as e:  # transport timeout, decode error, etc.
+            return (False, f"no usable cipher-0 session ({e})")
+        finally:
+            self.transport.in_setup = False
+        # Session opened with cipher 0 — prove a command actually runs unauth.
+        try:
+            cc, data = self.send_raw(0x06, 0x01)  # Get Device ID
+        except Exception as e:
+            return (False, f"cipher-0 session opened but command failed ({e})")
+        if cc == 0:
+            return (True, f"Get Device ID ran with no auth (cc=0, {len(data)} bytes)")
+        return (False, f"cipher-0 session opened but Get Device ID cc=0x{cc:02x}")
 
     def close(self) -> None:
         """Close Session. Best-effort — we don't raise on errors."""

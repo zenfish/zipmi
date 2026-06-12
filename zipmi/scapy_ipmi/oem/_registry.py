@@ -33,7 +33,7 @@ ENTERPRISE_IDS: dict[int, str] = {}
 
 def register(
     vendor: str,
-    iana: int,
+    iana: int | None,
     cmds: dict[tuple[int, int], str],
     payloads: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet] | None]] | None = None,
 ) -> None:
@@ -42,8 +42,15 @@ def register(
     For IANA collisions (Dell + iDRAC9 both reuse 674), first-loaded wins
     on the ENTERPRISE_IDS lookup so existing consumer code continues to
     see a stable vendor key.
+
+    `iana` may be None for vendors that ride raw vendor NetFns (0x30..0x3E)
+    and never put an enterprise number on the wire — several OpenBMC OEM
+    layers do this (Facebook, Foxconn, Wistron). In that case the vendor
+    is still registered in OEM_CMD_NAMES but does not claim an integer
+    enterprise-id slot, so a Get Device ID manufacturer-id lookup of 0
+    ("Unknown") can never be mis-resolved to such a vendor.
     """
-    if iana not in ENTERPRISE_IDS:
+    if iana is not None and iana not in ENTERPRISE_IDS:
         ENTERPRISE_IDS[iana] = vendor
     OEM_CMD_NAMES.update(cmds)
     if payloads:

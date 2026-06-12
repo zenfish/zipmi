@@ -29,6 +29,10 @@ from . import scapy_ipmi  # noqa: F401  (side-effect import)
 # fullfw RE'd dispatch table that historically lived in `oem/dell.py`.
 _VENDOR_ALIAS: dict[str, str] = {
     "idrac6": "dell",
+    # OpenBMC vendor flavors — see scapy_ipmi/oem/openbmc.py for the manifest.
+    "ibm": "openpower",
+    "meta": "facebook",
+    "fb": "facebook",
 }
 
 
