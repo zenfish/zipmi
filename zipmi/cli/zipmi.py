@@ -122,12 +122,14 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                         default=d("md5"),
                         help="auth type for IPMI 1.5 session (default md5)")
     parser.add_argument("-I", "--interface", choices=["lan", "lanplus"],
-                        default=d("lan"),
-                        help="lan = IPMI 1.5; lanplus = IPMI 2.0 RMCP+ "
-                             "(default lan)")
-    parser.add_argument("-C", "--cipher", type=int, default=d(3),
+                        default=d(None),
+                        help="lan = IPMI 1.5; lanplus = IPMI 2.0 RMCP+. "
+                             "Default lan, but giving -C/--cipher implies "
+                             "lanplus (override with -I lan).")
+    parser.add_argument("-C", "--cipher", type=int, default=d(None),
                         help="lanplus cipher suite (default 3 = "
-                             "HMAC-SHA1+AES-CBC-128)")
+                             "HMAC-SHA1+AES-CBC-128; OpenBMC needs 17 = "
+                             "HMAC-SHA256+AES-CBC-128). Implies -I lanplus.")
     parser.add_argument("-t", "--timeout", type=float, default=d(3.0),
                         help="UDP timeout in seconds (default 3.0)")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -2578,8 +2580,23 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _normalize_interface_cipher(args: argparse.Namespace) -> None:
+    """Couple -C/-I. Specifying a cipher suite means you want RMCP+, so a
+    bare `-C 17` implies `-I lanplus` (the common OpenBMC case). An explicit
+    `-I lan` still wins if you really want to pair a cipher with 1.5. Fills
+    the historical defaults (interface=lan, cipher=3) when neither is given.
+    """
+    iface = getattr(args, "interface", None)
+    cipher = getattr(args, "cipher", None)
+    if iface is None:
+        iface = "lanplus" if cipher is not None else "lan"
+    args.interface = iface
+    args.cipher = 3 if cipher is None else cipher
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_cli(argv)
+    _normalize_interface_cipher(args)
     try:
         return args.func(args)
     except IPMIError as e:

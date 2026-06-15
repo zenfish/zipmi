@@ -243,11 +243,40 @@ for a couple of them (from my own Dell and Supermicro servers.)
 own catalogue:
 
 ```bash
-zipmi oem                                       # list vendors
-zipmi idrac6                                     # list iDRAC6's 192 cmds (RE'd from fullfw)
-zipmi -H <bmc> dell GetChassisStatus             # run by name (substring match)
-zipmi -H <bmc> oem supermicro UtilRestoreConfig  # `oem <vendor>` form
+zipmi oem                                        # list vendors
+zipmi idrac6                                      # list iDRAC6's 192 cmds (RE'd from fullfw)
+zipmi -H <bmc> dell GetChassisStatus              # run by name (substring match)
+zipmi -H <bmc> oem supermicro UtilRestoreConfig   # `oem <vendor>` form
+
+# Multi-word command names MUST be quoted (the shell would otherwise pass
+# each word as a separate arg, and the trailing words become data bytes):
+zipmi -H <bmc> -C 17 oem intel "Get BMC Version String"
+zipmi -H <bmc> -C 17 oem intel "Get FW Version Info"
+
+# OpenBMC vendors also answer to ob-<v> / openbmc-<v> to make the namespace
+# explicit (the bare short name still works):
+zipmi -H <bmc> -C 17 openbmc-ampere "Get Fan Control Status"
+zipmi -H <bmc> -C 17 ob-google "Sys OEM Command"
 ```
+
+**Data bytes.** Everything after the command name is the request payload,
+sent verbatim — hex (`0x01`), decimal (`1`), space-separated. Whether bytes
+are *required* depends on the command: many reads take none
+(`Get BMC Version String`), some need a one-byte sub-command or selector,
+and writes need structured args. zipmi does NOT synthesize them for you —
+it's a raw-data model (same as `zipmi raw`). To know what a given OEM
+command expects, read its handler / the per-command notes; the OpenBMC
+field guide at `~/phd/bmc/openbmc/OPENBMC_OEM_GUIDE.md` documents the byte
+layouts that were recovered from source. A wrong-length payload comes back
+as a completion code (e.g. `0xC7` Request Data Length Invalid), not a crash.
+
+> **OpenBMC speaks only IPMI 2.0 (RMCP+).** It does NOT answer IPMI 1.5 at
+> all — a 1.5 request (the default `-I lan`) is silently dropped and you get
+> a **timeout, not an error**. Always use `-C 17` (which implies `-I lanplus`;
+> OpenBMC offers only cipher suite 17 = HMAC-SHA256 / AES-CBC-128). Once you
+> have a valid session, an unimplemented command returns a real completion
+> code (`0xC1` Invalid Command) — the timeout-vs-0xC1 distinction tells you
+> "wrong protocol/session" vs "command not supported".
 
 The standard IPMI 2.0 set has the same by-name UX — `zipmi ipmi`
 lists Table G-1, `zipmi -H <bmc> ipmi "Get Channel Authentication

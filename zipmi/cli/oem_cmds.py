@@ -974,13 +974,24 @@ def _suggest_for_cc(cc: int, netfn: int, cmd: int,
 # --- argparse wiring ------------------------------------------------------
 
 
+def _vendor_aliases(vendor_key: str) -> list[str]:
+    """OpenBMC vendor flavors also answer to `ob-<v>` and `openbmc-<v>` so
+    the namespace is explicit (e.g. `openbmc-ampere`) without forcing the
+    verbose form — the bare `ampere` still works. Non-OpenBMC vendors
+    (idrac6/supermicro/...) get no prefix aliases."""
+    if VENDORS.get(vendor_key, {}).get("cmd_names") is None:
+        return []
+    return [f"ob-{vendor_key}", f"openbmc-{vendor_key}"]
+
+
 def _add_vendor_parser(
     parent_sub,
     vendor_key: str,
     blurb: str,
     cmd_noun: str = "OEM cmd",
 ) -> argparse.ArgumentParser:
-    sp = parent_sub.add_parser(vendor_key, help=blurb)
+    sp = parent_sub.add_parser(vendor_key, help=blurb,
+                               aliases=_vendor_aliases(vendor_key))
     sp.add_argument("cmd_name", nargs="?",
                     help=f"{cmd_noun} name (substring match; omit to list)")
     sp.add_argument("data", nargs="*",
