@@ -55,41 +55,59 @@ VENDORS: dict[str, dict] = {
     # name table. Adding a new OpenBMC vendor = one oem/<v>.py + one row here.
     "intel": {
         "iana": 343, "cmd_names": ("intel", "INTEL_CMD_NAMES"),
-        "blurb": "Intel OpenBMC (intel-ipmi-oem; NetFn 0x30/0x32/0x3E + fw 0x08)",
+        "blurb": "Intel server boards — NetFn 0x30/0x32/0x3E + fw 0x08 (provider: intel-ipmi-oem)",
     },
     "facebook": {
         "iana": 4337, "cmd_names": ("facebook", "FACEBOOK_CMD_NAMES"),
-        "blurb": "Facebook/Meta OpenBMC (fb-ipmi-oem; NetFn 0x30/0x36/0x38 + BIC)",
+        "blurb": "Facebook/Meta sleds — NetFn 0x30/0x36/0x38 + Bridge-IC (provider: fb-ipmi-oem)",
     },
     "google": {
         "iana": 11129, "cmd_names": ("google", "GOOGLE_CMD_NAMES"),
-        "blurb": "Google OpenBMC (google-ipmi-sys; NetFn 0x2E IANA + sub-cmds)",
+        "blurb": "Google — NetFn 0x2E IANA envelope + sub-cmds (provider: google-ipmi-sys)",
     },
     "ampere": {
         "iana": 40981, "cmd_names": ("ampere", "AMPERE_CMD_NAMES"),
-        "blurb": "Ampere OpenBMC (ampere-ipmi-oem; NetFn 0x3C, ARM)",
+        "blurb": "Ampere Altra (ARM) — NetFn 0x3C (provider: ampere-ipmi-oem)",
     },
     "openpower": {
         "iana": 2, "cmd_names": ("openpower", "OPENPOWER_CMD_NAMES"),
-        "blurb": "IBM/OpenPOWER OpenBMC (openpower-host-ipmi-oem; NetFn 0x32/0x3A)",
+        "blurb": "IBM/OpenPOWER — NetFn 0x32/0x3A (provider: openpower-host-ipmi-oem)",
     },
     "inspur": {
         "iana": 37945, "cmd_names": ("inspur", "INSPUR_CMD_NAMES"),
-        "blurb": "Inspur OpenBMC (inspur-ipmi-oem; NetFn 0x3C)",
+        "blurb": "Inspur — NetFn 0x3C (provider: inspur-ipmi-oem)",
     },
     "foxconn": {
         "iana": None, "cmd_names": ("foxconn", "FOXCONN_CMD_NAMES"),
-        "blurb": "Foxconn OpenBMC (foxconn-ipmi-oem; NetFn 0x34)",
+        "blurb": "Foxconn/fii — NetFn 0x34 (provider: foxconn-ipmi-oem)",
     },
     "wistron": {
         "iana": None, "cmd_names": ("wistron", "WISTRON_CMD_NAMES"),
-        "blurb": "Wistron OpenBMC (wistron-ipmi-oem; NetFn 0x30)",
+        "blurb": "Wistron — NetFn 0x30 (provider: wistron-ipmi-oem)",
     },
     "nvidia": {
         "iana": None, "cmd_names": ("nvidia", "NVIDIA_GROUP_CMD_NAMES"),
-        "blurb": "Nvidia OpenBMC (group 0x3C under NetFn 0x2C)",
+        "blurb": "Nvidia — group 0x3C under NetFn 0x2C (provider: phosphor-host-ipmid oem/nvidia)",
     },
 }
+
+
+def _openbmc_vendor_keys() -> list[str]:
+    """Canonical keys of the OpenBMC vendor flavors (manifest entries with a
+    cmd_names pointer). These are namespaced under `openbmc-<v>` on the CLI —
+    the bare `<v>` is NOT a verb (keeps `zipmi oem` from drowning in nine
+    rows that crowd out the proprietary vendors and the standard set)."""
+    return [k for k, v in VENDORS.items() if v.get("cmd_names") is not None]
+
+
+def _is_openbmc_vendor(vendor: str) -> bool:
+    return VENDORS.get(vendor, {}).get("cmd_names") is not None
+
+
+def _display_verb(vendor: str) -> str:
+    """How the user actually invokes a vendor on the CLI: OpenBMC flavors are
+    namespaced `openbmc-<v>`; everything else is the bare key."""
+    return f"openbmc-{vendor}" if _is_openbmc_vendor(vendor) else vendor
 
 
 def _vendor_stats(vendor: str) -> tuple[int, int]:
@@ -672,7 +690,7 @@ def _print_vendor_listing(vendor: str) -> None:
                  f"of {total} known dispatch slots")
     else:
         title = f"{vendor} OEM commands — {named} total"
-    print(f"# {title}  (`zipmi {vendor} <name> help` for per-cmd detail)")
+    print(f"# {title}  (`zipmi {_display_verb(vendor)} <name> help` for per-cmd detail)")
     print("# " + "-" * (len(title)))
     # Three aligned columns: address, name, priv. The "(not present in
     # fw)" flag is rare (~4 of 192 Dell rows) — append it to the desc
@@ -760,14 +778,17 @@ def _print_legend(vendor: str) -> None:
     print("#     this cmd. Hint at attack surface (Intel NM, Raritan KVM,")
     print("#     AMI YAFU flash, MicroBlade chassis, ...).")
     print(f"# Run a command:  zipmi -H <host> -U <u> -P <p> "
-          f"{vendor} <name> [data ...]")
-    print(f"# Per-cmd detail: zipmi {vendor} <name> help")
+          f"{_display_verb(vendor)} <name> [data ...]")
+    print(f"# Per-cmd detail: zipmi {_display_verb(vendor)} <name> help")
 
 
 def _print_vendor_catalog() -> None:
     print("# zipmi OEM dispatcher")
     print("# Available vendors (`zipmi oem <vendor>` to list cmds):")
+    obmc = set(_openbmc_vendor_keys())
     for key, info in VENDORS.items():
+        if key in obmc:
+            continue  # OpenBMC flavors collapse into one `openbmc` line below
         total, named = _vendor_stats(key)
         if total == named:
             count = f"{named} cmds"
@@ -777,6 +798,11 @@ def _print_vendor_catalog() -> None:
         iana_str = f"IANA {iana:<6d}" if iana is not None else "IANA —    "
         print(f"  {key:<14s}  {iana_str}  "
               f"{count:<22s}  {info['blurb']}")
+    # The OpenBMC vendor flavors are grouped under a single `openbmc` verb so
+    # nine open-source flavors don't crowd out the proprietary vendors.
+    n = len(obmc)
+    print(f"  {'openbmc':<14s}  {'':<10s}  {f'{n} vendor flavors':<22s}  "
+          f"OpenBMC OEM (per-vendor) — `zipmi oem openbmc` to list")
     print()
     print("# IANA = Private Enterprise Number (per-vendor namespace tag).")
     print("# 674 → Dell, 10876 → Supermicro. Same (NetFn 0x30, cmd 0xC0)")
@@ -784,7 +810,39 @@ def _print_vendor_catalog() -> None:
     print("# Get vendor: `zipmi scan asf-ping <bmc>` or `zipmi mc info`.")
     print()
     print("# Run by name:  zipmi <vendor> <cmd-name> [data-bytes ...]")
-    print("# Or:           zipmi oem <vendor> <cmd-name> [data-bytes ...]")
+    print("#   proprietary: zipmi oem supermicro <cmd-name> [data ...]")
+    print("#   OpenBMC:     zipmi oem openbmc-<vendor> <cmd-name> [data ...]  (e.g. openbmc-intel)")
+
+
+def _print_openbmc_flavors() -> None:
+    print("# OpenBMC OEM vendor flavors")
+    print("# (OpenBMC's own baseline commands are standard IPMI — see `zipmi ipmi`.")
+    print("#  There is no vanilla-OpenBMC OEM set; OEM commands are per-vendor.)")
+    print("# Run: zipmi -H <bmc> -C 17 openbmc-<vendor> <cmd-name> [data ...]")
+    print()
+    for vkey in _openbmc_vendor_keys():
+        info = VENDORS[vkey]
+        total, named = _vendor_stats(vkey)
+        count = f"{named} cmds" if total == named else f"{named} named / {total} known"
+        iana = info["iana"]
+        iana_str = f"IANA {iana:<6d}" if iana is not None else "IANA —    "
+        print(f"  openbmc-{vkey:<11s}  {iana_str}  {count:<18s}  {info['blurb']}")
+    print()
+    print("# Short alias: `ob-<vendor>` also works (e.g. `ob-intel`).")
+
+
+def cmd_openbmc_index(args: argparse.Namespace) -> int:
+    """`zipmi openbmc` / `zipmi oem openbmc` — list the vendor flavors."""
+    cmd_name = getattr(args, "cmd_name", None)
+    if cmd_name:
+        print("error: 'openbmc' is a vendor-flavor index, not a command set — "
+              "OpenBMC OEM commands are per-vendor.", file=sys.stderr)
+        print(f"# Pick a flavor, e.g.: zipmi oem openbmc-intel {cmd_name!r}",
+              file=sys.stderr)
+        print("# Flavors: " + ", ".join(_openbmc_vendor_keys()), file=sys.stderr)
+        return 2
+    _print_openbmc_flavors()
+    return 0
 
 
 # --- entry points called by the CLI ---------------------------------------
@@ -827,7 +885,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     if not hits:
         print(f"no {vendor} command matches {cmd_name!r}",
               file=sys.stderr)
-        print(f"# Run `zipmi {vendor}` to see the catalogue.",
+        print(f"# Run `zipmi {_display_verb(vendor)}` to see the catalogue.",
               file=sys.stderr)
         return 1
     if len(hits) > 1:
@@ -974,24 +1032,20 @@ def _suggest_for_cc(cc: int, netfn: int, cmd: int,
 # --- argparse wiring ------------------------------------------------------
 
 
-def _vendor_aliases(vendor_key: str) -> list[str]:
-    """OpenBMC vendor flavors also answer to `ob-<v>` and `openbmc-<v>` so
-    the namespace is explicit (e.g. `openbmc-ampere`) without forcing the
-    verbose form — the bare `ampere` still works. Non-OpenBMC vendors
-    (idrac6/supermicro/...) get no prefix aliases."""
-    if VENDORS.get(vendor_key, {}).get("cmd_names") is None:
-        return []
-    return [f"ob-{vendor_key}", f"openbmc-{vendor_key}"]
-
-
 def _add_vendor_parser(
     parent_sub,
-    vendor_key: str,
+    parser_name: str,
     blurb: str,
+    *,
+    vendor_key: str | None = None,
+    aliases: list[str] | tuple[str, ...] = (),
     cmd_noun: str = "OEM cmd",
 ) -> argparse.ArgumentParser:
-    sp = parent_sub.add_parser(vendor_key, help=blurb,
-                               aliases=_vendor_aliases(vendor_key))
+    """Register a vendor verb. `parser_name` is what the user types (may be a
+    namespaced `openbmc-<v>`); `vendor_key` is the canonical key the dispatcher
+    looks up (defaults to parser_name)."""
+    vendor_key = vendor_key or parser_name
+    sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
     sp.add_argument("cmd_name", nargs="?",
                     help=f"{cmd_noun} name (substring match; omit to list)")
     sp.add_argument("data", nargs="*",
@@ -1000,11 +1054,36 @@ def _add_vendor_parser(
     return sp
 
 
+def _add_openbmc_group_parser(parent_sub) -> None:
+    """The `openbmc` grouping verb — an index of vendor flavors, not a command
+    set (OpenBMC has no vanilla OEM cmds; its baseline is standard IPMI)."""
+    sp = parent_sub.add_parser(
+        "openbmc",
+        help="OpenBMC OEM vendor-flavor index (then pick openbmc-<vendor>)")
+    sp.add_argument("cmd_name", nargs="?", help=argparse.SUPPRESS)
+    sp.add_argument("data", nargs="*", help=argparse.SUPPRESS)
+    sp.set_defaults(func=cmd_openbmc_index)
+
+
+def _add_all_vendor_parsers(parent_sub) -> None:
+    """Register proprietary vendors under their bare name and OpenBMC flavors
+    under `openbmc-<v>` (+ `ob-<v>` alias) — the bare `<v>` is intentionally
+    NOT a verb for OpenBMC vendors."""
+    obmc = set(_openbmc_vendor_keys())
+    for vkey, vinfo in VENDORS.items():
+        if vkey in obmc:
+            continue
+        _add_vendor_parser(parent_sub, vkey, vinfo["blurb"])
+    for vkey in _openbmc_vendor_keys():
+        _add_vendor_parser(parent_sub, f"openbmc-{vkey}", VENDORS[vkey]["blurb"],
+                           vendor_key=vkey, aliases=[f"ob-{vkey}"])
+    _add_openbmc_group_parser(parent_sub)
+
+
 def add_oem_subparsers(top_sub) -> None:
     """Wire the OEM verbs onto the existing top-level subparser group."""
-    # Top-level shortcuts: `zipmi dell ...`, `zipmi supermicro ...`, etc.
-    for vkey, vinfo in VENDORS.items():
-        _add_vendor_parser(top_sub, vkey, vinfo["blurb"])
+    # Top-level shortcuts: `zipmi dell ...`, `zipmi openbmc-intel ...`, etc.
+    _add_all_vendor_parsers(top_sub)
 
     # Standard IPMI 2.0 (Table G-1) commands by name. A catalogue, not
     # an OEM vendor -> registered as a top-level verb only, never added
@@ -1021,8 +1100,7 @@ def add_oem_subparsers(top_sub) -> None:
                                   "available vendors)")
     oem.set_defaults(func=cmd_oem_list_vendors)
     oem_sub = oem.add_subparsers(dest="vendor")
-    for vkey, vinfo in VENDORS.items():
-        _add_vendor_parser(oem_sub, vkey, vinfo["blurb"])
+    _add_all_vendor_parsers(oem_sub)
 
 
 __all__ = [
