@@ -58,7 +58,7 @@ VENDORS: dict[str, dict] = {
         "blurb": "Intel server boards — NetFn 0x30/0x32/0x3E + fw 0x08 (provider: intel-ipmi-oem)",
     },
     "facebook": {
-        "iana": 4337, "cmd_names": ("facebook", "FACEBOOK_CMD_NAMES"),
+        "iana": 40981, "cmd_names": ("facebook", "FACEBOOK_CMD_NAMES"),
         "blurb": "Facebook/Meta sleds — NetFn 0x30/0x36/0x38 + Bridge-IC (provider: fb-ipmi-oem)",
     },
     "google": {
@@ -66,7 +66,7 @@ VENDORS: dict[str, dict] = {
         "blurb": "Google — NetFn 0x2E IANA envelope + sub-cmds (provider: google-ipmi-sys)",
     },
     "ampere": {
-        "iana": 40981, "cmd_names": ("ampere", "AMPERE_CMD_NAMES"),
+        "iana": None, "cmd_names": ("ampere", "AMPERE_CMD_NAMES"),
         "blurb": "Ampere Altra (ARM) — NetFn 0x3C (provider: ampere-ipmi-oem)",
     },
     "openpower": {
@@ -83,7 +83,7 @@ VENDORS: dict[str, dict] = {
     },
     "wistron": {
         "iana": None, "cmd_names": ("wistron", "WISTRON_CMD_NAMES"),
-        "blurb": "Wistron — NetFn 0x30 (provider: wistron-ipmi-oem)",
+        "blurb": "Wistron — NetFn 0x32 (provider: wistron-ipmi-oem)",
     },
     "nvidia": {
         "iana": None, "cmd_names": ("nvidia", "NVIDIA_CMD_NAMES"),

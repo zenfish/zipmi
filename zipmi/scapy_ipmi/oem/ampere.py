@@ -38,7 +38,11 @@ from ._registry import register
 # comes from the DOWNSTREAM Ampere Altra vendor fork (vendored as
 # OEM/ampere-ipmi-oem in the openbmc tree) — real on Altra hardware, but not
 # in the upstream repo. Kept here because Altra systems are the live targets.
-AMPERE_IANA = 40981
+# Ampere defines NO IANA in its OEM source — only `netFnAmpere = 0x3c`
+# (include/oemcommands.hpp:26). Commands ride raw NetFn 0x3C with no IANA on
+# the wire, so this is None. (An earlier catalog claimed 40981, but that is
+# actually Meta's IANA — see oem/facebook.py — not Ampere's.)
+AMPERE_IANA = None
 AMPERE_NETFN = 0x3C
 
 AMPERE_CMD_NAMES: dict[tuple[int, int], str] = {

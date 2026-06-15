@@ -117,7 +117,8 @@ def test_registry_accepts_none_iana():
 @pytest.mark.parametrize("vendor,iana,key,name", [
     ("intel", 343, (0x30, 0x5F), "Intel Set Special User Password"),
     ("intel", 343, (0x08, 0x2C), "Intel FW Image Write Data"),
-    ("ampere", 40981, (0x3C, 0x18), "Ampere SCP Write Register Map"),
+    # Ampere defines no IANA in source (raw NetFn 0x3C) — iana=None.
+    ("ampere", None, (0x3C, 0x18), "Ampere SCP Write Register Map"),
     ("openpower", 2, (0x3A, 0x11), "OpenPower BMC Factory Reset"),
     ("inspur", 37945, (0x3C, 0x01), "Inspur OEM Asset Info"),
 ])
@@ -126,7 +127,24 @@ def test_openbmc_oem_cmds_registered(vendor, iana, key, name):
     zipmi.load_vendor(vendor)
     from zipmi.scapy_ipmi.oem._registry import OEM_CMD_NAMES, ENTERPRISE_IDS
     assert OEM_CMD_NAMES.get(key) == name
-    assert ENTERPRISE_IDS.get(iana) == vendor
+    if iana is not None:
+        assert ENTERPRISE_IDS.get(iana) == vendor
+
+
+def test_wistron_netfn_0x32():
+    """Wistron rides NetFn 0x32 (NETFUN_OEM, phosphor api.h:98), not 0x30."""
+    import zipmi
+    zipmi.load_vendor("wistron")
+    from zipmi.scapy_ipmi.oem._registry import OEM_CMD_NAMES
+    assert OEM_CMD_NAMES.get((0x32, 0x02)) == "Wistron Switch Bittware Image"
+    assert (0x30, 0x01) not in {k: v for k, v in OEM_CMD_NAMES.items()
+                                if v.startswith("Wistron")}
+
+
+def test_facebook_iana_40981():
+    """Meta's IANA is 40981 (commandutils.hpp {0x15,0xA0,0x0}), not 4337."""
+    from zipmi.scapy_ipmi.oem.facebook import FACEBOOK_IANA
+    assert FACEBOOK_IANA == 40981
 
 
 def test_openpower_alias_ibm():

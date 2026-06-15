@@ -11,9 +11,12 @@ WHY      Meta is one of the largest OpenBMC deployers. BIC passthrough
          (0x38/0x0C) is host power control, Crashdump (0x30/0x70) pulls host
          crash data, and Set System GUID (0x30/0xEF) rewrites identity.
 
-WIRE     Raw vendor NetFns, no IANA on the wire. Meta's enterprise number
-         (4337, "Facebook") is the zipmi vendor key only — passed as None to
-         the registry so it never claims an integer enterprise-id slot.
+WIRE     Raw vendor NetFns. Meta's IANA is 40981 — confirmed from source as
+         `iana = {0x15, 0xA0, 0x0}` (LSB-first → 0xA015 = 40981) in fb-ipmi-oem
+         `include/commandutils.hpp:30`. It is NOT a NetFn-0x2E selector; it
+         rides as a 3-byte payload prefix inside some 0x38 (Bridge-IC)
+         commands. Registered with None so it never claims a Get Device ID
+         manuf-id slot. (The earlier "4337" was wrong.)
 
 NOTE     fb-ipmi-oem also overrides the DCMI group (0x2C/0xDC) power cmds;
          those are already covered by groups/dcmi.py.
@@ -30,9 +33,11 @@ from __future__ import annotations
 from ._registry import register
 
 
-# Informational only — NOT on the wire. Registered as None below so a
-# Get Device ID manufacturer-id lookup never resolves to "facebook".
-FACEBOOK_IANA = 4337
+# Meta's IANA (commandutils.hpp:30 `{0x15,0xA0,0x0}` = 40981). Metadata only —
+# registered as None below so a Get Device ID manuf-id lookup never resolves
+# to "facebook"; the value rides as a payload prefix inside 0x38 cmds, not as
+# a NetFn-0x2E selector.
+FACEBOOK_IANA = 40981
 
 FACEBOOK_CMD_NAMES: dict[tuple[int, int], str] = {
     (0x30, 0x49): "Facebook Get 80-Port POST Record",

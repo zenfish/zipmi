@@ -52,7 +52,7 @@ OPENBMC_VENDORS: dict[str, dict] = {
                   "netfns": (0x30, 0x32, 0x3E, 0x08),
                   "detect": ("oem", 0x30, 0x01),
                   "repo": "openbmc/intel-ipmi-oem"},
-    "facebook":  {"iana": 4337,  "module": "facebook",
+    "facebook":  {"iana": 40981, "module": "facebook",
                   "netfns": (0x30, 0x36, 0x38),
                   "detect": ("oem", 0x38, 0x01),
                   "repo": "openbmc/fb-ipmi-oem"},
@@ -60,7 +60,7 @@ OPENBMC_VENDORS: dict[str, dict] = {
                   "netfns": (0x2E,),
                   "detect": ("oemsub", 0x2E, 0x32, 7),
                   "repo": "openbmc/google-ipmi-sys"},
-    "ampere":    {"iana": 40981, "module": "ampere",
+    "ampere":    {"iana": None,  "module": "ampere",
                   "netfns": (0x3C,),
                   "detect": ("oem", 0x3C, 0x02),
                   "repo": "openbmc/ampere-ipmi-oem"},
@@ -77,8 +77,8 @@ OPENBMC_VENDORS: dict[str, dict] = {
                   "detect": ("oem", 0x34, 0x03),
                   "repo": "openbmc/foxconn-ipmi-oem"},
     "wistron":   {"iana": None,  "module": "wistron",
-                  "netfns": (0x30,),
-                  "detect": None,   # SYSTEM_INTERFACE-priv; collides with Intel 0x30
+                  "netfns": (0x32,),
+                  "detect": None,   # SYSTEM_INTERFACE-priv; 0x32 also Intel/IBM
                   "repo": "openbmc/wistron-ipmi-oem"},
     "nvidia":    {"iana": None,  "module": "nvidia",
                   "netfns": (0x3C,),   # raw NetFn 0x3C (groupNvidia used as NetFn)
