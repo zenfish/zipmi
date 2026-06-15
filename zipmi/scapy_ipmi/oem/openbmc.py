@@ -81,8 +81,8 @@ OPENBMC_VENDORS: dict[str, dict] = {
                   "detect": None,   # SYSTEM_INTERFACE-priv; collides with Intel 0x30
                   "repo": "openbmc/wistron-ipmi-oem"},
     "nvidia":    {"iana": None,  "module": "nvidia",
-                  "netfns": (0x2C,),   # group 0x3C under NetFn 0x2C
-                  "detect": ("group", 0x3C, 0x34),
+                  "netfns": (0x3C,),   # raw NetFn 0x3C (groupNvidia used as NetFn)
+                  "detect": ("oem", 0x3C, 0x34),
                   "repo": "openbmc/phosphor-host-ipmid (oem/nvidia)"},
 }
 

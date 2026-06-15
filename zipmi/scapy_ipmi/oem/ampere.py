@@ -32,6 +32,12 @@ from __future__ import annotations
 from ._registry import register
 
 
+# PROVENANCE: upstream github.com/openbmc/ampere-ipmi-oem registers only TWO
+# OEM commands — Edit BMC MAC (0x3C/0x01) and Sync RTC (0x3C/0xF9). The richer
+# set below (SCP register R/W, scandump, SoC power-limit, UART switch, ...)
+# comes from the DOWNSTREAM Ampere Altra vendor fork (vendored as
+# OEM/ampere-ipmi-oem in the openbmc tree) — real on Altra hardware, but not
+# in the upstream repo. Kept here because Altra systems are the live targets.
 AMPERE_IANA = 40981
 AMPERE_NETFN = 0x3C
 

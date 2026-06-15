@@ -86,8 +86,8 @@ VENDORS: dict[str, dict] = {
         "blurb": "Wistron — NetFn 0x30 (provider: wistron-ipmi-oem)",
     },
     "nvidia": {
-        "iana": None, "cmd_names": ("nvidia", "NVIDIA_GROUP_CMD_NAMES"),
-        "blurb": "Nvidia — group 0x3C under NetFn 0x2C (provider: phosphor-host-ipmid oem/nvidia)",
+        "iana": None, "cmd_names": ("nvidia", "NVIDIA_CMD_NAMES"),
+        "blurb": "Nvidia — raw NetFn 0x3C, cmds 0x30-0x37 (provider: phosphor-host-ipmid oem/nvidia)",
     },
 }
 

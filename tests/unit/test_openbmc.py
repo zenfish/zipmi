@@ -152,13 +152,14 @@ def test_google_oem_envelope_and_subcmds():
     assert GOOGLE_IANA == 11129
 
 
-def test_nvidia_registers_in_group_namespace():
-    """Nvidia is a group extension (group 0x3C under NetFn 0x2C), so it
-    populates the GROUP registry, not the OEM registry."""
+def test_nvidia_registers_raw_netfn_3c():
+    """Nvidia uses registerHandler(groupNvidia=0x3C, ...) — groupNvidia is in
+    the NetFn position, so these are RAW NetFn 0x3C OEM commands, not a 0x2C
+    group extension. (Corrected from an earlier mis-modeling.)"""
     import zipmi
     zipmi.load_vendor("nvidia")
-    from zipmi.scapy_ipmi.groups._registry import GROUP_CMD_NAMES
-    assert GROUP_CMD_NAMES.get((0x3C, 0x36)) == "Nvidia Set BIOS Password"
+    from zipmi.scapy_ipmi.oem._registry import OEM_CMD_NAMES
+    assert OEM_CMD_NAMES.get((0x3C, 0x36)) == "Nvidia Set BIOS Password"
 
 
 def test_sbmr_group_autoloaded():
