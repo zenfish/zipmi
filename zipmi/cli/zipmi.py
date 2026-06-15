@@ -247,6 +247,159 @@ def cmd_mc_info(args: argparse.Namespace) -> int:
     return 0
 
 
+# -- fingerprint: identify the BMC stack + vendor flavor -------------------
+
+def _short_err(e: Exception) -> str:
+    s = str(e) or type(e).__name__
+    return s if len(s) <= 60 else s[:57] + "..."
+
+
+def _http_get_json(url: str, user, password, timeout: float):
+    """GET a Redfish URL (TLS verification off — BMCs use self-signed certs).
+    Returns (status, server_header, parsed_json_or_None). Raises on transport
+    failure; HTTP error codes (401/404) come back as a status with no body."""
+    import urllib.request
+    import urllib.error
+    import ssl
+    import json
+    import base64
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+    req = urllib.request.Request(url)
+    if user and password:
+        tok = base64.b64encode(f"{user}:{password}".encode()).decode()
+        req.add_header("Authorization", f"Basic {tok}")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout, context=ctx) as r:
+            server = r.headers.get("Server", "")
+            try:
+                return r.status, server, json.loads(r.read())
+            except Exception:
+                return r.status, server, None
+    except urllib.error.HTTPError as e:
+        # 401/404 etc — still have headers (Server: bmcweb is the signal).
+        return e.code, e.headers.get("Server", ""), None
+
+
+def _ipmi_vendor_sweep(s) -> dict:
+    """Probe each OpenBMC vendor's harmless detect command over an open
+    session. A reply whose completion code is NOT 0xC1 (invalid command)
+    means that vendor's provider is loaded."""
+    from ..scapy_ipmi.oem.openbmc import OPENBMC_VENDORS
+    out = {}
+    for vk, info in OPENBMC_VENDORS.items():
+        det = info.get("detect")
+        if not det:
+            out[vk] = (False, "no safe LAN probe (skipped)")
+            continue
+        try:
+            if det[0] == "oem":
+                cc, _ = s.send_raw(det[1], det[2], b"")
+                wire = f"{det[1]:#04x}/{det[2]:#04x}"
+            elif det[0] == "oemsub":
+                _, nf, cmd, sub = det
+                iana = info.get("iana") or 0
+                data = (iana.to_bytes(3, "little") if iana else b"") + bytes([sub])
+                cc, _ = s.send_raw(nf, cmd, data)
+                wire = f"{nf:#04x}/{cmd:#04x} iana={iana} sub={sub}"
+            elif det[0] == "group":
+                cc, _ = s.send_raw(0x2C, det[2], bytes([det[1]]))
+                wire = f"0x2c grp={det[1]:#04x}/{det[2]:#04x}"
+            else:
+                out[vk] = (False, "unknown probe form")
+                continue
+        except Exception as e:
+            out[vk] = (False, f"no reply ({_short_err(e)})")
+            continue
+        out[vk] = (cc != 0xC1, f"{wire} → cc=0x{cc:02x}")
+    return out
+
+
+def cmd_fingerprint(args: argparse.Namespace) -> int:
+    """Identify whether a target is OpenBMC and which vendor flavor.
+
+    Redfish first (the strong signal); then, if creds are given, an IPMI OEM
+    probe sweep for when only UDP/623 is reachable.
+    """
+    host = _require_host(args)
+    openbmc = False
+    vendor = None
+    signals = []
+
+    if not args.no_redfish:
+        base = f"https://{host}:{args.redfish_port}"
+        print(f"# Redfish ({base})")
+        try:
+            st, server, root = _http_get_json(base + "/redfish/v1/", None, None, args.timeout)
+            print(f"  reachable               : yes (HTTP {st})")
+            if server:
+                tag = "   → bmcweb = OpenBMC" if "bmcweb" in server.lower() else ""
+                print(f"  Server header           : {server}{tag}")
+                if "bmcweb" in server.lower():
+                    openbmc = True
+                    signals.append("Server: bmcweb")
+            if root:
+                print(f"  ServiceRoot @odata.type : {root.get('@odata.type', '?')}")
+                print(f"  RedfishVersion          : {root.get('RedfishVersion', '?')}")
+                if root.get("Oem"):
+                    print(f"  ServiceRoot Oem keys    : {', '.join(root['Oem'])}")
+            # Managers/bmc carries the definitive Oem.OpenBmc (needs auth).
+            st2, _, mgr = _http_get_json(base + "/redfish/v1/Managers/bmc",
+                                         args.user, args.password, args.timeout)
+            if mgr:
+                if mgr.get("Model"):
+                    print(f"  Managers/bmc Model      : {mgr['Model']}")
+                oem = mgr.get("Oem") or {}
+                if oem:
+                    print(f"  Managers/bmc Oem keys   : {', '.join(oem)}")
+                for k in oem:
+                    if k.lower() == "openbmc":
+                        openbmc = True
+                        signals.append("Managers/bmc Oem.OpenBmc")
+                    else:
+                        vendor = vendor or k.lower()
+                        signals.append(f"Oem.{k}")
+            elif st2 == 401:
+                print(f"  Managers/bmc            : 401 (give -U/-P for Oem.OpenBmc)")
+        except Exception as e:
+            print(f"  reachable               : no ({_short_err(e)})")
+
+    if not args.no_ipmi and args.user and args.password:
+        print(f"# IPMI (udp {host}:{args.port}, {args.interface} cipher {args.cipher})")
+        try:
+            with _open_session(args) as s:
+                d = s.get_device_id()
+                iana = d.manufacturer_id_int()
+                print(f"  Get Device ID           : mfr={iana} "
+                      f"({IANA.get(iana, 'unknown')})  product=0x{d.product_id:04x}  "
+                      f"fw={d.fw_revision()}")
+                if iana == 0:
+                    print(f"                            (mfr 0 — OpenBMC commonly reports this; inconclusive)")
+                print(f"  OEM probe sweep         :")
+                for vk, (present, detail) in _ipmi_vendor_sweep(s).items():
+                    print(f"    {vk:<10s} {'PRESENT' if present else 'absent '}  {detail}")
+                    if present:
+                        vendor = vendor or vk
+        except Exception as e:
+            print(f"  session                 : failed ({_short_err(e)})")
+    elif not args.no_ipmi:
+        print(f"# IPMI: skipped — give -U/-P for the OEM probe sweep (OpenBMC needs -C 17)")
+
+    print("# Verdict")
+    if openbmc:
+        print(f"  OpenBMC: YES  ({'; '.join(dict.fromkeys(signals))})")
+        if vendor:
+            print(f"  Vendor flavor: {vendor}  →  zipmi oem openbmc-{vendor}  "
+                  f"(zipmi.load_vendor({vendor!r}))")
+        else:
+            print(f"  Vendor flavor: undetermined — plain/reference OpenBMC, or the "
+                  f"vendor OEM provider isn't loaded/probed")
+    else:
+        print(f"  OpenBMC: not detected (proprietary BMC, or Redfish+IPMI both unreachable)")
+    return 0
+
+
 def cmd_mc_reset(args: argparse.Namespace) -> int:
     cmd = 0x02 if args.kind == "cold" else 0x03
     with _open_session(args) as s:
@@ -2279,6 +2432,15 @@ def build_parser() -> argparse.ArgumentParser:
     mc_wdo.add_argument("--yes", action="store_true",
                         help="confirm — disabling the watchdog changes BMC state")
     mc_wdo.set_defaults(func=cmd_mc_watchdog_off)
+
+    # fingerprint — identify BMC stack + OpenBMC vendor flavor
+    fp = sub.add_parser("fingerprint", aliases=["fp"],
+                        help="identify BMC stack/vendor (Redfish probe + IPMI OEM sweep)")
+    fp.add_argument("--redfish-port", type=int, default=443,
+                    help="Redfish HTTPS port (default 443)")
+    fp.add_argument("--no-redfish", action="store_true", help="skip the Redfish probe")
+    fp.add_argument("--no-ipmi", action="store_true", help="skip the IPMI OEM sweep")
+    fp.set_defaults(func=cmd_fingerprint)
 
     # chassis
     ch = sub.add_parser("chassis", help="chassis subsystem")
