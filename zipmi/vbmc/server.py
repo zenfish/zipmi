@@ -200,6 +200,13 @@ class VBMC(asyncio.DatagramProtocol):
     def _dispatch(self, netfn: int, cmd: int, data: bytes) -> tuple[int, bytes]:
         h = DISPATCH.get((netfn, cmd))
         if h is None:
+            # No built-in handler — fall back to synthetic OEM responses
+            # loaded from a fixture (vbmc/fixtures.py). Lets the vbmc replay
+            # captured/hand-crafted vendor OEM answers (incl. proprietary
+            # Dell/SM cmds we can't elicit live).
+            canned = self.state.persona.oem_responses.get((netfn, cmd))
+            if canned is not None:
+                return canned                 # (completion_code, response_data)
             return 0xC1, b""        # Invalid Command
         body = h(self.state, data)
         return 0x00, body
@@ -447,14 +454,23 @@ class VBMC(asyncio.DatagramProtocol):
 
 
 async def run(persona_name: str, host: str = "127.0.0.1",
-              port: int = 6230, trace: int = 0, color: bool = True) -> None:
+              port: int = 6230, trace: int = 0, color: bool = True,
+              fixtures: str | None = None) -> None:
     """Run the vbmc until cancelled. Resolves persona by module name.
 
     `trace`: 0=quiet, 1=event log per packet, 2=event log + hex dump.
     `color`: enable ANSI colour in -d hex output (subject to TTY check).
+    `fixtures`: optional path to a sweep JSON (scripts/oem_sweep.py) whose
+        captured OEM responses are loaded into the persona so the vbmc
+        replays vendor OEM answers with no live BMC.
     """
     persona_mod = importlib.import_module(f"zipmi.vbmc.personas.{persona_name}")
-    state = State(persona=persona_mod.build())
+    persona = persona_mod.build()
+    if fixtures:
+        from .fixtures import apply_fixture
+        n = apply_fixture(persona, fixtures)
+        print(f"vbmc loaded {n} synthetic OEM responses from {fixtures}")
+    state = State(persona=persona)
     loop = asyncio.get_running_loop()
     transport, _proto = await loop.create_datagram_endpoint(
         lambda: VBMC(state, trace=trace, color=color),

@@ -1,0 +1,955 @@
+{
+  "_meta": {
+    "cipher": 17,
+    "note": "faux-real OEM responses captured by scripts/oem_sweep.py; empty request body unless --request-hex given",
+    "request_hex": "",
+    "source": "192.168.0.22:6230"
+  },
+  "fixtures": {
+    "ampere": {
+      "0x3c,0x01": {
+        "cc": 212,
+        "cmd": 1,
+        "name": "Ampere Edit BMC MAC Address",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x02": {
+        "cc": 212,
+        "cmd": 2,
+        "name": "Ampere Get Fan Control Status",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x03": {
+        "cc": 212,
+        "cmd": 3,
+        "name": "Ampere Set Fan Control Status",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x04": {
+        "cc": 212,
+        "cmd": 4,
+        "name": "Ampere Set Fan Speed",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x11": {
+        "cc": 193,
+        "cmd": 17,
+        "name": "Ampere Set SoC Power Limit",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x12": {
+        "cc": 193,
+        "cmd": 18,
+        "name": "Ampere Get SoC Power Limit",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x15": {
+        "cc": 193,
+        "cmd": 21,
+        "name": "Ampere Trigger Host FW Crash Dump",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x17": {
+        "cc": 193,
+        "cmd": 23,
+        "name": "Ampere SCP Read Register Map",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x18": {
+        "cc": 193,
+        "cmd": 24,
+        "name": "Ampere SCP Write Register Map",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x1e": {
+        "cc": 193,
+        "cmd": 30,
+        "name": "Ampere Set DRAM Max Throttle Enable",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x1f": {
+        "cc": 193,
+        "cmd": 31,
+        "name": "Ampere Get DRAM Max Throttle Enable",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x25": {
+        "cc": 193,
+        "cmd": 37,
+        "name": "Ampere Set Scandump Mode",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x26": {
+        "cc": 193,
+        "cmd": 38,
+        "name": "Ampere Get Scandump Mode",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0x27": {
+        "cc": 193,
+        "cmd": 39,
+        "name": "Ampere Set Ext Vref",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0xb0": {
+        "cc": 193,
+        "cmd": 176,
+        "name": "Ampere Configure UART Switch",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0xf0": {
+        "cc": 193,
+        "cmd": 240,
+        "name": "Ampere Set Host FW Revision",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0xf6": {
+        "cc": 193,
+        "cmd": 246,
+        "name": "Ampere Set FW Inband Update Status",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3c,0xf9": {
+        "cc": 212,
+        "cmd": 249,
+        "name": "Ampere Sync RTC Time To BMC",
+        "netfn": 60,
+        "request_hex": "",
+        "response_hex": ""
+      }
+    },
+    "facebook": {
+      "0x30,0x49": {
+        "cc": 212,
+        "cmd": 73,
+        "name": "Facebook Get 80-Port POST Record",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x52": {
+        "cc": 212,
+        "cmd": 82,
+        "name": "Facebook Set Boot Order",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x53": {
+        "cc": 212,
+        "cmd": 83,
+        "name": "Facebook Get Boot Order",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x57": {
+        "cc": 199,
+        "cmd": 87,
+        "name": "Facebook Get HTTPS Boot Data",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x58": {
+        "cc": 199,
+        "cmd": 88,
+        "name": "Facebook Get HTTPS Boot Attr",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x70": {
+        "cc": 212,
+        "cmd": 112,
+        "name": "Facebook Crashdump",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xef": {
+        "cc": 212,
+        "cmd": 239,
+        "name": "Facebook Set System GUID",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x36,0x10": {
+        "cc": 212,
+        "cmd": 16,
+        "name": "Facebook Q Set Proc Info",
+        "netfn": 54,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x36,0x11": {
+        "cc": 212,
+        "cmd": 17,
+        "name": "Facebook Q Get Proc Info",
+        "netfn": 54,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x36,0x12": {
+        "cc": 212,
+        "cmd": 18,
+        "name": "Facebook Q Set DIMM Info",
+        "netfn": 54,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x36,0x13": {
+        "cc": 212,
+        "cmd": 19,
+        "name": "Facebook Q Get DIMM Info",
+        "netfn": 54,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x38,0x01": {
+        "cc": 193,
+        "cmd": 1,
+        "name": "Facebook BIC Info",
+        "netfn": 56,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x38,0x03": {
+        "cc": 193,
+        "cmd": 3,
+        "name": "Facebook Get BIC GPIO State",
+        "netfn": 56,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x38,0x08": {
+        "cc": 193,
+        "cmd": 8,
+        "name": "Facebook Send POST Buffer to BMC",
+        "netfn": 56,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x38,0x0c": {
+        "cc": 193,
+        "cmd": 12,
+        "name": "Facebook Set Host Power State",
+        "netfn": 56,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x38,0x19": {
+        "cc": 193,
+        "cmd": 25,
+        "name": "Facebook Get BIOS Flash Size",
+        "netfn": 56,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x38,0x25": {
+        "cc": 193,
+        "cmd": 37,
+        "name": "Facebook Clear CMOS",
+        "netfn": 56,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x38,0x33": {
+        "cc": 193,
+        "cmd": 51,
+        "name": "Facebook 1S 4-byte POST Buffer",
+        "netfn": 56,
+        "request_hex": "",
+        "response_hex": ""
+      }
+    },
+    "google": {
+      "0x2e,0x32": {
+        "cc": 199,
+        "cmd": 50,
+        "name": "Google Sys OEM Command (IANA 11129)",
+        "netfn": 46,
+        "request_hex": "",
+        "response_hex": ""
+      }
+    },
+    "intel": {
+      "0x06,0x52": {
+        "cc": 193,
+        "cmd": 82,
+        "name": "Intel Controller (Master) Write-Read",
+        "netfn": 6,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x08,0x20": {
+        "cc": 0,
+        "cmd": 32,
+        "name": "Intel Get FW Version Info",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": "00"
+      },
+      "0x08,0x21": {
+        "cc": 0,
+        "cmd": 33,
+        "name": "Intel Get FW Security Version",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": "02010000020000"
+      },
+      "0x08,0x22": {
+        "cc": 0,
+        "cmd": 34,
+        "name": "Intel Get FW Update Channel Info",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": "0301800000000300c800000000000000"
+      },
+      "0x08,0x23": {
+        "cc": 0,
+        "cmd": 35,
+        "name": "Intel Get BMC Execution Context",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": "1000"
+      },
+      "0x08,0x25": {
+        "cc": 199,
+        "cmd": 37,
+        "name": "Intel Get FW Root Cert Data",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x08,0x26": {
+        "cc": 0,
+        "cmd": 38,
+        "name": "Intel Get FW Update Random Number",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": "a7224ada2efecbba"
+      },
+      "0x08,0x27": {
+        "cc": 199,
+        "cmd": 39,
+        "name": "Intel Set Firmware Update Mode",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x08,0x28": {
+        "cc": 204,
+        "cmd": 40,
+        "name": "Intel Exit FW Update Mode",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x08,0x29": {
+        "cc": 199,
+        "cmd": 41,
+        "name": "Intel Get/Set FW Update Control",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x08,0x2a": {
+        "cc": 0,
+        "cmd": 42,
+        "name": "Intel Get FW Update Status",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": "000000"
+      },
+      "0x08,0x2b": {
+        "cc": 199,
+        "cmd": 43,
+        "name": "Intel Set FW Update Options",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x08,0x2c": {
+        "cc": 199,
+        "cmd": 44,
+        "name": "Intel FW Image Write Data",
+        "netfn": 8,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x01": {
+        "cc": 0,
+        "cmd": 1,
+        "name": "Intel Get BMC Version String",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": "046e6f6e65"
+      },
+      "0x30,0x02": {
+        "cc": 199,
+        "cmd": 2,
+        "name": "Intel Restore Configuration",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x14": {
+        "cc": 193,
+        "cmd": 20,
+        "name": "Intel MTM Get Signal",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x15": {
+        "cc": 193,
+        "cmd": 21,
+        "name": "Intel MTM Set Signal",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x27": {
+        "cc": 199,
+        "cmd": 39,
+        "name": "Intel Get OEM Device Info",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x2d": {
+        "cc": 199,
+        "cmd": 45,
+        "name": "Intel Set Cold Redundancy Config",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x2e": {
+        "cc": 199,
+        "cmd": 46,
+        "name": "Intel Get Cold Redundancy Config",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x33": {
+        "cc": 206,
+        "cmd": 51,
+        "name": "Intel Get Multi-Node Role",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x36": {
+        "cc": 212,
+        "cmd": 54,
+        "name": "Intel Get Multi-Node ID",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x42": {
+        "cc": 199,
+        "cmd": 66,
+        "name": "Intel Disable BMC System Reset",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x43": {
+        "cc": 255,
+        "cmd": 67,
+        "name": "Intel Get BMC Reset Disables",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x44": {
+        "cc": 199,
+        "cmd": 68,
+        "name": "Intel Send Embedded FW Update Status",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x57": {
+        "cc": 199,
+        "cmd": 87,
+        "name": "Intel Set Fault Indication",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x5a": {
+        "cc": 212,
+        "cmd": 90,
+        "name": "Intel Set OEM User2 Activation",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x5f": {
+        "cc": 199,
+        "cmd": 95,
+        "name": "Intel Set Special User Password",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x63": {
+        "cc": 206,
+        "cmd": 99,
+        "name": "Intel Get Multi-Node Presence",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x66": {
+        "cc": 0,
+        "cmd": 102,
+        "name": "Intel Get Buffer Size",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": "0f20"
+      },
+      "0x30,0x89": {
+        "cc": 199,
+        "cmd": 137,
+        "name": "Intel Set Fan Config",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x8a": {
+        "cc": 199,
+        "cmd": 138,
+        "name": "Intel Get Fan Config",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x8c": {
+        "cc": 199,
+        "cmd": 140,
+        "name": "Intel Set Fan Speed Offset",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x8d": {
+        "cc": 206,
+        "cmd": 141,
+        "name": "Intel Get Fan Speed Offset",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x8e": {
+        "cc": 199,
+        "cmd": 142,
+        "name": "Intel Set DIMM Offset",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x8f": {
+        "cc": 199,
+        "cmd": 143,
+        "name": "Intel Get DIMM Offset",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x90": {
+        "cc": 199,
+        "cmd": 144,
+        "name": "Intel Set FSC Parameter",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x91": {
+        "cc": 199,
+        "cmd": 145,
+        "name": "Intel Get FSC Parameter",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x93": {
+        "cc": 0,
+        "cmd": 147,
+        "name": "Intel Read Base Board Product ID",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": "00"
+      },
+      "0x30,0x9a": {
+        "cc": 255,
+        "cmd": 154,
+        "name": "Intel Get Processor Err Config",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0x9b": {
+        "cc": 199,
+        "cmd": 155,
+        "name": "Intel Set Processor Err Config",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xa1": {
+        "cc": 193,
+        "cmd": 161,
+        "name": "Intel Set Manufacturing Data",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xa2": {
+        "cc": 193,
+        "cmd": 162,
+        "name": "Intel Get Manufacturing Data",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xa3": {
+        "cc": 193,
+        "cmd": 163,
+        "name": "Intel Set FITc Layout",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xa4": {
+        "cc": 193,
+        "cmd": 164,
+        "name": "Intel MTM BMC Feature Control",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xb0": {
+        "cc": 255,
+        "cmd": 176,
+        "name": "Intel Get LED Status",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xb1": {
+        "cc": 199,
+        "cmd": 177,
+        "name": "Intel Control BMC Services",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xb2": {
+        "cc": 0,
+        "cmd": 178,
+        "name": "Intel Get BMC Service Status",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": "4800"
+      },
+      "0x30,0xb3": {
+        "cc": 255,
+        "cmd": 179,
+        "name": "Intel Get Security Mode",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xb4": {
+        "cc": 199,
+        "cmd": 180,
+        "name": "Intel Set Security Mode",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xb5": {
+        "cc": 193,
+        "cmd": 181,
+        "name": "Intel MTM Keep Alive",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xd3": {
+        "cc": 212,
+        "cmd": 211,
+        "name": "Intel Set BIOS Capability",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xd4": {
+        "cc": 133,
+        "cmd": 212,
+        "name": "Intel Get BIOS Capability",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xd5": {
+        "cc": 212,
+        "cmd": 213,
+        "name": "Intel Set Payload",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xd6": {
+        "cc": 199,
+        "cmd": 214,
+        "name": "Intel Get Payload",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xd7": {
+        "cc": 212,
+        "cmd": 215,
+        "name": "Intel Set BIOS Pwd Hash Info",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xd8": {
+        "cc": 212,
+        "cmd": 216,
+        "name": "Intel Get BIOS Pwd Hash",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xe2": {
+        "cc": 199,
+        "cmd": 226,
+        "name": "Intel OEM Get Reading",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xe5": {
+        "cc": 206,
+        "cmd": 229,
+        "name": "Intel Get NMI Source/Status",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xea": {
+        "cc": 199,
+        "cmd": 234,
+        "name": "Intel Set EFI Boot Options",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xeb": {
+        "cc": 199,
+        "cmd": 235,
+        "name": "Intel Get EFI Boot Options",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xed": {
+        "cc": 212,
+        "cmd": 237,
+        "name": "Intel Set NMI Source/Status",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x30,0xef": {
+        "cc": 212,
+        "cmd": 239,
+        "name": "Intel Get PSU Version",
+        "netfn": 48,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x32,0x91": {
+        "cc": 193,
+        "cmd": 145,
+        "name": "Intel Clear CMOS",
+        "netfn": 50,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x30": {
+        "cc": 199,
+        "cmd": 48,
+        "name": "Intel MDR-II Agent Status",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x31": {
+        "cc": 199,
+        "cmd": 49,
+        "name": "Intel MDR-II Get Dir",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x32": {
+        "cc": 199,
+        "cmd": 50,
+        "name": "Intel MDR-II Get Data Info",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x33": {
+        "cc": 199,
+        "cmd": 51,
+        "name": "Intel MDR-II Lock Data",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x34": {
+        "cc": 199,
+        "cmd": 52,
+        "name": "Intel MDR-II Unlock Data",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x35": {
+        "cc": 199,
+        "cmd": 53,
+        "name": "Intel MDR-II Get Data Block",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x36": {
+        "cc": 193,
+        "cmd": 54,
+        "name": "Intel MDR-II Send Data Info Offer",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x37": {
+        "cc": 193,
+        "cmd": 55,
+        "name": "Intel MDR-II Send Data Info",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x38": {
+        "cc": 199,
+        "cmd": 56,
+        "name": "Intel MDR-II Data Start",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x39": {
+        "cc": 199,
+        "cmd": 57,
+        "name": "Intel MDR-II Data Done",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x3a": {
+        "cc": 199,
+        "cmd": 58,
+        "name": "Intel MDR-II Send Data Block",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x51": {
+        "cc": 199,
+        "cmd": 81,
+        "name": "Intel Slot IPMB",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      },
+      "0x3e,0x84": {
+        "cc": 199,
+        "cmd": 132,
+        "name": "Intel PFR Mailbox Read",
+        "netfn": 62,
+        "request_hex": "",
+        "response_hex": ""
+      }
+    }
+  },
+  "summary": {
+    "ampere": {
+      "priv": 5,
+      "total": 18,
+      "unsupported": 13
+    },
+    "facebook": {
+      "cc_err": 2,
+      "priv": 9,
+      "total": 18,
+      "unsupported": 7
+    },
+    "google": {
+      "cc_err": 1,
+      "total": 1
+    },
+    "intel": {
+      "cc_err": 44,
+      "no_response": 4,
+      "ok": 10,
+      "priv": 8,
+      "total": 77,
+      "unsupported": 11
+    }
+  }
+}

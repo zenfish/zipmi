@@ -1928,7 +1928,8 @@ def cmd_vbmc_serve(args: argparse.Namespace) -> int:
     try:
         asyncio.run(run(persona_name=args.vpersona,
                         host=args.vbind, port=args.vport,
-                        trace=trace, color=color))
+                        trace=trace, color=color,
+                        fixtures=getattr(args, "vfixtures", None)))
     except KeyboardInterrupt:
         print()
     return 0
@@ -2720,6 +2721,9 @@ def build_parser() -> argparse.ArgumentParser:
                           help="bind address (default 127.0.0.1)")
     vb_serve.add_argument("--vport", dest="vport", type=int, default=6230,
                           help="vBMC UDP listen port (default 6230)")
+    vb_serve.add_argument("--fixtures", dest="vfixtures", default=None,
+                          help="JSON of synthetic OEM responses (from "
+                               "scripts/oem_sweep.py) for the vbmc to replay")
     vb_serve.set_defaults(func=cmd_vbmc_serve)
 
     # scan

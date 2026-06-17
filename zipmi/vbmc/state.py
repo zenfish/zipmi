@@ -61,6 +61,13 @@ class Persona:
     user_name: bytes = b"root\x00" * 1 + b"\x00" * 11    # auto-padded below
     password: bytes = b"calvin"
 
+    # Synthetic OEM responses: (netfn, cmd) -> (completion_code, response_data).
+    # Consulted by server._dispatch when no built-in handler matches, so a
+    # JSON fixture (e.g. captured by scripts/oem_sweep.py) can make the vbmc
+    # replay faux-real vendor OEM answers with no live BMC. See vbmc/fixtures.py.
+    oem_responses: dict[tuple[int, int], tuple[int, bytes]] = field(
+        default_factory=dict)
+
 
 @dataclass
 class Session1_5:
