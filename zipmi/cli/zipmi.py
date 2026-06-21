@@ -118,6 +118,13 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
     parser.add_argument("-P", "--password",
                         default=d(os.environ.get("ZIPMI_PASS")),
                         help="password (env: ZIPMI_PASS)")
+    parser.add_argument("-K", "--key", default=d(None), metavar="HEX",
+                        help="raw RAKP key (hex) used verbatim as the HMAC "
+                             "Kuid instead of -P/--password. PoC: log in with "
+                             "a compromised/derived key, no password needed "
+                             "(e.g. Dell iDRAC 32-byte IPMIKey, or an OpenBMC "
+                             "recovered /etc/ipmi_pass plaintext). RMCP+ only; "
+                             "needs -U; implies -I lanplus.")
     parser.add_argument("-A", "--auth", choices=AUTH_BY_NAME.keys(),
                         default=d("md5"),
                         help="auth type for IPMI 1.5 session (default md5)")
@@ -207,7 +214,26 @@ def _open_session(args: argparse.Namespace) -> Session:
     handshake and every send goes out auth_type=0, session_id=0. The BMC
     decides what it'll answer at that privilege.
     """
-    if (args.user is None) != (args.password is None):
+    password = args.password
+    key = getattr(args, "key", None)
+    if key is not None:
+        # -K: authenticate with raw Kuid bytes, no password. RAKP-only.
+        if args.password is not None:
+            print("error: -K/--key and -P/--password are mutually exclusive.",
+                  file=sys.stderr)
+            sys.exit(2)
+        if args.user is None:
+            print("error: -K/--key requires -U/--user (RAKP needs a username).",
+                  file=sys.stderr)
+            sys.exit(2)
+        try:
+            key_bytes = bytes.fromhex(key.replace(":", "").replace(" ", ""))
+        except ValueError:
+            print(f"error: -K/--key is not valid hex: {key!r}", file=sys.stderr)
+            sys.exit(2)
+        from ..scapy_ipmi.crypto import RawKey
+        password = RawKey(key_bytes)
+    elif (args.user is None) != (args.password is None):
         print("error: -U and -P must both be given (or neither). "
               "Pass nothing for sessionless mode.", file=sys.stderr)
         sys.exit(2)
@@ -215,7 +241,7 @@ def _open_session(args: argparse.Namespace) -> Session:
     s = Session(
         host=_require_host(args),
         username=args.user,
-        password=args.password,
+        password=password,
         auth_type=AUTH_BY_NAME[args.auth],
         timeout=args.timeout,
         lanplus=lanplus,
@@ -2754,8 +2780,10 @@ def _normalize_interface_cipher(args: argparse.Namespace) -> None:
     """
     iface = getattr(args, "interface", None)
     cipher = getattr(args, "cipher", None)
+    key = getattr(args, "key", None)
     if iface is None:
-        iface = "lanplus" if cipher is not None else "lan"
+        # A cipher suite or a raw RAKP key (-K) both mean "I want RMCP+".
+        iface = "lanplus" if (cipher is not None or key is not None) else "lan"
     args.interface = iface
     args.cipher = 3 if cipher is None else cipher
 

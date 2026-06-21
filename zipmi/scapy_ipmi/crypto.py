@@ -26,8 +26,32 @@ from __future__ import annotations
 import hashlib
 
 
+class RawKey(bytes):
+    """Marker for raw RAKP key material used verbatim as the HMAC Kuid.
+
+    A normal password becomes the Kuid via NUL-pad-to-16 (`pad_password`).
+    A RawKey skips that: it *is* the key bytes already, used as-is with no
+    padding and no 16-byte cap. This models authenticating with a
+    compromised / externally-derived key instead of knowing the password —
+    e.g. Dell iDRAC's 32-byte IPMIKey = SHA256(password‖salt), or an
+    OpenBMC `/etc/ipmi_pass` plaintext recovered with the device key_file.
+
+    RAKP never transmits the password; both sides HMAC with the Kuid. So
+    whoever holds the Kuid bytes can complete RAKP3 — that's the whole PoC.
+    Exposed on the CLI as `zipmi ... -K <hex>`.
+    """
+
+    __slots__ = ()
+
+
 def pad_password(password: str | bytes) -> bytes:
-    """Pad an IPMI password to 16 bytes with NULs (IPMI 1.5 §13.16.1)."""
+    """Pad an IPMI password to 16 bytes with NULs (IPMI 1.5 §13.16.1).
+
+    A RawKey is returned verbatim — it is already Kuid HMAC-key bytes, not a
+    password to pad/truncate.
+    """
+    if isinstance(password, RawKey):
+        return bytes(password)
     if isinstance(password, str):
         password = password.encode("utf-8")
     if len(password) > 16:
