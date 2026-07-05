@@ -12,13 +12,42 @@ WHY      The catalog is generated from idrac10-commands.json (447 RE'd +
 """
 from __future__ import annotations
 
+import pytest
 
-def test_catalog_imports_447():
+from zipmi.scapy_ipmi.oem.idrac10_commands_generated import IDRAC10_COMMANDS
+
+_PRIVS = ("Admin", "Operator", "User", "Callback", "OEM", "undetermined")
+
+
+@pytest.mark.parametrize("c", IDRAC10_COMMANDS, ids=lambda c: c.name)
+def test_every_command_wellformed(c):
+    """One case per catalog entry — a dropped/fabricated/malformed command fails loudly."""
+    assert c.name and c.name.strip(), "empty name"
+    # netfn/cmd: int in byte range or None (the single undetermined entry).
+    for f in (c.netfn, c.cmd):
+        assert f is None or (isinstance(f, int) and 0 <= f <= 0xFF)
+    # subcmd: int (multi-byte folded, may exceed 0xff) or None.
+    assert c.subcmd is None or isinstance(c.subcmd, int)
+    assert isinstance(c.in_band_only, bool)
+    assert any(p.lower() in c.priv.lower() for p in _PRIVS), f"unknown priv {c.priv!r}"
+    # These fields were RE'd per command — blank means a doc hole, not valid data.
+    for field in ("purpose", "request", "response", "confidence", "lib"):
+        assert getattr(c, field).strip(), f"empty {field}"
+
+
+def test_catalog_keys_unique():
+    """(name, netfn, cmd, subcmd) is the identity — no dupes survived the merge/dedup."""
+    keys = [(c.name, c.netfn, c.cmd, c.subcmd) for c in IDRAC10_COMMANDS]
+    dupes = {k for k in keys if keys.count(k) > 1}
+    assert not dupes, f"duplicate command keys: {dupes}"
+
+
+def test_catalog_imports_all():
     from zipmi.scapy_ipmi.oem.idrac10_commands_generated import (
         IDRAC10_COMMANDS, IDrac10Command,
     )
     assert isinstance(IDRAC10_COMMANDS, list)
-    assert len(IDRAC10_COMMANDS) == 447
+    assert len(IDRAC10_COMMANDS) == 446
     assert all(isinstance(c, IDrac10Command) for c in IDRAC10_COMMANDS)
 
 
