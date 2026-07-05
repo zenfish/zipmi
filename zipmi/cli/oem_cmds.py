@@ -45,6 +45,10 @@ VENDORS: dict[str, dict] = {
         "iana": 674,
         "blurb": "Dell iDRAC9 (reuses Dell's IANA 674)",
     },
+    "idrac10": {
+        "iana": 674,
+        "blurb": "Dell iDRAC10 (RE'd + verified catalog, 447 cmds, IANA 674)",
+    },
     "supermicro": {
         "iana": 10876,
         "blurb": "Supermicro X11 (top-level + sub-cmd dispatch via 1st data byte)",
@@ -134,6 +138,9 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
                     | set(IDRAC9_BINARY_NAMES))
         named_keys = set(IDRAC9_CMD_NAMES) | set(IDRAC9_BINARY_NAMES)
         return len(all_keys), len(named_keys)
+    if vendor == "idrac10":
+        listing = _vendor_listing("idrac10")
+        return len(listing), len(listing)
     if vendor == "supermicro":
         listing = _vendor_listing("supermicro")
         return len(listing), len(listing)
@@ -250,6 +257,7 @@ _SM_RESPONSE_PATS = re.compile(
 VENDOR_TAG: dict[str, str] = {
     "idrac6": "Idrac6",
     "idrac9": "Idrac9",
+    "idrac10": "Idrac10",
     "supermicro": "Smc",
 }
 
@@ -544,6 +552,38 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 row["desc"] = ctx["summary"]
             if ctx.get("reservation_from"):
                 row["reservation_from"] = ctx["reservation_from"]
+        return _normalize_listing(out, vendor)
+    if vendor == "idrac10":
+        from ..scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
+        out: dict = {}
+        for c in IDRAC10_COMMANDS:
+            if c.netfn is None or c.cmd is None:
+                continue  # RE couldn't pin the wire bytes; not CLI-runnable
+            if c.subcmd is None:
+                key: tuple = (c.netfn, c.cmd)
+                prefix = None
+            else:
+                # subcmd is folded big-endian (single or multi byte).
+                sb = c.subcmd.to_bytes(
+                    max(1, (c.subcmd.bit_length() + 7) // 8), "big")
+                key = (c.netfn, c.cmd) + tuple(sb)
+                prefix = sb
+            out[key] = {
+                "name": c.name,
+                "priv": c.priv or None,
+                "desc": c.purpose,
+                "live": None,
+                "missing": False,
+                "prefix": prefix,
+                # Rich doc fields surfaced by `<name> help` (see _cmd_oem_help).
+                "request": c.request,
+                "response": c.response,
+                "security": c.security,
+                "confidence": c.confidence,
+                "inband": c.in_band_only,
+                "lib": c.lib,
+                "backend_deps": c.backend_deps,
+            }
         return _normalize_listing(out, vendor)
     if vendor == "supermicro":
         from ..scapy_ipmi.oem.supermicro import SM_TOP_CMDS, SM_SUBCMDS
@@ -972,6 +1012,21 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
             print(f"  Subsystem:    {info['src']}")
         if info.get("desc"):
             print(f"  Notes:        {info['desc']}")
+        # Rich per-command doc (iDRAC10 catalog carries these).
+        if info.get("request"):
+            print(f"  Request:      {info['request']}")
+        if info.get("response"):
+            print(f"  Response:     {info['response']}")
+        if info.get("security"):
+            print(f"  Security:     {info['security']}")
+        if info.get("backend_deps"):
+            print(f"  Backend deps: {info['backend_deps']}")
+        if info.get("inband"):
+            print(f"  In-band only: yes (host-side / KCS, not remote LAN)")
+        if info.get("lib"):
+            print(f"  Library:      {info['lib']}")
+        if info.get("confidence"):
+            print(f"  Confidence:   {info['confidence']}")
         if info.get("reservation_from"):
             print(f"  Reservation:  {info['reservation_from']}")
         if info.get("live"):

@@ -42,6 +42,8 @@ def load_vendor(name: str) -> None:
     Example:
         >>> import zipmi
         >>> zipmi.load_vendor("idrac6")     # 192 cmds RE'd from iDRAC6 fw
+        >>> zipmi.load_vendor("idrac9")     # 293 dispatch tuples, Dell IANA 674
+        >>> zipmi.load_vendor("idrac10")    # 383 dispatch tuples, Dell IANA 674
         >>> zipmi.load_vendor("supermicro")
     """
     module = _VENDOR_ALIAS.get(name, name)
