@@ -1,0 +1,58 @@
+"""
+test_idrac9_catalog.py — per-entry validation of the iDRAC9 catalogs.
+
+WHAT     One parametrized case per entry across both iDRAC9 catalogs:
+         IDRAC9_DISPATCH (271 recovered (NetFn,cmd) dispatch tuples) and
+         IDRAC9_HANDLERS (313 handler-name catalog rows). Asserts each entry
+         is well-formed and that identity keys are unique.
+WHY      test_idrac9_dispatch.py only spot-checks a handful of entries; a
+         regression that drops rows, blanks a field, or mis-parses a NetFn/cmd
+         would slip past it. This runs once per command so a single bad entry
+         fails loudly with its own id. Mirror of test_idrac10_commands.py.
+"""
+from __future__ import annotations
+
+import pytest
+
+from zipmi.scapy_ipmi.oem.idrac9_dispatch_generated import IDRAC9_DISPATCH
+from zipmi.scapy_ipmi.oem.idrac9_generated import IDRAC9_HANDLERS
+
+_DISPATCH = list(IDRAC9_DISPATCH.values())
+
+
+@pytest.mark.parametrize(
+    "e", _DISPATCH, ids=lambda e: f"{e.handler_symbol}@{e.netfn:#x}.{e.cmd:#x}")
+def test_dispatch_entry_wellformed(e):
+    """Each recovered dispatch tuple has sane NetFn/cmd, a priv in 0..5, a symbol and a table."""
+    assert isinstance(e.netfn, int) and 0 <= e.netfn <= 0xFF
+    assert isinstance(e.cmd, int) and 0 <= e.cmd <= 0xFF
+    assert isinstance(e.priv, int) and 0 <= e.priv <= 5   # 0 = unresolved gate
+    assert e.handler_symbol and e.handler_symbol.strip()
+    assert e.table and e.table.strip()
+
+
+def test_dispatch_keys_unique():
+    """(handler_symbol, NetFn, cmd) identifies an entry — no dupes survived extraction."""
+    keys = [(e.handler_symbol, e.netfn, e.cmd) for e in _DISPATCH]
+    dupes = {k for k in keys if keys.count(k) > 1}
+    assert not dupes, f"duplicate dispatch keys: {dupes}"
+
+
+@pytest.mark.parametrize(
+    "h", IDRAC9_HANDLERS, ids=lambda h: f"{h.library or 'oem'}:{h.handler}")
+def test_handler_entry_wellformed(h):
+    """Each row's identity fields (section, cmd_name, handler) are present.
+
+    `library` is intentionally best-effort: the OEM sections were catalogued
+    from RE docs without a .so attribution, so many OEM rows carry library=''.
+    Forcing it would fabricate data — cmd_name/handler are the real identity.
+    """
+    for field in ("section", "cmd_name", "handler"):
+        assert getattr(h, field).strip(), f"empty {field}"
+
+
+def test_handler_symbols_unique():
+    """No duplicate (library, handler) rows in the name catalog."""
+    keys = [(h.library, h.handler) for h in IDRAC9_HANDLERS]
+    dupes = {k for k in keys if keys.count(k) > 1}
+    assert not dupes, f"duplicate handler rows: {dupes}"
