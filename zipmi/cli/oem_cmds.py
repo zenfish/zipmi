@@ -43,7 +43,7 @@ VENDORS: dict[str, dict] = {
     },
     "idrac9": {
         "iana": 674,
-        "blurb": "Dell iDRAC9 (reuses Dell's IANA 674)",
+        "blurb": "Dell iDRAC9 (dispatch tables + RE'd catalog, 276 cmds, IANA 674)",
     },
     "idrac10": {
         "iana": 674,
@@ -552,6 +552,45 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 row["desc"] = ctx["summary"]
             if ctx.get("reservation_from"):
                 row["reservation_from"] = ctx["reservation_from"]
+        # Layer the rich RE'd catalog (idrac9-commands.json, 276 cmds) on
+        # top so `zipmi idrac9 <name> help` surfaces the full doc
+        # (request/response/security/confidence/lib), mirroring idrac10.
+        # Catalog keys fold subcmd into the wire prefix; entries with a
+        # sub-command byte add their own rows, base handlers merge onto the
+        # existing dispatch row (catalog name + doc win — it's the
+        # adversarially-verified source).
+        from ..scapy_ipmi.oem.idrac9 import IDRAC9_COMMANDS
+        for c in IDRAC9_COMMANDS:
+            if c.netfn is None or c.cmd is None:
+                continue  # RE couldn't pin the wire bytes; not CLI-runnable
+            if c.subcmd is None:
+                key = (c.netfn, c.cmd)
+                prefix = None
+            else:
+                sb = c.subcmd.to_bytes(
+                    max(1, (c.subcmd.bit_length() + 7) // 8), "big")
+                key = (c.netfn, c.cmd) + tuple(sb)
+                prefix = sb
+            rich = {
+                "request": c.request, "response": c.response,
+                "security": c.security, "confidence": c.confidence,
+                "inband": c.in_band_only, "lib": c.lib,
+                "backend_deps": c.backend_deps,
+            }
+            row = out.get(key)
+            if row is None:
+                out[key] = {
+                    "name": c.name, "priv": c.priv or None,
+                    "desc": c.purpose, "live": None, "missing": False,
+                    "prefix": prefix, **rich,
+                }
+            else:
+                row.update(rich)
+                row["name"] = c.name
+                if c.purpose:
+                    row["desc"] = c.purpose
+                if c.priv:
+                    row["priv"] = c.priv
         return _normalize_listing(out, vendor)
     if vendor == "idrac10":
         from ..scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
