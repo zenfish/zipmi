@@ -4,7 +4,7 @@ zipmi.scapy_ipmi.oem.google — Google OpenBMC OEM commands (IANA 11129).
 WHAT     The `google-ipmi-sys` provider. Unlike every other OpenBMC OEM
          layer, Google uses the REAL IPMI 2.0 OEM-group wire form:
          NetFn 0x2E (netFnOem), the 3-byte IANA 11129 (LSB-first:
-         0x29 0x2B 0x00), command 0x32, then a 1-byte sub-command from
+         0x79 0x2B 0x00 — 11129 = 0x2B79), command 0x32, then a 1-byte sub-command from
          enum SysOEMCommands. The sub-command byte is the real dispatch key.
 
 WHY      Google fleets are a distinct OpenBMC flavor. "Get Machine Name"

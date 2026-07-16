@@ -83,7 +83,7 @@ INTEL_CMD_NAMES: dict[tuple[int, int], str] = {
     (0x30, 0xB2): "Intel Get BMC Service Status",
     (0x30, 0xB3): "Intel Get Security Mode",
     (0x30, 0xB4): "Intel Set Security Mode",
-    (0x30, 0xB5): "Intel MTM Keep Alive",
+    (0x30, 0xB5, 0x00, 0x49, 0x4E, 0x54, 0x45, 0x4C): "Intel MTM Keep Alive",  # guard: reserved 0x00 + "INTEL" (manufacturingcommands.cpp:826)
     (0x30, 0xD3): "Intel Set BIOS Capability",
     (0x30, 0xD4): "Intel Get BIOS Capability",
     (0x30, 0xD5): "Intel Set Payload",

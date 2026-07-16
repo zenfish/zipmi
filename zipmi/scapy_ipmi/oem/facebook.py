@@ -51,19 +51,24 @@ FACEBOOK_CMD_NAMES: dict[tuple[int, int], str] = {
     (0x36, 0x11): "Facebook Q Get Proc Info",
     (0x36, 0x12): "Facebook Q Set DIMM Info",
     (0x36, 0x13): "Facebook Q Get DIMM Info",
-    (0x38, 0x01): "Facebook BIC Info",
-    (0x38, 0x03): "Facebook Get BIC GPIO State",
-    (0x38, 0x08): "Facebook Send POST Buffer to BMC",
-    (0x38, 0x0C): "Facebook Set Host Power State",
-    (0x38, 0x19): "Facebook Get BIOS Flash Size",
-    (0x38, 0x25): "Facebook Clear CMOS",
-    (0x38, 0x33): "Facebook 1S 4-byte POST Buffer",
+    # NetFn 0x38 (Bridge-IC) family: mandatory Meta IANA 40981 prefix on the
+    # wire, LSB-first 0x15 0xA0 0x00 — baked so the CLI auto-supplies it. Some
+    # (0x03/0x19/0x25) reject a wrong IANA (biccommands.cpp:219/302/353); the
+    # rest unpack it positionally (biccommands.cpp:61/158/251/401). Variable
+    # args (interface/status/target/...) follow the prefix.
+    (0x38, 0x01, 0x15, 0xA0, 0x00): "Facebook BIC Info",
+    (0x38, 0x03, 0x15, 0xA0, 0x00): "Facebook Get BIC GPIO State",
+    (0x38, 0x08, 0x15, 0xA0, 0x00): "Facebook Send POST Buffer to BMC",
+    (0x38, 0x0C, 0x15, 0xA0, 0x00): "Facebook Set Host Power State",
+    (0x38, 0x19, 0x15, 0xA0, 0x00): "Facebook Get BIOS Flash Size",
+    (0x38, 0x25, 0x15, 0xA0, 0x00): "Facebook Clear CMOS",
+    (0x38, 0x33, 0x15, 0xA0, 0x00): "Facebook 1S 4-byte POST Buffer",
 }
 
 
 # Vendor detection: "BIC Info" (0x38/0x01) is a strong Meta positive — the
 # Bridge-IC NetFn 0x38 family is Meta-specific.
-FACEBOOK_DETECT_PROBE = (0x38, 0x01)
+FACEBOOK_DETECT_PROBE = (0x38, 0x01, 0x15, 0xA0, 0x00)  # BIC Info + Meta IANA
 
 
 register("facebook", None, FACEBOOK_CMD_NAMES)
