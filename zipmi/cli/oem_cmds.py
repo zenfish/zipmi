@@ -1161,8 +1161,10 @@ def _add_openbmc_group_parser(parent_sub) -> None:
 
 def _add_all_vendor_parsers(parent_sub) -> None:
     """Register proprietary vendors under their bare name and OpenBMC flavors
-    under `openbmc-<v>` (+ `ob-<v>` alias) — the bare `<v>` is intentionally
-    NOT a verb for OpenBMC vendors."""
+    under `openbmc-<v>` (canonical) + `ob-<v>` + bare `<v>` aliases. The bare
+    name is accepted as an ALIAS, so `zipmi nvidia ...` works while the
+    `oem`/flavor catalog still lists only the canonical `openbmc-<v>` rows
+    (aliases don't add catalog entries — the original de-clutter intent)."""
     obmc = set(_openbmc_vendor_keys())
     for vkey, vinfo in VENDORS.items():
         if vkey in obmc:
@@ -1170,7 +1172,7 @@ def _add_all_vendor_parsers(parent_sub) -> None:
         _add_vendor_parser(parent_sub, vkey, vinfo["blurb"])
     for vkey in _openbmc_vendor_keys():
         _add_vendor_parser(parent_sub, f"openbmc-{vkey}", VENDORS[vkey]["blurb"],
-                           vendor_key=vkey, aliases=[f"ob-{vkey}"])
+                           vendor_key=vkey, aliases=[f"ob-{vkey}", vkey])
     _add_openbmc_group_parser(parent_sub)
 
 
