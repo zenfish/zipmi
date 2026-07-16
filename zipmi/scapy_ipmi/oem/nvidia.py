@@ -34,15 +34,21 @@ from ._registry import register
 
 NVIDIA_NETFN = 0x3C  # groupNvidia, used as a raw NetFn
 
-NVIDIA_CMD_NAMES: dict[tuple[int, int], str] = {
-    (0x3C, 0x30): "Nvidia Get USB Vendor/Product ID",
+# Keys are (NetFn, Cmd[, fixed-prefix-bytes]). A 3rd+ element is a fixed
+# request-data prefix the CLI auto-supplies (see cli/oem_cmds.py dispatch), so
+# the user never types a mandatory selector. BIOS Get/Set only accept password
+# selector id=0x01 (admin) — the handler rejects anything else with 0xC9 — so
+# 0x01 is baked in: `ob-nvidia get-bios-password` needs no data; set adds only
+# the variable type+salt+hash after it.
+NVIDIA_CMD_NAMES: dict[tuple[int, ...], str] = {
+    (0x3C, 0x30): "Nvidia Get USB Vendor/Product ID",  # + type byte (1=VID, 2=PID)
     (0x3C, 0x31): "Nvidia Get USB Serial Number",
     (0x3C, 0x32): "Nvidia Get Redfish Host Name",
     (0x3C, 0x33): "Nvidia Get IPMI Channel for Redfish-HI",
     (0x3C, 0x34): "Nvidia Get Redfish Service UUID",
     (0x3C, 0x35): "Nvidia Get Redfish Service Port",
-    (0x3C, 0x36): "Nvidia Set BIOS Password",
-    (0x3C, 0x37): "Nvidia Get BIOS Password",
+    (0x3C, 0x36, 0x01): "Nvidia Set BIOS Password",  # id=0x01; + type+salt[32]+hash[64]
+    (0x3C, 0x37, 0x01): "Nvidia Get BIOS Password",  # id=0x01; no further data
 }
 
 
