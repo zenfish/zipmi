@@ -399,6 +399,9 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             key: {
                 "name": prefix.sub("", nm),
                 "priv": None, "desc": "", "live": None, "missing": False,
+                # baked fixed-prefix bytes (key[2:]) — auto-supplied on send so
+                # the user drops the mandatory selector/IANA (see nvidia/intel/fb).
+                "prefix": bytes(key[2:]) if len(key) > 2 else None,
             }
             for key, nm in names.items()
         }

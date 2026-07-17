@@ -534,7 +534,18 @@ class Session:
         managed_sid = ores.managed_session_id
 
         # 2. RAKP1 → RAKP2 (verify BMC's auth code).
+        # Spec-correct: send the REAL-length username (as ipmitool does). RAKP1's
+        # user_name_len is the actual name length, and spec BMCs (OpenBMC etc.) do a
+        # length-based user lookup + HMAC over the real bytes — so a NUL-padded
+        # 16-byte name is looked up as "root\0\0.." and rejected with RAKP2 status
+        # 0x0d ("unauthorized name"). The old unconditional ljust(16) was a workaround
+        # for a QUIRKY target (an emulated iDRAC whose RAKP2 HMAC memcmp'd 16 bytes
+        # against a stale/uninit packet buffer for short names); keep it as opt-in via
+        # self.rakp_pad_username for that case only. uname is used consistently below
+        # (packet + rakp2/3 authcode + SIK), so both sides agree either way.
         uname = self.username.encode("utf-8")
+        if getattr(self, "rakp_pad_username", False):
+            uname = uname.ljust(16, b"\x00")
         role = 0x14  # name-only-lookup + admin priv
         rakp1 = RAKP1(
             managed_session_id=managed_sid,
