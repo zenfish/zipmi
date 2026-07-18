@@ -125,3 +125,74 @@ Additional Device Support : 0xdf
 
 Identical fields to `ipmitool -I lanplus -C 3 mc info`. RAKP HMACs and
 ICV match the oracle pcap byte-for-byte (see `tests/unit/test_rakp.py`).
+
+## Cipher-suite auto-selection (test-first, like ipmitool)
+
+When you don't pass `-C/--cipher`, zipmi **discovers** the right suite instead of
+guessing: before opening the session it sends **Get Channel Cipher Suites**
+(App NetFn `0x06`, cmd `0x54`) — unauthenticated, pre-session — reads what the BMC
+supports, and picks the strongest. An explicit `-C N` is honored verbatim and skips
+discovery.
+
+```
+zipmi -I lanplus -H bmc -U root -P pass mc info      # auto: queries 0x54, picks best
+zipmi -C 17      -H bmc -U root -P pass mc info       # force suite 17
+```
+
+### What "strongest" means (computed, not hand-listed)
+
+`Session._cipher_strength` scores each suite lexicographically on three axes,
+**auth-primary** — the RAKP auth algorithm gates authentication, the offline-crackable
+RAKP hash, *and* the KDF that derives the integrity/confidentiality session keys:
+
+1. auth: **SHA256 > SHA1 > MD5 > none**
+2. confidentiality: **AES-CBC-128 > xRC4-128 > xRC4-40 > none**
+3. integrity: **SHA256-128 > SHA1-96 > MD5-128 > none**
+
+For the suites zipmi implements that gives `17 > 3 > 2 > 1 > 8 > 7 > 6`. Note SHA1
+(3/2/1) ranks **above** MD5 (8/7/6), and an AES suite beats a plaintext one of equal
+auth — computing this avoids the easy mistake of hand-ordering it wrong.
+
+### Cipher 0 and weak suites
+
+- **Never a silent unauthenticated downgrade:** any authenticated suite is preferred
+  over suite 0. But if the BMC offers *only* cipher 0, zipmi uses it — working beats
+  failing — rather than falling back to a suite the BMC rejects.
+- **Fallback:** if discovery returns nothing usable (BMC ignored `0x54`), zipmi uses
+  suite **3** (the spec-mandatory suite).
+- **stderr notices** (informative, never fatal, stdout stays clean):
+  - auto-select landed on a suite other than 3 → `note: auto-selected cipher suite N …`
+  - the resolved suite (auto *or* explicit `-C`) has **no auth** or **no integrity** →
+    `warning: cipher suite N — NO authentication …/no integrity protection …`
+
+### Why this matters
+
+The IPMI 2.0 spec makes **cipher suite 3** (RAKP-HMAC-SHA1 / HMAC-SHA1-96 /
+AES-CBC-128) *mandatory-to-implement*, and makes the `0x54` discovery *optional*
+for clients. So historically a client could just default to suite 3 and rely on the
+spec's guarantee. But security-hardened BMCs — e.g. current OpenBMC — **drop SHA1**
+and advertise **cipher suite 17 only** (RAKP-HMAC-SHA256). Against those, a client
+that blindly proposes suite 3 gets RMCP+ Open Session status `0x04`
+("invalid authentication algorithm") and fails.
+
+Doing the `0x54` query first makes zipmi interoperate with both worlds — legacy
+BMCs that offer 3, and SHA1-dropping BMCs that offer only 17 — without the user
+needing to know which. This is exactly what `ipmitool` does ("Using best available
+cipher suite N"); FreeIPMI and older zipmi instead default to 3 and require you to
+pass the suite explicitly.
+
+| client | default with no cipher flag | queries `0x54`? |
+|--------|-----------------------------|-----------------|
+| ipmitool 1.8.19 | best available (auto) | yes |
+| freeipmi 1.6.15 | suite 3 (fixed)       | no  |
+| **zipmi** (this change) | **best available (auto)** | **yes** |
+
+### Record parsing note
+
+`0x54` responses come in two shapes and `parse_cipher_suite_records()` handles both:
+the standard Cipher Suite Record (`C0 <id> <algs>` / `C1 <iana:3> <id> <algs>`), and
+the **bare tagged-algorithm** form OpenBMC returns (algorithm bytes only, tag in
+bits[7:6] = 00 auth / 01 integrity / 10 confidentiality). For the bare form the
+completed `(auth, integ, conf)` triple is reverse-mapped to a suite ID via
+`CIPHER_SUITES` — e.g. OpenBMC's `03 44 81` → suite 17. See
+`tests/unit/test_rakp.py::test_cipher_records_*`.

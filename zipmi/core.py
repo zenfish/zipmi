@@ -228,6 +228,41 @@ class Transport:
         return msg, decoded
 
 
+def parse_cipher_suite_records(blob: bytes) -> set[int]:
+    """Parse the record blob returned by Get Channel Cipher Suites (0x54) into a
+    set of cipher-suite IDs. Handles both the standard Cipher Suite Record form
+    (0xC0 <id> ... / 0xC1 <iana:3> <id> ...) and the bare tagged-algorithm form
+    some BMCs (e.g. OpenBMC) return, where algorithm bytes carry a tag in bits[7:6]
+    (00=auth, 01=integrity, 10=confidentiality) and a completed (auth,integ,conf)
+    triple is reverse-mapped to a known suite ID via CIPHER_SUITES.
+    """
+    rev = {(cs.auth_alg, cs.integrity_alg, cs.conf_alg): sid
+           for sid, cs in CIPHER_SUITES.items()}
+    ids: set[int] = set()
+    i = 0
+    cur: dict = {}
+    while i < len(blob):
+        b = blob[i]
+        if b == 0xC0 and i + 1 < len(blob):      # standard record: suite id follows
+            ids.add(blob[i + 1]); i += 2; continue
+        if b == 0xC1 and i + 4 < len(blob):      # OEM record: 3-byte IANA then id
+            ids.add(blob[i + 4]); i += 5; continue
+        tag = (b >> 6) & 0x3
+        v = b & 0x3F
+        if tag == 0:
+            cur["a"] = v
+        elif tag == 1:
+            cur["i"] = v
+        elif tag == 2:                           # confidentiality closes a record
+            cur["c"] = v
+            t = (cur.get("a"), cur.get("i"), cur.get("c"))
+            if t in rev:
+                ids.add(rev[t])
+            cur = {}
+        i += 1
+    return ids
+
+
 @dataclass
 class Session:
     """Authenticated IPMI 1.5 LAN session.
@@ -250,7 +285,7 @@ class Session:
     # IPMI 2.0 RMCP+ ("lanplus") mode. When True, ignore auth_type and use
     # cipher_suite (default 3 = HMAC-SHA1 + HMAC-SHA1-96 + AES-CBC-128).
     lanplus: bool = False
-    cipher_suite: int = 3
+    cipher_suite: int | None = 3   # None = auto-discover via Get Channel Cipher Suites
 
     transport: Transport = field(init=False)
 
@@ -499,17 +534,115 @@ class Session:
 
     # -- IPMI 2.0 RMCP+ (lanplus) ------------------------------------------
 
+    # Per-algorithm strength ranks (higher = stronger). The algorithm *numbers*
+    # from the spec are NOT ordered by strength, so map them explicitly.
+    _AUTH_RANK = {3: 3, 1: 2, 2: 1, 0: 0}          # SHA256 > SHA1 > MD5 > none
+    _CONF_RANK = {1: 3, 2: 2, 3: 1, 0: 0}          # AES-CBC-128 > xRC4-128 > xRC4-40 > none
+    _INTEG_RANK = {4: 4, 1: 3, 2: 2, 3: 1, 0: 0}   # SHA256-128 > SHA1-96 > MD5-128 > none
+
+    @classmethod
+    def _cipher_strength(cls, sid: int) -> tuple[int, int, int]:
+        """Lexicographic strength of a cipher suite: (auth, confidentiality,
+        integrity). Auth is primary — it gates authentication, the offline-
+        crackable RAKP hash, and the KDF that derives the integrity/conf keys."""
+        cs = CIPHER_SUITES[sid]
+        return (cls._AUTH_RANK.get(cs.auth_alg, 0),
+                cls._CONF_RANK.get(cs.conf_alg, 0),
+                cls._INTEG_RANK.get(cs.integrity_alg, 0))
+
+    @classmethod
+    def _select_cipher(cls, offered: set[int]) -> int:
+        """Pick the strongest suite the BMC offers that we implement.
+
+        Never *silently* downgrade to an unauthenticated suite: prefer any
+        authenticated suite (auth != 0) over suite 0. But if the BMC genuinely
+        offers ONLY cipher 0, use it (working beats failing) and warn loudly —
+        the session is unauthenticated (cipher-zero). Falls back to 3
+        (spec-mandatory) only when discovery returned nothing usable at all."""
+        usable = [s for s in offered
+                  if s in CIPHER_SUITES and CIPHER_SUITES[s].auth_alg != 0]
+        if usable:
+            return max(usable, key=cls._cipher_strength)
+        if 0 in offered and 0 in CIPHER_SUITES:
+            return 0            # only cipher 0 offered: use it (caller warns)
+        return 3                # discovery empty/failed — spec-mandatory default
+
+
+    def _query_cipher_suites(self, channel: int = 0x0E) -> set[int]:
+        """Pre-session Get Channel Cipher Suites (App 0x06 / cmd 0x54), sent
+        unauthenticated over RMCP+ (IPMI 2.0 §22.15). Returns the set of cipher
+        suite IDs the BMC advertises, or an empty set on any error so the caller
+        can fall back. Iterates the record list until a short (<16 B) chunk.
+
+        Handles both the standard C0/C1-wrapped Cipher Suite Records and the bare
+        tagged-algorithm form some BMCs (e.g. OpenBMC) return: algorithm bytes are
+        tag-coded in bits[7:6] (00=auth, 01=integrity, 10=confidentiality), and a
+        completed (auth,integ,conf) triple is reverse-mapped to a suite ID via
+        CIPHER_SUITES (see parse_cipher_suite_records).
+        """
+        blob = b""
+        try:
+            for idx in range(0x40):
+                ipmb = IPMI_Message(
+                    rs_addr=self.transport.rs_addr, net_fn=0x06, rs_lun=0,
+                    rq_addr=self.transport.rq_addr, rq_seq=self._next_rq_seq(),
+                    rq_lun=0, cmd=0x54,
+                    data=bytes([channel & 0xFF, 0x00, idx & 0x3F]),
+                )
+                raw = bytes(self._send_lanplus_outside_session(0x00, bytes(ipmb)))
+                if len(raw) < 17:
+                    break
+                plen = raw[14] | (raw[15] << 8)
+                msg = raw[16:16 + plen]
+                if len(msg) < 8 or msg[6] != 0:      # msg[6] = completion code
+                    break
+                rec = msg[7:-1][1:]                  # drop trailing checksum, then channel byte
+                blob += rec
+                if len(rec) < 16:
+                    break
+        except Exception:
+            return set()
+        return parse_cipher_suite_records(blob)
+
     def _activate_lanplus(self) -> None:
         """RMCP+ Open Session + RAKP 1-4 + Set Privilege.
 
         Per IPMI 2.0 §13.17 (Open Session), §13.20 (RAKP), §13.32 (key
         derivation). HMAC formulas verified against ipmitool -C 3
         oracle pcap vs Dell iDRAC6.
+
+        When cipher_suite is None (no explicit -C), auto-select: query the BMC's
+        supported suites and pick the strongest, like ipmitool. Falls back to 3
+        (spec-mandatory) if the BMC ignores the query — so it still works against
+        a BMC that only offers 3, and against SHA1-dropping BMCs that offer only 17.
         """
+        import sys
+        auto = self.cipher_suite is None
+        if auto:
+            self.cipher_suite = self._select_cipher(self._query_cipher_suites())
+            # Squeak when auto-discovery landed on something other than the
+            # historical default 3 — the user didn't ask for a cipher, so tell
+            # them what got picked. Non-fatal; we proceed either way.
+            if self.cipher_suite != 3:
+                print(f"zipmi: note: auto-selected cipher suite "
+                      f"{self.cipher_suite} (BMC's strongest offered; default is 3)",
+                      file=sys.stderr)
         if self.cipher_suite not in CIPHER_SUITES:
             raise IPMIError(f"unsupported cipher suite {self.cipher_suite}")
         cs = CIPHER_SUITES[self.cipher_suite]
         self.cipher = cs
+
+        # Warn (auto or explicit) if the resolved suite skips auth or integrity —
+        # informative, non-blocking. Confidentiality is not warned (many valid
+        # deployments run authenticated-but-unencrypted).
+        weak = []
+        if cs.auth_alg == 0:
+            weak.append("NO authentication (cipher-zero; session is UNAUTHENTICATED)")
+        if cs.integrity_alg == 0:
+            weak.append("no integrity protection")
+        if weak:
+            print(f"zipmi: warning: cipher suite {self.cipher_suite} — "
+                  f"{'; '.join(weak)}. Pass -C to change.", file=sys.stderr)
 
         # Pick a random remote console session ID (avoid 0).
         import os, secrets

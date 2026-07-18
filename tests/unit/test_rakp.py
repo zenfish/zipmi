@@ -155,3 +155,59 @@ def test_ipmi20_session_extract_padding():
     from scapy.packet import Raw
     assert sess.haslayer(Raw)
     assert bytes(sess[Raw].load)[:32] == b"\xab" * 32
+
+
+# -- cipher-suite auto-discovery (Get Channel Cipher Suites 0x54 parsing) -------
+# The blob returned by 0x54 comes in two shapes; parse_cipher_suite_records must
+# handle both and reverse-map algorithm triples to suite IDs. Live-verified: a
+# cipher-17-only OpenBMC (evb-ast2600) returns the bare form b"\x03\x44\x81".
+from zipmi.core import parse_cipher_suite_records
+
+
+def test_cipher_records_openbmc_bare_form():
+    # OpenBMC returns tagged algorithm bytes with no C0 wrapper:
+    # 0x03 auth=SHA256, 0x44 integ=SHA256-128, 0x81 conf=AES-CBC-128 -> suite 17
+    assert parse_cipher_suite_records(b"\x03\x44\x81") == {17}
+
+
+def test_cipher_records_standard_c0_form():
+    # Standard record: C0 <id=0x11> <algs...> -> suite 17
+    assert parse_cipher_suite_records(b"\xC0\x11\x03\x44\x81") == {17}
+
+
+def test_cipher_records_multiple_suites():
+    # suite 3 = (auth1, integ1, conf1) -> 0x01 0x41 0x81 ; plus suite 17
+    assert parse_cipher_suite_records(b"\x01\x41\x81\x03\x44\x81") == {3, 17}
+
+
+def test_cipher_records_empty():
+    assert parse_cipher_suite_records(b"") == set()
+
+
+# -- cipher strength ordering + auto-selection --------------------------------
+from zipmi.core import Session
+
+
+def test_cipher_strength_order():
+    # auth-primary: SHA256(17) > SHA1(3,2,1) > MD5(8,7,6); within auth, AES>none.
+    order = sorted([17, 3, 2, 1, 8, 7, 6], key=Session._cipher_strength, reverse=True)
+    assert order == [17, 3, 2, 1, 8, 7, 6]
+
+
+def test_select_prefers_sha1_aes_over_md5_aes():
+    assert Session._select_cipher({3, 8}) == 3          # SHA1+AES beats MD5+AES
+    assert Session._select_cipher({17, 3, 8}) == 17     # SHA256 wins
+    assert Session._select_cipher({1, 8}) == 1          # SHA1(no conf) beats MD5(AES): auth-primary
+
+
+def test_select_never_silently_downgrades_to_zero():
+    assert Session._select_cipher({0, 3}) == 3          # authenticated suite wins over 0
+
+
+def test_select_uses_zero_when_only_option():
+    # working beats failing: only cipher 0 offered -> use it (warns on stderr)
+    assert Session._select_cipher({0}) == 0
+
+
+def test_select_fallback_when_nothing_usable():
+    assert Session._select_cipher(set()) == 3           # discovery empty -> spec default

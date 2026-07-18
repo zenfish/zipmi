@@ -134,9 +134,11 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                              "Default lan, but giving -C/--cipher implies "
                              "lanplus (override with -I lan).")
     parser.add_argument("-C", "--cipher", type=int, default=d(None),
-                        help="lanplus cipher suite (default 3 = "
-                             "HMAC-SHA1+AES-CBC-128; OpenBMC needs 17 = "
-                             "HMAC-SHA256+AES-CBC-128). Implies -I lanplus.")
+                        help="lanplus cipher suite. Default: auto-discover via "
+                             "Get Channel Cipher Suites and pick the strongest "
+                             "(e.g. 17 = HMAC-SHA256 on OpenBMC), falling back to "
+                             "3 = HMAC-SHA1 if the BMC ignores the query. Pass an "
+                             "explicit ID to force it. Implies -I lanplus.")
     parser.add_argument("-t", "--timeout", type=float, default=d(3.0),
                         help="UDP timeout in seconds (default 3.0)")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -392,7 +394,7 @@ def cmd_fingerprint(args: argparse.Namespace) -> int:
             print(f"  reachable               : no ({_short_err(e)})")
 
     if not args.no_ipmi and args.user and args.password:
-        print(f"# IPMI (udp {host}:{args.port}, {args.interface} cipher {args.cipher})")
+        print(f"# IPMI (udp {host}:{args.port}, {args.interface} cipher {args.cipher if args.cipher is not None else 'auto'})")
         try:
             with _open_session(args) as s:
                 d = s.get_device_id()
@@ -2785,7 +2787,10 @@ def _normalize_interface_cipher(args: argparse.Namespace) -> None:
         # A cipher suite or a raw RAKP key (-K) both mean "I want RMCP+".
         iface = "lanplus" if (cipher is not None or key is not None) else "lan"
     args.interface = iface
-    args.cipher = 3 if cipher is None else cipher
+    # Leave cipher as None when unspecified → Session auto-discovers the strongest
+    # suite the BMC offers (Get Channel Cipher Suites), falling back to 3. An explicit
+    # -C N is honored verbatim.
+    args.cipher = cipher
 
 
 def main(argv: list[str] | None = None) -> int:
