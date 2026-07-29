@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import importlib
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"  # single source of truth; pyproject reads this via dynamic version
 
 # Importing scapy_ipmi triggers layer registration via its __init__.py.
 from . import scapy_ipmi  # noqa: F401  (side-effect import)

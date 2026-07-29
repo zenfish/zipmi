@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zipmi"
-version = "0.0.1"
+dynamic = ["version"]          # single-sourced from zipmi.__version__
 description = "Scapy-based IPMI library, CLI, and virtual BMC"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -24,6 +24,9 @@ dev = [
 [project.scripts]
 zipmi  = "zipmi.cli.zipmi:main"
 bmc-id = "zipmi.cli.bmc_id:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "zipmi.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["zipmi*"]
