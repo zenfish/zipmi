@@ -772,7 +772,7 @@ def _print_vendor_listing(vendor: str) -> None:
                  f"of {total} known dispatch slots")
     else:
         title = f"{vendor} OEM commands — {named} total"
-    print(f"# {title}  (`zipmi {_display_verb(vendor)} <name> help` for per-cmd detail)")
+    print(f"# {title}  (`zipmi oem {_display_verb(vendor)} <name> help` for per-cmd detail)")
     print("# " + "-" * (len(title)))
     # Three aligned columns: address, name, priv. The "(not present in
     # fw)" flag is rare (~4 of 192 Dell rows) — append it to the desc
@@ -861,7 +861,7 @@ def _print_legend(vendor: str) -> None:
     print("#     AMI YAFU flash, MicroBlade chassis, ...).")
     print(f"# Run a command:  zipmi -H <host> -U <u> -P <p> "
           f"{_display_verb(vendor)} <name> [data ...]")
-    print(f"# Per-cmd detail: zipmi {_display_verb(vendor)} <name> help")
+    print(f"# Per-cmd detail: zipmi oem {_display_verb(vendor)} <name> help")
 
 
 def _print_vendor_catalog() -> None:
