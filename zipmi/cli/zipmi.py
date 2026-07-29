@@ -1783,6 +1783,129 @@ def cmd_spd(args: argparse.Namespace) -> int:
     return 0
 
 
+# -- firmware firewall (IPMI 2.0 §21 Firmware Firewall Configuration) ------
+_FW_CC_INVALID_CMD = 0xC1        # command not implemented for this NetFn/LUN
+_FW_NETFN_NAMES = {
+    0x00: "Chassis", 0x02: "Bridge", 0x04: "Sensor/Event", 0x06: "App",
+    0x08: "Firmware", 0x0A: "Storage", 0x0C: "Transport",
+    0x2C: "Group-Ext (DCMI/HPM)", 0x2E: "OEM-Group (IANA)",
+    0x30: "OEM (AMI 0x30)", 0x32: "OEM/WCS 0x32", 0x34: "OEM 0x34",
+    0x36: "OEM/WCS 0x36", 0x38: "OEM/WCS 0x38", 0x3A: "OEM 0x3A",
+    0x3C: "OEM 0x3C", 0x3E: "OEM (AMI 0x3E)",
+}
+
+
+def _fw_bits(mask: bytes) -> list[int]:
+    """Command codes whose bit is set (LSB-first; byte0 bit0 = cmd 0)."""
+    return [i * 8 + b for i, byte in enumerate(mask) for b in range(8) if byte >> b & 1]
+
+
+def _fw_netfn_support(s, channel: int) -> list[int]:
+    """0x06/0x09 Get NetFn Support -> supported request NetFns (even 0x00..0x3E)."""
+    cc, d = s.send_raw(0x06, 0x09, bytes([channel]))
+    if cc != 0 or len(d) < 2:
+        return []
+    return [2 * c for c in _fw_bits(d[1:])]        # pair i => NetFn 2*i
+
+
+def _fw_cmd_mask(s, cmd: int, channel: int, netfn: int, lun: int = 0):
+    """16-byte per-NetFn mask (0x0A Get Command Support / 0x0B Configurable)."""
+    cc, d = s.send_raw(0x06, cmd, bytes([channel, netfn, lun]))
+    return d[:16] if cc == 0 and len(d) >= 16 else None
+
+
+def _fw_cmd_enables(s, channel: int, netfn: int, lun: int = 0):
+    """0x06/0x62 Get Command Enables -> 16-byte mask, bit=1 => enabled."""
+    cc, d = s.send_raw(0x06, 0x62, bytes([channel, netfn, lun]))
+    return d[:16] if cc == 0 and len(d) >= 16 else None
+
+
+def _fw_subfn_mask(s, qcmd: int, channel: int, netfn: int, cmd: int, lun: int = 0):
+    """Per-command sub-function bitmask (0x0C support / 0x63 enables)."""
+    cc, d = s.send_raw(0x06, qcmd, bytes([channel, netfn, lun, cmd]))
+    return d if cc == 0 and d else None
+
+
+def cmd_firewall(args: argparse.Namespace) -> int:
+    """Enumerate + interpret the IPMI Firmware Firewall (NetFn App 0x06, §21).
+
+    Walks Get NetFn Support (0x09) -> per-NetFn Get Command Support (0x0A) /
+    Configurable (0x0B) / Command Enables (0x62), resolving each command to a
+    human name. --probe cross-checks "implemented" (cc != 0xC1) vs merely
+    firewall-tracked; --subfn walks sub-function masks. One session for the whole
+    walk (hundreds of queries), so it amortizes the RAKP setup the same way
+    i2cscan does. --json dumps the structured result.
+    """
+    from ..scapy_ipmi.cmd_names import lookup_cmd_name
+    channel = int(args.channel, 0)
+    result = {"host": getattr(args, "host", None), "channel": channel, "netfns": {}}
+    with _open_session(args) as s:
+        netfns = _fw_netfn_support(s, channel)
+        print(f"# IPMI Firmware Firewall — channel {channel:#04x}")
+        print("# Supported NetFns (0x09): "
+              + ", ".join(f"{n:#04x}({_FW_NETFN_NAMES.get(n, '?')})" for n in netfns) + "\n")
+        for nf in netfns:
+            support = _fw_cmd_mask(s, 0x0A, channel, nf)
+            if support is None:
+                continue
+            configurable = _fw_cmd_mask(s, 0x0B, channel, nf) or b"\x00" * 16
+            enables = _fw_cmd_enables(s, channel, nf) or b"\xff" * 16
+            sup = set(_fw_bits(support)); cfg = set(_fw_bits(configurable)); en = set(_fw_bits(enables))
+            nfname = _FW_NETFN_NAMES.get(nf, f"NetFn {nf:#04x}")
+            named = [c for c in sorted(sup) if lookup_cmd_name(nf, c)]
+            unnamed = [c for c in sorted(sup) if not lookup_cmd_name(nf, c)]
+            disabled = sorted(sup - en)
+            coarse = " [mask coarse: firewall defaults reserved codes to supported]" if len(sup) > 40 else ""
+            print(f"NetFn {nf:#04x}  {nfname}  — {len(sup)} in firewall table, "
+                  f"{len(named)} named, {len(disabled)} DISABLED{coarse}")
+            rows = []
+            if nf >= 0x2E and not named:
+                print(f"    {len(sup)} OEM command slots (no name catalog; map opcodes to the "
+                      f"vendor .so handler tables). {len(disabled)} disabled.")
+                for c in sorted(sup):
+                    rows.append({"cmd": c, "name": "<OEM>", "configurable": c in cfg, "enabled": c in en})
+                result["netfns"][f"0x{nf:02x}"] = {"name": nfname, "named": 0,
+                                                   "total_in_table": len(sup), "disabled": disabled,
+                                                   "commands": rows}
+                print()
+                continue
+            for c in named:
+                name = lookup_cmd_name(nf, c) or ("<OEM>" if nf >= 0x2E else "<reserved>")
+                flags = ("configurable" if c in cfg else "fixed",
+                         "enabled" if c in en else "DISABLED")
+                impl = ""
+                if args.probe:
+                    cc, _ = s.send_raw(nf, c)
+                    impl = " impl" if cc != _FW_CC_INVALID_CMD else " not-impl"
+                mark = "  <-- blocked" if c not in en else ""
+                print(f"    0x{c:02x}  {name:<34s} [{', '.join(flags)}]{impl}{mark}")
+                row = {"cmd": c, "name": name, "configurable": c in cfg,
+                       "enabled": c in en, **({"implemented": impl.strip()} if args.probe else {})}
+                if args.subfn or nf in (0x2C, 0x2E):
+                    sf_sup = _fw_subfn_mask(s, 0x0C, channel, nf, c)
+                    if sf_sup:
+                        sf_en = _fw_subfn_mask(s, 0x63, channel, nf, c) or (b"\xff" * len(sf_sup))
+                        sfs = _fw_bits(sf_sup); sf_off = sorted(set(_fw_bits(sf_sup)) - set(_fw_bits(sf_en)))
+                        if sfs:
+                            off = f", {len(sf_off)} DISABLED" if sf_off else ""
+                            print(f"        sub-fns: {len(sfs)} supported{off} "
+                                  + " ".join(f"{x:#04x}" + ("!" if x in sf_off else "") for x in sfs[:24])
+                                  + (" …" if len(sfs) > 24 else ""))
+                            row["subfns"] = {"supported": sfs, "disabled": sf_off}
+                rows.append(row)
+            if named and unnamed and nf < 0x2E:
+                print(f"    + {len(unnamed)} unnamed set-bits (reserved codes the firewall over-reports; --probe to confirm)")
+            result["netfns"][f"0x{nf:02x}"] = {"name": nfname, "named": len(named),
+                                               "total_in_table": len(sup), "disabled": disabled,
+                                               "commands": rows}
+            print()
+    if getattr(args, "json", None):
+        import json as _json
+        _json.dump(result, open(args.json, "w"), indent=2)
+        print(f"# wrote {args.json}")
+    return 0
+
+
 def cmd_fuzz_rakp(args: argparse.Namespace) -> int:
     """Run the RAKP1 mutation suite against a target.
 
@@ -2786,6 +2909,22 @@ def build_parser() -> argparse.ArgumentParser:
     spd.add_argument("--size", type=lambda s: int(s, 0), default=256,
                      help="bytes to read (default 256; use 512 for DDR4)")
     spd.set_defaults(func=cmd_spd)
+
+    # firmware firewall — IPMI 2.0 §21 command-surface discovery
+    fw = sub.add_parser(
+        "firewall",
+        help="enumerate + interpret the IPMI firmware firewall (what's exposed / lockable / disabled)",
+    )
+    fw.add_argument("--channel", default="0x0e",
+                    help="channel to query (default 0x0e = current)")
+    fw.add_argument("--probe", action="store_true",
+                    help="also send each firewall-tracked command (empty body) to ground-truth "
+                         "implemented (cc!=0xC1). Side-effecty — vbmc only.")
+    fw.add_argument("--subfn", action="store_true",
+                    help="walk Get Command Sub-function Support for every named command "
+                         "(default: only group-extension NetFns 0x2c/0x2e)")
+    fw.add_argument("--json", metavar="FILE", help="write structured result to FILE")
+    fw.set_defaults(func=cmd_firewall)
 
     # OEM verbs: `zipmi oem` + per-vendor shortcuts (dell, supermicro, ...).
     from .oem_cmds import add_oem_subparsers
