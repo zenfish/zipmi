@@ -27,9 +27,10 @@ def test_netfn_support_decode_matches_cray():
 
 def test_subfn_mask_decode():
     class S:
+        # req data = [channel, NetFn, LUN, Cmd]; target (nf,cmd) is in the DATA,
+        # not the send_raw netfn/cmd (always 0x06/0x0C).
         def send_raw(self, netfn, cmd, data=b""):
-            # 0x0C Get Command Sub-function Support for some (nf,cmd) -> 2-byte mask
-            if (netfn, cmd) == (0x06, 0x0C):
+            if (netfn, cmd) == (0x06, 0x0C) and data[1] == 0x2c and data[3] == 0x01:
                 return 0, bytes([0x0b, 0x00])   # subfns 0,1,3
             return 0xc1, b""
     d = fw.get_subfn_mask(S(), 0x0C, 0x0e, 0x2c, 0x01)
