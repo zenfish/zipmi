@@ -1680,6 +1680,68 @@ def cmd_i2c(args: argparse.Namespace) -> int:
     return 0
 
 
+# Standard identity registers probed by `i2c-id` (reg -> meaning).
+_I2C_ID_REGS = [
+    (0xFE, "SMBus MfrID"), (0xFF, "SMBus DevID"),
+    (0x3E, "ADT/vendor"), (0x3D, "ADT/device"),
+    (0x99, "PMBus MFR_ID"), (0x9A, "PMBus MFR_MODEL"),
+    (0xAD, "PMBus IC_DEVICE_ID"), (0x98, "PMBus REVISION"),
+    (0x00, "reg00"), (0x01, "reg01"),
+]
+
+
+def cmd_i2cscan(args: argparse.Namespace) -> int:
+    """Sweep an I2C bus via Master Write-Read — one session, i2cdetect-style.
+
+    Neither ipmitool nor raw IPMI has a scan verb (MWR is single-shot); this loops
+    a 1-byte read across the 7-bit address range in a single session. Present =
+    the BMC ACKs (completion code 0). Read-only. Works remotely when the BMC allows
+    cmd 0x52 on the LAN channel — the firmware does each transaction, so it reaches
+    buses with no local /dev/i2c-* (e.g. iDRAC6, where i2cdetect cannot run).
+    """
+    try:
+        bus_byte, _ = _parse_i2c_bus_chan(list(args.tokens))
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    lo, hi = args.lo, args.hi
+    found = 0
+    with _open_session(args) as s:
+        for addr in range(lo, hi + 1):
+            cc, resp = _master_write_read(s, bus_byte, addr, 1, b"")
+            if cc == 0:
+                first = " ".join(f"{b:02x}" for b in resp) if resp else ""
+                print(f"  present  7bit=0x{addr:02x}  8bit=0x{addr << 1:02x}"
+                      f"  read1={first or '-'}")
+                found += 1
+    print(f"-- {found} device(s) on bus 0x{bus_byte:02x} "
+          f"(range 0x{lo:02x}..0x{hi:02x}) --", file=sys.stderr)
+    return 0
+
+
+def cmd_i2c_id(args: argparse.Namespace) -> int:
+    """Fingerprint one I2C device: probe standard MfrID/DevID/PMBus ID registers."""
+    try:
+        bus_byte, rest = _parse_i2c_bus_chan(list(args.tokens))
+    except ValueError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    if len(rest) != 1:
+        print("usage: i2c-id [bus=public|#] [chan=#] <i2caddr>", file=sys.stderr)
+        return 2
+    slave = int(rest[0], 0)
+    with _open_session(args) as s:
+        for reg, name in _I2C_ID_REGS:
+            cc, resp = _master_write_read(s, bus_byte, slave, 1, bytes([reg]))
+            val = (" ".join(f"{b:02x}" for b in resp)) if (cc == 0 and resp) else \
+                  ("(NAK)" if cc != 0 else "?")
+            print(f"  0x{reg:02x}  {name:<20} = {val}")
+        cc, resp = _master_write_read(s, bus_byte, slave, 16, b"")
+        if cc == 0:
+            print("  plain read 16:\n" + _hex_dump(resp, base=0))
+    return 0
+
+
 def cmd_spd(args: argparse.Namespace) -> int:
     """Read a DIMM SPD EEPROM via Master Write-Read. Mirrors `ipmitool spd`."""
     try:
@@ -2698,6 +2760,22 @@ def build_parser() -> argparse.ArgumentParser:
                      help="bus=public|# [chan=#] <i2caddr> <read bytes> "
                           "[write data ...]")
     i2c.set_defaults(func=cmd_i2c)
+    i2cscan = sub.add_parser(
+        "i2cscan",
+        help="sweep an I2C bus via Master Write-Read (one session; i2cdetect-style)",
+    )
+    i2cscan.add_argument("tokens", nargs="*", help="[bus=public|#] [chan=#]")
+    i2cscan.add_argument("--lo", type=lambda s: int(s, 0), default=0x03,
+                         help="first 7-bit addr (default 0x03)")
+    i2cscan.add_argument("--hi", type=lambda s: int(s, 0), default=0x77,
+                         help="last 7-bit addr (default 0x77)")
+    i2cscan.set_defaults(func=cmd_i2cscan)
+    i2cid = sub.add_parser(
+        "i2c-id",
+        help="fingerprint one I2C device (probe std MfrID/DevID/PMBus regs)",
+    )
+    i2cid.add_argument("tokens", nargs="*", help="[bus=public|#] [chan=#] <i2caddr>")
+    i2cid.set_defaults(func=cmd_i2c_id)
     spd = sub.add_parser(
         "spd",
         help="read DIMM SPD EEPROM via Master Write-Read "
