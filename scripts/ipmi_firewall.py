@@ -83,6 +83,17 @@ def get_cmd_enables(s, channel: int, netfn: int, lun: int = 0):
     return d[:16]
 
 
+def get_subfn_mask(s, qcmd: int, channel: int, netfn: int, cmd: int, lun: int = 0):
+    """Per-command sub-function bitmask.
+       qcmd 0x0C = Get Command Sub-function Support, 0x0D = Get Configurable
+       Command Sub-functions, 0x63 = Get Command Sub-function Enables.
+       Request: [channel, NetFn, LUN, Cmd]; response: N-byte bitmask (bit=subfn)."""
+    cc, d = s.send_raw(0x06, qcmd, bytes([channel, netfn, lun, cmd]))
+    if cc != 0 or not d:
+        return None
+    return d
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Enumerate + interpret the IPMI firmware firewall")
     ap.add_argument("-H", "--host", required=True)
@@ -96,6 +107,9 @@ def main() -> int:
     ap.add_argument("--probe", action="store_true",
                     help="also send each firewall-tracked command (empty body) to "
                          "ground-truth implemented (cc!=0xC1). Side-effecty — vbmc only.")
+    ap.add_argument("--subfn", action="store_true",
+                    help="walk Get Command Sub-function Support (0x0C) for every named "
+                         "command (default: only the group-extension NetFns 0x2c/0x2e).")
     ap.add_argument("--json", metavar="FILE", help="write structured result to FILE")
     a = ap.parse_args()
     channel = int(a.channel, 0)
@@ -155,8 +169,22 @@ def main() -> int:
                     impl = " impl" if cc != CC_INVALID_CMD else " not-impl"
                 mark = "  <-- blocked" if c not in en else ""
                 print(f"    0x{c:02x}  {name:<34s} [{', '.join(flags)}]{impl}{mark}")
-                rows.append({"cmd": c, "name": name, "configurable": c in cfg,
-                             "enabled": c in en, **({"implemented": impl.strip()} if a.probe else {})})
+                row = {"cmd": c, "name": name, "configurable": c in cfg,
+                       "enabled": c in en, **({"implemented": impl.strip()} if a.probe else {})}
+                # Sub-functions: group-extension NetFns always carry them; --subfn
+                # forces the walk for every named command.
+                if a.subfn or nf in (0x2C, 0x2E):
+                    sf_sup = get_subfn_mask(s, 0x0C, channel, nf, c)
+                    if sf_sup:
+                        sf_en = get_subfn_mask(s, 0x63, channel, nf, c) or (b"\xff" * len(sf_sup))
+                        sfs = _bits(sf_sup); sf_off = sorted(set(_bits(sf_sup)) - set(_bits(sf_en)))
+                        if sfs:
+                            off = f", {len(sf_off)} DISABLED" if sf_off else ""
+                            print(f"        sub-fns: {len(sfs)} supported{off} "
+                                  + " ".join(f"{x:#04x}" + ("!" if x in sf_off else "") for x in sfs[:24])
+                                  + (" …" if len(sfs) > 24 else ""))
+                            row["subfns"] = {"supported": sfs, "disabled": sf_off}
+                rows.append(row)
             if named and unnamed and nf < 0x2E:
                 print(f"    + {len(unnamed)} unnamed set-bits (reserved codes the firewall over-reports; --probe to confirm)")
             result["netfns"][f"0x{nf:02x}"] = {"name": nfname, "named": len(named),
