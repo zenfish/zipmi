@@ -539,7 +539,9 @@ attack primitives catalog, `docs/bmc-generations.md` for the
 mapping, monolithic vs modular split), `docs/fuzz.md` for the
 fuzzer inventory (sweep, rakp, length, cipher), `docs/fuzz-sweep.md`
 for the verbosity / bucket / skip-list details of `fuzz sweep`, and
-`docs/tutorial.md` for a Scapy-style REPL walkthrough.
+`docs/tutorial.md` for a Scapy-style REPL walkthrough, and
+`docs/i2c-master-write-read.md` for the `i2c`/`i2cscan`/`i2c-id` feature
+(I2C over IPMI Master Write-Read) with the in-session-vs-loop timing.
 
 </details>
 

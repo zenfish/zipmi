@@ -1,0 +1,23 @@
+range: 117 addrs (0x03-0x77), bus 0
+=== NATIVE: zipmi i2cscan (one session) ===
+
+real	0m0.969s
+user	0m0.501s
+sys	0m0.047s
+=== BRUTE: per-address subprocess (new session each) ===
+
+real	1m1.504s
+user	0m52.444s
+sys	0m3.447s
+
+=== residual-cost breakdown (2026-07-29) ===
+import scapy.all: 0.68s ; bare python3: 0.06s ; zipmi -h (no net): 0.59s
+ping avg RTT: 0.902ms
+1-addr scan: 0.477s (=import+session+1MWR) ; per-additional-addr: ~4.4ms
+split of 0.97s native: ~0.46s one-time import + ~0.51s for 117 serial MWR
+
+=== ipmitool sweep (2026-07-29) ===
+ipmitool binary cold-start: 0.010s (vs zipmi/python 0.59s)
+ipmitool i2c loop, 117 sessions: 14.451s (user 4.010s, sys 0.666s) = 123.5 ms/addr
+three-way: zipmi native 0.97s | ipmitool loop 14.5s (15x) | zipmi loop 61.5s (63x)
+RAKP session setup ~110ms/session = dominant per-call cost both loops repeat
