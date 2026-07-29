@@ -53,5 +53,14 @@ def register(
     if iana is not None and iana not in ENTERPRISE_IDS:
         ENTERPRISE_IDS[iana] = vendor
     OEM_CMD_NAMES.update(cmds)
+    # Some vendor tables key by (netfn, cmd, <selector bytes…>) for precise
+    # sub-command naming (e.g. nvidia (0x3C,0x36,0x01) Set BIOS Password,
+    # facebook (0x38,0x01,0x15,0xA0,0x00) BIC Info). lookup_cmd_name() only
+    # knows (netfn, cmd), so also register a 2-tuple fallback → the same name,
+    # else those commands are unreachable by NetFn+Cmd. First selector wins the
+    # 2-tuple slot on any (netfn,cmd) shared by several.
+    for key, name in cmds.items():
+        if len(key) > 2:
+            OEM_CMD_NAMES.setdefault((key[0], key[1]), name)
     if payloads:
         OEM_PAYLOADS.update(payloads)
