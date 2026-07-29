@@ -1800,6 +1800,17 @@ def _fw_bits(mask: bytes) -> list[int]:
     return [i * 8 + b for i, byte in enumerate(mask) for b in range(8) if byte >> b & 1]
 
 
+# --probe sends a real request. Empty-body mostly fails safe (arg-requiring
+# commands return 0xC7 before executing), but no-arg *action* commands run.
+# A named command is "read-only" (safe to send blind) only if it starts with a
+# read verb; everything else is state-changing and gated behind --unsafe.
+_FW_READ_VERBS = ("Get ", "Read ", "Query ", "Is ", "Check ", "List ")
+
+
+def _fw_readonly(name: str) -> bool:
+    return bool(name) and name.startswith(_FW_READ_VERBS)
+
+
 def _fw_netfn_support(s, channel: int) -> list[int]:
     """0x06/0x09 Get NetFn Support -> supported request NetFns (even 0x00..0x3E)."""
     cc, d = s.send_raw(0x06, 0x09, bytes([channel]))
@@ -1838,7 +1849,12 @@ def cmd_firewall(args: argparse.Namespace) -> int:
     """
     from ..scapy_ipmi.cmd_names import lookup_cmd_name
     channel = int(args.channel, 0)
-    result = {"host": getattr(args, "host", None), "channel": channel, "netfns": {}}
+    host = getattr(args, "host", None) or ""
+    unsafe = getattr(args, "unsafe", False)
+    if unsafe and host not in ("127.0.0.1", "localhost", "::1"):
+        print(f"warning: --unsafe sends state-changing + unknown commands to {host} "
+              f"(may reset/mutate the BMC). Use a disposable target.", file=sys.stderr)
+    result = {"host": host or None, "channel": channel, "netfns": {}}
     with _open_session(args) as s:
         netfns = _fw_netfn_support(s, channel)
         print(f"# IPMI Firmware Firewall — channel {channel:#04x}")
@@ -1860,23 +1876,48 @@ def cmd_firewall(args: argparse.Namespace) -> int:
                   f"{len(named)} named, {len(disabled)} DISABLED{coarse}")
             rows = []
             if nf >= 0x2E and not named:
-                print(f"    {len(sup)} OEM command slots (no name catalog; map opcodes to the "
-                      f"vendor .so handler tables). {len(disabled)} disabled.")
-                for c in sorted(sup):
-                    rows.append({"cmd": c, "name": "<OEM>", "configurable": c in cfg, "enabled": c in en})
+                # OEM range with no name catalog. The mask is coarse, but this is the
+                # richest place to find undocumented commands — probe the slots with
+                # --unsafe (cc!=0xC1 = a real OEM command; map the opcode to the
+                # vendor handler tables).
+                real = []
+                if args.probe and unsafe:
+                    for c in sorted(sup):
+                        cc, _ = s.send_raw(nf, c)
+                        impld = cc != _FW_CC_INVALID_CMD
+                        rows.append({"cmd": c, "name": "<OEM>", "configurable": c in cfg,
+                                     "enabled": c in en, "implemented": "impl" if impld else "not-impl"})
+                        if impld:
+                            real.append((c, cc))
+                    if real:
+                        print(f"    {len(sup)} OEM slots probed → {len(real)} REAL OEM commands: "
+                              + " ".join(f"0x{c:02x}(cc={cc:#04x})" for c, cc in real[:32])
+                              + (" …" if len(real) > 32 else ""))
+                    else:
+                        print(f"    {len(sup)} OEM slots probed → none respond (all 0xC1) — firewall padding")
+                else:
+                    print(f"    {len(sup)} OEM command slots (no name catalog; map opcodes to the "
+                          f"vendor handler tables). {len(disabled)} disabled. --probe --unsafe to find real ones.")
+                    for c in sorted(sup):
+                        rows.append({"cmd": c, "name": "<OEM>", "configurable": c in cfg, "enabled": c in en})
                 result["netfns"][f"0x{nf:02x}"] = {"name": nfname, "named": 0,
                                                    "total_in_table": len(sup), "disabled": disabled,
+                                                   "undocumented": [c for c, _ in real],
                                                    "commands": rows}
                 print()
                 continue
+            discoveries = []            # unnamed codes that probe REAL = undocumented
             for c in named:
                 name = lookup_cmd_name(nf, c) or ("<OEM>" if nf >= 0x2E else "<reserved>")
                 flags = ("configurable" if c in cfg else "fixed",
                          "enabled" if c in en else "DISABLED")
                 impl = ""
                 if args.probe:
-                    cc, _ = s.send_raw(nf, c)
-                    impl = " impl" if cc != _FW_CC_INVALID_CMD else " not-impl"
+                    if _fw_readonly(name) or unsafe:
+                        cc, _ = s.send_raw(nf, c)
+                        impl = " impl" if cc != _FW_CC_INVALID_CMD else " not-impl"
+                    else:
+                        impl = " [not sent: state-changing — use --unsafe]"
                 mark = "  <-- blocked" if c not in en else ""
                 print(f"    0x{c:02x}  {name:<34s} [{', '.join(flags)}]{impl}{mark}")
                 row = {"cmd": c, "name": name, "configurable": c in cfg,
@@ -1893,10 +1934,31 @@ def cmd_firewall(args: argparse.Namespace) -> int:
                                   + (" …" if len(sfs) > 24 else ""))
                             row["subfns"] = {"supported": sfs, "disabled": sf_off}
                 rows.append(row)
-            if named and unnamed and nf < 0x2E:
-                print(f"    + {len(unnamed)} unnamed set-bits (reserved codes the firewall over-reports; --probe to confirm)")
+            # unnamed set-bits: mostly firewall padding (the coarse mask defaults
+            # reserved codes to "supported"), but an unnamed code that PROBES REAL is
+            # an undocumented command. Probing them sends unknown requests, so it's
+            # gated behind --unsafe.
+            if unnamed and nf < 0x2E:
+                if args.probe and unsafe:
+                    for c in unnamed:
+                        cc, _ = s.send_raw(nf, c)
+                        if cc != _FW_CC_INVALID_CMD:
+                            discoveries.append((c, cc))
+                    if discoveries:
+                        print(f"    + {len(unnamed)} unnamed probed → {len(discoveries)} REAL / UNDOCUMENTED: "
+                              + " ".join(f"0x{c:02x}(cc={cc:#04x})" for c, cc in discoveries)
+                              + f"  ({len(unnamed)-len(discoveries)} not-impl 0xC1)")
+                    else:
+                        print(f"    + {len(unnamed)} unnamed probed → all not-impl (0xC1): pure firewall padding")
+                elif args.probe:
+                    print(f"    + {len(unnamed)} unnamed set-bits — NOT sent (unknown commands). "
+                          f"Add --unsafe to probe them for undocumented commands.")
+                else:
+                    print(f"    + {len(unnamed)} unnamed set-bits — likely firewall padding (reserved "
+                          f"codes defaulted to supported). --probe --unsafe to hunt real ones.")
             result["netfns"][f"0x{nf:02x}"] = {"name": nfname, "named": len(named),
                                                "total_in_table": len(sup), "disabled": disabled,
+                                               "undocumented": [c for c, _ in discoveries],
                                                "commands": rows}
             print()
     if getattr(args, "json", None):
@@ -2918,8 +2980,12 @@ def build_parser() -> argparse.ArgumentParser:
     fw.add_argument("--channel", default="0x0e",
                     help="channel to query (default 0x0e = current)")
     fw.add_argument("--probe", action="store_true",
-                    help="also send each firewall-tracked command (empty body) to ground-truth "
-                         "implemented (cc!=0xC1). Side-effecty — vbmc only.")
+                    help="ground-truth each command (send empty body; cc!=0xC1 = implemented). "
+                         "Safe by default: only read-only (Get*) named commands are sent.")
+    fw.add_argument("--unsafe", action="store_true",
+                    help="with --probe, ALSO send state-changing named commands AND the unnamed "
+                         "set-bits (to find undocumented commands). Sends unknown/mutating requests "
+                         "— vbmc / disposable targets only.")
     fw.add_argument("--subfn", action="store_true",
                     help="walk Get Command Sub-function Support for every named command "
                          "(default: only group-extension NetFns 0x2c/0x2e)")

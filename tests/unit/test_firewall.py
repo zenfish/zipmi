@@ -176,3 +176,22 @@ def test_firewall_subcommand_registered():
     ns = p.parse_args(["-H", "x", "firewall", "--channel", "0x0e"])
     assert ns.func is cmd_firewall
     assert ns.channel == "0x0e"
+
+
+def test_probe_safe_gates_state_changing(monkeypatch, capsys):
+    # App cmd 0x01 = Get Device ID (read-only), 0x02 = Cold Reset (state-changing).
+    s = _fw_scenario()
+    s.responses[(0x06, 0x01)] = (0, b"")
+    s.responses[(0x06, 0x02)] = (0, b"")
+    _run_firewall(monkeypatch, s, probe=True)          # safe: no --unsafe
+    sent = [(t[0], t[1]) for t in s.sent]
+    assert (0x06, 0x01) in sent                        # Get* probed
+    assert (0x06, 0x02) not in sent                    # Cold Reset NOT sent
+    assert "not sent: state-changing" in capsys.readouterr().out
+
+
+def test_probe_unsafe_sends_state_changing(monkeypatch, capsys):
+    s = _fw_scenario()
+    s.responses[(0x06, 0x02)] = (0, b"")
+    _run_firewall(monkeypatch, s, probe=True, unsafe=True)
+    assert (0x06, 0x02) in [(t[0], t[1]) for t in s.sent]   # Cold Reset sent under --unsafe
