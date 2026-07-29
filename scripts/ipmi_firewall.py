@@ -37,7 +37,7 @@ import argparse
 import json
 import sys
 
-from zipmi.cli.zipmi import _open_session, AUTH_BY_NAME
+from zipmi.cli.zipmi import _open_session
 from zipmi.scapy_ipmi.cmd_names import lookup_cmd_name
 
 CC_INVALID_CMD = 0xC1          # command not implemented for this NetFn/LUN
