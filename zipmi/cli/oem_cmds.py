@@ -891,7 +891,7 @@ def _print_vendor_catalog() -> None:
     print("# means PROCHOTThrottle on Dell, something else on Supermicro.")
     print("# Get vendor: `zipmi scan asf-ping <bmc>` or `zipmi mc info`.")
     print()
-    print("# Run by name:  zipmi <vendor> <cmd-name> [data-bytes ...]")
+    print("# Run by name:  zipmi oem <vendor> <cmd-name> [data-bytes ...]")
     print("#   proprietary: zipmi oem supermicro <cmd-name> [data ...]")
     print("#   OpenBMC:     zipmi oem openbmc-<vendor> <cmd-name> [data ...]  (e.g. openbmc-intel)")
 
@@ -900,7 +900,7 @@ def _print_openbmc_flavors() -> None:
     print("# OpenBMC OEM vendor flavors")
     print("# (OpenBMC's own baseline commands are standard IPMI — see `zipmi ipmi`.")
     print("#  There is no vanilla-OpenBMC OEM set; OEM commands are per-vendor.)")
-    print("# Run: zipmi -H <bmc> -C 17 openbmc-<vendor> <cmd-name> [data ...]")
+    print("# Run: zipmi -H <bmc> -C 17 oem openbmc-<vendor> <cmd-name> [data ...]")
     print()
     for vkey in _openbmc_vendor_keys():
         info = VENDORS[vkey]
@@ -1181,8 +1181,9 @@ def _add_all_vendor_parsers(parent_sub) -> None:
 
 def add_oem_subparsers(top_sub) -> None:
     """Wire the OEM verbs onto the existing top-level subparser group."""
-    # Top-level shortcuts: `zipmi dell ...`, `zipmi openbmc-intel ...`, etc.
-    _add_all_vendor_parsers(top_sub)
+    # Vendors are reached ONLY via `zipmi oem <vendor>` (see below) — no top-level
+    # per-vendor shortcuts, so the top-level --help stays legible. `zipmi oem`
+    # lists the vendors; `zipmi oem <vendor>` lists/runs its commands.
 
     # Standard IPMI 2.0 (Table G-1) commands by name. A catalogue, not
     # an OEM vendor -> registered as a top-level verb only, never added
