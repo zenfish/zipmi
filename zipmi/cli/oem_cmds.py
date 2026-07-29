@@ -1,13 +1,12 @@
 """
-zipmi.cli.oem_cmds — `zipmi <vendor> [cmd-name [data ...]]` dispatcher.
+zipmi.cli.oem_cmds — `zipmi oem <vendor> [cmd-name [data ...]]` dispatcher.
 
-WHAT     Three new CLI verbs:
-           * `zipmi oem`                       — list available vendors
-           * `zipmi oem <vendor>`              — list vendor's OEM cmds
+WHAT     Vendors are reached through the `oem` verb only (no top-level
+         per-vendor shortcuts — they crowded the top-level --help):
+           * `zipmi oem`                        — list available vendors
+           * `zipmi oem <vendor>`               — list vendor's OEM cmds
            * `zipmi oem <vendor> <name> [data]` — run cmd by name
-         Each vendor also gets a top-level shortcut: `zipmi idrac6 ...`,
-         `zipmi supermicro ...`, `zipmi idrac9 ...`. The shortcut and the
-         `zipmi oem <vendor>` form are wired to the same handler.
+         OpenBMC flavors are namespaced `openbmc-<v>` (e.g. `zipmi oem openbmc-intel`).
 
 WHY      `zipmi raw 0x30 0xC0 0x00` works but nobody remembers the hex.
          Most reverse-engineered command catalogues in this tree carry a
@@ -16,8 +15,8 @@ WHY      `zipmi raw 0x30 0xC0 0x00` works but nobody remembers the hex.
          name is friendlier and self-documenting; without arguments,
          each vendor verb prints its catalogue so you can browse.
 
-SUCCESS  `zipmi -H 192.168.0.23 idrac6 GetChassisStatus` runs the cmd and
-         prints the response bytes. `zipmi idrac6` (no host needed) prints
+SUCCESS  `zipmi -H 192.168.0.23 oem idrac6 GetChassisStatus` runs the cmd and
+         prints the response bytes. `zipmi oem idrac6` (no host needed) prints
          the catalogue.
 
 RELATED  zipmi.scapy_ipmi.oem.{dell,idrac9,supermicro}
