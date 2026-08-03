@@ -59,12 +59,11 @@ VENDORS: dict[str, dict] = {
         "blurb": "Supermicro X14 (AST2600 OpenBMC + SMC OEM) — NetFn 0x30 + DMTF group 0x52/0xDC",
     },
     "megarac": {
-        # AMI PEN 20974, but rides raw NetFn 0x30/0x3E (no IANA on wire) → None.
-        # No `cmd_names` key: it's a proprietary top-level vendor, not an OpenBMC
-        # flavor. Names-only for now (opcodes pending the per-.so parse), so it
-        # gets a dedicated inventory listing rather than the generic render.
+        # AMI PEN 20974, but rides raw NetFn 0x30 (no IANA on wire) → None.
+        # No `cmd_names` key: proprietary top-level vendor, own _vendor_listing
+        # branch. 95 opcode-resolved cmds (static RE of the .so registration tables).
         "iana": None,
-        "blurb": "AMI MegaRAC SP-X (HPE/Cray XD670 et al) — NetFn 0x30/0x3E; names only, opcodes pending",
+        "blurb": "AMI MegaRAC SP-X (HPE/Cray XD670 et al) — NetFn 0x30, 95 RE'd OEM cmds",
     },
     # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---
     # All registered via the simple register(vendor, iana, {(netfn,cmd):name})
@@ -154,7 +153,7 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "idrac10":
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
-    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14"):
+    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14", "megarac"):
         listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if VENDORS.get(vendor, {}).get("cmd_names") is not None:
@@ -731,10 +730,14 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
         }
         return _normalize_listing(out, "ipmi")
     if vendor == "megarac":
-        # Names-only catalog (opcodes not yet mapped) → no dispatchable rows.
-        # Returning empty makes run-by-name fall through to the graceful
-        # "no command matches" path; browse via _print_vendor_listing.
-        return {}
+        from ..scapy_ipmi.oem.megarac import MEGARAC_COMMANDS
+        out = {
+            key: {"name": e["name"], "priv": e.get("priv"),
+                  "desc": f"module: {e['module']}", "live": None,
+                  "missing": False, "prefix": None}
+            for key, e in MEGARAC_COMMANDS.items()
+        }
+        return _normalize_listing(out, "megarac")
     raise KeyError(f"unknown vendor: {vendor}")
 
 
@@ -789,20 +792,6 @@ def _find_cmd(
 
 
 def _print_vendor_listing(vendor: str) -> None:
-    if vendor == "megarac":
-        from ..scapy_ipmi.oem.megarac import MEGARAC_HANDLERS, MEGARAC_HANDLER_COUNT
-        print(f"# AMI MegaRAC SP-X OEM handlers — {MEGARAC_HANDLER_COUNT} across "
-              f"{len(MEGARAC_HANDLERS)} modules (NetFn 0x30/0x3E)")
-        print("# Handler NAMES only — per-command (NetFn,Cmd) opcodes not yet mapped.")
-        print("#   Recover: unsquash HP/cray/xd670-virtual/rootfs.sqfs → libipmiamioem*.so,")
-        print("#   parse the registration table (or live GetLibMetaInfo on the booted box).")
-        print("#   Until then `zipmi oem megarac <name>` can't dispatch by opcode.")
-        print()
-        w = max(len(m) for m in MEGARAC_HANDLERS)
-        for mod, handlers in MEGARAC_HANDLERS.items():
-            print(f"  {mod:<{w}s}  ({len(handlers):2d})  " + "  ".join(handlers))
-        print()
-        return
     listing = _vendor_listing(vendor)
     if not listing:
         print(f"# {vendor}: no commands registered", file=sys.stderr)
@@ -915,10 +904,7 @@ def _print_vendor_catalog() -> None:
         if key in obmc:
             continue  # OpenBMC flavors collapse into one `openbmc` line below
         total, named = _vendor_stats(key)
-        if key == "megarac":
-            from ..scapy_ipmi.oem.megarac import MEGARAC_HANDLER_COUNT
-            count = f"{MEGARAC_HANDLER_COUNT} handlers (names)"
-        elif total == named:
+        if total == named:
             count = f"{named} cmds"
         else:
             count = f"{named} named / {total} known"
