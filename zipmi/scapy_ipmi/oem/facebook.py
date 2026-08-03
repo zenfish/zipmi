@@ -25,7 +25,7 @@ LOAD     `zipmi.load_vendor("facebook")`  (alias: "meta")
 
 SOURCE   github.com/openbmc/fb-ipmi-oem (oemcommands.cpp, biccommands.cpp,
          appcommands.cpp). Catalogued in
-         /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.2.
+         the OpenBMC OEM IPMI survey (upstream source review) §2.2.
 """
 
 from __future__ import annotations

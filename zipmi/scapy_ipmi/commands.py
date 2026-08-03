@@ -22,7 +22,7 @@ SUCCESS  `GetChanAuthCapsReq(channel=0xE, max_priv=0x4)` builds the 2-byte
 TARGET   IPMI 1.5 §22.13 (Get Channel Authentication Capabilities).
          More commands will be added as Phase 1 progresses.
 
-RELATED  ipmi15.py, /Users/zen/phd/dox/specs/IPMI-1.5.pdf
+RELATED  ipmi15.py, IPMI v1.5 specification
 """
 
 from __future__ import annotations

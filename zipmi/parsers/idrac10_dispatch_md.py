@@ -1,8 +1,9 @@
 """
 zipmi.parsers.idrac10_dispatch_md — parse iDRAC10 binary dispatch tables.
 
-WHAT     Reads /Volumes/yyy/phd/bmc/dell/idrac10-virtual/idrac10-dispatch-tables.md
-         (produced by `dump_dispatch_tables_idrac10.py` against the iDRAC10
+WHAT     Reads the iDRAC10 firmware reverse-engineering notes
+         (idrac10-dispatch-tables.md, produced by the iDRAC10 dispatch-table
+         extraction script against the iDRAC10
          rootfs /usr/lib/ipmi/*.so.9.9.9 libs) and emits a Python module
          with structured (NetFn, cmd) → DispatchEntry mappings. Mirror of
          `idrac9_dispatch_md.py`.
@@ -17,7 +18,7 @@ WHY      iDRAC10 (aarch64, PIE) stores each dispatch entry as
 USAGE    python -m zipmi.parsers.idrac10_dispatch_md \
              > zipmi/scapy_ipmi/oem/idrac10_dispatch_generated.py
 SUCCESS  Module imports cleanly; IDRAC10_DISPATCH has 383 entries.
-RELATED  /Volumes/yyy/phd/bmc/dell/idrac10-virtual/idrac10-dispatch-tables.md,
+RELATED  iDRAC10 firmware reverse-engineering notes (idrac10-dispatch-tables.md),
          zipmi/scapy_ipmi/oem/idrac10.py (consumer),
          zipmi/parsers/idrac9_dispatch_md.py (sibling for iDRAC9).
 """
@@ -25,6 +26,7 @@ from __future__ import annotations
 
 import re
 import sys
+from pathlib import Path
 from dataclasses import dataclass
 
 
@@ -164,7 +166,7 @@ def emit_module(entries: list[IDrac10DispatchEntry], src: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
-    src = "/Volumes/yyy/phd/bmc/dell/idrac10-virtual/idrac10-dispatch-tables.md"
+    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "idrac10-dispatch-tables.md")
     if len(args) > 1:
         src = args[1]
     with open(src) as f:

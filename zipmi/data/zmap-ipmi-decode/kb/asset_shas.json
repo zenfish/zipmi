@@ -1,0 +1,299 @@
+{
+  "0000fa5c34289592": {
+    "size": 73774,
+    "mime": "application/javascript",
+    "host_count": 13428,
+    "top_vendor": "Generic IPMI cert (likely AST/AMI)",
+    "vendor_purity": 0.96,
+    "companies": [
+      [
+        "Sam Stephenson",
+        2005,
+        2007
+      ]
+    ],
+    "year_range": [
+      2005,
+      2007
+    ]
+  },
+  "58ba077b76dceb49": {
+    "size": 2243,
+    "mime": "image/gif",
+    "host_count": 10587,
+    "top_vendor": "Generic IPMI cert (likely AST/AMI)",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "3c97e28342609b29": {
+    "size": 3416,
+    "mime": "text/css",
+    "host_count": 5818,
+    "top_vendor": "Generic IPMI cert (likely AST/AMI)",
+    "vendor_purity": 0.96,
+    "companies": [],
+    "year_range": null
+  },
+  "8d8177dc0f95fb6b": {
+    "size": 3095,
+    "mime": "image/png",
+    "host_count": 4477,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "6bb1e1b6f2b56357": {
+    "size": 118,
+    "mime": "image/png",
+    "host_count": 4477,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "77d74a523160a183": {
+    "size": 321,
+    "mime": "image/png",
+    "host_count": 4477,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "1c6496cc94cf17e6": {
+    "size": 436,
+    "mime": "image/png",
+    "host_count": 4477,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "c7a98d7db01e698e": {
+    "size": 123,
+    "mime": "image/png",
+    "host_count": 4477,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "821cad7b0e39fd61": {
+    "size": 125,
+    "mime": "image/png",
+    "host_count": 4477,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "50dbdad5984b61b1": {
+    "size": 3116,
+    "mime": "image/png",
+    "host_count": 4476,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "cb70087b2f68fb95": {
+    "size": 3294,
+    "mime": "image/png",
+    "host_count": 4476,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "c2d9fcb2ac860eee": {
+    "size": 2975,
+    "mime": "image/png",
+    "host_count": 4476,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "db2c5bc8b33beb30": {
+    "size": 2966,
+    "mime": "image/png",
+    "host_count": 4476,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "29ed5da19b3f4304": {
+    "size": 67,
+    "mime": "application/octet-stream",
+    "host_count": 4473,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "b853dbfc9cc2b9f8": {
+    "size": 4266,
+    "mime": "image/png",
+    "host_count": 4473,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "a468d79de75dc806": {
+    "size": 4916,
+    "mime": "image/png",
+    "host_count": 4409,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 0.94,
+    "companies": [],
+    "year_range": null
+  },
+  "b428d6eda156074a": {
+    "size": 140087,
+    "mime": "application/javascript",
+    "host_count": 4313,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [
+      [
+        "Sam Stephenson",
+        2005,
+        2009
+      ]
+    ],
+    "year_range": [
+      2005,
+      2009
+    ]
+  },
+  "54e6cad20f3527cb": {
+    "size": 4954,
+    "mime": "text/css",
+    "host_count": 4312,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "dccb914656216214": {
+    "size": 7876,
+    "mime": "text/css",
+    "host_count": 4312,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "47e7adaabe44a021": {
+    "size": 4382,
+    "mime": "application/javascript",
+    "host_count": 4312,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "60ed1102439ad9ec": {
+    "size": 1646,
+    "mime": "image/gif",
+    "host_count": 4312,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "f4c4383e885ec280": {
+    "size": 195733,
+    "mime": "image/png",
+    "host_count": 4312,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "f4ef5e165c77c8ae": {
+    "size": 14401,
+    "mime": "text/css",
+    "host_count": 4305,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "8e97b7aee9d50a6f": {
+    "size": 65941,
+    "mime": "application/javascript",
+    "host_count": 4295,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [
+      [
+        "Jonathan Weiss",
+        2006,
+        2006
+      ]
+    ],
+    "year_range": [
+      2006,
+      2006
+    ]
+  },
+  "b459ccc7b32f992b": {
+    "size": 91862,
+    "mime": "text/css",
+    "host_count": 4294,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "af5fe5674e0a5290": {
+    "size": 2840,
+    "mime": "text/html",
+    "host_count": 4278,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "1f5a11e2d7046fa4": {
+    "size": 113,
+    "mime": "application/json",
+    "host_count": 4242,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "e1c0a8563dbc5c37": {
+    "size": 4229,
+    "mime": "text/html",
+    "host_count": 4191,
+    "top_vendor": "Generic IPMI cert (likely AST/AMI)",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "bb1a93cca3892528": {
+    "size": 883,
+    "mime": "image/png",
+    "host_count": 4143,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  },
+  "77ce9e47535930a2": {
+    "size": 651,
+    "mime": "image/png",
+    "host_count": 4132,
+    "top_vendor": "Dell iDRAC",
+    "vendor_purity": 1.0,
+    "companies": [],
+    "year_range": null
+  }
+}

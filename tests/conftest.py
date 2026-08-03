@@ -30,3 +30,29 @@ def live_target() -> str:
     if not target:
         pytest.skip("ZIPMI_LIVE_TARGET not set")
     return target
+
+
+@pytest.fixture
+def clean_oem_registry():
+    """Give a test a guaranteed-empty OEM command registry, then restore it.
+
+    `load_vendor()` mutates module-global dicts in scapy_ipmi.oem._registry,
+    and Python's import memoization means those registrations persist for the
+    rest of the session. Tests that must see UNPOLLUTED standard command names
+    (e.g. the firewall probe, where 0x06/0x01 must resolve to "Get Device ID",
+    not a vendor OEM name leaked by an earlier test) request this fixture. It
+    snapshots, clears, yields, then restores — so it neither sees prior
+    pollution nor disturbs later tests.
+    """
+    from zipmi.scapy_ipmi.oem import _registry as reg
+    names = ("OEM_CMD_NAMES", "OEM_PAYLOADS", "ENTERPRISE_IDS")
+    saved = {n: dict(getattr(reg, n)) for n in names}
+    for n in names:
+        getattr(reg, n).clear()
+    try:
+        yield
+    finally:
+        for n, snapshot in saved.items():
+            d = getattr(reg, n)
+            d.clear()
+            d.update(snapshot)

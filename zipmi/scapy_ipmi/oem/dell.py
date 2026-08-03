@@ -3,8 +3,8 @@ zipmi.scapy_ipmi.oem.dell — Dell PowerEdge OEM commands (IANA 674).
 
 WHAT     Names + a handful of decoded request/response payloads for Dell
          iDRAC OEM commands found in the wild. The full dispatch table
-         (120 std + 93 OEM, as RE'd from iDRAC6 firmware) lives at
-         /Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md; we cherry-
+         (120 std + 93 OEM, as RE'd from iDRAC6 firmware) lives in the
+         iDRAC6 firmware (fullfw) reverse-engineering notes; we cherry-
          pick the ones we've actually used in research.
 
 WHY      Studying Dell iDRAC6 means we can immediately decode familiar
@@ -15,9 +15,9 @@ LOAD     `zipmi.load_vendor("dell")` from anywhere — mutates the OEM
          registry; subsequent fuzz / pcap dissection picks up the
          names.
 
-REFS     /Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md
-         /Volumes/yyy/phd/bmc/dell/dell-prochot-throttle-attack.md
-         /Volumes/yyy/phd/bmc/dell/dell-thermal-bios-attack.md
+REFS     iDRAC6 firmware (fullfw) reverse-engineering notes
+         Dell PROCHOT-throttle attack analysis (internal RE)
+         Dell thermal/BIOS attack analysis (internal RE)
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ class DellPROCHOTThrottleReq(Packet):
     """Dell PROCHOT throttle (NetFn 0x30, Cmd 0xC0).
 
     Forces PROCHOT# assertion on the host CPU — instant CPU throttle.
-    Reverse-engineered in /Volumes/yyy/phd/bmc/dell/dell-prochot-throttle-attack.md.
+    Reverse-engineered in the Dell PROCHOT-throttle attack analysis (internal RE).
     """
 
     name = "Dell PROCHOT Throttle Request"
@@ -73,8 +73,8 @@ class DellGetPowerCapReq(Packet):
 DELL_IANA = 674
 
 
-# Auto-generated dispatch table from
-# /Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md (283 markdown rows
+# Auto-generated dispatch table from the
+# iDRAC6 firmware (fullfw) reverse-engineering notes (283 markdown rows
 # parsed into 192 unique (NetFn, cmd) entries — 130 OEM 0x30, 14 0x2E
 # group, plus 14 Dell-extended overrides of standard cmds).
 from .dell_generated import DELL_DISPATCH, DELL_NAMES, DELL_DISABLED  # noqa: E402

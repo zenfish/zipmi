@@ -24,7 +24,7 @@ USAGE    python -m zipmi.parsers.idrac9_commands_json \
 SUCCESS  Regeneration is idempotent (byte-for-byte identical output) and
          the emitted module imports with len(IDRAC9_COMMANDS) == 276.
 TARGET   iDRAC9 firmware (firmimgFIT.d9) v7.20.30.50, Dell IANA 674.
-RELATED  /Volumes/yyy/phd/bmc/dell/idrac9-firmware/idrac9-commands.json,
+RELATED  iDRAC9 firmware reverse-engineering notes (idrac9-commands.json),
          zipmi/scapy_ipmi/oem/idrac9.py (consumer),
          zipmi/parsers/idrac9_dispatch_md.py (dispatch-table sibling).
 """
@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 from dataclasses import dataclass
 
 
@@ -156,7 +157,7 @@ def emit_module(entries: list[IDrac9Command], src: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
-    src = "/Volumes/yyy/phd/bmc/dell/idrac9-firmware/idrac9-commands.json"
+    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "idrac9-commands.json")
     if len(args) > 1:
         src = args[1]
     with open(src) as f:

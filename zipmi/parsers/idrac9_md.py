@@ -1,7 +1,8 @@
 """
 zipmi.parsers.idrac9_md — parse iDRAC9 IPMI command enumeration markdown.
 
-WHAT     Reads /Volumes/yyy/phd/bmc/idrac9-firmware/IPMI_COMMAND_ENUMERATION.md
+WHAT     Reads the iDRAC9 firmware reverse-engineering notes
+         (IPMI_COMMAND_ENUMERATION.md)
          and extracts the per-section (cmd-name, handler, library) tuples.
          The doc lists handler names without cmd byte codes — codes have
          to be inferred from cmd names where the standard spec maps them.
@@ -31,6 +32,7 @@ from __future__ import annotations
 
 import re
 import sys
+from pathlib import Path
 from dataclasses import dataclass
 
 
@@ -177,7 +179,7 @@ def emit_markdown(handlers: list[IDrac9Handler], src: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
-    src = "/Volumes/yyy/phd/bmc/idrac9-firmware/IPMI_COMMAND_ENUMERATION.md"
+    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "IPMI_COMMAND_ENUMERATION.md")
     fmt = "py"
     if "--markdown" in args:
         fmt = "md"

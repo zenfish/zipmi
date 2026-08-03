@@ -2,10 +2,10 @@
 
 Hand-curated entries from full audit of every Dell iDRAC6 OEM cmd
 plus the std-IPMI cmds Dell ships handlers for. Sources:
-  - ~/phd/bmc/dell/T710-bmc/bin/fullfw (radare2 RE)
-  - ~/phd/bmc/dell/dell-*.md research notes
+  - iDRAC6 firmware (fullfw) binary (radare2 RE)
+  - Dell iDRAC OEM RE notes research notes
   - IPMI 2.0 spec (for the std cmds)
-  - ~/phd/bmc/dell/dell-cmd-deep-dives.md (per-cmd writeups)
+  - Dell iDRAC OEM command deep-dives (internal RE) (per-cmd writeups)
 
 Risk markers in summaries:
   ★    interesting / non-obvious behaviour
@@ -151,7 +151,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (46, 7): {'summary': 'CmdTerminalSYS: Dell terminal-mode access entry. Used for serial-redirect / OOB shell sessions. **Not all builds wire this — T710 returns 0xC1.**', 'source': 'Dell RE doc + binary', 'name': 'CmdTerminalSYS'},
     (46, 8): {'summary': '★★ CmdTerminalSYSDRAC: Dell terminal-mode access for DRAC-side shell. Like 0x2E 0x07 but DRAC-targeted. **If active, gives serial-redirected shell access — admin-priv only.**', 'source': 'Dell RE doc + binary', 'name': 'CmdTerminalSYSDRAC'},
     (46, 33): {'summary': 'CmdResetToDefault: stub handler in fullfw (handler addr 0x00188484 = NotSupportRequestHandle on T710 Dell).', 'source': 'Dell RE doc + binary', 'name': 'CmdResetToDefaultStub'},
-    (46, 204): {'summary': '★★★ CmdOSAOEMCmdHandler: Avocent OSA dispatcher (IANA 11102 prefix 0x5E 0x2B 0x00 — NOT Dell IANA). 9 sub-cmds: GetFWVersion/ID, SensorTest, **SetSysGUID** (silent rebrand), **SetBMCSA** (change IPMB slave addr), **CmdResetToDefaultOSA** (alt factory-reset DESTRUCTIVE), MemoryChk. Full writeup: ~/phd/bmc/dell/dell-cmd-deep-dives.md.', 'source': 'Dell RE doc + binary', 'name': 'CmdOSAOEMCmdHandler'},
+    (46, 204): {'summary': '★★★ CmdOSAOEMCmdHandler: Avocent OSA dispatcher (IANA 11102 prefix 0x5E 0x2B 0x00 — NOT Dell IANA). 9 sub-cmds: GetFWVersion/ID, SensorTest, **SetSysGUID** (silent rebrand), **SetBMCSA** (change IPMB slave addr), **CmdResetToDefaultOSA** (alt factory-reset DESTRUCTIVE), MemoryChk. Full writeup: Dell iDRAC OEM command deep-dives (internal RE).', 'source': 'Dell RE doc + binary', 'name': 'CmdOSAOEMCmdHandler'},
     (48, 0): {'summary': 'CmdOEMGetChassisCapabilities: Dell-extended GetChassisCaps (extra bytes vs std 0x00 0x00). T710: 0xC1 on LAN — kcs/host-side only.', 'source': 'Dell RE doc + binary', 'name': 'CmdOEMGetChassisCapabilities'},
     (48, 1): {'summary': '★ DellCmdGetChassisStatus: Dell-extended GetChassisStatus. Returns extended status fields beyond std (LCD state, identify state, idrac present flags, etc.).', 'source': 'Dell RE doc + binary', 'name': 'DellCmdGetChassisStatus'},
     (48, 2): {'summary': '★ DellCmdChassisControl: Dell-extended chassis control. Adds Dell-specific actions (graceful shutdown w/ OS coordination via OMSA, etc.).', 'source': 'Dell RE doc + binary', 'name': 'DellCmdChassisControl'},
@@ -221,7 +221,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (48, 195): {'summary': 'CmdEchoControl: BMC echo for IPMI-stack testing. Live: 0xCC right length but wrong content.', 'source': 'Dell RE doc + binary', 'name': 'CmdEchoControl'},
     (48, 196): {'summary': '★★ Dell ThrottleMem: memory throttle (platform-gated to specific Nehalem-EP / AMD CPUs; CC=0xC9 elsewhere).', 'source': 'Dell RE doc + binary', 'name': 'ThrottleMem'},
     (48, 196, 32): {'summary': 'Dell ThrottleMem (sub 0x20). Returns 0xC9 on T710 (unsupported platform).', 'source': 'Dell RE doc + binary', 'name': 'ThrottleMemEnable'},
-    (48, 202): {'summary': '★★★ DelleKmsCmdHlder: Dell eKMS dispatcher. Routes IPMI to KMIP client (libskmip.so) for SED key mgmt. Sub-cmds: eKmsGet/SetConfig (KMS server IP/port/device-group), eKmsGetCmdStatus, eKmsGetKMSStatus. **HIGH attack value if chassis runs SEDs+eKMS — eKmsSetConfig redirects boot-time SED unlock to a rogue KMS.** Full writeup: ~/phd/bmc/dell/dell-cmd-deep-dives.md.', 'source': 'Dell RE doc + binary', 'name': 'DelleKmsCmdHlder'},
+    (48, 202): {'summary': '★★★ DelleKmsCmdHlder: Dell eKMS dispatcher. Routes IPMI to KMIP client (libskmip.so) for SED key mgmt. Sub-cmds: eKmsGet/SetConfig (KMS server IP/port/device-group), eKmsGetCmdStatus, eKmsGetKMSStatus. **HIGH attack value if chassis runs SEDs+eKMS — eKmsSetConfig redirects boot-time SED unlock to a rogue KMS.** Full writeup: Dell iDRAC OEM command deep-dives (internal RE).', 'source': 'Dell RE doc + binary', 'name': 'DelleKmsCmdHlder'},
     (48, 204): {'summary': 'CmdOEMPwrAvgInterval: averaging-interval config for power-consumption stats.', 'source': 'Dell RE doc + binary', 'name': 'CmdOEMPwrAvgInterval'},
     (48, 205): {'summary': 'CmdOEMPwrAvgRange: averaging-range bounds for power-consumption stats.', 'source': 'Dell RE doc + binary', 'name': 'CmdOEMPwrAvgRange'},
     (48, 208): {'summary': '★ CmdOEMMiscCmd: Dell misc-OEM dispatcher. Sub-byte selects op (factory/diag mix). Reachable on LAN, payload-gated.', 'source': 'Dell RE doc + binary', 'name': 'CmdOEMMiscCmd'},

@@ -23,7 +23,7 @@ FINGERPRINT
          for Oem.OpenBmc and a manager named "bmc". Over IPMI, probe the
          per-vendor OEM bands below and treat a non-0xC1 ("invalid command")
          completion as "this vendor's provider is present". See
-         /Users/zen/phd/bmc/openbmc/SURVEY-OPENBMC.md for the full playbook.
+         the OpenBMC OEM IPMI survey (upstream source review) for the full playbook.
 
 LOAD     `zipmi.load_vendor("openbmc")` loads ALL OpenBMC vendor tables
          (convenience for offline pcap dissection). For live targeting,
@@ -31,7 +31,7 @@ LOAD     `zipmi.load_vendor("openbmc")` loads ALL OpenBMC vendor tables
          (NetFn,cmd) names resolve unambiguously — e.g.
          `zipmi.load_vendor("intel")`.
 
-SOURCE   /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md (per-source catalog).
+SOURCE   OpenBMC OEM IPMI survey (upstream source review) (per-source catalog).
 """
 
 from __future__ import annotations

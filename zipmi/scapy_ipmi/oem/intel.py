@@ -8,7 +8,7 @@ WHAT     Command-name table for the `intel-ipmi-oem` provider that ships on
          update state machine that overrides NetFn 0x08.
 
 WHY      Intel boards are the most-seen identifiable OpenBMC flavor in our
-         internet survey (see /Users/zen/phd/bmc/openbmc/SURVEY-OPENBMC.md).
+         internet survey (see the OpenBMC OEM IPMI survey (upstream source review)).
          Several commands are directly attack-relevant: Set Special User
          Password (0x30/0x5F), Control BMC Services (0x30/0xB1), the
          manufacturing-mode unlocks (0x30/0xA4,0xB5), Get BIOS Password Hash
@@ -21,7 +21,7 @@ WIRE     intel-ipmi-oem uses RAW vendor NetFns — it does NOT put IANA 343 on
 LOAD     `zipmi.load_vendor("intel")`
 
 SOURCE   github.com/openbmc/intel-ipmi-oem (catalogued from source in
-         /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.1).
+         the OpenBMC OEM IPMI survey (upstream source review) §2.1).
          netFnGeneral=0x30, netFnPlatform=0x32, netFnApp=0x3E
          (include/oemcommands.hpp).
 """

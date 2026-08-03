@@ -17,8 +17,8 @@ SUCCESS  `md5_auth_code(b"calvin" + b"\\x00"*10, 0x02000700, ipmb_bytes, 0)`
 
 TARGET   IPMI 1.5 §13.16.6 (auth code), IPMI 2.0 §13.28 (cipher suites).
 
-RELATED  /Users/zen/phd/dox/specs/IPMI-1.5.pdf §13.16
-         /Users/zen/phd/dox/specs/IPMI2.0-markup.pdf §13.28
+RELATED  IPMI v1.5 specification §13.16
+         IPMI v2.0 specification §13.28
 """
 
 from __future__ import annotations

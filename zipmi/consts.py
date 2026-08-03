@@ -8,7 +8,7 @@ WHY      A single source of truth for byte values keeps dissection labels and
 SUCCESS  `from zipmi import consts; consts.NETFN[6] == "App"`.
 TARGET   IPMI 1.5 spec §5.1 (NetFn), §5.2 (Completion Codes); IPMI 2.0 §13
          (RMCP+ session, cipher suites).
-RELATED  IPMI-1.5.pdf, IPMI2.0-markup.pdf in ~/phd/dox/specs/
+RELATED  IPMI v1.5 specification, IPMI v2.0 specification
 """
 
 from __future__ import annotations

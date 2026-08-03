@@ -48,9 +48,23 @@ VENDORS: dict[str, dict] = {
         "iana": 674,
         "blurb": "Dell iDRAC10 (RE'd + verified catalog, 447 cmds, IANA 674)",
     },
-    "supermicro": {
+    "supermicro-x11": {
         "iana": 10876,
-        "blurb": "Supermicro X11 (top-level + sub-cmd dispatch via 1st data byte)",
+        "blurb": "Supermicro X11 (AMI+smcipmitool stack) — top-level + sub-cmd dispatch via 1st data byte",
+    },
+    "supermicro-x14": {
+        # AST2600 Phosphor OpenBMC + SMC OEM patches; raw NetFn 0x30 + DMTF
+        # group-ext (no IANA on wire) → None. Distinct stack from X11.
+        "iana": None,
+        "blurb": "Supermicro X14 (AST2600 OpenBMC + SMC OEM) — NetFn 0x30 + DMTF group 0x52/0xDC",
+    },
+    "megarac": {
+        # AMI PEN 20974, but rides raw NetFn 0x30/0x3E (no IANA on wire) → None.
+        # No `cmd_names` key: it's a proprietary top-level vendor, not an OpenBMC
+        # flavor. Names-only for now (opcodes pending the per-.so parse), so it
+        # gets a dedicated inventory listing rather than the generic render.
+        "iana": None,
+        "blurb": "AMI MegaRAC SP-X (HPE/Cray XD670 et al) — NetFn 0x30/0x3E; names only, opcodes pending",
     },
     # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---
     # All registered via the simple register(vendor, iana, {(netfn,cmd):name})
@@ -140,8 +154,8 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "idrac10":
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
-    if vendor == "supermicro":
-        listing = _vendor_listing("supermicro")
+    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14"):
+        listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if VENDORS.get(vendor, {}).get("cmd_names") is not None:
         listing = _vendor_listing(vendor)
@@ -258,6 +272,8 @@ VENDOR_TAG: dict[str, str] = {
     "idrac9": "Idrac9",
     "idrac10": "Idrac10",
     "supermicro": "Smc",
+    "supermicro-x11": "Smc",
+    "supermicro-x14": "SmcX14",
 }
 
 
@@ -626,7 +642,16 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "backend_deps": c.backend_deps,
             }
         return _normalize_listing(out, vendor)
-    if vendor == "supermicro":
+    if vendor == "supermicro-x14":
+        from ..scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14
+        out: dict[tuple, dict] = {
+            key: {"name": e["name"], "priv": e.get("priv"), "desc": e.get("desc", ""),
+                  "live": None, "missing": False,
+                  "prefix": bytes(key[2:]) if len(key) > 2 else None}
+            for key, e in SUPERMICRO_X14.items()
+        }
+        return _normalize_listing(out, "supermicro-x14")
+    if vendor in ("supermicro", "supermicro-x11"):
         from ..scapy_ipmi.oem.supermicro import SM_TOP_CMDS, SM_SUBCMDS
         from ..scapy_ipmi.oem.supermicro_smcipmi_names import SMCIPMI_METHODS
         from ..scapy_ipmi.oem.supermicro_known_context import KNOWN_CONTEXT
@@ -705,6 +730,11 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             for (netfn, cmd), name in IPMI_CMD_NAMES.items()
         }
         return _normalize_listing(out, "ipmi")
+    if vendor == "megarac":
+        # Names-only catalog (opcodes not yet mapped) → no dispatchable rows.
+        # Returning empty makes run-by-name fall through to the graceful
+        # "no command matches" path; browse via _print_vendor_listing.
+        return {}
     raise KeyError(f"unknown vendor: {vendor}")
 
 
@@ -759,6 +789,20 @@ def _find_cmd(
 
 
 def _print_vendor_listing(vendor: str) -> None:
+    if vendor == "megarac":
+        from ..scapy_ipmi.oem.megarac import MEGARAC_HANDLERS, MEGARAC_HANDLER_COUNT
+        print(f"# AMI MegaRAC SP-X OEM handlers — {MEGARAC_HANDLER_COUNT} across "
+              f"{len(MEGARAC_HANDLERS)} modules (NetFn 0x30/0x3E)")
+        print("# Handler NAMES only — per-command (NetFn,Cmd) opcodes not yet mapped.")
+        print("#   Recover: unsquash HP/cray/xd670-virtual/rootfs.sqfs → libipmiamioem*.so,")
+        print("#   parse the registration table (or live GetLibMetaInfo on the booted box).")
+        print("#   Until then `zipmi oem megarac <name>` can't dispatch by opcode.")
+        print()
+        w = max(len(m) for m in MEGARAC_HANDLERS)
+        for mod, handlers in MEGARAC_HANDLERS.items():
+            print(f"  {mod:<{w}s}  ({len(handlers):2d})  " + "  ".join(handlers))
+        print()
+        return
     listing = _vendor_listing(vendor)
     if not listing:
         print(f"# {vendor}: no commands registered", file=sys.stderr)
@@ -871,7 +915,10 @@ def _print_vendor_catalog() -> None:
         if key in obmc:
             continue  # OpenBMC flavors collapse into one `openbmc` line below
         total, named = _vendor_stats(key)
-        if total == named:
+        if key == "megarac":
+            from ..scapy_ipmi.oem.megarac import MEGARAC_HANDLER_COUNT
+            count = f"{MEGARAC_HANDLER_COUNT} handlers (names)"
+        elif total == named:
             count = f"{named} cmds"
         else:
             count = f"{named} named / {total} known"
@@ -1168,10 +1215,15 @@ def _add_all_vendor_parsers(parent_sub) -> None:
     `oem`/flavor catalog still lists only the canonical `openbmc-<v>` rows
     (aliases don't add catalog entries — the original de-clutter intent)."""
     obmc = set(_openbmc_vendor_keys())
+    _extra_aliases = {
+        "megarac": ["ami"],
+        "supermicro-x11": ["supermicro"],  # legacy `oem supermicro` → X11
+    }
     for vkey, vinfo in VENDORS.items():
         if vkey in obmc:
             continue
-        _add_vendor_parser(parent_sub, vkey, vinfo["blurb"])
+        _add_vendor_parser(parent_sub, vkey, vinfo["blurb"],
+                           aliases=_extra_aliases.get(vkey, ()))
     for vkey in _openbmc_vendor_keys():
         _add_vendor_parser(parent_sub, f"openbmc-{vkey}", VENDORS[vkey]["blurb"],
                            vendor_key=vkey, aliases=[f"ob-{vkey}", vkey])

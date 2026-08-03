@@ -33,6 +33,10 @@ _VENDOR_ALIAS: dict[str, str] = {
     "ibm": "openpower",
     "meta": "facebook",
     "fb": "facebook",
+    "ami": "megarac",
+    # Supermicro split: X11 (AMI+smcipmitool) vs X14 (AST2600 OpenBMC + SMC OEM).
+    "supermicro-x11": "supermicro",
+    "supermicro-x14": "supermicro_x14",
 }
 
 

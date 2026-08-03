@@ -1,9 +1,16 @@
 """
 zipmi.scapy_ipmi.oem.supermicro — Supermicro X11 OEM commands (IANA 10876).
 
+GENERATION SPLIT — this module is the **X11** stack (AMI MegaRAC + smcipmitool,
+AST2400). Supermicro's **X14** generation is a *completely different* BMC:
+Phosphor OpenBMC on AST2600 with SMC OEM provider patches, and it is a real
+opcode-keyed catalog (resolved NetFn/Cmd + privilege, not names-only) — see
+`oem/supermicro_x14.py` / `zipmi oem supermicro-x14`. On the CLI, X11 is
+`zipmi oem supermicro-x11` (bare `supermicro` is kept as an alias for it).
+
 WHAT     Names + sub-command tables for Supermicro libipmi.so OEM
          dispatch surface, ingested from the smcipmi RE work at
-         /Volumes/yyy/phd/bmc/supermicro/smcipmi-reversing/.
+         Supermicro smcipmitool reverse-engineering notes.
 
 WHY      Supermicro X11SSZ-QF (192.168.0.24) — currently down — exposes
          four primary OEM cmds (0x30 0x68 / 0x6E / 0x70 / 0xA0) each
@@ -14,11 +21,11 @@ WHY      Supermicro X11SSZ-QF (192.168.0.24) — currently down — exposes
 
 LOAD     `zipmi.load_vendor("supermicro")` — populates OEM_CMD_NAMES.
 
-REFS     /Volumes/yyy/phd/bmc/supermicro/smcipmi-reversing/oem-command-summary.md
-         /Volumes/yyy/phd/bmc/supermicro/smcipmi-reversing/EXPLOITS.md
-         /Volumes/yyy/phd/bmc/supermicro/smcipmi-reversing/supermicro-oem-complete.md
-         /Volumes/yyy/phd/bmc/supermicro/smcipmi-reversing/ipmi_lan-oem-commands.md
-         /Volumes/yyy/phd/bmc/supermicro/smcipmi-reversing/shell-injection-analysis.md
+REFS     Supermicro smcipmitool reverse-engineering notes
+         Supermicro OEM exploit analysis (internal RE)
+         Supermicro smcipmitool reverse-engineering notes
+         Supermicro smcipmitool reverse-engineering notes
+         Supermicro shell-injection analysis (internal RE)
 
 LIVE     X11SSZ-QF FW 00.48 (Pantsdown-vulnerable AST2400). Test target
          currently down; sub-cmd live status pending re-enumeration.

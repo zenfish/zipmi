@@ -6,5 +6,5 @@ to fire a documented attack against an active Session.
 
 WHY      Centralises the "attacks I've previously demonstrated" surface
          so I don't have to remember byte sequences across sessions.
-RELATED  zipmi/scapy_ipmi/oem/*, /Volumes/yyy/phd/bmc/dell/*-attack*.md
+RELATED  zipmi/scapy_ipmi/oem/*, Dell iDRAC OEM RE notes (attack analyses)
 """

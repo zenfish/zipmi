@@ -13,7 +13,7 @@ WHY      DCMI is the de-facto standard for power / thermal / asset
 SUCCESS  After loading this module, GROUP_CMD_NAMES[(0xDC, 0x01)] ==
          "Get DCMI Capabilities Info".
 
-REFS     /Users/zen/phd/references/dcmi/dcmi-1.5-spec.pdf — Table 6-1
+REFS     DCMI 1.5 specification — Table 6-1
          "Command Definition" page 24-25.
          Spec source: https://www.intel.com/content/dam/www/public/us/
          en/documents/technical-specifications/dcmi-v1-5-rev-spec.pdf

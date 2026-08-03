@@ -1,0 +1,362 @@
+{
+  "domain": {
+    "vendor": "Dell iDRAC",
+    "count": 1454,
+    "purity": 0.918
+  },
+  "password_hidden": {
+    "vendor": "Dell iDRAC",
+    "count": 4477,
+    "purity": 0.998
+  },
+  "pwd": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 15714,
+    "purity": 0.987
+  },
+  "name": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 14563,
+    "purity": 0.986
+  },
+  "Login": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 14559,
+    "purity": 0.987
+  },
+  "t3": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 118,
+    "purity": 0.992
+  },
+  "t4": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 118,
+    "purity": 0.992
+  },
+  "t6": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 118,
+    "purity": 0.992
+  },
+  "t1": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 118,
+    "purity": 0.992
+  },
+  "t5": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 118,
+    "purity": 0.992
+  },
+  "check": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 3345,
+    "purity": 0.999
+  },
+  "usrName": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 1158,
+    "purity": 0.996
+  },
+  "t2": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 118,
+    "purity": 0.992
+  },
+  "user": {
+    "vendor": "Dell iDRAC",
+    "count": 4509,
+    "purity": 0.955
+  },
+  "ADUserDomain": {
+    "vendor": "Dell iDRAC",
+    "count": 4468,
+    "purity": 0.964
+  },
+  "px_loginRight_16484594228205_sx": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 245,
+    "purity": 1.0
+  },
+  "px_loginRight_16484594228206_sx": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 245,
+    "purity": 1.0
+  },
+  "changePwdO": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 166,
+    "purity": 0.988
+  },
+  "modify_pwd_tips": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 178,
+    "purity": 0.989
+  },
+  "changePwdNC": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 166,
+    "purity": 0.988
+  },
+  "changePwdN": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 166,
+    "purity": 0.988
+  },
+  "iptPassword": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 201,
+    "purity": 0.99
+  },
+  "iptUserName": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 201,
+    "purity": 0.99
+  },
+  "false": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 160,
+    "purity": 0.869
+  },
+  "true": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 60,
+    "purity": 1.0
+  },
+  "loginPwd": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 33,
+    "purity": 1.0
+  },
+  "account": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 33,
+    "purity": 1.0
+  },
+  "id_DynamicPassword": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 10,
+    "purity": 1.0
+  },
+  "chkExportAuditLogs": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportConfiguration": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "login_password": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 123,
+    "purity": 0.967
+  },
+  "chkExportAsHtml": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportInventory": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "login_username": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 126,
+    "purity": 0.944
+  },
+  "chkExportUtilization": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportEvents": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportCallHome": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "change_password": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "change_password_confirm": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportMaintainanceHistory": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportSystemInfo": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportAsExcel": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "chkExportEventLogs": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 119,
+    "purity": 1.0
+  },
+  "Password": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 42,
+    "purity": 1.0
+  },
+  "lang": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 43,
+    "purity": 0.977
+  },
+  "reset": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 42,
+    "purity": 1.0
+  },
+  "forward_ip": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 35,
+    "purity": 1.0
+  },
+  "forward_url": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 35,
+    "purity": 1.0
+  },
+  "UserName": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 43,
+    "purity": 0.977
+  },
+  "login": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 46,
+    "purity": 0.913
+  },
+  "forward_userAgent": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 35,
+    "purity": 1.0
+  },
+  "host": {
+    "vendor": "unknown",
+    "count": 16,
+    "purity": 0.875
+  },
+  "login__submit": {
+    "vendor": "unknown",
+    "count": 29,
+    "purity": 0.862
+  },
+  "login_pwd": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 78,
+    "purity": 1.0
+  },
+  "login_domain": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 78,
+    "purity": 1.0
+  },
+  "login_name": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 78,
+    "purity": 1.0
+  },
+  "rcmloginpwd": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  },
+  "rcmloginurl": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  },
+  "rcmloginuser": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  },
+  "_action": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  },
+  "rcmlogintz": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  },
+  "_token": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  },
+  "_task": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  },
+  "login-input-password": {
+    "vendor": "non-BMC web (likely shared/honeypot)",
+    "count": 30,
+    "purity": 0.9
+  },
+  "login-input-username": {
+    "vendor": "non-BMC web (likely shared/honeypot)",
+    "count": 30,
+    "purity": 0.9
+  },
+  "checkbox_radius1": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 41,
+    "purity": 1.0
+  },
+  "dateRadio": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 44,
+    "purity": 1.0
+  },
+  "number": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 44,
+    "purity": 1.0
+  },
+  "checkbox_radius": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 44,
+    "purity": 1.0
+  },
+  "language": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 20,
+    "purity": 1.0
+  },
+  "mode_skip": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 17,
+    "purity": 1.0
+  },
+  "acceptTerms": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 15,
+    "purity": 1.0
+  }
+}

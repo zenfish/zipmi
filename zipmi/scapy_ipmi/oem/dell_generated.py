@@ -5,7 +5,7 @@ the Dell iDRAC6 fullfw dispatch-table RE.
 DO NOT EDIT BY HAND. Regenerate with:
     python -m zipmi.parsers.md_table > zipmi/scapy_ipmi/oem/dell_generated.py
 
-Source: /Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md
+Source: iDRAC6 firmware (fullfw) reverse-engineering notes
 Entries: 192
 """
 

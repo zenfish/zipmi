@@ -13,7 +13,7 @@ WHY      iDRAC9 ships ~60 IPMI .so libs with hundreds of handlers. The
 SUCCESS  After load_vendor("idrac9"), OEM_CMD_NAMES gains ≥ 270 entries.
 TARGET   iDRAC9 firmware (firmimgFIT.d9) v7.20.30.50, Dell IANA 674.
 RELATED  zipmi/parsers/idrac9_dispatch_md.py (codegen),
-         /Volumes/yyy/phd/bmc/idrac9-firmware/idrac9-dispatch-tables.md.
+         iDRAC9 firmware dispatch tables (internal RE).
 """
 from __future__ import annotations
 

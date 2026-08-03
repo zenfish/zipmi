@@ -1,0 +1,1276 @@
+{
+  "ch1_a04_s02_e00_o000000": {
+    "channel": 1,
+    "auth": 4,
+    "status": 2,
+    "ext": 0,
+    "oem": 0,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 1.0,
+    "evidence_count": 1,
+    "cluster_size": 32,
+    "runners_up": []
+  },
+  "ch1_a80_s00_e03_o000000": {
+    "channel": 1,
+    "auth": 128,
+    "status": 0,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Cisco CIMC",
+    "confidence": 1.0,
+    "evidence_count": 11,
+    "cluster_size": 11,
+    "runners_up": []
+  },
+  "ch1_a80_s04_e02_o000000": {
+    "channel": 1,
+    "auth": 128,
+    "status": 4,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "non-BMC web (likely shared/honeypot)",
+    "confidence": 0.772,
+    "evidence_count": 606,
+    "cluster_size": 1392,
+    "runners_up": [
+      {
+        "vendor": "HPE iLO",
+        "n": 86
+      },
+      {
+        "vendor": "honeypot",
+        "n": 36
+      },
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 10
+      },
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 4
+      }
+    ]
+  },
+  "ch1_a80_s04_e02_o2abf02": {
+    "channel": 1,
+    "auth": 128,
+    "status": 4,
+    "ext": 2,
+    "oem": 2801410,
+    "vendor": "HPE iLO",
+    "confidence": 1.0,
+    "evidence_count": 25,
+    "cluster_size": 24,
+    "runners_up": []
+  },
+  "ch1_a80_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 128,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Huawei/xFusion iBMC",
+    "confidence": 0.897,
+    "evidence_count": 321,
+    "cluster_size": 1255,
+    "runners_up": [
+      {
+        "vendor": "Intel BMC",
+        "n": 14
+      },
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 7
+      },
+      {
+        "vendor": "Cisco CIMC",
+        "n": 5
+      },
+      {
+        "vendor": "IBM/Lenovo IMM/IMM2",
+        "n": 4
+      }
+    ]
+  },
+  "ch1_a80_s06_e03_o005345": {
+    "channel": 1,
+    "auth": 128,
+    "status": 6,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 0.667,
+    "evidence_count": 9,
+    "cluster_size": 7,
+    "runners_up": [
+      {
+        "vendor": "Generic IPMI cert (likely AST/AMI)",
+        "n": 3
+      }
+    ]
+  },
+  "ch1_a80_s14_e03_o000000": {
+    "channel": 1,
+    "auth": 128,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "AMI MegaRAC",
+    "confidence": 0.574,
+    "evidence_count": 47,
+    "cluster_size": 45,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 19
+      },
+      {
+        "vendor": "H3C BMC",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a80_s14_e03_o00c1d6": {
+    "channel": 1,
+    "auth": 128,
+    "status": 20,
+    "ext": 3,
+    "oem": 49622,
+    "vendor": "AMI MegaRAC",
+    "confidence": 0.962,
+    "evidence_count": 984,
+    "cluster_size": 994,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 33
+      },
+      {
+        "vendor": "ASRockRack BMC",
+        "n": 4
+      }
+    ]
+  },
+  "ch1_a80_s24_e03_o000000": {
+    "channel": 1,
+    "auth": 128,
+    "status": 36,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Cisco CIMC",
+    "confidence": 1.0,
+    "evidence_count": 13,
+    "cluster_size": 15,
+    "runners_up": []
+  },
+  "ch1_a84_s04_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 4,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "Dell iDRAC",
+    "confidence": 1.0,
+    "evidence_count": 11,
+    "cluster_size": 19,
+    "runners_up": []
+  },
+  "ch1_a84_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Huawei/xFusion iBMC",
+    "confidence": 0.468,
+    "evidence_count": 252,
+    "cluster_size": 411,
+    "runners_up": [
+      {
+        "vendor": "GoAhead-Webs (legacy BMC)",
+        "n": 86
+      },
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 33
+      },
+      {
+        "vendor": "Supermicro BMC",
+        "n": 6
+      },
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 5
+      }
+    ]
+  },
+  "ch1_a84_s04_e03_o005345": {
+    "channel": 1,
+    "auth": 132,
+    "status": 4,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 0.897,
+    "evidence_count": 58,
+    "cluster_size": 68,
+    "runners_up": [
+      {
+        "vendor": "Supermicro BMC",
+        "n": 6
+      }
+    ]
+  },
+  "ch1_a84_s06_e03_o005345": {
+    "channel": 1,
+    "auth": 132,
+    "status": 6,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 0.861,
+    "evidence_count": 79,
+    "cluster_size": 80,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 11
+      }
+    ]
+  },
+  "ch1_a84_s12_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 18,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 1.0,
+    "evidence_count": 10,
+    "cluster_size": 5,
+    "runners_up": []
+  },
+  "ch1_a84_s12_e03_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 18,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 0.709,
+    "evidence_count": 55,
+    "cluster_size": 92,
+    "runners_up": [
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 16
+      }
+    ]
+  },
+  "ch1_a84_s14_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 20,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 1.0,
+    "evidence_count": 19,
+    "cluster_size": 29,
+    "runners_up": []
+  },
+  "ch1_a84_s14_e03_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 0.565,
+    "evidence_count": 841,
+    "cluster_size": 1164,
+    "runners_up": [
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 300
+      },
+      {
+        "vendor": "ASUS ASMB9",
+        "n": 39
+      },
+      {
+        "vendor": "H3C BMC",
+        "n": 21
+      },
+      {
+        "vendor": "Dell iDRAC",
+        "n": 3
+      }
+    ]
+  },
+  "ch1_a84_s14_e03_o00c1d6": {
+    "channel": 1,
+    "auth": 132,
+    "status": 20,
+    "ext": 3,
+    "oem": 49622,
+    "vendor": "ASRockRack BMC",
+    "confidence": 0.514,
+    "evidence_count": 552,
+    "cluster_size": 311,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 266
+      },
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 2
+      }
+    ]
+  },
+  "ch1_a84_s16_e03_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 22,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 0.529,
+    "evidence_count": 34,
+    "cluster_size": 66,
+    "runners_up": [
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 16
+      }
+    ]
+  },
+  "ch1_a84_s18_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 24,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "Dell iDRAC",
+    "confidence": 1.0,
+    "evidence_count": 13,
+    "cluster_size": 23,
+    "runners_up": []
+  },
+  "ch1_a84_s1c_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 28,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "Dell iDRAC",
+    "confidence": 0.997,
+    "evidence_count": 5689,
+    "cluster_size": 6740,
+    "runners_up": [
+      {
+        "vendor": "HPE iLO",
+        "n": 11
+      },
+      {
+        "vendor": "Generic IPMI cert (likely AST/AMI)",
+        "n": 4
+      }
+    ]
+  },
+  "ch1_a84_s1d_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 29,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "HPE iLO",
+    "confidence": 0.571,
+    "evidence_count": 7,
+    "cluster_size": 7,
+    "runners_up": [
+      {
+        "vendor": "Dell iDRAC",
+        "n": 3
+      }
+    ]
+  },
+  "ch1_a84_s1e_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 30,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "Dell iDRAC",
+    "confidence": 0.96,
+    "evidence_count": 25,
+    "cluster_size": 26,
+    "runners_up": [
+      {
+        "vendor": "HPE iLO",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a84_s3c_e02_o000000": {
+    "channel": 1,
+    "auth": 132,
+    "status": 60,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "Dell iDRAC",
+    "confidence": 0.987,
+    "evidence_count": 77,
+    "cluster_size": 94,
+    "runners_up": [
+      {
+        "vendor": "HPE iLO",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a85_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 133,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Huawei/xFusion iBMC",
+    "confidence": 1.0,
+    "evidence_count": 6,
+    "cluster_size": 7,
+    "runners_up": []
+  },
+  "ch1_a86_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 1.0,
+    "evidence_count": 94,
+    "cluster_size": 60,
+    "runners_up": []
+  },
+  "ch1_a86_s04_e03_o005345": {
+    "channel": 1,
+    "auth": 134,
+    "status": 4,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 1.0,
+    "evidence_count": 3,
+    "cluster_size": 6,
+    "runners_up": []
+  },
+  "ch1_a86_s06_e03_o005345": {
+    "channel": 1,
+    "auth": 134,
+    "status": 6,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 1.0,
+    "evidence_count": 11,
+    "cluster_size": 13,
+    "runners_up": []
+  },
+  "ch1_a86_s10_e02_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 16,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 0.667,
+    "evidence_count": 6,
+    "cluster_size": 5,
+    "runners_up": [
+      {
+        "vendor": "Dell iDRAC",
+        "n": 2
+      }
+    ]
+  },
+  "ch1_a86_s14_e02_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 20,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 0.588,
+    "evidence_count": 793,
+    "cluster_size": 510,
+    "runners_up": [
+      {
+        "vendor": "Dell iDRAC",
+        "n": 327
+      }
+    ]
+  },
+  "ch1_a86_s14_e03_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 0.566,
+    "evidence_count": 267,
+    "cluster_size": 328,
+    "runners_up": [
+      {
+        "vendor": "Dell iDRAC",
+        "n": 95
+      },
+      {
+        "vendor": "Dell DRAC5",
+        "n": 21
+      }
+    ]
+  },
+  "ch1_a86_s1c_e02_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 28,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "Dell iDRAC",
+    "confidence": 0.857,
+    "evidence_count": 7,
+    "cluster_size": 36,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ Embedthis Appweb",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a86_s1c_e03_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 28,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 0.6,
+    "evidence_count": 10,
+    "cluster_size": 44,
+    "runners_up": [
+      {
+        "vendor": "Dell iDRAC",
+        "n": 4
+      }
+    ]
+  },
+  "ch1_a86_s34_e03_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 52,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 0.571,
+    "evidence_count": 7,
+    "cluster_size": 9,
+    "runners_up": [
+      {
+        "vendor": "Dell iDRAC",
+        "n": 2
+      },
+      {
+        "vendor": "Dell DRAC5",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a86_s3c_e03_o000000": {
+    "channel": 1,
+    "auth": 134,
+    "status": 60,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 1.0,
+    "evidence_count": 1,
+    "cluster_size": 8,
+    "runners_up": []
+  },
+  "ch1_a90_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 144,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "AMI MegaRAC",
+    "confidence": 0.75,
+    "evidence_count": 4,
+    "cluster_size": 5,
+    "runners_up": [
+      {
+        "vendor": "GoAhead-Webs (legacy BMC)",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a90_s04_e03_o005345": {
+    "channel": 1,
+    "auth": 144,
+    "status": 4,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 0.833,
+    "evidence_count": 6,
+    "cluster_size": 6,
+    "runners_up": [
+      {
+        "vendor": "Supermicro BMC",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a90_s06_e03_o005345": {
+    "channel": 1,
+    "auth": 144,
+    "status": 6,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 0.6,
+    "evidence_count": 5,
+    "cluster_size": 5,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 2
+      }
+    ]
+  },
+  "ch1_a94_s00_e03_o000000": {
+    "channel": 1,
+    "auth": 148,
+    "status": 0,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Lenovo XClarity (XCC)",
+    "confidence": 0.909,
+    "evidence_count": 55,
+    "cluster_size": 31,
+    "runners_up": [
+      {
+        "vendor": "IBM/Lenovo IMM/IMM2",
+        "n": 5
+      }
+    ]
+  },
+  "ch1_a94_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 148,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Lenovo XClarity (XCC)",
+    "confidence": 0.652,
+    "evidence_count": 948,
+    "cluster_size": 711,
+    "runners_up": [
+      {
+        "vendor": "IBM/Lenovo IMM/IMM2",
+        "n": 290
+      },
+      {
+        "vendor": "GoAhead-Webs (legacy BMC)",
+        "n": 24
+      },
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 16
+      }
+    ]
+  },
+  "ch1_a94_s06_e03_o000000": {
+    "channel": 1,
+    "auth": 148,
+    "status": 6,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 1.0,
+    "evidence_count": 2,
+    "cluster_size": 5,
+    "runners_up": []
+  },
+  "ch1_a96_s02_e03_o000000": {
+    "channel": 1,
+    "auth": 150,
+    "status": 2,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 0.833,
+    "evidence_count": 12,
+    "cluster_size": 36,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 2
+      }
+    ]
+  },
+  "ch1_a96_s02_e03_o005345": {
+    "channel": 1,
+    "auth": 150,
+    "status": 2,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 0.881,
+    "evidence_count": 388,
+    "cluster_size": 251,
+    "runners_up": [
+      {
+        "vendor": "Generic IPMI cert (likely AST/AMI)",
+        "n": 46
+      }
+    ]
+  },
+  "ch1_a96_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 150,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 0.909,
+    "evidence_count": 110,
+    "cluster_size": 126,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 5
+      },
+      {
+        "vendor": "GoAhead-Webs (legacy BMC)",
+        "n": 4
+      },
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a96_s04_e03_o005345": {
+    "channel": 1,
+    "auth": 150,
+    "status": 4,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 0.858,
+    "evidence_count": 10979,
+    "cluster_size": 12643,
+    "runners_up": [
+      {
+        "vendor": "Supermicro BMC",
+        "n": 1550
+      },
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 4
+      },
+      {
+        "vendor": "HPE iLO",
+        "n": 2
+      },
+      {
+        "vendor": "honeypot",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a96_s04_e03_o2abf02": {
+    "channel": 1,
+    "auth": 150,
+    "status": 4,
+    "ext": 3,
+    "oem": 2801410,
+    "vendor": "HPE iLO",
+    "confidence": 1.0,
+    "evidence_count": 2,
+    "cluster_size": 7,
+    "runners_up": []
+  },
+  "ch1_a96_s06_e03_o000000": {
+    "channel": 1,
+    "auth": 150,
+    "status": 6,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 1.0,
+    "evidence_count": 2,
+    "cluster_size": 11,
+    "runners_up": []
+  },
+  "ch1_a96_s06_e03_o005345": {
+    "channel": 1,
+    "auth": 150,
+    "status": 6,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 0.861,
+    "evidence_count": 6633,
+    "cluster_size": 7139,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 916
+      },
+      {
+        "vendor": "HPE iLO",
+        "n": 2
+      },
+      {
+        "vendor": "Supermicro BMC",
+        "n": 1
+      }
+    ]
+  },
+  "ch1_a96_s07_e03_o005345": {
+    "channel": 1,
+    "auth": 150,
+    "status": 7,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "confidence": 0.985,
+    "evidence_count": 263,
+    "cluster_size": 269,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 4
+      }
+    ]
+  },
+  "ch1_a96_s14_e03_o000000": {
+    "channel": 1,
+    "auth": 150,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "AMI MegaRAC",
+    "confidence": 0.5,
+    "evidence_count": 8,
+    "cluster_size": 6,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 4
+      }
+    ]
+  },
+  "ch1_a97_s02_e03_o005345": {
+    "channel": 1,
+    "auth": 151,
+    "status": 2,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 1.0,
+    "evidence_count": 20,
+    "cluster_size": 10,
+    "runners_up": []
+  },
+  "ch1_a97_s06_e03_o005345": {
+    "channel": 1,
+    "auth": 151,
+    "status": 6,
+    "ext": 3,
+    "oem": 21317,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 0.75,
+    "evidence_count": 24,
+    "cluster_size": 27,
+    "runners_up": [
+      {
+        "vendor": "Generic IPMI cert (likely AST/AMI)",
+        "n": 6
+      }
+    ]
+  },
+  "ch1_a97_s14_e03_o000000": {
+    "channel": 1,
+    "auth": 151,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 1.0,
+    "evidence_count": 6,
+    "cluster_size": 62,
+    "runners_up": []
+  },
+  "ch1_aa6_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 166,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 1.0,
+    "evidence_count": 20,
+    "cluster_size": 94,
+    "runners_up": []
+  },
+  "ch1_ab6_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 182,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "confidence": 0.662,
+    "evidence_count": 139,
+    "cluster_size": 167,
+    "runners_up": [
+      {
+        "vendor": "GoAhead-Webs (legacy BMC)",
+        "n": 33
+      },
+      {
+        "vendor": "Cisco CIMC",
+        "n": 7
+      },
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 7
+      }
+    ]
+  },
+  "ch1_ab7_s04_e03_o000000": {
+    "channel": 1,
+    "auth": 183,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 0.976,
+    "evidence_count": 165,
+    "cluster_size": 156,
+    "runners_up": [
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 2
+      },
+      {
+        "vendor": "Generic IPMI cert (likely AST/AMI)",
+        "n": 2
+      }
+    ]
+  },
+  "ch1_ab7_s05_e03_o000000": {
+    "channel": 1,
+    "auth": 183,
+    "status": 5,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 1.0,
+    "evidence_count": 2,
+    "cluster_size": 13,
+    "runners_up": []
+  },
+  "ch2_a80_s04_e03_o000000": {
+    "channel": 2,
+    "auth": 128,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "confidence": 0.667,
+    "evidence_count": 3,
+    "cluster_size": 8,
+    "runners_up": [
+      {
+        "vendor": "Intel BMC",
+        "n": 1
+      }
+    ]
+  },
+  "ch2_a80_s14_e02_o000000": {
+    "channel": 2,
+    "auth": 128,
+    "status": 20,
+    "ext": 2,
+    "oem": 0,
+    "vendor": "HPE iLO",
+    "confidence": 1.0,
+    "evidence_count": 2458,
+    "cluster_size": 3450,
+    "runners_up": [
+      {
+        "vendor": "Intel BMC",
+        "n": 1
+      }
+    ]
+  },
+  "ch2_a84_s04_e03_o000000": {
+    "channel": 2,
+    "auth": 132,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Fujitsu iRMC",
+    "confidence": 1.0,
+    "evidence_count": 6,
+    "cluster_size": 8,
+    "runners_up": []
+  },
+  "ch2_a84_s05_e03_o000000": {
+    "channel": 2,
+    "auth": 132,
+    "status": 5,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Fujitsu iRMC",
+    "confidence": 1.0,
+    "evidence_count": 300,
+    "cluster_size": 169,
+    "runners_up": []
+  },
+  "ch2_a94_s04_e03_o000000": {
+    "channel": 2,
+    "auth": 148,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "HPE iLO",
+    "confidence": 1.0,
+    "evidence_count": 1,
+    "cluster_size": 6,
+    "runners_up": []
+  },
+  "ch2_a94_s05_e03_o000000": {
+    "channel": 2,
+    "auth": 148,
+    "status": 5,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Fujitsu iRMC",
+    "confidence": 1.0,
+    "evidence_count": 57,
+    "cluster_size": 61,
+    "runners_up": []
+  },
+  "ch2_a95_s04_e03_o000000": {
+    "channel": 2,
+    "auth": 149,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "HPE iLO",
+    "confidence": 1.0,
+    "evidence_count": 15,
+    "cluster_size": 49,
+    "runners_up": []
+  },
+  "ch2_a95_s05_e03_o000000": {
+    "channel": 2,
+    "auth": 149,
+    "status": 5,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Fujitsu iRMC",
+    "confidence": 1.0,
+    "evidence_count": 6,
+    "cluster_size": 8,
+    "runners_up": []
+  },
+  "ch2_ab4_s05_e03_o000000": {
+    "channel": 2,
+    "auth": 180,
+    "status": 5,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Fujitsu iRMC",
+    "confidence": 1.0,
+    "evidence_count": 125,
+    "cluster_size": 74,
+    "runners_up": []
+  },
+  "ch2_ab4_s06_e03_o000000": {
+    "channel": 2,
+    "auth": 180,
+    "status": 6,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Fujitsu iRMC",
+    "confidence": 1.0,
+    "evidence_count": 29,
+    "cluster_size": 15,
+    "runners_up": []
+  },
+  "ch3_a80_s04_e03_o000000": {
+    "channel": 3,
+    "auth": 128,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "Intel BMC",
+    "confidence": 0.962,
+    "evidence_count": 52,
+    "cluster_size": 53,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 2
+      }
+    ]
+  },
+  "ch3_a94_s04_e03_o000000": {
+    "channel": 3,
+    "auth": 148,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 0.955,
+    "evidence_count": 22,
+    "cluster_size": 74,
+    "runners_up": [
+      {
+        "vendor": "Intel BMC",
+        "n": 1
+      }
+    ]
+  },
+  "ch4_a84_s14_e03_o000000": {
+    "channel": 4,
+    "auth": 132,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "AMI MegaRAC",
+    "confidence": 1.0,
+    "evidence_count": 20,
+    "cluster_size": 26,
+    "runners_up": []
+  },
+  "ch8_a80_s14_e03_o000000": {
+    "channel": 8,
+    "auth": 128,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "AMI MegaRAC",
+    "confidence": 0.522,
+    "evidence_count": 115,
+    "cluster_size": 69,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 54
+      },
+      {
+        "vendor": "H3C BMC",
+        "n": 1
+      }
+    ]
+  },
+  "ch8_a80_s14_e03_o00c1d6": {
+    "channel": 8,
+    "auth": 128,
+    "status": 20,
+    "ext": 3,
+    "oem": 49622,
+    "vendor": "AMI MegaRAC",
+    "confidence": 0.875,
+    "evidence_count": 8,
+    "cluster_size": 10,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 1
+      }
+    ]
+  },
+  "ch8_a84_s12_e03_o000000": {
+    "channel": 8,
+    "auth": 132,
+    "status": 18,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "AMI MegaRAC",
+    "confidence": 0.667,
+    "evidence_count": 6,
+    "cluster_size": 8,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 2
+      }
+    ]
+  },
+  "ch8_a84_s14_e03_o000000": {
+    "channel": 8,
+    "auth": 132,
+    "status": 20,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "ASUS ASMB9",
+    "confidence": 0.483,
+    "evidence_count": 145,
+    "cluster_size": 227,
+    "runners_up": [
+      {
+        "vendor": "AMI MegaRAC",
+        "n": 48
+      },
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 18
+      },
+      {
+        "vendor": "H3C BMC",
+        "n": 9
+      }
+    ]
+  },
+  "ch8_a84_s14_e03_o00c1d6": {
+    "channel": 8,
+    "auth": 132,
+    "status": 20,
+    "ext": 3,
+    "oem": 49622,
+    "vendor": "ASRockRack BMC",
+    "confidence": 0.583,
+    "evidence_count": 12,
+    "cluster_size": 8,
+    "runners_up": [
+      {
+        "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+        "n": 5
+      }
+    ]
+  },
+  "ch8_ab6_s04_e03_o000000": {
+    "channel": 8,
+    "auth": 182,
+    "status": 4,
+    "ext": 3,
+    "oem": 0,
+    "vendor": "GoAhead-Webs (legacy BMC)",
+    "confidence": 1.0,
+    "evidence_count": 2,
+    "cluster_size": 58,
+    "runners_up": []
+  }
+}

@@ -17,7 +17,7 @@ SUCCESS  After import, GROUP_CMD_NAMES[(0xAE, 0x03)] ==
 
 SOURCE   github.com/openbmc/phosphor-host-ipmid sbmrhandler.cpp:305
          (groupExtIpmi=0xAE); also ampere-ipmi-oem bootprogress.cpp.
-         Catalogued in /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §0,§2.4.
+         Catalogued in OpenBMC OEM IPMI survey (upstream source review) §0,§2.4.
 """
 
 from __future__ import annotations

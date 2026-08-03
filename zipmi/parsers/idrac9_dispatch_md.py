@@ -1,8 +1,9 @@
 """
 zipmi.parsers.idrac9_dispatch_md — parse iDRAC9 binary dispatch tables.
 
-WHAT     Reads /Volumes/yyy/phd/bmc/idrac9-firmware/idrac9-dispatch-tables.md
-         (produced by `dump_dispatch_tables.py` against the iDRAC9 rootfs
+WHAT     Reads the iDRAC9 firmware reverse-engineering notes
+         (idrac9-dispatch-tables.md, produced by the dispatch-table
+         extraction script against the iDRAC9 rootfs
          .so libs) and emits a Python module with structured (NetFn, cmd)
          → DispatchEntry mappings. Closes the gap left by `idrac9_md.py`,
          which produced a name-only catalog.
@@ -14,13 +15,14 @@ WHY      The upstream `IPMI_COMMAND_ENUMERATION.md` lists handler symbols
 USAGE    python -m zipmi.parsers.idrac9_dispatch_md \
              > zipmi/scapy_ipmi/oem/idrac9_dispatch_generated.py
 SUCCESS  Module imports cleanly; IDRAC9_DISPATCH has 293 entries.
-RELATED  /Volumes/yyy/phd/bmc/idrac9-firmware/dump_dispatch_tables.py,
+RELATED  iDRAC9 dispatch-table extraction script (internal RE tooling),
          zipmi/scapy_ipmi/oem/idrac9.py (consumer).
 """
 from __future__ import annotations
 
 import re
 import sys
+from pathlib import Path
 from dataclasses import dataclass
 
 
@@ -123,7 +125,7 @@ def emit_module(entries: list[IDrac9DispatchEntry], src: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
-    src = "/Volumes/yyy/phd/bmc/idrac9-firmware/idrac9-dispatch-tables.md"
+    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "idrac9-dispatch-tables.md")
     if len(args) > 1:
         src = args[1]
     with open(src) as f:

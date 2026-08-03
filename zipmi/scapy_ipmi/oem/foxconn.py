@@ -12,7 +12,7 @@ LOAD     `zipmi.load_vendor("foxconn")`
 
 SOURCE   github.com/openbmc/foxconn-ipmi-oem (src/systemcommands.cpp:73,
          src/bioscommands.cpp:104). Catalogued in
-         /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.7.
+         the OpenBMC OEM IPMI survey (upstream source review) §2.7.
 """
 
 from __future__ import annotations

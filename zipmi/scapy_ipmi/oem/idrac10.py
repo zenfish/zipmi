@@ -13,7 +13,7 @@ WHY      iDRAC10 ships its full IPMI command surface as static dispatch
 SUCCESS  After load_vendor("idrac10"), OEM_CMD_NAMES gains ≥ 300 entries.
 TARGET   iDRAC10 firmware 1.30.10.50 (aarch64), Dell IANA 674.
 RELATED  zipmi/parsers/idrac10_dispatch_md.py (codegen),
-         /Volumes/yyy/phd/bmc/dell/idrac10-virtual/idrac10-dispatch-tables.md.
+         iDRAC10 firmware dispatch tables (internal RE).
 """
 from __future__ import annotations
 

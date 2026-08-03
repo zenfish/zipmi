@@ -9,13 +9,13 @@ and it sends the documented bytes.
 Confirmed dangerous primitives are gated by a `destructive=True` flag;
 the .send() helper requires `force=True` to fire any of those.
 
-REFS  /Volumes/yyy/phd/bmc/dell/dell-prochot-throttle-attack.md
-      /Volumes/yyy/phd/bmc/dell/dell-oem-ipmi-attack-primitives.md
-      /Volumes/yyy/phd/bmc/dell/dell-thermal-bios-attack.md
-      /Volumes/yyy/phd/bmc/dell/dell-wsman-bios-attack.md
-      /Volumes/yyy/phd/bmc/findings/003-dell-oem-power-commands.md
-      /Volumes/yyy/phd/bmc/findings/005-sensor-threshold-tampering.md
-      /Volumes/yyy/phd/bmc/findings/006-power-cap-attack.md
+REFS  Dell PROCHOT-throttle attack analysis (internal RE)
+      Dell iDRAC OEM RE notes (OEM IPMI attack primitives)
+      Dell iDRAC OEM RE notes (thermal / BIOS attack)
+      Dell iDRAC OEM RE notes (WS-MAN / BIOS attack)
+      internal vulnerability findings (Dell OEM power commands)
+      internal vulnerability findings (sensor threshold tampering)
+      internal vulnerability findings (power cap attack)
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ class AttackPrimitive:
 
 
 # -- PROCHOT throttle -----------------------------------------------------
-# /Volumes/yyy/phd/bmc/dell/dell-prochot-throttle-attack.md
+# Dell PROCHOT-throttle attack analysis (internal RE)
 # DellCmdThrottleCPU @ NetFn 0x30 cmd 0xC0
 #   subcmd 0x00 [1B] -> read PROCHOT state (7B response)
 #   subcmd 0x01 <mode> -> set CPU throttle mode
@@ -107,7 +107,7 @@ LCD_DEMO_PAYLOAD = AttackPrimitive(
 
 
 # -- Power-supply read --------------------------------------------------
-# /Volumes/yyy/phd/bmc/findings/003-dell-oem-power-commands.md
+# internal vulnerability findings (Dell OEM power commands)
 # `raw 0x30 0xb0 0x0a 0x01` -> `78 05 82 00 08 01 ba 5b 00 00 30 31 2e 30 31 ...`
 # Probably DellCmdReadPSUInfo (PSU 1).
 
@@ -153,7 +153,7 @@ POWER_BUDGET_BYTES = AttackPrimitive(
 
 
 # -- Sensor threshold tampering -------------------------------------------
-# /Volumes/yyy/phd/bmc/findings/005-sensor-threshold-tampering.md
+# internal vulnerability findings (sensor threshold tampering)
 # Uses STANDARD spec cmds (NetFn 0x04) — not Dell OEM:
 #   raw 0x04 0x27 <sensor#>  -> Get Sensor Threshold
 #   raw 0x04 0x26 <sensor#> <flags> <thresholds...>  -> Set Sensor Threshold
@@ -184,7 +184,7 @@ def threshold_tamper(sensor: int, ucr: int, unr: int) -> AttackPrimitive:
 
 
 # -- iDRAC racadm extended config (CmdOEMExtendedConfigure) --------------
-# /Volumes/yyy/phd/bmc/dell/dell-oem-ipmi-attack-primitives.md (cmd 0x1c/0x27)
+# Dell iDRAC OEM RE notes (OEM IPMI attack primitives) (cmd 0x1c/0x27)
 # 4-byte payload: <group> <object_index_lo> <object_index_hi> <reserved>
 
 def extended_config_get(group: int, idx: int = 0) -> AttackPrimitive:

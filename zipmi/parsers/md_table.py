@@ -1,7 +1,8 @@
 """
 zipmi.parsers.md_table — parse Dell fullfw RE markdown dispatch tables.
 
-WHAT     Reads `/Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md` (Dan's
+WHAT     Reads the iDRAC6 firmware (fullfw) reverse-engineering notes
+         (fullfw-ipmi-commands.md) (Dan's
          hand-curated dispatch + live-probe tables, 283 rows) and returns
          structured DispatchEntry records keyed by (netfn, cmd).
 
@@ -20,13 +21,14 @@ USAGE    Run as a module to regenerate the static output:
 OUTPUT   list[DispatchEntry] — see DispatchEntry dataclass below.
 
 RELATED  zipmi/scapy_ipmi/oem/dell.py (consumes the codegen),
-         /Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md (source).
+         iDRAC6 firmware (fullfw) reverse-engineering notes (fullfw-ipmi-commands.md, source).
 """
 
 from __future__ import annotations
 
 import re
 import sys
+from pathlib import Path
 from dataclasses import dataclass, field, asdict
 
 
@@ -345,7 +347,7 @@ def emit_markdown(entries: list[DispatchEntry], source_path: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
-    src = "/Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md"
+    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "fullfw-ipmi-commands.md")
     fmt = "py"
     if "--markdown" in args:
         fmt = "md"

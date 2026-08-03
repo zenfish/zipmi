@@ -14,6 +14,14 @@ from zipmi.cli.zipmi import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _clean_registry(clean_oem_registry):
+    """Firewall command naming/classification must see standard IPMI names, not
+    OEM names leaked into the global registry by other tests (import-memoized).
+    Run every test in this module against a cleared OEM registry."""
+    yield
+
+
 # -- pure mask decoders ---------------------------------------------------
 
 def test_fw_bits_empty():

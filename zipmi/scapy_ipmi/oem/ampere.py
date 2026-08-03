@@ -24,7 +24,7 @@ LOAD     `zipmi.load_vendor("ampere")`
 
 SOURCE   github.com/openbmc/ampere-ipmi-oem (include/oemcommands.hpp:103
          netFnAmpere=0x3C; src/oemcommands.cpp). Catalogued in
-         /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.4.
+         OpenBMC OEM IPMI survey (upstream source review) §2.4.
 """
 
 from __future__ import annotations

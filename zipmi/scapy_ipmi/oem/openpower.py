@@ -20,7 +20,7 @@ WIRE     Raw NetFns 0x32/0x3A, no IANA on the wire. IBM's enterprise number
 LOAD     `zipmi.load_vendor("openpower")`  (alias: "ibm")
 
 SOURCE   github.com/openbmc/openpower-host-ipmi-oem (oemhandler.cpp:451).
-         Catalogued in /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.5.
+         Catalogued in the OpenBMC OEM IPMI survey (upstream source review) §2.5.
 """
 
 from __future__ import annotations

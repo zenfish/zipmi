@@ -13,7 +13,7 @@ WHAT     Covers the OpenBMC vendor plugin modules (intel/google/ampere/
            4. OEM registry tolerating iana=None.
 
 RELATED  scapy_ipmi/oem/openbmc.py, scapy_ipmi/crypto.py,
-         /Users/zen/phd/bmc/openbmc/LIVE-QEMU-romulus.md (live evidence)
+         internal reverse-engineering notes (live QEMU romulus evidence)
 """
 
 from __future__ import annotations

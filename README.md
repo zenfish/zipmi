@@ -266,7 +266,7 @@ are *required* depends on the command: many reads take none
 and writes need structured args. zipmi does NOT synthesize them for you —
 it's a raw-data model (same as `zipmi raw`). To know what a given OEM
 command expects, read its handler / the per-command notes; the OpenBMC
-field guide at `~/phd/bmc/openbmc/OPENBMC_OEM_GUIDE.md` documents the byte
+OEM IPMI survey (upstream source review) documents the byte
 layouts that were recovered from source. A wrong-length payload comes back
 as a completion code (e.g. `0xC7` Request Data Length Invalid), not a crash.
 
@@ -335,7 +335,7 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
      not visible to static analysis. They keep their dispatch-table
      tag (DCMI / OEMIPMI / OSAOEM) so they remain fuzzing targets.
 
-  Reference dumps: `~/phd/bmc/idrac9-firmware/idrac9_addr_map.json`
+  Reference dumps (iDRAC9 firmware reverse-engineering notes): `idrac9_addr_map.json`
   (3235 dynsym entries), `idrac9_resolution_report.md` (per-entry
   addr-resolution breakdown), `idrac9_runtime_dispatch.json` (211
   R_ARM_GLOB_DAT pairs across libs), `idrac9_runtime_dispatch_report.md`.
@@ -380,13 +380,13 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   loads all nine at once (for pcap dissection); the manifest lives at
   `zipmi/scapy_ipmi/oem/openbmc.py` and adding a vendor is one `oem/<v>.py`
   module + one manifest row. Full source catalogue + per-cmd security notes:
-  `~/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md`.
+  OpenBMC OEM IPMI survey (upstream source review).
 
   **Note on OpenBMC RMCP+:** OpenBMC commonly offers **only cipher suite 17**
   (HMAC-SHA256 / SHA256-128 / AES-CBC-128) — use `-C 17`. Its Get Device ID
   advertises manufacturer-id 0 ("Unknown"), so IPMI alone won't tell you the
   vendor; fingerprint over Redfish (`GET /redfish/v1/Managers/bmc` → a manager
-  named `bmc` with `Oem.OpenBmc`). See `~/phd/bmc/openbmc/` for the live
+  named `bmc` with `Oem.OpenBmc`). See the OpenBMC OEM IPMI survey (upstream source review) for the live
   romulus walkthrough and the internet-survey prevalence study.
 
 ### IANA: why each vendor has a number

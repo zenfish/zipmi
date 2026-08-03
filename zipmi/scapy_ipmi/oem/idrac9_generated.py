@@ -4,7 +4,7 @@ zipmi.scapy_ipmi.oem.idrac9_generated — auto-generated handler catalog.
 DO NOT EDIT BY HAND. Regenerate with:
     python -m zipmi.parsers.idrac9_md > zipmi/scapy_ipmi/oem/idrac9_generated.py
 
-Source: /Volumes/yyy/phd/bmc/idrac9-firmware/IPMI_COMMAND_ENUMERATION.md
+Source: iDRAC9 firmware reverse-engineering notes
 Entries: 313
 """
 

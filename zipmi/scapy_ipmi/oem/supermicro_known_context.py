@@ -2,12 +2,12 @@
 
 Hand-curated entries from full audit of every Supermicro OEM cmd
 plus the std-IPMI cmds Dell ships handlers for. Sources:
-  - ~/phd/bmc/supermicro/smcipmitool-decompile/  (cfr decompile)
-  - ~/phd/bmc/supermicro/smcipmi-reversing/  (smcipmi RE notes)
-  - ~/phd/bmc/supermicro/sm-faq-cmds/notes.json  (58-FAQ corpus)
-  - ~/phd/bmc/supermicro/aten-alupdate-firmware-exfil.md
-  - ~/phd/bmc/supermicro/smcipmitool-deep-dive.md
-  - ~/phd/bmc/supermicro/smcipmitool-cmd-sequences.md
+  - Supermicro smcipmitool reverse-engineering notes  (cfr decompile)
+  - Supermicro smcipmitool reverse-engineering notes  (smcipmi RE notes)
+  - Supermicro OEM RE notes  (58-FAQ corpus)
+  - Supermicro OEM RE notes (AlUpdate firmware-exfil writeup)
+  - Supermicro smcipmitool reverse-engineering notes (deep-dive)
+  - Supermicro smcipmitool reverse-engineering notes (cmd sequences)
 
 Risk markers (in summary):
   *      interesting / non-obvious behaviour
@@ -146,7 +146,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (60, 86): {'summary': '★★ setSMBImageParameter: SMB cred / path setup. **Stages remote ISO — could mount attacker-controlled SMB share for boot.**', 'source': 'smcipmi RE + SMCIPMITool decompile + FAQ', 'name': 'setSMBImageParameter', 'reservation_from': 'startSMBImageMount (0x3c 0x55) returns the reservation ID'},
     (60, 87): {'summary': '★★ finalizeSMBImageMount: mount the SMB image.', 'source': 'smcipmi RE + SMCIPMITool decompile + FAQ', 'name': 'finalizeSMBImageMount', 'reservation_from': 'startSMBImageMount (0x3c 0x55) returns the reservation ID'},
     (62, 9): {'summary': 'getFirmwareBuild: Supermicro fw build number (ASCII).', 'source': 'smcipmi RE + SMCIPMITool decompile + FAQ', 'name': 'getFirmwareBuild'},
-    (62, 29): {'summary': '★★★ AlUpdate FwDumpStart: kick off `/bin/restore_file.sh 0` → `dd if=/dev/mtdblock5` (entire 32MB flash) → /tmp/dump_flash. **CRITICAL — live fw exfil over IPMI. Vendor-supported (no CVE), pre-auth via cipher-0 RMCP+.** Full writeup: ~/phd/bmc/supermicro/aten-alupdate-firmware-exfil.md.', 'source': 'smcipmi RE + SMCIPMITool decompile + FAQ', 'name': 'AlUpdate'},
+    (62, 29): {'summary': '★★★ AlUpdate FwDumpStart: kick off `/bin/restore_file.sh 0` → `dd if=/dev/mtdblock5` (entire 32MB flash) → /tmp/dump_flash. **CRITICAL — live fw exfil over IPMI. Vendor-supported (no CVE), pre-auth via cipher-0 RMCP+.** See the ATEN alupdate firmware-exfil analysis (internal RE).', 'source': 'smcipmi RE + SMCIPMITool decompile + FAQ', 'name': 'AlUpdate'},
     (62, 30): {'summary': '★★ AlUpdate FwDumpStatus: poll size; returns 0x01 + 24-bit BE size when ready.', 'source': 'smcipmi RE + SMCIPMITool decompile + FAQ', 'name': 'AlUpdate'},
     (62, 31): {'summary': '★★★ AlUpdate FwDumpRead: stream 55-byte chunks. ~600k iterations to drain whole flash.', 'source': 'smcipmi RE + SMCIPMITool decompile + FAQ', 'name': 'AlUpdate'},
 }

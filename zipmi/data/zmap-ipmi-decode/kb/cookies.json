@@ -1,0 +1,57 @@
+{
+  "language": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 8460,
+    "purity": 0.978
+  },
+  "langSetFlag": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 8459,
+    "purity": 0.978
+  },
+  "SSO": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 110,
+    "purity": 1.0
+  },
+  "AutoRefreshLock": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 162,
+    "purity": 0.944
+  },
+  "temp": {
+    "vendor": "unknown",
+    "count": 25,
+    "purity": 1.0
+  },
+  "NG_TRANSLATE_LANG_KEY": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 107,
+    "purity": 0.981
+  },
+  "PHPSESSID": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 46,
+    "purity": 0.957
+  },
+  "_appwebSessionId_": {
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "count": 173,
+    "purity": 0.983
+  },
+  "isSupportCookie": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 42,
+    "purity": 1.0
+  },
+  "tiny_language": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 78,
+    "purity": 1.0
+  },
+  "roundcube_sessid": {
+    "vendor": "unknown",
+    "count": 10,
+    "purity": 0.9
+  }
+}

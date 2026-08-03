@@ -5,7 +5,7 @@ DO NOT EDIT BY HAND. Regenerate with:
     python -m zipmi.parsers.idrac9_commands_json \
         > zipmi/scapy_ipmi/oem/idrac9_commands_generated.py
 
-Source: /Volumes/yyy/phd/bmc/dell/idrac9-firmware/idrac9-commands.json
+Source: iDRAC9 firmware reverse-engineering notes
 Entries: 276
 """
 

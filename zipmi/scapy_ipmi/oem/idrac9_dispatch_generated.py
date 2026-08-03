@@ -5,7 +5,7 @@ DO NOT EDIT BY HAND. Regenerate with:
     python -m zipmi.parsers.idrac9_dispatch_md \
         > zipmi/scapy_ipmi/oem/idrac9_dispatch_generated.py
 
-Source: /Volumes/yyy/phd/bmc/idrac9-firmware/idrac9-dispatch-tables.md
+Source: iDRAC9 firmware dispatch tables (internal RE)
 Entries: 293
 """
 

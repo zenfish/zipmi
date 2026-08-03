@@ -5,7 +5,7 @@ DO NOT EDIT BY HAND. Regenerate with:
     python -m zipmi.parsers.idrac10_commands_json \
         > zipmi/scapy_ipmi/oem/idrac10_commands_generated.py
 
-Source: /Volumes/yyy/phd/bmc/dell/idrac10-virtual/idrac10-commands.json
+Source: iDRAC10 command catalog JSON (bundled: zipmi/data/sources/)
 Entries: 446
 """
 

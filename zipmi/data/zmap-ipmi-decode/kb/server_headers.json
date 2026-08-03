@@ -1,0 +1,97 @@
+{
+  "Apache": {
+    "vendor": "Dell iDRAC",
+    "count": 1439,
+    "purity": 0.921
+  },
+  "XCC Web Server": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 367,
+    "purity": 1.0
+  },
+  "Mbedthis-Appweb/2.4.2": {
+    "vendor": "IBM/Lenovo IMM/IMM2",
+    "count": 339,
+    "purity": 0.805
+  },
+  "WebServer/1.0.0": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 46,
+    "purity": 1.0
+  },
+  "SonicWALL": {
+    "vendor": "unknown",
+    "count": 27,
+    "purity": 1.0
+  },
+  "nginx": {
+    "vendor": "Generic IPMI cert (likely AST/AMI)",
+    "count": 64,
+    "purity": 0.781
+  },
+  "Huawei-BMC": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 42,
+    "purity": 1.0
+  },
+  "iBMC": {
+    "vendor": "unknown",
+    "count": 14,
+    "purity": 0.857
+  },
+  "lighttpd/1.4.52": {
+    "vendor": "Lenovo XClarity (XCC)",
+    "count": 7,
+    "purity": 0.857
+  },
+  "Apache/2.4.37 (Unix) OpenSSL/1.0.2p-freebsd PHP/7.2.12": {
+    "vendor": "unknown",
+    "count": 8,
+    "purity": 1.0
+  },
+  "lighttpd/1.4.23": {
+    "vendor": "unknown",
+    "count": 11,
+    "purity": 0.727
+  },
+  "Embedthis-http": {
+    "vendor": "Dell iDRAC",
+    "count": 8,
+    "purity": 0.75
+  },
+  "Oracle-ILOM-Web-Server/1.0": {
+    "vendor": "HPE iLO",
+    "count": 17,
+    "purity": 0.824
+  },
+  "Apache/2": {
+    "vendor": "unknown",
+    "count": 16,
+    "purity": 1.0
+  },
+  "Lanner-Webs": {
+    "vendor": "BMC w/ lighttpd (Supermicro/AMI)",
+    "count": 13,
+    "purity": 1.0
+  },
+  "bmcweb": {
+    "vendor": "unknown",
+    "count": 12,
+    "purity": 1.0
+  },
+  "webserver": {
+    "vendor": "Cisco CIMC",
+    "count": 18,
+    "purity": 1.0
+  },
+  "Apache/2.4": {
+    "vendor": "Dell iDRAC",
+    "count": 18,
+    "purity": 1.0
+  },
+  "lighttpd/1.4.45": {
+    "vendor": "Huawei/xFusion iBMC",
+    "count": 5,
+    "purity": 0.8
+  }
+}

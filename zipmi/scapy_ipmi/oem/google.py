@@ -21,7 +21,7 @@ LOAD     `zipmi.load_vendor("google")`
 
 SOURCE   github.com/openbmc/google-ipmi-sys (main.cpp:53 registerOemHandler;
          commands.hpp enum SysOEMCommands). Catalogued in
-         /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.3.
+         OpenBMC OEM IPMI survey (upstream source review) §2.3.
 """
 
 from __future__ import annotations

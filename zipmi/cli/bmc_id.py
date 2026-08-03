@@ -78,8 +78,7 @@ EXIT     0 on at least one decoded probe; 1 on all probes failing.
 RELATED  examples/01_get_chan_auth_caps.py (single-probe baseline)
          zipmi/scapy_ipmi/commands.py
          zipmi/consts.py (IANA, BMC_GENERATION, guess_bmc_generation)
-         ~/phd/bmc/zmap-ipmi-decode/findings.md
-         ~/phd/bmc/zmap-ipmi-decode/tuple_map.json
+         zipmi/data/zmap-ipmi-decode/ (bundled fingerprint KB: tuple_map.json + kb/)
 """
 
 from __future__ import annotations
@@ -103,8 +102,11 @@ from zipmi.scapy_ipmi.commands import (
     GetSessionChallengeReq,
 )
 
-DEFAULT_TUPLE_MAP = Path.home() / "phd/bmc/zmap-ipmi-decode/tuple_map.json"
-DEFAULT_KB_DIR    = Path.home() / "phd/bmc/zmap-ipmi-decode/kb"
+# Bundled fingerprint KB (internet-wide IPMI scan analysis), shipped in the
+# package so `bmc-id` is self-contained. Override with --tuple-map / --kb-dir.
+_DATA_DIR         = Path(__file__).resolve().parent.parent / "data" / "zmap-ipmi-decode"
+DEFAULT_TUPLE_MAP = _DATA_DIR / "tuple_map.json"
+DEFAULT_KB_DIR    = _DATA_DIR / "kb"
 DEFAULT_TIMEOUT   = 3.0  # seconds per probe; iDRAC6 needs ~5
 
 
@@ -1565,8 +1567,8 @@ OPTIONS
   -a, --all-scanned   Emit every target including silent / no-response ones
   -n, --not-bmc       Emit non-BMC responders (honeypots, non-IPMI HTTPS)
                       (default emits only confirmed BMCs)
-  --tuple-map PATH    Custom tuple_map.json (default ~/phd/bmc/zmap-ipmi-decode/...)
-  --kb-dir PATH       Custom KB dir (default ~/phd/bmc/zmap-ipmi-decode/kb)
+  --tuple-map PATH    Custom tuple_map.json (default: bundled zipmi/data/zmap-ipmi-decode/)
+  --kb-dir PATH       Custom KB dir (default: bundled zipmi/data/zmap-ipmi-decode/kb)
   -h, --help          This help
 
 OUTPUT

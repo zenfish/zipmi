@@ -2,8 +2,8 @@
 
 Hand-curated entries from full audit of every iDRAC9 OEM cmd plus
 the std-IPMI cmds iDRAC9 ships handlers for. Sources:
-  - ~/phd/bmc/idrac9-firmware/IPMI_COMMAND_ENUMERATION.md
-  - ~/phd/bmc/idrac9-firmware/idrac9-dispatch-tables.md
+  - iDRAC9 IPMI command enumeration (internal RE)
+  - iDRAC9 firmware dispatch tables (internal RE)
   - addr-resolved + R_ARM_GLOB_DAT runtime-dispatch RE
   - iDRAC6 audit cross-reference (carried-over cmds)
 
@@ -184,7 +184,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (46, 128): {'summary': 'getBootGuardVersion: Intel Boot Guard fw version.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'getBootGuardVersion'},
     (46, 129): {'summary': 'getBootGuardCapability: Boot Guard mode (Verified / Measured / Both).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'getBootGuardCapability'},
     (46, 130): {'summary': '★ getBootGuardHealth: tick count of Boot Guard verification failures. Trust-state probe.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'getBootGuardHealth'},
-    (46, 168): {'summary': 'Dual-dispatch: getImageInventory (Intel ME fw-image manifest, Intel IANA prefix) OR ★★ CmdOEMSupportAssist admin-priv path (Dell IANA — runtime-routed). See ~/phd/bmc/dell/idrac-supportassist-export.md.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DualDispatch'},
+    (46, 168): {'summary': 'Dual-dispatch: getImageInventory (Intel ME fw-image manifest, Intel IANA prefix) OR ★★ CmdOEMSupportAssist admin-priv path (Dell IANA — runtime-routed). See iDRAC SupportAssist export analysis (internal RE).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DualDispatch'},
     (46, 183): {'summary': '★ Intel NM extended cmd (RE pending).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'IntelNMExtendedCmd'},
     (46, 186): {'summary': '★ Intel NM extended cmd (RE pending).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'IntelNMExtendedCmd'},
     (46, 192): {'summary': '★★ enableDisableNodeManagerPolicyControl: master toggle for Node Manager policies.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'enableDisableNodeManagerPolicyControl'},
@@ -199,7 +199,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (46, 201): {'summary': 'getNodeManagerCapabilities.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'getNodeManagerCapabilities'},
     (46, 202): {'summary': 'getNodeManagerVersion: Node Manager / ME firmware version.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'getNodeManagerVersion'},
     (46, 203): {'summary': '★★ setNodeManagerPowerDrawRange: min/max per-domain power-draw (W). Bound the policy authority.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'setNodeManagerPowerDrawRange'},
-    (46, 204): {'summary': '★★★ CmdOSAOEMCmdHandler: Avocent OSA dispatcher (IANA 11102 prefix 0x5E 0x2B 0x00 — NOT Dell IANA). 9 sub-cmds: GetFWVersion/ID, SensorTest, **SetSysGUID**, **SetBMCSA**, **CmdResetToDefaultOSA** (alt factory-reset DESTRUCTIVE). Full writeup: ~/phd/bmc/dell/dell-cmd-deep-dives.md.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOSAOEMCmdHandler'},
+    (46, 204): {'summary': '★★★ CmdOSAOEMCmdHandler: Avocent OSA dispatcher (IANA 11102 prefix 0x5E 0x2B 0x00 — NOT Dell IANA). 9 sub-cmds: GetFWVersion/ID, SensorTest, **SetSysGUID**, **SetBMCSA**, **CmdResetToDefaultOSA** (alt factory-reset DESTRUCTIVE). Full writeup: Dell iDRAC OEM command deep-dives (internal RE).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOSAOEMCmdHandler'},
     (46, 206): {'summary': '★ setNodeManagerAlertDestination: SNMP/PEF alert dest.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'setNodeManagerAlertDestination'},
     (46, 207): {'summary': 'getNodeManagerAlertDestination.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'getNodeManagerAlertDestination'},
     (46, 208): {'summary': '★★ setTotalPowerBudgetRequest: rack/chassis-level total power cap.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'setTotalPowerBudgetRequest'},
@@ -275,7 +275,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (48, 142): {'summary': 'DellCmdVMediaStatus: virtual-media mount status.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdVMediaStatus'},
     (48, 143): {'summary': 'DellCmdServerPwrConsumption.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdServerPwrConsumption'},
     (48, 144): {'summary': 'DellCmdGetIMCStatusRegister: read IMC (Integrated Management Controller) status reg.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdGetIMCStatusRegister'},
-    (48, 145): {'summary': '★ DellCmdIMCFirmwareUpdate: validator/handshake stub at 0x446589f4 in libmodular.so. Checks request byte0 high-nibble==7 + byte7==0x25 (magic matches dispatch flags). **NOT a fw write — returns CC=0 or 0xC1/0xC7. Real BMC fw-update path is host-side via Redfish/RACADM/DUP, not via IPMI LAN.** Full writeup: ~/phd/bmc/dell/idrac-imc-firmware-update.md.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdIMCFirmwareUpdate'},
+    (48, 145): {'summary': '★ DellCmdIMCFirmwareUpdate: validator/handshake stub at 0x446589f4 in libmodular.so. Checks request byte0 high-nibble==7 + byte7==0x25 (magic matches dispatch flags). **NOT a fw write — returns CC=0 or 0xC1/0xC7. Real BMC fw-update path is host-side via Redfish/RACADM/DUP, not via IPMI LAN.** Full writeup: iDRAC IMC firmware-update path analysis (internal RE).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdIMCFirmwareUpdate'},
     (48, 146): {'summary': 'DellCmdEDIDInfo: read display EDID via virtual-KVM path.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdEDIDInfo'},
     (48, 147): {'summary': 'DellCmdLCDReadFromStaging: LCD-staging-area read.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdLCDReadFromStaging'},
     (48, 148): {'summary': 'DellCmdLCDReadFromQueue: LCD-queue read.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdLCDReadFromQueue'},
@@ -290,11 +290,11 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (48, 159): {'summary': '★★★ DellCmdSpecialACCycle: special AC-cycle (deeper than std power cycle — may discharge caps, full-power-rail-cycle).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdSpecialACCycle'},
     (48, 160): {'summary': 'Get Soft Lock Status — Dell config-write-protect mode.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'Get'},
     (48, 161): {'summary': '★ CmdOEMPOSTMASERAccess: MASER access during host-POST.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMPOSTMASERAccess'},
-    (48, 162): {'summary': '★★★ CmdOEMMASERPartitionAccess: direct R/W to MASER eMMC partitions. **HOST-ONLY (KCS-gated; same trust-boundary as BackupRestore — ANTI-LAN, NOT anti-host-root).** 26+ worker functions: Attach/Detach/ChangeAccessType, Create/Delete dynamic partitions, SECUPD multi-step authenticated write, LCLWipe (★★★ anti-forensic), Set/GetUEFIFlag (★★ boot-mode toggle). Sub-byte switch on byte 8 (range 0x00-0x27). Full writeup: ~/phd/bmc/dell/idrac-maser-partition-access.md.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMMASERPartitionAccess'},
+    (48, 162): {'summary': '★★★ CmdOEMMASERPartitionAccess: direct R/W to MASER eMMC partitions. **HOST-ONLY (KCS-gated; same trust-boundary as BackupRestore — ANTI-LAN, NOT anti-host-root).** 26+ worker functions: Attach/Detach/ChangeAccessType, Create/Delete dynamic partitions, SECUPD multi-step authenticated write, LCLWipe (★★★ anti-forensic), Set/GetUEFIFlag (★★ boot-mode toggle). Sub-byte switch on byte 8 (range 0x00-0x27). Full writeup: iDRAC MASER partition-access analysis (internal RE).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMMASERPartitionAccess'},
     (48, 163): {'summary': 'CmdOEMRemoteEnablement: zero-touch provisioning.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMRemoteEnablement'},
     (48, 164): {'summary': 'CmdOEMvFlash.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMvFlash'},
     (48, 165): {'summary': '★★★ CmdOEMDellFactory: factory provisioning. DESTRUCTIVE.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMDellFactory'},
-    (48, 166): {'summary': "★★★ CmdOEMBackupRestore: BMC NVRAM backup/restore dispatcher. **HOST-ONLY (IsMsgFromSystemInterface gate — LAN can't reach).** Sub-cmds 0x00-0x0B select operation (Populate/Send Backup, Populate/Send Restore, Query/Cancel/SetJobStatus). Backup blobs land on MASER eMMC. Restore replays user table + SSL certs + network cfg + RMCP+ keys — backdoor-staging primitive that survives all reset levels. Full writeup: ~/phd/bmc/dell/idrac-backuprestore-jstore.md.", 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBackupRestore'},
+    (48, 166): {'summary': "★★★ CmdOEMBackupRestore: BMC NVRAM backup/restore dispatcher. **HOST-ONLY (IsMsgFromSystemInterface gate — LAN can't reach).** Sub-cmds 0x00-0x0B select operation (Populate/Send Backup, Populate/Send Restore, Query/Cancel/SetJobStatus). Backup blobs land on MASER eMMC. Restore replays user table + SSL certs + network cfg + RMCP+ keys — backdoor-staging primitive that survives all reset levels. Full writeup: iDRAC backup/restore (jstore) analysis (internal RE).", 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBackupRestore'},
     (48, 166, 0): {'summary': 'CmdOEMBnRPopulateBackupCmd: stage Backup job spec.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBnRPopulateBackupCmd'},
     (48, 166, 1): {'summary': '★★ CmdOEMBnRSendBackupCmd: kick off backup → write config snapshot to MASER eMMC.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBnRSendBackupCmd'},
     (48, 166, 2): {'summary': 'CmdOEMBnRPopulateRestoreCmd: stage Restore job spec.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBnRPopulateRestoreCmd'},
@@ -304,8 +304,8 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (48, 166, 6): {'summary': '★ CmdOEMBnRCancelCmd: cancel pending backup/restore (User-priv → DoS primitive against legit backup job).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBnRCancelCmd'},
     (48, 166, 7): {'summary': '★★ CmdOEMBnRSetJobStatusCmd: write into job state machine. **Job-status-forgery candidate — RE pending priv-check confirmation.**', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBnRSetJobStatusCmd'},
     (48, 166, 10): {'summary': 'CmdOEMBnRGetAutoFeatureStatus: get auto-backup feature state.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMBnRGetAutoFeatureStatus'},
-    (48, 167): {'summary': '★★★ CmdOEMToolSet: Dell ToolSet OEM dispatcher. **Embeds System Erase (full platform wipe — drives, BIOS NVRAM, certs, iDRAC config, LCL).** 9 sub-workers: Begin/Update/End-Marker, ExposeExecs/HideExecs (mount Dell-internal binaries to host), CollectData, GetDataInfo/GetStatus, **TSSystemErase** ★★★. HOST-ONLY KCS gate (anti-LAN, NOT anti-host-root). Full writeup: ~/phd/bmc/dell/idrac-toolset-systemerase.md.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMToolSet'},
-    (48, 168): {'summary': "★★ CmdOEMSupportAssist: TSR (Tech Support Report) export dispatcher. **HOST-ONLY (IsMsgFromSystemInterface gate — LAN can't reach).** Sub-cmds 0x00-0x10 select operation. Upload destination is configurable via iDRAC attributes (DefaultIPAddress / DefaultProtocol / DefaultUserName) — one admin write = persistent exfil to attacker-controlled share. ★★★ if chained with iSM host-side hijack. Full writeup: ~/phd/bmc/dell/idrac-supportassist-export.md.", 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMSupportAssist'},
+    (48, 167): {'summary': '★★★ CmdOEMToolSet: Dell ToolSet OEM dispatcher. **Embeds System Erase (full platform wipe — drives, BIOS NVRAM, certs, iDRAC config, LCL).** 9 sub-workers: Begin/Update/End-Marker, ExposeExecs/HideExecs (mount Dell-internal binaries to host), CollectData, GetDataInfo/GetStatus, **TSSystemErase** ★★★. HOST-ONLY KCS gate (anti-LAN, NOT anti-host-root). Full writeup: iDRAC ToolSet system-erase analysis (internal RE).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMToolSet'},
+    (48, 168): {'summary': "★★ CmdOEMSupportAssist: TSR (Tech Support Report) export dispatcher. **HOST-ONLY (IsMsgFromSystemInterface gate — LAN can't reach).** Sub-cmds 0x00-0x10 select operation. Upload destination is configurable via iDRAC attributes (DefaultIPAddress / DefaultProtocol / DefaultUserName) — one admin write = persistent exfil to attacker-controlled share. ★★★ if chained with iSM host-side hijack. Full writeup: iDRAC SupportAssist export analysis (internal RE).", 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMSupportAssist'},
     (48, 168, 0): {'summary': 'CmdOEMSupportAssist sub 0x00: NativeOSCollection (host-OS-side TSR collection trigger).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMSupportAssistSub0x00'},
     (48, 168, 1): {'summary': 'CmdOEMSupportAssist sub 0x01: collection Started signal (iSM informs BMC).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMSupportAssistSub0x01'},
     (48, 168, 2): {'summary': 'CmdOEMSupportAssist sub 0x02: collection Ended signal.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'CmdOEMSupportAssistSub0x02'},
@@ -338,7 +338,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (48, 197): {'summary': 'DellDCSGetChassisEncPwrCpng.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSGetChassisEncPwrCpng'},
     (48, 198): {'summary': 'DellDCSGetChassisLEDStatus.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSGetChassisLEDStatus'},
     (48, 199): {'summary': '★ DellDCSSetPSUConfig: chassis PSU config.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSSetPSUConfig'},
-    (48, 200): {'summary': 'SubCmdHandler dispatch root for cmd 0xC8 — Dell Compute Sled (DCS, modular blade chassis). 21 sub-cmds. Full table: ~/phd/bmc/idrac9-firmware/idrac9-subcmdhandler-dispatch.md.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'SubCmdHandler'},
+    (48, 200): {'summary': 'SubCmdHandler dispatch root for cmd 0xC8 — Dell Compute Sled (DCS, modular blade chassis). 21 sub-cmds. Full table: iDRAC9 sub-command dispatch table (internal RE).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'SubCmdHandler'},
     (48, 200, 2): {'summary': 'DellDCSSubCmdThermalProperties: DCS sled thermal info.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSSubCmdThermalProperties'},
     (48, 200, 3): {'summary': 'DellDCSSubCmdRFSystemInfo: Redfish system info read.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSSubCmdRFSystemInfo'},
     (48, 200, 4): {'summary': 'DellDCSSubCmdRFProcInfo: Redfish proc info.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSSubCmdRFProcInfo'},
@@ -361,7 +361,7 @@ KNOWN_CONTEXT: dict[tuple, dict] = {
     (48, 200, 31): {'summary': '★ DellDCSSetFansMaxPWM: cap fans to max PWM. **Thermal-attack vector when combined with shutdown-threshold raise (NetFn 0x04 0x26) — defeat thermal protection.**', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSSetFansMaxPWM'},
     (48, 200, 32): {'summary': 'DellDCSGetSledICL: sled inter-chassis link info.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSGetSledICL'},
     (48, 201): {'summary': '★★ DellCmdBladeVirtualMAC: assign virtual MAC to a blade (network identity primitive).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdBladeVirtualMAC'},
-    (48, 202): {'summary': '★★★ DelleKmsCmdHlder: Dell eKMS dispatcher. Routes IPMI to KMIP client (libskmip.so) for SED key mgmt. **HIGH attack value if chassis runs SEDs+eKMS.** Full writeup: ~/phd/bmc/dell/dell-cmd-deep-dives.md.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DelleKmsCmdHlder'},
+    (48, 202): {'summary': '★★★ DelleKmsCmdHlder: Dell eKMS dispatcher. Routes IPMI to KMIP client (libskmip.so) for SED key mgmt. **HIGH attack value if chassis runs SEDs+eKMS.** Full writeup: Dell iDRAC OEM command deep-dives (internal RE).', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DelleKmsCmdHlder'},
     (48, 203): {'summary': 'DellCmdBladeChassisInfo.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellCmdBladeChassisInfo'},
     (48, 206): {'summary': 'SubCmdHandler dispatch root for cmd 0xCE — DCS Hot-Swap-Controller (HSC). 1 sub-cmd: 0x00 = SetHSCFailure.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'SubCmdHandler'},
     (48, 206, 0): {'summary': '★★ DellDCSSetHSCFailure: fault-inject hot-swap-controller failure event. Forensic / fault-evasion primitive.', 'source': 'iDRAC9 RE doc + Dell', 'name': 'DellDCSSetHSCFailure'},

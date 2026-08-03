@@ -5,7 +5,7 @@ DO NOT EDIT BY HAND. Regenerate with:
     python -m zipmi.parsers.idrac10_dispatch_md \
         > zipmi/scapy_ipmi/oem/idrac10_dispatch_generated.py
 
-Source: /Volumes/yyy/phd/bmc/dell/idrac10-virtual/idrac10-dispatch-tables.md
+Source: iDRAC10 firmware reverse-engineering notes
 Rows parsed: 429
 Unique (netfn, cmd, handler): 383
 """

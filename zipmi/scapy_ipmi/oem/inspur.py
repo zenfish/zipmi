@@ -13,7 +13,7 @@ LOAD     `zipmi.load_vendor("inspur")`
 SOURCE   github.com/openbmc/inspur-ipmi-oem (src/inspur_oem.cpp:175,
          NETFN_OEM_INSPUR=0x3C, CMD_OEM_ASSET_INFO=0x01). IANA 37945 is
          from-memory (not on the wire). Catalogued in
-         /Users/zen/phd/bmc/openbmc/OPENBMC_OEM_IPMI.md §2.6.
+         the OpenBMC OEM IPMI survey (upstream source review) §2.6.
 """
 
 from __future__ import annotations

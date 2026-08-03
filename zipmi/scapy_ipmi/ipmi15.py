@@ -28,7 +28,7 @@ TARGET   IPMI 1.5 spec §6.12 (IPMB), §13.6 (LAN session), §13.8 (IPMB-over-LA
 
 BUILD    Imported automatically by `import zipmi`.
 
-RELATED  /Users/zen/phd/dox/specs/IPMI-1.5.pdf §13.6, §13.8
+RELATED  IPMI v1.5 specification §13.6, §13.8
          rmcp.py, commands.py
 """
 

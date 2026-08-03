@@ -23,7 +23,7 @@ SUCCESS  Round-trip stable on every captured pcap; bytewise diff zero
 TARGET   IPMI 2.0 §13.17 (Open Session), §13.20 (RAKP), §13.28 (cipher
          suites).
 
-RELATED  ipmi20.py, crypto.py, /Users/zen/phd/dox/specs/IPMI2.0-markup.pdf
+RELATED  ipmi20.py, crypto.py, IPMI v2.0 specification
 """
 
 from __future__ import annotations
