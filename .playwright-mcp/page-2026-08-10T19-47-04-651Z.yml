@@ -1,0 +1,90 @@
+- generic [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e4]: 
+    - heading "zipmi" [level=1] [ref=f1e6]
+  - paragraph [ref=f1e7]: Scapy-based IPMI library, CLI, and virtual BMC for security research.
+  - group [ref=f1e8]:
+    - heading "What" [level=2] [ref=f1e10]
+    - paragraph [ref=f1e11]: An ipmitool-like thing that is also a pure-Python IPMI stack built as Scapy layers. Lets you dissect, build, fuzz, and replay IPMI traffic with full byte-level visibility — every field of every packet is a real Scapy field, not an opaque blob.
+    - paragraph [ref=f1e12]:
+      - text: It's
+      - emphasis [ref=f1e13]: somewhat
+      - text: compatible with the basics of
+      - code [ref=f1e14]: ipmitool
+      - text: (most definitely not all!), so things like this should work -
+    - code [ref=f1e16]: "# print out the details of the default channel zipmi -H 10.0.0.1 -U root -P calvin lan print # some potentially interesting new things zipmi oem"
+    - paragraph [ref=f1e17]: Type "zipmi" or "zipmi --help" for other things it can do.
+    - heading "Other components:" [level=3] [ref=f1e18]
+    - list [ref=f1e19]:
+      - listitem [ref=f1e20]:
+        - code [ref=f1e21]: zipmi.scapy_ipmi
+        - text: — Scapy
+        - code [ref=f1e22]: Packet
+        - text: classes for RMCP, ASF (DSP0136), IPMI 1.5 session/message, IPMI 2.0 RMCP+, RAKP 1–4, and per-NetFn command payloads.
+      - listitem [ref=f1e23]:
+        - code [ref=f1e24]: "zipmi.scapy_ipmi.oem.{dell, supermicro, idrac9_generated, dell_generated}"
+        - text: "— vendor OEM dispatch tables ingested from prior firmware RE: 192 Dell iDRAC6 entries (full dispatch) + 313 iDRAC9 handlers (name catalog) + Supermicro X11 OEM cmd/sub-cmd map + shell-injection attack primitives."
+      - listitem [ref=f1e25]:
+        - code [ref=f1e26]: zipmi.attacks.dell
+        - text: — named, callable Dell attack primitives (PROCHOT throttle, power cap, sensor threshold tamper, racadm extended config) with destructive=True gating.
+      - listitem [ref=f1e27]:
+        - code [ref=f1e28]: zipmi.core
+        - text: — high-level
+        - code [ref=f1e29]: Session
+        - text: /
+        - code [ref=f1e30]: Transport
+        - text: API.
+      - listitem [ref=f1e31]:
+        - code [ref=f1e32]: zipmi.cli
+        - text: —
+        - code [ref=f1e33]: zipmi
+        - text: command-line tool covering the common ipmitool verbs plus extras (
+        - code [ref=f1e34]: scan
+        - text: ","
+        - code [ref=f1e35]: dump
+        - text: ","
+        - code [ref=f1e36]: replay
+        - text: ","
+        - code [ref=f1e37]: diff
+        - text: ","
+        - code [ref=f1e38]: oem
+        - text: ","
+        - code [ref=f1e39]: vbmc
+        - text: ","
+        - code [ref=f1e40]: fuzz
+        - text: ).
+      - listitem [ref=f1e41]:
+        - code [ref=f1e42]: zipmi.vbmc
+        - text: — minimal virtual BMC server that answers IPMI commands.
+      - listitem [ref=f1e43]:
+        - code [ref=f1e44]: zipmi.fuzz
+        - text: — simple fuzzers built on top of the layer hierarchy and the vbmc.
+      - listitem [ref=f1e45]:
+        - code [ref=f1e46]: "zipmi.parsers.{md_table, idrac9_md}"
+        - text: — codegen scripts that ingest the BMC research markdown into Python data + markdown docs.
+  - group [ref=f1e47]:
+    - heading "Why" [level=2] [ref=f1e49]
+  - group [ref=f1e50]:
+    - heading "Targets" [level=2] [ref=f1e52]
+  - group [ref=f1e53]:
+    - heading "Install" [level=2] [ref=f1e55]
+  - group [ref=f1e56]:
+    - heading "Quickstart" [level=2] [ref=f1e58]
+    - code [ref=f1e60]: "export ZIPMI_TARGET=192.168.0.23 ZIPMI_USER=root ZIPMI_PASS=calvin # Spec-parity verbs zipmi mc info zipmi -I lanplus -C 3 mc info # IPMI 2.0 RMCP+ zipmi chassis status zipmi sel list zipmi sensor list zipmi user list zipmi raw 0x06 0x01 # Security probes zipmi scan asf-ping zipmi scan auth-caps zipmi scan cipher-zero zipmi fuzz sweep --netfn 0x30 -v # Dell OEM cmd surface, named # Sessionless mode — omit -U/-P (and unset ZIPMI_USER/ZIPMI_PASS) and # every send goes out auth_type=0, session_id=0. The BMC decides what # to answer. zipmi makes no assumption. unset ZIPMI_USER ZIPMI_PASS zipmi -H 192.168.0.23 raw 0x06 0x38 0x01 0x04 # Get Chan Auth Caps zipmi sessionless # list pre-session cmds # In-process target for tests / fuzzing / CI zipmi vbmc serve --vpersona dell_idrac6 --vport 6231 & zipmi -H 127.0.0.1 -p 6231 mc info"
+  - group [ref=f1e61]:
+    - heading "zipmi verbs" [level=2] [ref=f1e63]
+  - group [ref=f1e64]:
+    - heading "bmc-id" [level=2] [ref=f1e66]
+  - group [ref=f1e67]:
+    - heading "OEMs" [level=2] [ref=f1e69]
+  - group [ref=f1e70]:
+    - heading "Group Extension cmds (DCMI, PICMG, HPM, ...)" [level=2] [ref=f1e72]
+  - group [ref=f1e73]:
+    - heading "Repo Layout" [level=2] [ref=f1e75]
+  - group [ref=f1e76]:
+    - heading "Status" [level=2] [ref=f1e78]
+  - heading "License" [level=1] [ref=f1e79]
+  - paragraph [ref=f1e80]:
+    - text: MIT.
+    - code [ref=f1e81]: third_party/pyghmi
+    - text: (when cloned) is Apache-2.0 — used as algorithmic reference only, no code copy. Per-file headers cite pyghmi where relevant.

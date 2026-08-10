@@ -1,0 +1,34 @@
+- generic [ref=e2]:
+  - generic [ref=e7]:
+    - heading "House Look Demo" [level=1] [ref=e8]
+    - paragraph [ref=e9]: Demo of the house Tailwind converter
+  - paragraph [ref=e10]:
+    - text: Some
+    - strong [ref=e11]: bold
+    - text: and a link to
+    - link "sibling notes" [ref=e12] [cursor=pointer]:
+      - /url: sibling.html
+    - text: ", plus an"
+    - link "external" [ref=e13] [cursor=pointer]:
+      - /url: https://example.com
+    - text: .
+  - heading "Table" [level=2] [ref=e14]
+  - table [ref=e15]:
+    - rowgroup [ref=e16]:
+      - row [ref=e17]:
+        - columnheader "Vendor" [ref=e18]
+        - columnheader "SoC" [ref=e19]
+        - columnheader "Basis" [ref=e20]
+    - rowgroup [ref=e21]:
+      - row [ref=e22]:
+        - cell "Dell" [ref=e23]
+        - cell "Nuvoton" [ref=e24]
+        - cell "held" [ref=e25]
+      - row [ref=e26]:
+        - cell "SMC" [ref=e27]
+        - cell "ASPEED" [ref=e28]
+        - cell "public" [ref=e29]
+  - heading "Code" [level=2] [ref=e30]
+  - code [ref=e32]: "def hi(): print(\"hello\")"
+  - blockquote [ref=e33]:
+    - paragraph [ref=e34]: A blockquote for good measure.

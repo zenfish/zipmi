@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- zmd2html:auto -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>zipmi</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<style type="text/tailwindcss">
+  @layer components {
+    h2 { @apply text-xl font-semibold text-slate-800 mt-10 mb-3 border-b border-slate-300 pb-1; }
+    h3 { @apply text-base font-semibold text-slate-700 mt-6 mb-1; }
+    h4 { @apply text-sm font-semibold text-slate-600 mt-4 mb-1; }
+    p  { @apply my-3 leading-relaxed text-slate-700; }
+    ul { @apply list-disc pl-6 my-3 space-y-1 text-slate-700; }
+    ol { @apply list-decimal pl-6 my-3 space-y-1 text-slate-700; }
+    li > ul, li > ol { @apply my-1; }
+    blockquote { @apply border-l-4 border-slate-400 bg-slate-50 pl-4 pr-3 py-2 my-3 text-slate-600 italic; }
+    table { @apply w-full text-sm border-collapse my-4 border-2 border-slate-400 shadow-sm; }
+    th { @apply bg-slate-700 text-white text-left font-semibold px-3 py-2 align-bottom border border-slate-500; }
+    td { @apply border border-slate-300 px-3 py-2 align-top text-slate-700; }
+    tbody tr:nth-child(odd)  { @apply bg-white; }
+    tbody tr:nth-child(even) { @apply bg-slate-50; }
+    code { @apply bg-slate-100 text-slate-800 rounded px-1 text-[0.85em]; }
+    pre { @apply bg-slate-900 text-slate-100 rounded-lg p-3 my-3 overflow-x-auto text-xs; }
+    pre code { @apply bg-transparent text-slate-100 p-0; }
+    a { @apply text-blue-700 underline hover:no-underline; }
+    hr { @apply my-6 border-slate-300; }
+    img { @apply max-w-full rounded; }
+  }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+<div class="max-w-5xl mx-auto px-6 md:px-8 py-10 bg-white shadow-lg my-6 rounded-lg">
+<div class="-mx-6 md:-mx-8 -mt-10 mb-7 px-6 md:px-8 py-5 bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 rounded-t-lg flex items-center gap-3">
+  <i class="fa-solid fa-file-lines text-2xl md:text-3xl text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.75)]"></i>
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-cyan-300 via-sky-400 to-fuchsia-400 bg-clip-text text-transparent">zipmi</h1>
+  </div>
+</div>
+
+<p>Scapy-based IPMI library, CLI, and virtual BMC for security
+research.</p>
+<details open>
+<summary><h2>What</h2></summary>
+
+<p>An ipmitool-like thing that is also a pure-Python IPMI stack built as
+Scapy layers. Lets you dissect, build, fuzz, and replay IPMI traffic
+with full byte-level visibility — every field of every packet is a real
+Scapy field, not an opaque blob.</p>
+<p>It's <em>somewhat</em> compatible with the basics of
+<code>ipmitool</code> (most definitely not all!), so things like this
+should work -</p>
+<pre><code># print out the details of the default channel
+zipmi -H 10.0.0.1 -U root -P calvin lan print
+
+# some potentially interesting new things
+zipmi oem</code></pre>
+<p>Type "zipmi" or "zipmi --help" for other things it can do.</p>
+<h3 id="other-components">Other components:</h3>
+<ul>
+<li><code>zipmi.scapy_ipmi</code> — Scapy <code>Packet</code> classes
+for RMCP, ASF (DSP0136), IPMI 1.5 session/message, IPMI 2.0 RMCP+, RAKP
+1–4, and per-NetFn command payloads.</li>
+<li><code>zipmi.scapy_ipmi.oem.{dell, supermicro, idrac9_generated, dell_generated}</code>
+— vendor OEM dispatch tables ingested from prior firmware RE: 192 Dell
+iDRAC6 entries (full dispatch) + 313 iDRAC9 handlers (name catalog) +
+Supermicro X11 OEM cmd/sub-cmd map + shell-injection attack
+primitives.</li>
+<li><code>zipmi.attacks.dell</code> — named, callable Dell attack
+primitives (PROCHOT throttle, power cap, sensor threshold tamper, racadm
+extended config) with destructive=True gating.</li>
+<li><code>zipmi.core</code> — high-level <code>Session</code> /
+<code>Transport</code> API.</li>
+<li><code>zipmi.cli</code> — <code>zipmi</code> command-line tool
+covering the common ipmitool verbs plus extras (<code>scan</code>,
+<code>dump</code>, <code>replay</code>, <code>diff</code>,
+<code>oem</code>, <code>vbmc</code>, <code>fuzz</code>).</li>
+<li><code>zipmi.vbmc</code> — minimal virtual BMC server that answers
+IPMI commands.</li>
+<li><code>zipmi.fuzz</code> — simple fuzzers built on top of the layer
+hierarchy and the vbmc.</li>
+<li><code>zipmi.parsers.{md_table, idrac9_md}</code> — codegen scripts
+that ingest the BMC research markdown into Python data + markdown
+docs.</li>
+</ul>
+</details>
+
+<details>
+<summary><h2>Why</h2></summary>
+
+<p><code>freeipmi</code>/<code>ipmitool</code>/<code>ipmiutil</code>/etc.
+are great oracles and much more expansive in their scope but are a bit
+opaque/unweildy/difficult to change for my research. <code>pyghmi</code>
+is a a wonderful library but its packet format lives in hand-rolled
+bytes. Neither makes it easy to drop into the middle of a session and
+ask "what does this byte mean?" or "what happens if I corrupt field X?".
+Leveraging scapy helps give various interesting capabilities once all
+the work is done.</p>
+</details>
+
+<details>
+<summary><h2>Targets</h2></summary>
+
+<p>(From my museum :))</p>
+<ul>
+<li>Dell PowerEdge T710 / iDRAC6 — IPMI 1.5, NetFn 0x30 OEM (Dell IANA
+674)</li>
+<li>Supermicro X11SSZ-QF — IPMI 2.0 RMCP+, NetFn 0x30 OEM (SM IANA
+10876)</li>
+<li>OpenBMC (Phosphor) romulus / AST2500 — IPMI 2.0 RMCP+ cipher-17 only
+(HMAC-SHA256 / AES-CBC-128). The open BMC stack behind
+Meta/Google/Intel/ IBM/Ampere/Nvidia fleets. Nine vendor OEM tables (see
+OEMs section).</li>
+</ul>
+</details>
+
+<details>
+<summary><h2>Install</h2></summary>
+
+<p>Recommended — clone, then:</p>
+<pre class="bash"><code>git clone https://github.com/zenfish/zipmi.git &amp;&amp; cd zipmi
+make install                 # make dev for editable + dev extras</code></pre>
+<p>You get <strong>both</strong> the <code>zipmi</code> /
+<code>bmc-id</code> commands on <code>$PATH</code> <strong>and</strong>
+a working <code>import zipmi</code> in your own scripts
+(<code>python myscript.py</code>, no venv to activate).
+<code>make install</code> runs a normal <code>pip install .</code>; if
+your Python is "externally-managed" (Homebrew, Debian — PEP 668) and
+refuses the global write, it automatically falls back to a per-user
+install instead of erroring. Override the interpreter with
+<code>make install PY=python3.12</code>.</p>
+<pre class="bash"><code>make                         # (default) build wheel into dist/, NO install
+git pull &amp;&amp; make install     # update after pulling
+make uninstall               # drains every layer (global/--user/pipx)
+make clean                   # nuke build cruft AND .venv (keeps .git)</code></pre>
+<p>Bare <code>make</code> only <strong>builds</strong> (sdist + wheel
+into <code>dist/</code>) — it installs nothing. Use
+<code>make install</code> to actually install.</p>
+<p><code>make uninstall</code> reuses the same interpreter, so you never
+have to guess which Python the install used.</p>
+<p><code>make clean</code> blows away <strong>everything
+regeneratable</strong> — <code>build/</code>, <code>dist/</code>,
+<code>*.egg-info</code>, <code>__pycache__</code>, <code>*.pyc</code>,
+tool caches, and <strong><code>.venv</code>/<code>venv</code></strong>.
+Only <code>.git</code> survives. Rebuild a dev env with
+<code>make dev</code> afterward. (No venv? Skip <code>make dev</code>
+entirely — <code>make install</code> is venv-free.)</p>
+<blockquote>
+<p>No <code>make</code>? The fallback is just the two lines it wraps:
+<code>python3 -m pip install .</code> (add
+<code>--user --break-system-packages</code> if the global write is
+refused) and <code>python3 -m pip uninstall zipmi</code>.</p>
+</blockquote>
+<details><summary>Alternative: pipx (CLI only — <code>import zipmi</code> will NOT work)</summary>
+
+<pre class="bash"><code>pipx install /path/to/zipmi          # zipmi + bmc-id on PATH, isolated</code></pre>
+<p>pipx sandboxes the package in its own venv, so the
+<code>zipmi</code>/<code>bmc-id</code> commands work but your own
+scripts <strong>cannot</strong> <code>import zipmi</code> from a system
+interpreter. Fine if you only use the CLI; use <code>./install.sh</code>
+if you write Python against the library.</p>
+</details>
+
+<h3 id="dev-mode-venv-based">Dev mode (venv-based)</h3>
+<p>For contributing — runs tests, regenerates docs, exercises hooks:</p>
+<pre class="bash"><code>python3.11 -m venv .venv &amp;&amp; . .venv/bin/activate
+pip install -e &#39;.[dev]&#39;
+./scripts/install-hooks.sh         # wire pre-commit doc/code symmetry guard</code></pre>
+<blockquote>
+<p><strong>Heads-up:</strong> if you previously ran
+<code>pip install -e .</code> against a system Python (e.g. Homebrew's
+<code>/opt/homebrew/bin/python3</code>), it may have left orphan
+<code>.pth</code> + <code>dist-info</code> files in that interpreter's
+<code>site-packages/</code> plus a stale <code>zipmi</code> script in
+its <code>bin/</code>. Clean with:</p>
+<pre class="bash"><code>pip uninstall zipmi   # using the same python that installed it
+# then verify nothing remains:
+find /opt/homebrew/lib/python3.11/site-packages -name &#39;zipmi*&#39; -o -name &#39;__editable__.zipmi*&#39;</code></pre>
+</blockquote>
+</details>
+
+<details open>
+<summary><h2>Quickstart</h2></summary>
+
+<pre class="bash"><code>export ZIPMI_TARGET=192.168.0.23 ZIPMI_USER=root ZIPMI_PASS=calvin
+
+# Spec-parity verbs
+zipmi mc info
+zipmi -I lanplus -C 3 mc info        # IPMI 2.0 RMCP+
+zipmi chassis status
+zipmi sel list
+zipmi sensor list
+zipmi user list
+zipmi raw 0x06 0x01
+
+# Security probes
+zipmi scan asf-ping
+zipmi scan auth-caps
+zipmi scan cipher-zero
+zipmi fuzz sweep --netfn 0x30 -v     # Dell OEM cmd surface, named
+
+# Sessionless mode — omit -U/-P (and unset ZIPMI_USER/ZIPMI_PASS) and
+# every send goes out auth_type=0, session_id=0. The BMC decides what
+# to answer. zipmi makes no assumption.
+unset ZIPMI_USER ZIPMI_PASS
+zipmi -H 192.168.0.23 raw 0x06 0x38 0x01 0x04   # Get Chan Auth Caps
+zipmi sessionless                                # list pre-session cmds
+
+# In-process target for tests / fuzzing / CI
+zipmi vbmc serve --vpersona dell_idrac6 --vport 6231 &amp;
+zipmi -H 127.0.0.1 -p 6231 mc info</code></pre>
+</details>
+
+<details>
+<summary><h2>zipmi verbs</h2></summary>
+
+<p>Full list of things zipmi understands</p>
+<pre><code>mc       {info, reset cold|warm, selftest, guid}
+chassis  {status, power on|off|cycle|reset|soft --yes,
+          identify [secs], bootdev &lt;dev&gt; --yes, bootflags}
+sel      {info, list}
+sdr      list
+sensor   list
+lan      print
+user     list
+raw      &lt;netfn&gt; &lt;cmd&gt; [byte ...]
+ipmi     [cmd-name [byte ...]]           # standard IPMI cmd by name; no args = list Table G-1
+oem      [vendor [cmd-name [byte ...]]]   # OEM cmd dispatcher; no args = list vendors
+idrac6      [cmd-name [byte ...]]          # shortcut for `oem idrac6 ...`
+idrac9      [cmd-name [byte ...]]          # shortcut for `oem idrac9 ...`
+supermicro  [cmd-name [byte ...]]          # shortcut for `oem supermicro ...`
+groups   [body [cmd-name [byte ...]]]    # IPMI Group Extension dispatcher (NetFn 0x2C)
+dcmi        [cmd-name [byte ...]]          # shortcut for `groups dcmi ...`
+scan         {asf-ping, auth-caps, cipher-zero, all}
+sessionless                                # list spec-permitted pre-session cmds
+fuzz         {sweep --netfn 0xNN, rakp}
+vbmc         serve [--vpersona dell_idrac6|generic] [--vport N]
+                                                # see VIRTUAL-BMC.md</code></pre>
+</details>
+
+<details>
+<summary><h2>bmc-id</h2></summary>
+
+<p><code>bmc-id</code> is a standalone, <strong>unauthenticated</strong>
+BMC identification + vulnerability probe shipped alongside
+<code>zipmi</code> (installed as its own <code>bmc-id</code> console
+script). It chains a handful of sessionless IPMI probes — plus an
+optional HTTPS/Redfish grab — to fingerprint a BMC's <em>real</em>
+vendor, generation, firmware revision, and security posture in roughly
+four UDP packets. Cheap enough to fan out at scan velocity; reads
+targets from argv or stdin and can emit a full report, JSON, or one TSV
+line per host.</p>
+<p>See <strong><a href="BMC-ID.html">BMC-ID.md</a></strong> for the full
+writeup — every probe, the IPMI "tuple" fingerprint, the fleet
+knowledge-base, confidence scoring, output modes, and worked
+examples.</p>
+</details>
+
+<details>
+<summary><h2>OEMs</h2></summary>
+
+<p>The IPMI specification allows vendors to extend the protocol with a
+set of reserved codes. All the vendors - Dell, HP, Supermicro, etc. -
+use these, but rarely document them. What follows are some guesses,
+information gathering, and following the bytes for a couple of them
+(from my own Dell and Supermicro servers.)</p>
+<h3 id="oem-discovery-and-usage">OEM discovery and usage</h3>
+<p><strong>OEM by name</strong> — instead of
+<code>zipmi raw 0x00 0x01</code>, use the vendor's own catalogue:</p>
+<pre class="bash"><code>zipmi oem                                        # list vendors
+zipmi idrac6                                      # list iDRAC6&#39;s 192 cmds (RE&#39;d from fullfw)
+zipmi -H &lt;bmc&gt; dell GetChassisStatus              # run by name (substring match)
+zipmi -H &lt;bmc&gt; oem supermicro UtilRestoreConfig   # `oem &lt;vendor&gt;` form
+
+# Multi-word command names MUST be quoted (the shell would otherwise pass
+# each word as a separate arg, and the trailing words become data bytes):
+zipmi -H &lt;bmc&gt; -C 17 oem intel &quot;Get BMC Version String&quot;
+zipmi -H &lt;bmc&gt; -C 17 oem intel &quot;Get FW Version Info&quot;
+
+# OpenBMC vendors also answer to ob-&lt;v&gt; / openbmc-&lt;v&gt; to make the namespace
+# explicit (the bare short name still works):
+zipmi -H &lt;bmc&gt; -C 17 openbmc-ampere &quot;Get Fan Control Status&quot;
+zipmi -H &lt;bmc&gt; -C 17 ob-google &quot;Sys OEM Command&quot;</code></pre>
+<p><strong>Data bytes.</strong> Everything after the command name is the
+request payload, sent verbatim — hex (<code>0x01</code>), decimal
+(<code>1</code>), space-separated. Whether bytes are <em>required</em>
+depends on the command: many reads take none
+(<code>Get BMC Version String</code>), some need a one-byte sub-command
+or selector, and writes need structured args. zipmi does NOT synthesize
+them for you — it's a raw-data model (same as <code>zipmi raw</code>).
+To know what a given OEM command expects, read its handler / the
+per-command notes; the OpenBMC OEM IPMI survey (upstream source review)
+documents the byte layouts that were recovered from source. A
+wrong-length payload comes back as a completion code (e.g.
+<code>0xC7</code> Request Data Length Invalid), not a crash.</p>
+<blockquote>
+<p><strong>OpenBMC speaks only IPMI 2.0 (RMCP+).</strong> It does NOT
+answer IPMI 1.5 at all — a 1.5 request (the default <code>-I lan</code>)
+is silently dropped and you get a <strong>timeout, not an
+error</strong>. Always use <code>-C 17</code> (which implies
+<code>-I lanplus</code>; OpenBMC offers only cipher suite 17 =
+HMAC-SHA256 / AES-CBC-128). Once you have a valid session, an
+unimplemented command returns a real completion code (<code>0xC1</code>
+Invalid Command) — the timeout-vs-0xC1 distinction tells you "wrong
+protocol/session" vs "command not supported".</p>
+</blockquote>
+<p>The standard IPMI 2.0 set has the same by-name UX —
+<code>zipmi ipmi</code> lists Table G-1,
+<code>zipmi -H &lt;bmc&gt; ipmi "Get Channel Authentication Capabilities" 0x01 0x04</code>
+resolves the name and sends the bytes you supply (same raw-data model as
+<code>raw</code>/<code>oem</code>).</p>
+<p>Names are case-insensitive and tolerate hyphens/underscores; the
+<code>Cmd</code>/<code>OEM</code>/<code>Dell</code> prefixes are
+stripped before matching. Multiple matches print the candidate list and
+exit non-zero; no host is needed for the listing forms.</p>
+<p>The catalogue header reports two numbers:</p>
+<pre><code>idrac6      IANA 674     192 cmds
+idrac9      IANA 674     46 named / 271 known
+supermicro  IANA 10876   65 cmds</code></pre>
+<p><code>N named / M known</code> means M <code>(NetFn, cmd)</code>
+dispatch slots have been recovered (from binary RE / vendor docs) but
+only N cross-reference to a human-readable handler name — the rest are
+runtime-bound stubs that appear in the listing as
+<code>(unnamed: ...)</code> with their originating dispatch-table name
+in the description so you can still send raw bytes via
+<code>zipmi raw</code>.</p>
+<p>Source-of-truth (hahah... well, for some value of truth) per
+vendor:</p>
+<ul>
+<li><p><strong>idrac6</strong>: handler symbols recovered from
+<code>T710-bmc/bin/fullfw</code> with radare2 auto-analysis (ARM
+debug-string residue carried function names through the strip). 195 of
+213 dispatch slots are now named. See
+<code>zipmi/scapy_ipmi/oem/dell_binary_names.py</code>. The MD-derived
+fallback at <code>dell_generated.py</code> is kept for
+privilege/description metadata. Resolution order in
+<code>DELL_CMD_NAMES</code>: hand-curated
+<code>DELL_NAME_OVERRIDES</code> → binary-RE'd
+<code>DELL_BINARY_NAMES</code> → MD-derived
+<code>DELL_NAMES</code>.</p></li>
+<li><p><strong>idrac9</strong>: <strong>277 named</strong> (46 from
+upstream RE doc + 99 from dynsym addr resolution + 132 from
+R_ARM_GLOB_DAT runtime-dispatch extraction). The catalogue surfaces 349
+known dispatch slots: 271 static (from binary RE of the lib dispatch
+tables) plus 78 runtime-only (handler-pointer relocations in lib data
+sections that aren't in any static dispatch but get registered at boot).
+Resolution layers:</p>
+<ol type="1">
+<li><strong>Static dispatch + addr resolution</strong>: the 271 static
+entries with <code>handler_addr</code> ≠ 0 — the address points into a
+lib's <code>.text</code> and the dynsym <code>DF .text</code> exports
+name it. 145 hits.</li>
+<li><strong>R_ARM_GLOB_DAT runtime dispatch</strong>: every
+<code>*.so.9.9.9</code> lib has dispatch slots in <code>.data</code>
+whose handler-pointer slot is a relocation. Pair the descriptor (4B
+before each reloc) with the symbol from the reloc to recover (NetFn,
+cmd) → handler. 132 hits (54 of which fill in static-dispatch slots that
+had <code>handler_addr=0x00000000</code>; the remaining 78 are
+runtime-only additions not present in any static table).</li>
+<li>Remaining 72 slots have neither a static address nor a relocation;
+the init agent must register them at boot via paths not visible to
+static analysis. They keep their dispatch-table tag (DCMI / OEMIPMI /
+OSAOEM) so they remain fuzzing targets.</li>
+</ol>
+<p>Reference dumps (iDRAC9 firmware reverse-engineering notes):
+<code>idrac9_addr_map.json</code> (3235 dynsym entries),
+<code>idrac9_resolution_report.md</code> (per-entry addr-resolution
+breakdown), <code>idrac9_runtime_dispatch.json</code> (211
+R_ARM_GLOB_DAT pairs across libs),
+<code>idrac9_runtime_dispatch_report.md</code>. Regenerate via
+<code>build_idrac9_addr_map.py</code> and
+<code>extract_runtime_dispatch.py</code>.</p></li>
+<li><p><strong>supermicro</strong>: 422 cmds total. Two layers:</p>
+<ol type="1">
+<li><strong>smcipmi RE work</strong> (4 top + 61 sub-cmds) — original
+handler names with HIGH RISK / CRITICAL annotations on the
+path-traversal and shell-injection sites
+(<code>UtilRestoreConfig</code>, <code>OEMFlashFWCmd</code>, etc.) plus
+the ATEN AlUpdate firmware-exfil sequence at NetFn 0x3e cmds
+0x1d/0x1e/0x1f.</li>
+<li><strong>SMCIPMITool 2.30.0 decompile overlay</strong>
+(<code>supermicro_smcipmi_names.py</code>) — 153 OEM (NetFn, cmd) + 226
+sub-cmds harvested by walking every
+<code>setCommandAndData((byte)NetFn&lt;&lt;2, (byte)Cmd, ...)</code>
+call site in the decompiled <code>com/supermicro/ipmi/*.class</code>
+Java sources. Adds full coverage of NetFn 0x32 flash ops (read / write /
+erase / activate flash mode), NetFn 0x2e Intel Node Manager (40+ cmds),
+NetFn 0x30 0x32 InfiniBand control, and a long tail of
+manufacturing/diagnostic cmds. Sub-cmds dispatched via 1st data byte;
+zipmi prepends it on <code>&lt;verb-name&gt;</code> resolution.</li>
+</ol></li>
+<li><p><strong>OpenBMC</strong> (open source — no firmware RE needed):
+nine vendor flavors catalogued straight from the upstream provider
+repos. Unlike a single proprietary BMC, OpenBMC spans many vendor IANAs
+and reuses the raw vendor NetFns 0x30..0x3E, so the <strong>same
+<code>(NetFn, cmd)</code> means different things per vendor</strong> —
+load exactly the vendor you target.</p>
+<table>
+<thead>
+<tr>
+<th>vendor</th>
+<th>IANA</th>
+<th>NetFns</th>
+<th>provider repo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>intel</code></td>
+<td>343</td>
+<td>0x30/0x32/0x3E + fw 0x08</td>
+<td>intel-ipmi-oem</td>
+</tr>
+<tr>
+<td><code>facebook</code> (<code>meta</code>)</td>
+<td>4337¹</td>
+<td>0x30/0x36/0x38 + BIC</td>
+<td>fb-ipmi-oem</td>
+</tr>
+<tr>
+<td><code>google</code></td>
+<td>11129</td>
+<td>0x2E + IANA, sub-cmds</td>
+<td>google-ipmi-sys</td>
+</tr>
+<tr>
+<td><code>ampere</code></td>
+<td>40981</td>
+<td>0x3C (ARM)</td>
+<td>ampere-ipmi-oem</td>
+</tr>
+<tr>
+<td><code>openpower</code> (<code>ibm</code>)</td>
+<td>2</td>
+<td>0x32/0x3A</td>
+<td>openpower-host-ipmi-oem</td>
+</tr>
+<tr>
+<td><code>inspur</code></td>
+<td>37945¹</td>
+<td>0x3C</td>
+<td>inspur-ipmi-oem</td>
+</tr>
+<tr>
+<td><code>foxconn</code></td>
+<td>—</td>
+<td>0x34</td>
+<td>foxconn-ipmi-oem</td>
+</tr>
+<tr>
+<td><code>wistron</code></td>
+<td>—</td>
+<td>0x30</td>
+<td>wistron-ipmi-oem</td>
+</tr>
+<tr>
+<td><code>nvidia</code></td>
+<td>—</td>
+<td>group 0x3C / NetFn 0x2C</td>
+<td>phosphor-host-ipmid oem/nvidia</td>
+</tr>
+</tbody>
+</table>
+<p>¹ informational; NOT on the wire (raw vendor NetFns carry no IANA —
+only Google uses the real NetFn 0x2E + IANA group form).
+<code>zipmi.load_vendor("openbmc")</code> loads all nine at once (for
+pcap dissection); the manifest lives at
+<code>zipmi/scapy_ipmi/oem/openbmc.py</code> and adding a vendor is one
+<code>oem/&lt;v&gt;.py</code> module + one manifest row. Full source
+catalogue + per-cmd security notes: OpenBMC OEM IPMI survey (upstream
+source review).</p>
+<p><strong>Note on OpenBMC RMCP+:</strong> OpenBMC commonly offers
+<strong>only cipher suite 17</strong> (HMAC-SHA256 / SHA256-128 /
+AES-CBC-128) — use <code>-C 17</code>. Its Get Device ID advertises
+manufacturer-id 0 ("Unknown"), so IPMI alone won't tell you the vendor;
+fingerprint over Redfish (<code>GET /redfish/v1/Managers/bmc</code> → a
+manager named <code>bmc</code> with <code>Oem.OpenBmc</code>). See the
+OpenBMC OEM IPMI survey (upstream source review) for the live romulus
+walkthrough and the internet-survey prevalence study.</p></li>
+</ul>
+<h3 id="iana-why-each-vendor-has-a-number">IANA: why each vendor has a
+number</h3>
+<p>OEM NetFns (0x2E, 0x30..0x3E) are a private namespace <strong>per
+vendor</strong>. The same <code>(NetFn 0x30, cmd 0xC0)</code> means
+PROCHOT throttle on Dell, an unrelated cmd on Supermicro, and something
+else again on HP. Without knowing whose namespace you're in, OEM cmds
+are ambiguous garbage.</p>
+<p>The disambiguator is the IANA <strong>Private Enterprise
+Number</strong> — a unique integer the IANA registry hands out to
+organisations (<a
+href="https://www.iana.org/assignments/enterprise-numbers/">https://www.iana.org/assignments/enterprise-numbers/</a>).
+Dell = 674, Supermicro = 10876, HPE = 11, Intel = 343, IBM = 2.</p>
+</details>
+
+<details>
+<summary><h2>Group Extension cmds (DCMI, PICMG, HPM, ...)</h2></summary>
+
+<p>Standardised cmds that ride NetFn 0x2C/0x2D with a <em>group
+code</em> as the first data byte (0xDC=DCMI, 0x00=PICMG, 0x03=VITA,
+0x04=HPM). Different namespace from OEM — same UX:</p>
+<pre class="bash"><code>zipmi groups                            # list group bodies
+zipmi dcmi                              # list DCMI&#39;s 15 cmds
+zipmi -H &lt;bmc&gt; dcmi GetPowerReading 0x01 0x00 0x00
+zipmi -H &lt;bmc&gt; groups dcmi GetCapabilities</code></pre>
+<p>zipmi prepends the group-code byte automatically; supply only the
+cmd-specific bytes after. The wire-trace label shows the body-aware name
+(e.g. <code>DCMI Get Power Reading</code> instead of generic
+<code>NetFn 0x2c cmd 0x02</code>).</p>
+<p>Currently implemented: <strong>DCMI 1.5</strong> (15 cmds, source:
+Intel/DMTF spec Table 6-1). PICMG / HPM / VITA wired as future entries
+in <code>zipmi/scapy_ipmi/groups/</code>.</p>
+<p>A target advertises its IANA in three places on the wire, all
+parseable without authentication:</p>
+<ul>
+<li><strong><code>Get Device ID</code> response</strong> (App 0x06 cmd
+0x01) — bytes 6-8 are the 3-byte little-endian Manufacturer ID. First
+thing to check on any BMC. (<code>zipmi mc info</code> prints it.)</li>
+<li><strong>ASF Pong</strong> (RMCP class 0x06) — <code>OEM IANA</code>
+field in the reply. Sessionless, runs on a closed network.
+(<code>zipmi scan asf-ping</code> prints it.)</li>
+<li><strong>IPMI 2.0 OEM payload type / OEM Group cmds</strong> — IANA
+carried in the payload itself.</li>
+</ul>
+<p>Workflow: probe the target → read IANA → pick the matching
+<code>zipmi &lt;vendor&gt;</code> to get cmd names. The IANA column in
+<code>zipmi oem</code> is documentation — it tells you which probed
+value should pick that vendor's table. (Note iDRAC9 reuses Dell's 674;
+<code>load_vendor("idrac9")</code> overlays iDRAC9-specific names onto
+the iDRAC6 base.)</p>
+<p>Common flags:
+<code>-H -p -U -P -A {none,password,md5} -I {lan,lanplus} -C N -t T</code>,
+or set <code>ZIPMI_TARGET / ZIPMI_USER / ZIPMI_PASS</code> env vars.</p>
+<p><strong>Credentials are not assumed.</strong> Pass <code>-U</code>
+and <code>-P</code> (or set both env vars) to authenticate. Pass neither
+and zipmi sends every request sessionless — <code>auth_type=0</code>,
+<code>session_id=0</code>, no handshake. The BMC decides whether to
+answer. Mixed (one flag without the other) is an error.
+<code>zipmi sessionless</code> lists the commands the IPMI 2.0 spec
+permits outside a session.</p>
+<p><strong>Wire trace</strong> — every verb that talks to a BMC
+accepts:</p>
+<ul>
+<li><code>-v</code> / <code>--verbose</code> — timestamped
+human-readable event log:
+<code>→ send NNN B  Get Device ID  192.168.0.23:623</code>,
+<code>← recv …</code>, <code>!! timeout after 3.0s</code>. Session-setup
+events are tagged <code>[setup]</code>.</li>
+<li><code>-d</code> / <code>--debug</code> — everything <code>-v</code>
+shows PLUS a hex dump of every packet (work + setup).</li>
+</ul>
+<p>Each event line carries the IPMI Table G-1 command name (or the
+RAKP/OpenSession payload type, or the ASF message type). OEM commands
+(NetFn 0x2E and 0x30..0x3E) are prefixed <code>[OEM]</code>. The
+<code>← recv</code> line omits the name — it is always the immediate
+reply to the <code>→ send</code> above.</p>
+<p>The hex column is colour-coded by ColorBrewer palette: RMCP header,
+session header, AuthCode, IPMB framing, NetFn, cmd / payload-type, data,
+and the completion-code byte of every response each get their own
+colour. Colour is on by default when stdout is a TTY.</p>
+<p><a href="docs/img/wire-trace.svg?raw=true"><img
+src="docs/img/wire-trace.svg"
+alt="zipmi bmc info -d wire trace" /></a></p>
+<p>Three palettes ship; pick one with <code>--palette</code>:</p>
+<ul>
+<li><code>auto</code> (default) — detects terminal background, picks
+pastel for dark, set for light. Detection uses <code>COLORFGBG</code> if
+set, otherwise an OSC 11 query (100 ms timeout); falls back to pastel if
+neither responds.</li>
+<li><code>pastel</code> — ColorBrewer Pastel1, soft pastels, dark
+terminals</li>
+<li><code>set</code> — ColorBrewer Set1, saturated, light terminals</li>
+<li><code>dark</code> — ColorBrewer Dark2, muted dark, dark
+terminals</li>
+</ul>
+<p>Single-letter forms accepted: <code>-p a</code> / <code>-p p</code> /
+<code>-p s</code> / <code>-p d</code>. Disable colour entirely with
+<code>-n</code> / <code>--no-color</code> or <code>NO_COLOR=1</code> (<a
+href="https://no-color.org">https://no-color.org</a>). Force it
+<em>on</em> off a TTY (e.g. capturing the trace into a pipe) with
+<code>FORCE_COLOR=1</code> or <code>CLICOLOR_FORCE=1</code>.</p>
+<p>Palette + role mapping live in a single <code>COLOR CONFIG</code>
+block at the top of <code>zipmi/scapy_ipmi/colorize.py</code>. Add a new
+palette by appending to the <code>PALETTES</code> dict; remap which
+field gets which colour by editing the per-palette role dict.</p>
+<p>In fuzz verbs the same flags additionally enable streaming output
+(rows print as each probe lands).</p>
+</details>
+
+<details>
+<summary><h2>Repo Layout</h2></summary>
+
+<pre><code>zipmi/scapy_ipmi/  — Scapy layers (rmcp, asf, ipmi15, ipmi20, rakp, oem/, ...)
+zipmi/core.py      — Session / Transport
+zipmi/cli/         — argparse CLI
+zipmi/vbmc/        — virtual BMC server
+zipmi/fuzz/        — fuzzers (Phase 6)
+examples/          — runnable demos
+tests/             — unit + integration + golden pcap diffs
+docs/              — architecture, ipmi notes, fuzzing, vbmc</code></pre>
+</details>
+
+<details>
+<summary><h2>Status</h2></summary>
+
+<p><strong>Phases 0–14 done.</strong> 130/130 tests pass. Live-verified
+against Dell iDRAC6 1.70: <code>mc info</code>,
+<code>chassis status</code>, <code>sel list</code>,
+<code>sdr list</code>, <code>sensor list</code>, <code>lan print</code>,
+<code>user list</code>, <code>chassis bootflags</code>,
+<code>raw</code>,
+<code>sol {info, baud, payload, set, activate, deactivate, looptest, autobaud}</code>,
+<code>scan {asf-ping, auth-caps, cipher-zero}</code>,
+<code>fuzz sweep</code>, plus full RMCP+ / RAKP / cipher 3 lanplus
+session (incl. SOL payload type 1 over the encrypted session). 192 Dell
+OEM dispatch entries auto-loaded from
+<code>fullfw-ipmi-commands.md</code>; 313 iDRAC9 handler names from
+rootfs <code>.so</code> catalog <strong>plus 271 (NetFn, cmd, priv)
+tuples from static dispatch-table extraction</strong>; 11 static + 2
+factory Dell attack primitives in <code>attacks/dell.py</code>.</p>
+<p>See <code>docs/STATUS.md</code> for the per-commit phase log,
+<code>docs/command-table.md</code> for spec coverage,
+<code>docs/dell-command-table.md</code> for the full Dell iDRAC6
+dispatch surface (192 entries),
+<code>docs/idrac9-command-table.md</code> for the iDRAC9 handler catalog
+(313 entries), <code>docs/attacks-dell.md</code> for the attack
+primitives catalog, <code>docs/bmc-generations.md</code> for the
+<code>Manufacturer Generation</code> heuristic (Dell product-ID →
+iDRAC6/8/9 mapping, monolithic vs modular split),
+<code>docs/fuzz.md</code> for the fuzzer inventory (sweep, rakp, length,
+cipher), <code>docs/fuzz-sweep.md</code> for the verbosity / bucket /
+skip-list details of <code>fuzz sweep</code>, and
+<code>docs/tutorial.md</code> for a Scapy-style REPL walkthrough, and
+<code>docs/i2c-master-write-read.md</code> for the
+<code>i2c</code>/<code>i2cscan</code>/<code>i2c-id</code> feature (I2C
+over IPMI Master Write-Read) with the in-session-vs-loop timing, and
+<code>docs/firmware-firewall.md</code> for the <code>firewall</code>
+verb (IPMI §21 command-surface discovery — exposed / lockable /
+disabled).</p>
+</details>
+
+<h1 id="license">License</h1>
+<p>MIT. <code>third_party/pyghmi</code> (when cloned) is Apache-2.0 —
+used as algorithmic reference only, no code copy. Per-file headers cite
+pyghmi where relevant.</p>
+</div>
+</body>
+</html>
