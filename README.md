@@ -78,12 +78,18 @@ git clone https://github.com/zenfish/zipmi.git && cd zipmi
 make install                 # make dev for editable + dev extras
 ```
 
-You get **both** the `zipmi` / `bmc-id` commands on `$PATH` **and** a
-working `import zipmi` in your own scripts (`python myscript.py`, no
-venv to activate). `make install` runs a normal `pip install .`; if
-your Python is "externally-managed" (Homebrew, Debian — PEP 668) and
-refuses the global write, it automatically falls back to a per-user
-install instead of erroring. Override the interpreter with
+You get **both** the `zipmi` / `bmc-id` commands **and** a working
+`import zipmi` in your own scripts (`python myscript.py`, no venv to
+activate). The two commands install into the scripts directory of
+whichever Python you use — a venv's `bin/`, Homebrew's `bin/` (e.g.
+`/opt/homebrew/bin`), or `~/.local/bin` for the per-user fallback. That
+directory is already on `$PATH` for a venv or Homebrew's `python3`; for
+a `--user` install you may need to add `~/.local/bin` to `$PATH`
+yourself. `make install` prints exactly where each command landed and
+warns if it isn't on `$PATH`. It runs a normal `pip install .`; if your
+Python is "externally-managed" (Homebrew, Debian — PEP 668) and refuses
+the global write, it automatically falls back to a per-user install
+instead of erroring. Override the interpreter with
 `make install PY=python3.12`.
 
 ```bash
@@ -149,6 +155,9 @@ pip install -e '.[dev]'
 <summary><h2>Quickstart</h2></summary>
 
 ```bash
+# for examples below... or use -H/-U/-P/-C flags. Env fallbacks:
+# ZIPMI_TARGET (-H), ZIPMI_USER (-U), ZIPMI_PASS (-P), ZIPMI_CIPHER (-C).
+# An explicit flag always overrides its env var.
 export ZIPMI_TARGET=192.168.0.23 ZIPMI_USER=root ZIPMI_PASS=calvin
 
 # Spec-parity verbs
@@ -168,10 +177,10 @@ zipmi fuzz sweep --netfn 0x30 -v     # Dell OEM cmd surface, named
 
 # Sessionless mode — omit -U/-P (and unset ZIPMI_USER/ZIPMI_PASS) and
 # every send goes out auth_type=0, session_id=0. The BMC decides what
-# to answer. zipmi makes no assumption.
+# to answer. zipmi makes no assumption. (ZIPMI_TARGET is still set, so no -H.)
 unset ZIPMI_USER ZIPMI_PASS
-zipmi -H 192.168.0.23 raw 0x06 0x38 0x01 0x04   # Get Chan Auth Caps
-zipmi sessionless                                # list pre-session cmds
+zipmi raw 0x06 0x38 0x01 0x04   # Get Chan Auth Caps
+zipmi sessionless               # list pre-session cmds
 
 # In-process target for tests / fuzzing / CI
 zipmi vbmc serve --vpersona dell_idrac6 --vport 6231 &
@@ -250,13 +259,14 @@ zipmi -H <bmc> oem supermicro UtilRestoreConfig   # `oem <vendor>` form
 
 # Multi-word command names MUST be quoted (the shell would otherwise pass
 # each word as a separate arg, and the trailing words become data bytes):
-zipmi -H <bmc> -C 17 oem intel "Get BMC Version String"
-zipmi -H <bmc> -C 17 oem intel "Get FW Version Info"
+export ZIPMI_CIPHER=17     # OpenBMC = cipher 17 only; set once (implies -I lanplus)
+zipmi -H <bmc> oem intel "Get BMC Version String"
+zipmi -H <bmc> oem intel "Get FW Version Info"
 
 # OpenBMC vendors also answer to ob-<v> / openbmc-<v> to make the namespace
 # explicit (the bare short name still works):
-zipmi -H <bmc> -C 17 openbmc-ampere "Get Fan Control Status"
-zipmi -H <bmc> -C 17 ob-google "Sys OEM Command"
+zipmi -H <bmc> openbmc-ampere "Get Fan Control Status"
+zipmi -H <bmc> ob-google "Sys OEM Command"
 ```
 
 **Data bytes.** Everything after the command name is the request payload,
@@ -272,8 +282,9 @@ as a completion code (e.g. `0xC7` Request Data Length Invalid), not a crash.
 
 > **OpenBMC speaks only IPMI 2.0 (RMCP+).** It does NOT answer IPMI 1.5 at
 > all — a 1.5 request (the default `-I lan`) is silently dropped and you get
-> a **timeout, not an error**. Always use `-C 17` (which implies `-I lanplus`;
-> OpenBMC offers only cipher suite 17 = HMAC-SHA256 / AES-CBC-128). Once you
+> a **timeout, not an error**. Always use `-C 17` — or `export ZIPMI_CIPHER=17`
+> once — (which implies `-I lanplus`; OpenBMC offers only cipher suite 17 =
+> HMAC-SHA256 / AES-CBC-128). Once you
 > have a valid session, an unimplemented command returns a real completion
 > code (`0xC1` Invalid Command) — the timeout-vs-0xC1 distinction tells you
 > "wrong protocol/session" vs "command not supported".

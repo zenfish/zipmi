@@ -97,6 +97,21 @@ PRE_SESSION_CMDS: dict[tuple[int, int], str] = {
 # -- argument plumbing ----------------------------------------------------
 
 
+def _env_int(name: str, *, warn: bool = True) -> int | None:
+    """Parse an integer env var (accepts 0x-prefixed, e.g. ZIPMI_CIPHER=0x11).
+    Returns None if unset/empty; warns + returns None on a non-integer value."""
+    v = os.environ.get(name)
+    if not v:
+        return None
+    try:
+        return int(v, 0)
+    except ValueError:
+        if warn:
+            print(f"warning: {name}={v!r} is not an integer — ignoring",
+                  file=sys.stderr)
+        return None
+
+
 def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
     """Position-independent global flags.
 
@@ -133,12 +148,14 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                         help="lan = IPMI 1.5; lanplus = IPMI 2.0 RMCP+. "
                              "Default lan, but giving -C/--cipher implies "
                              "lanplus (override with -I lan).")
-    parser.add_argument("-C", "--cipher", type=int, default=d(None),
-                        help="lanplus cipher suite. Default: auto-discover via "
-                             "Get Channel Cipher Suites and pick the strongest "
-                             "(e.g. 17 = HMAC-SHA256 on OpenBMC), falling back to "
-                             "3 = HMAC-SHA1 if the BMC ignores the query. Pass an "
-                             "explicit ID to force it. Implies -I lanplus.")
+    parser.add_argument("-C", "--cipher", type=int,
+                        default=d(_env_int("ZIPMI_CIPHER", warn=not suppress)),
+                        help="lanplus cipher suite (env: ZIPMI_CIPHER). Default: "
+                             "auto-discover via Get Channel Cipher Suites and pick "
+                             "the strongest (e.g. 17 = HMAC-SHA256 on OpenBMC), "
+                             "falling back to 3 = HMAC-SHA1 if the BMC ignores the "
+                             "query. Pass an explicit ID to force it. Implies -I "
+                             "lanplus.")
     parser.add_argument("-t", "--timeout", type=float, default=d(3.0),
                         help="UDP timeout in seconds (default 3.0)")
     parser.add_argument("-v", "--verbose", action="store_true",
@@ -3072,7 +3089,16 @@ def _normalize_interface_cipher(args: argparse.Namespace) -> None:
     args.interface = iface
     # Leave cipher as None when unspecified → Session auto-discovers the strongest
     # suite the BMC offers (Get Channel Cipher Suites), falling back to 3. An explicit
-    # -C N is honored verbatim.
+    # -C N (or ZIPMI_CIPHER) is honored verbatim — but only if zipmi implements it,
+    # else fail loudly instead of dying deep in RAKP with a cryptic error.
+    if cipher is not None:
+        from ..scapy_ipmi.crypto import CIPHER_SUITES
+        if cipher not in CIPHER_SUITES:
+            supported = ", ".join(str(k) for k in sorted(CIPHER_SUITES))
+            print(f"error: unsupported cipher suite {cipher} "
+                  f"(from -C/--cipher or ZIPMI_CIPHER). "
+                  f"zipmi implements: {supported}", file=sys.stderr)
+            sys.exit(2)
     args.cipher = cipher
 
 
