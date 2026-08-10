@@ -172,6 +172,7 @@ zipmi raw 0x06 0x01
 # Security probes
 zipmi scan asf-ping
 zipmi scan auth-caps
+zipmi scan cipher-suites             # enumerate advertised RMCP+ ciphers (0x54)
 zipmi scan cipher-zero
 zipmi fuzz sweep --netfn 0x30 -v     # Dell OEM cmd surface, named
 
@@ -211,7 +212,7 @@ idrac9      [cmd-name [byte ...]]          # shortcut for `oem idrac9 ...`
 supermicro  [cmd-name [byte ...]]          # shortcut for `oem supermicro ...`
 groups   [body [cmd-name [byte ...]]]    # IPMI Group Extension dispatcher (NetFn 0x2C)
 dcmi        [cmd-name [byte ...]]          # shortcut for `groups dcmi ...`
-scan         {asf-ping, auth-caps, cipher-zero, all}
+scan         {asf-ping, auth-caps, cipher-suites, cipher-zero, all}
 sessionless                                # list spec-permitted pre-session cmds
 fuzz         {sweep --netfn 0xNN, rakp}
 vbmc         serve [--vpersona dell_idrac6|generic] [--vport N]
@@ -533,7 +534,7 @@ docs/              — architecture, ipmi notes, fuzzing, vbmc
 1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
 `lan print`, `user list`, `chassis bootflags`, `raw`,
 `sol {info, baud, payload, set, activate, deactivate, looptest, autobaud}`,
-`scan {asf-ping, auth-caps, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
+`scan {asf-ping, auth-caps, cipher-suites, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
 RAKP / cipher 3 lanplus session (incl. SOL payload type 1 over the encrypted
 session). 192 Dell OEM dispatch entries auto-loaded
 from `fullfw-ipmi-commands.md`; 313 iDRAC9 handler names from rootfs `.so`

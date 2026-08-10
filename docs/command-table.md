@@ -113,7 +113,7 @@ and per-platform live test results.
 | 4Fh  | Get Channel Payload Version | 24.8 | U | ✗ | ? | ? |
 | 50h  | Get Channel OEM Payload Info | 24.9 | U | ✗ | ? | ? |
 | 52h  | Master Read-Write | 22.11 | A* | ⚡ | ? | ? |
-| 54h  | Get Channel Cipher Suites | 22.15 | s | ⚡ | ? | ? |
+| 54h  | Get Channel Cipher Suites | 22.15 | s | ✓ | ? | ? |
 | 55h  | Suspend/Resume Payload Encryption | 24.10 | U | ✗ | ? | ? |
 | 56h  | Set Channel Security Keys | 22.25 | A | ✗ | ? | ? |
 | 57h  | Get System Interface Capabilities | 22.9 | U | ✗ | ? | ? |
