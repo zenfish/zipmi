@@ -197,6 +197,297 @@ class _FakeSession:
         return 0x00, b""
 
 
+class _Rec:
+    """Tiny attribute bag for canned send_cmd responses (Reserve SEL, etc.)."""
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
+class _EffectSession:
+    """Context-manager fake that records BOTH send_raw and send_cmd.
+
+    send_raw(netfn, cmd, data) -> (cc, bytes): looks up a canned reply in
+    ``raw_replies[(netfn, cmd)]`` (default cc=0, no data).
+    send_cmd(netfn, cmd, req=None) -> object: canned in ``cmd_replies``.
+    Every call is appended to ``self.sent`` / ``self.cmds`` for assertions.
+    """
+    def __init__(self, raw_replies=None, cmd_replies=None):
+        self.sent = []          # list[(netfn, cmd, bytes)]
+        self.cmds = []          # list[(netfn, cmd, req)]
+        self._raw = raw_replies or {}
+        self._cmd = cmd_replies or {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def send_raw(self, netfn, cmd, data):
+        self.sent.append((netfn, cmd, bytes(data)))
+        return self._raw.get((netfn, cmd), (0x00, b""))
+
+    def send_cmd(self, netfn, cmd, req=None):
+        self.cmds.append((netfn, cmd, req))
+        return self._cmd[(netfn, cmd)]
+
+
+def _install(monkeypatch, fake):
+    monkeypatch.setattr(_z, "_open_session", lambda _args: fake)
+    return fake
+
+
+# ---------------------------------------------------------------------------
+# EFFECT tests: drive each handler through a fake session and assert the exact
+# (netfn, cmd, payload) it puts on the wire. Expected bytes are derived from the
+# IPMI 2.0 spec for each command, NOT copied from the handler.
+# ---------------------------------------------------------------------------
+
+
+def test_sel_clear_effect_reserve_then_clr_aa(monkeypatch):
+    """§31.9 Clear SEL: Reserve SEL (0x0A/0x42) → 0x0A/0x47 with
+    reservation_id LE + 'CLR' + 0xAA to initiate, then poll with 0x00.
+    Poll reply byte0 low nibble == 1 means erase complete."""
+    fake = _install(monkeypatch, _EffectSession(
+        cmd_replies={(0x0A, 0x42): _Rec(reservation_id=0x1234)},
+        raw_replies={(0x0A, 0x47): (0x00, bytes([0x01]))},   # status: complete
+    ))
+    rc = _z.cmd_sel_clear(parse_cli(["-H", "x", "sel", "clear"]))
+    assert rc == 0
+    assert fake.cmds[0][:2] == (0x0A, 0x42)                  # Reserve SEL
+    # initiate: reservation 0x1234 -> LE 34 12, then C L R, then 0xAA
+    assert fake.sent[0] == (0x0A, 0x47, b"\x34\x12CLR\xaa")
+    # first poll: same rid + 'CLR' + 0x00
+    assert fake.sent[1] == (0x0A, 0x47, b"\x34\x12CLR\x00")
+
+
+def test_sel_time_get_effect(monkeypatch):
+    """§31.10 Get SEL Time: 0x0A/0x48, empty request; 4-byte LE reply."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x0A, 0x48): (0x00, (0x6a17a88e).to_bytes(4, "little"))},
+    ))
+    rc = _z.cmd_sel_time_get(parse_cli(["-H", "x", "sel", "time", "get"]))
+    assert rc == 0
+    assert fake.sent == [(0x0A, 0x48, b"")]
+
+
+def test_sel_time_set_effect_epoch_le(monkeypatch):
+    """§31.11 Set SEL Time: 0x0A/0x49, 4-byte LE seconds-since-epoch."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_sel_time_set(
+        parse_cli(["-H", "x", "sel", "time", "set", "0x6a17a88e"]))
+    assert rc == 0
+    assert fake.sent == [(0x0A, 0x49, b"\x8e\xa8\x17\x6a")]
+
+
+def test_chassis_restart_cause_effect(monkeypatch):
+    """§28.11 Get System Restart Cause: 0x00/0x07, empty request."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x00, 0x07): (0x00, bytes([0x01, 0x00]))},
+    ))
+    rc = _z.cmd_chassis_restart_cause(
+        parse_cli(["-H", "x", "chassis", "restart_cause"]))
+    assert rc == 0
+    assert fake.sent == [(0x00, 0x07, b"")]
+
+
+def test_chassis_policy_list_effect(monkeypatch):
+    """§28.8 Set Power Restore Policy: 'list' uses no-change variant 0x03."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x00, 0x06): (0x00, bytes([0x07]))},
+    ))
+    rc = _z.cmd_chassis_policy(
+        parse_cli(["-H", "x", "chassis", "policy", "list"]))
+    assert rc == 0
+    assert fake.sent == [(0x00, 0x06, b"\x03")]
+
+
+def test_chassis_policy_set_effect(monkeypatch):
+    """§28.8 policy field: always-off=0, previous=1, always-on=2."""
+    for pol, code in (("always-off", 0x00), ("previous", 0x01),
+                      ("always-on", 0x02)):
+        fake = _install(monkeypatch, _EffectSession())
+        rc = _z.cmd_chassis_policy(
+            parse_cli(["-H", "x", "chassis", "policy", pol]))
+        assert rc == 0
+        assert fake.sent == [(0x00, 0x06, bytes([code]))]
+
+
+def test_user_set_name_effect(monkeypatch):
+    """§22.28 Set User Name: 0x06/0x45, byte0=user_id (bits5:0),
+    then 16-byte name NUL-padded."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_user_set_name(
+        parse_cli(["-H", "x", "user", "set", "name", "4", "alice", "--yes"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x45, bytes([0x04]) + b"alice".ljust(16, b"\x00"))]
+
+
+def test_user_enable_effect(monkeypatch):
+    """§22.30 Set User Password op=enable(0x01): 0x06/0x47,
+    byte0=user_id, byte1=op (no password buffer for enable)."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_user_enable(
+        parse_cli(["-H", "x", "user", "enable", "5", "--yes"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x47, bytes([0x05, 0x01]))]
+
+
+def test_user_disable_effect(monkeypatch):
+    """op=disable(0x00)."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_user_disable(
+        parse_cli(["-H", "x", "user", "disable", "5", "--yes"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x47, bytes([0x05, 0x00]))]
+
+
+def test_user_set_password_effect_20byte(monkeypatch):
+    """op=set(0x02): byte0 gets bit7 set for a 20-byte slot; password
+    NUL-padded to 20."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_user_set_password(
+        parse_cli(["-H", "x", "user", "set", "password", "3", "newpw", "20",
+                   "--yes"]))
+    assert rc == 0
+    expect = bytes([0x03 | 0x80, 0x02]) + b"newpw".ljust(20, b"\x00")
+    assert fake.sent == [(0x06, 0x47, expect)]
+
+
+def test_user_test_password_effect_16byte(monkeypatch):
+    """op=test(0x03), default 16-byte slot; no --yes (read-only)."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_user_test_password(
+        parse_cli(["-H", "x", "user", "test", "2", "testpw"]))
+    assert rc == 0
+    expect = bytes([0x02, 0x03]) + b"testpw".ljust(16, b"\x00")
+    assert fake.sent == [(0x06, 0x47, expect)]
+
+
+def test_user_priv_effect(monkeypatch):
+    """§22.26 Set User Access: 0x06/0x43. byte0 bit7=0 (leave flags),
+    bits3:0=channel; byte1=user_id; byte2=priv level; byte3=session limit 0."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_user_priv(
+        parse_cli(["-H", "x", "user", "priv", "2", "admin", "1", "--yes"]))
+    assert rc == 0
+    # channel=1, user=2, admin=0x04, limit=0
+    assert fake.sent == [(0x06, 0x43, bytes([0x01, 0x02, 0x04, 0x00]))]
+
+
+def test_channel_info_effect(monkeypatch):
+    """§22.24 Get Channel Info: 0x06/0x42, one byte = channel number."""
+    reply = bytes([0x01, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x06, 0x42): (0x00, reply)},
+    ))
+    rc = _z.cmd_channel_info(parse_cli(["-H", "x", "channel", "info", "1"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x42, bytes([0x01]))]
+
+
+def test_channel_getaccess_effect(monkeypatch):
+    """§22.27 Get User Access: 0x06/0x44, byte0=channel, byte1=user_id."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x06, 0x44): (0x00, bytes([0x10, 0x01, 0x00, 0x04]))},
+    ))
+    rc = _z.cmd_channel_getaccess(
+        parse_cli(["-H", "x", "channel", "getaccess", "1", "2"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x44, bytes([0x01, 0x02]))]
+
+
+def test_session_info_active_effect(monkeypatch):
+    """§22.20 Get Session Info: 0x06/0x3D. 'active' -> selector 0x00."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x06, 0x3D): (0x00, bytes([0x01, 0x05, 0x01, 0x02,
+                                                 0x04, 0x0E]))},
+    ))
+    rc = _z.cmd_session_info(parse_cli(["-H", "x", "session", "info"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x3D, b"\x00")]
+
+
+def test_session_info_explicit_index_effect(monkeypatch):
+    """Numeric selector -> that index byte (session-index lookup, table 22-25)."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x06, 0x3D): (0x00, bytes([0x01, 0x05, 0x01, 0x02,
+                                                 0x04, 0x0E]))},
+    ))
+    rc = _z.cmd_session_info(parse_cli(["-H", "x", "session", "info", "3"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x3D, bytes([0x03]))]
+
+
+def test_mc_watchdog_get_effect(monkeypatch):
+    """§27.7 Get Watchdog Timer: 0x06/0x25, empty request; 8-byte reply."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x06, 0x25): (0x00, bytes([0x45, 0x00, 0x00, 0x00,
+                                                 0x10, 0x00, 0x00, 0x00]))},
+    ))
+    rc = _z.cmd_mc_watchdog_get(parse_cli(["-H", "x", "mc", "watchdog", "get"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x25, b"")]
+
+
+def test_mc_watchdog_reset_effect(monkeypatch):
+    """§27.5 Reset Watchdog Timer: 0x06/0x22, empty request (pats the dog)."""
+    fake = _install(monkeypatch, _EffectSession())
+    rc = _z.cmd_mc_watchdog_reset(
+        parse_cli(["-H", "x", "mc", "watchdog", "reset"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x22, b"")]
+
+
+def test_fru_print_effect_inventory_probe(monkeypatch):
+    """§34.1 Get FRU Inventory Area Info: 0x0A/0x10, one byte = device id.
+    With a zero-size device the handler stops after the probe."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x0A, 0x10): (0x00, bytes([0x00, 0x00, 0x00]))},  # 0 bytes
+    ))
+    rc = _z.cmd_fru_print(parse_cli(["-H", "x", "fru", "print", "2"]))
+    assert rc == 1                                  # empty blob -> short FRU
+    assert fake.sent[0] == (0x0A, 0x10, bytes([0x02]))
+
+
+def test_sensor_get_effect_sdr_repo_probe(monkeypatch):
+    """cmd_sensor_get walks the SDR: first Get SDR Repo Info (0x0A/0x20).
+    record_count 0 -> clean early return, proving it issues the walk start."""
+    fake = _install(monkeypatch, _EffectSession(
+        cmd_replies={(0x0A, 0x20): _Rec(record_count=0)},
+    ))
+    rc = _z.cmd_sensor_get(parse_cli(["-H", "x", "sensor", "get", "Foo"]))
+    assert rc == 1
+    assert fake.cmds[0][:2] == (0x0A, 0x20)
+
+
+def test_i2c_effect_master_write_read(monkeypatch):
+    """§22.11 Master Write-Read: 0x06/0x52, [bus_byte, slave<<1, read_cnt, wdata].
+    bus=public chan=0 -> bus_byte 0x00; slave 0x50 -> 0xA0; read 16; write 0x00."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x06, 0x52): (0x00, bytes(range(16)))},
+    ))
+    rc = _z.cmd_i2c(parse_cli(["-H", "x", "i2c", "bus=public", "chan=0",
+                               "0x50", "16", "0x00"]))
+    assert rc == 0
+    assert fake.sent == [(0x06, 0x52, bytes([0x00, 0xA0, 0x10, 0x00]))]
+
+
+def test_spd_effect_chunked_reads(monkeypatch):
+    """spd reads the EEPROM in 16-byte Master Write-Read chunks; each request
+    is [bus_byte, slave<<1, chunk_len, offset_low]. 256 bytes -> 16 chunks."""
+    fake = _install(monkeypatch, _EffectSession(
+        raw_replies={(0x06, 0x52): (0x00, bytes(16))},
+    ))
+    rc = _z.cmd_spd(parse_cli(["-H", "x", "spd", "bus=public", "0x50"]))
+    assert rc == 0
+    assert len(fake.sent) == 16                     # 256 / 16
+    # first chunk: slave 0x50<<1=0xA0, read 16, offset 0
+    assert fake.sent[0] == (0x06, 0x52, bytes([0x00, 0xA0, 0x10, 0x00]))
+    # second chunk: offset advances to 16 (0x10)
+    assert fake.sent[1] == (0x06, 0x52, bytes([0x00, 0xA0, 0x10, 0x10]))
+
+
 def test_mc_watchdog_off_without_yes_sends_nothing(monkeypatch):
     """The destructive gate must BLOCK the write, not just parse a flag."""
     def _boom(_args):

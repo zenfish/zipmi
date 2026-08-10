@@ -103,12 +103,17 @@ def test_vbmc_lanplus_mc_info(vbmc_dell):
 
 
 def test_vbmc_send_raw_15(vbmc_dell):
-    """raw 0x06 0x01 returns the same 15-byte Get Device ID payload."""
+    """raw 0x06 0x01 returns a Get Device ID payload we can decode to Dell."""
     with _session(vbmc_dell) as s:
         cc, body = s.send_raw(0x06, 0x01)
     assert cc == 0
-    # 6 fixed fields + 3 manuf + 2 product + 4 aux = 15 bytes.
+    # 6 fixed fields + 3 manuf(LE) + 2 product(LE) + 4 aux = 15 bytes.
     assert len(body) == 15
+    # Decode the wire the same way get_device_id() encodes it (handlers.py):
+    # manuf = LE bytes[6:9], product = LE bytes[9:11]. Dell IANA = 674.
+    assert int.from_bytes(body[6:9], "little") == 674
+    assert int.from_bytes(body[9:11], "little") == 0x0100
+    assert body[0] == 0x20            # device_id
 
 
 def test_ipmi_verb_send_device_id(vbmc_dell, capsys):
@@ -123,7 +128,13 @@ def test_ipmi_verb_send_device_id(vbmc_dell, capsys):
     # non-empty response also proves the Task 4 load_vendor guard let
     # the ipmi send through (load_vendor("ipmi") would have raised).
     assert "GetDeviceID" in cap.err
-    assert cap.out.strip()  # non-empty hex response => send executed
+    # stdout is space-separated hex of the 15-byte Get Device ID body;
+    # decode it and assert it really is the Dell persona (manuf 674,
+    # product 0x0100), not just "something was printed".
+    body = bytes.fromhex(cap.out.strip().replace(" ", ""))
+    assert len(body) == 15
+    assert int.from_bytes(body[6:9], "little") == 674
+    assert int.from_bytes(body[9:11], "little") == 0x0100
 
 
 def test_ipmi_verb_listing_needs_no_host(capsys):

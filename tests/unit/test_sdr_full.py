@@ -5,7 +5,6 @@ import math
 import pytest
 
 from zipmi.sdr_full import (
-    SENSOR_UNIT,
     SensorMeta,
     _twos_complement,
     cook_reading,
@@ -174,9 +173,27 @@ def test_unit_name_unknown_falls_back_to_hex():
     assert unit_name(0xAA) == "unit-0xaa"
 
 
-def test_unit_table_has_common_entries():
-    for code in (1, 4, 5, 6, 18, 19, 22):
-        assert code in SENSOR_UNIT
+def test_unit_code_from_parsed_sdr_names_correctly():
+    """Parse an SDR carrying each common unit_code and assert the human name.
+
+    Drives the unit through the real parse path (byte 21 -> meta.unit_code ->
+    unit_name), so a wrong table value or a byte-offset bug fails here where a
+    `code in SENSOR_UNIT` membership check would not. Names from Table 43-15.
+    """
+    expected = {
+        1: "degrees C",
+        4: "Volts",
+        5: "Amps",
+        6: "Watts",
+        18: "RPM",
+        19: "Hz",
+        22: "second",
+    }
+    for code, label in expected.items():
+        meta = parse_full_sdr(_build_full_sdr(unit_code=code))
+        assert meta is not None
+        assert meta.unit_code == code           # byte 21 decoded
+        assert unit_name(meta.unit_code) == label
 
 
 # -- Independent hand-laid-out SDR bytes (no _build_full_sdr) -------------

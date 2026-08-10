@@ -28,8 +28,13 @@ from zipmi.vbmc.personas import generic
 from zipmi.vbmc.server import VBMC
 from zipmi.vbmc.state import State
 
-# A miniature sweep file: one OK, one explicit-CC, one transport error
+# A miniature sweep file: OK entries, one explicit-CC, one transport error
 # (no "cc" -> skipped), one 0xFF no-response sentinel (-> skipped).
+# The (0x06,0x01) entry is a *decoy*: it collides with the built-in Get
+# Device ID handler. server._dispatch tries DISPATCH first, so this OEM
+# body must NEVER reach the wire — test_synthetic_does_not_shadow_builtins
+# proves it. Its recognizable manuf field is 0x424344 ("DCB" LE) != 0.
+BUILTIN_DECOY_HEX = "20000000000044434200000000000000"  # 16B, manuf bytes[6:9]=44 43 42
 SAMPLE = {
     "_meta": {"source": "unit-test"},
     "fixtures": {
@@ -40,6 +45,8 @@ SAMPLE = {
                           "response_hex": "0f20"},
             "0x30,0x9a": {"netfn": 0x30, "cmd": 0x9a, "cc": 0xff,
                           "response_hex": ""},          # no-response -> skipped
+            "0x06,0x01": {"netfn": 0x06, "cmd": 0x01, "cc": 0x00,
+                          "response_hex": BUILTIN_DECOY_HEX},  # decoy: builtin must win
         },
         "ampere": {
             "0x3c,0x02": {"netfn": 0x3c, "cmd": 0x02, "cc": 0xd4,
@@ -72,7 +79,7 @@ def vbmc_synth(sample_fixture):
     port = _free_port()
     persona = generic.build()
     n = apply_fixture(persona, sample_fixture)
-    assert n == 3                      # 2 intel + 1 ampere kept; 2 skipped
+    assert n == 4                      # 3 intel + 1 ampere kept; 2 skipped
     state = State(persona=persona)
 
     ready = threading.Event()
@@ -149,8 +156,18 @@ def test_synthetic_unknown_cmd_is_invalid(vbmc_synth):
 
 
 def test_synthetic_does_not_shadow_builtins(vbmc_synth):
-    """Built-in Get Device ID still wins over the OEM fallback table."""
+    """Built-in Get Device ID wins over a colliding OEM fallback entry.
+
+    SAMPLE plants a decoy OEM (0x06,0x01) response (manuf field 0x424344).
+    server._dispatch consults DISPATCH before oem_responses, so the client
+    must get the built-in generic-persona device-id (manuf 0, product
+    0x0001, 15 bytes) — NOT the 16-byte decoy. Decoding both fields proves
+    which handler answered.
+    """
     with _session(vbmc_synth) as s:
         cc, body = s.send_raw(0x06, 0x01)
     assert cc == 0x00
-    assert len(body) == 15
+    assert len(body) == 15                                   # builtin, not 16B decoy
+    assert int.from_bytes(body[6:9], "little") == 0          # generic persona manuf
+    assert int.from_bytes(body[9:11], "little") == 0x0001    # generic persona product
+    assert int.from_bytes(body[6:9], "little") != 0x424344   # decoy did NOT win

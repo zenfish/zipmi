@@ -124,14 +124,22 @@ def test_rakp4_icv_truncation():
     assert len(got) == 12
 
 
-def test_k1_k2_lengths():
+def test_k1_k2_known_answer():
+    """K1 = HMAC_SIK(0x01*20), K2 = HMAC_SIK(0x02*20) (IPMI 2.0 §13.32).
+
+    SIK is the same pinned oracle value as test_sik_derivation; K1/K2 are
+    the exact HMAC-SHA1 outputs of the two spec constants over that SIK
+    (independently reproducible: hmac.new(sik, b'\\x01'*20, sha1)).
+    """
     cs = CIPHER_SUITES[3]
     sik = derive_sik(cs, PW, RC, RM, ROLE, UNAME)
     k1 = derive_k1(cs, sik)
     k2 = derive_k2(cs, sik)
-    # HMAC-SHA1 outputs 20 bytes.
-    assert len(k1) == 20
-    assert len(k2) == 20
+    assert k1 == bytes.fromhex("aa717f0cb9985d4331af664ef01a65f51395159c")
+    assert k2 == bytes.fromhex("348df022059159f67b76e86a8d09901e092e14fc")
+    # Distinct constants must yield distinct keys (guards a 0x01/0x02 swap).
+    assert k1 != k2
+    assert len(k1) == 20 and len(k2) == 20   # HMAC-SHA1 width
 
 
 def test_ipmi20_session_extract_padding():

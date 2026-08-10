@@ -105,15 +105,42 @@ def test_payload_activation_status_resp_parse():
     assert r.activated_instances == 0x0001
 
 
-# -- registry -------------------------------------------------------------
+# -- registry routing (real behavior, not membership) ---------------------
 
-def test_commands_registered():
-    assert lookup(0x0C, 0x22) == (GetSOLConfigParamReq, GetSOLConfigParamResp)
-    assert lookup(0x0C, 0x21)[0] is SetSOLConfigParamReq
-    assert lookup(0x06, 0x48) == (ActivatePayloadReq, ActivatePayloadResp)
-    assert lookup(0x06, 0x49)[0] is DeactivatePayloadReq
-    assert lookup(0x06, 0x4A) == (
-        GetPayloadActivationStatusReq, GetPayloadActivationStatusResp)
+def test_lookup_routes_to_class_that_builds_correct_wire_bytes():
+    """lookup() must return the req class that actually encodes that command.
+
+    Assert a real round-trip: resolve (netfn, cmd) -> req_cls, build a request,
+    and check the wire bytes match the command's spec. A membership check only
+    proves a key exists; this proves the mapped class encodes the right command.
+    """
+    # (0x0C, 0x22) Get SOL Config Param: channel=1, selector=6 -> "01060000".
+    req_cls, resp_cls = lookup(0x0C, 0x22)
+    assert bytes(req_cls(channel=1, parameter_selector=6)).hex() == "01060000"
+    assert resp_cls is GetSOLConfigParamResp
+
+    # (0x06, 0x48) Activate Payload: type=SOL(1), instance=1, aux=0xC0.
+    req_cls, _ = lookup(0x06, 0x48)
+    assert bytes(req_cls(payload_type=1, payload_instance=1, aux1=0xC0)).hex() \
+        == "0101c0000000"
+
+    # (0x06, 0x4A) Get Payload Activation Status: payload_type=1 -> "01".
+    req_cls, _ = lookup(0x06, 0x4A)
+    assert bytes(req_cls(payload_type=1)).hex() == "01"
+
+
+def test_lookup_masks_response_netfn_low_bit():
+    """Responses use request_netfn|0x01; lookup() & 0xFE must fold them back.
+
+    Get SOL Config Param is request netfn 0x0C; its response arrives on 0x0D.
+    Looking up either must resolve to the same command pair.
+    """
+    assert lookup(0x0D, 0x22) == lookup(0x0C, 0x22)          # 0x0D & 0xFE == 0x0C
+    assert lookup(0x07, 0x48)[0] is ActivatePayloadReq       # 0x07 & 0xFE == 0x06
+
+
+def test_lookup_unknown_command_returns_none():
+    assert lookup(0x06, 0xEE) is None
 
 
 # -- CLI helpers (pure) ---------------------------------------------------

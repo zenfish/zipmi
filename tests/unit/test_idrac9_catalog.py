@@ -29,6 +29,11 @@ def test_dispatch_entry_wellformed(e):
     assert isinstance(e.priv, int) and 0 <= e.priv <= 5   # 0 = unresolved gate
     assert e.handler_symbol and e.handler_symbol.strip()
     assert e.table and e.table.strip()
+    # When this row is one we pinned, the loop must also see the real content —
+    # so a scramble that keeps shape but moves values fails here too.
+    pin = _PINNED_DISPATCH.get((e.netfn, e.cmd))
+    if pin:
+        assert (e.handler_symbol, e.priv, e.table) == pin
 
 
 def test_dispatch_keys_unique():
@@ -49,6 +54,9 @@ def test_handler_entry_wellformed(h):
     """
     for field in ("section", "cmd_name", "handler"):
         assert getattr(h, field).strip(), f"empty {field}"
+    pin = _PINNED_HANDLERS.get(h.handler)
+    if pin:
+        assert (h.section, h.cmd_name, h.library) == pin
 
 
 def test_handler_symbols_unique():
@@ -58,17 +66,55 @@ def test_handler_symbols_unique():
     assert not dupes, f"duplicate handler rows: {dupes}"
 
 
+# (NetFn, cmd) -> (handler_symbol, priv, table). Read straight from
+# IDRAC9_DISPATCH. Distinct netfns and both named tables so an offset/scramble
+# or table swap breaks at least one row.
+_PINNED_DISPATCH = {
+    (0x00, 0x05): ("CmdOEMSetChassisCapabilities", 4, "G_asOEMIPMIReqeustHandleTable"),
+    (0x00, 0x04): ("CmdOEMChassisIdentify", 3, "G_asOEMIPMIReqeustHandleTable"),
+    (0x00, 0x08): ("OEMCmdSetSystemBootOptions", 3, "G_asOEMIPMIReqeustHandleTable"),
+    (0x06, 0x42): ("CmdGetBMCSA", 4, "G_asOSAOEMHandleTable"),
+    (0x06, 0x52): ("CmdI2CWriteRead_OEM", 3, "G_asOEMIPMIReqeustHandleTable"),
+    (0x04, 0x12): ("DellOEMCmdSetPEF", 4, "G_asOEMIPMIReqeustHandleTable"),
+    (0x04, 0x13): ("DellOEMCmdGetPEF", 2, "G_asOEMIPMIReqeustHandleTable"),
+}
+
+# handler -> (section, cmd_name, library). One per distinct .so so a wholesale
+# content swap in the handler catalog fails.
+_PINNED_HANDLERS = {
+    "CmdChassisControl": ("Chassis", "Chassis Control", "libchassiscmds.so"),
+    "CmdColdReset": ("App / Global", "Cold Reset", "libglobalcmds.so"),
+    "CmdClearMsgFlags": ("Messaging", "Clear Msg Flags", "libmessage.so"),
+    "CmdActivatePayload": ("Session / Payload", "Activate Payload", "libpayloadcmds.so"),
+    "CmdClrSDR": ("SDR Repository", "Clear SDR", "libsdr.so"),
+    "CmdAddSELEntry": ("SEL", "Add SEL Entry", "libselcmds.so"),
+    "CmdGetFWID": ("Firmware Update", "Get FW ID", "libosa.so"),
+    "CmdSetPowerRestorePolicy": ("OEM Extended Configure",
+                                 "Set Power Restore Policy", "liboemcmds.so"),
+}
+
+
 def test_known_rows_pinned():
-    """Pin real (NetFn,cmd)->symbol/handler mappings so a scrambled catalog fails.
+    """Pin real (NetFn,cmd)->symbol/priv/table so a scrambled catalog fails.
 
-    Values read straight from IDRAC9_DISPATCH / IDRAC9_HANDLERS.
+    Values read straight from IDRAC9_DISPATCH.
     """
-    e = IDRAC9_DISPATCH[(0x00, 0x05)]
-    assert e.handler_symbol == "CmdOEMSetChassisCapabilities"
-    assert e.priv == 4
-    assert e.table == "G_asOEMIPMIReqeustHandleTable"
+    for (netfn, cmd), (sym, priv, table) in _PINNED_DISPATCH.items():
+        e = IDRAC9_DISPATCH[(netfn, cmd)]
+        # key must actually index the row it claims to
+        assert e.netfn == netfn and e.cmd == cmd, f"{(netfn, cmd)} mis-keyed"
+        assert e.handler_symbol == sym, f"{(netfn, cmd)} symbol"
+        assert e.priv == priv, f"{(netfn, cmd)} priv"
+        assert e.table == table, f"{(netfn, cmd)} table"
 
-    row = next(h for h in IDRAC9_HANDLERS if h.handler == "CmdChassisControl")
-    assert row.section == "Chassis"
-    assert row.cmd_name == "Chassis Control"
-    assert row.library == "libchassiscmds.so"
+
+def test_known_handler_rows_pinned():
+    """Pin handler -> (section, cmd_name, library) across every distinct .so.
+
+    Values read straight from IDRAC9_HANDLERS. A per-row content swap fails.
+    """
+    for handler, (section, cmd_name, library) in _PINNED_HANDLERS.items():
+        row = next(h for h in IDRAC9_HANDLERS if h.handler == handler)
+        assert row.section == section, f"{handler} section"
+        assert row.cmd_name == cmd_name, f"{handler} cmd_name"
+        assert row.library == library, f"{handler} library"

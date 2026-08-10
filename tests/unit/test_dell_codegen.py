@@ -19,13 +19,24 @@ def test_codegen_imports():
 
 
 def test_known_standard_entries():
-    """A few standard cmds should be present with parsed metadata."""
+    """Pin real (NetFn,cmd)->(name,priv,sessionless) rows across distinct netfns.
+
+    Values read straight from DELL_DISPATCH. A scrambled key->row mapping or a
+    dropped/blanked field fails at least one.
+    """
     from zipmi.scapy_ipmi.oem.dell_generated import DELL_DISPATCH
-    e = DELL_DISPATCH[(0x06, 0x01)]
-    assert e.name == "CmdGetDeviceID"
-    assert e.priv == "User"
-    e = DELL_DISPATCH[(0x00, 0x01)]
-    assert e.name == "CmdGetChassisStatus"
+    # (netfn, cmd) -> (name, priv, sessionless)
+    pinned = {
+        (0x06, 0x01): ("CmdGetDeviceID", "User", False),
+        (0x00, 0x01): ("CmdGetChassisStatus", "User", False),
+        (0x0a, 0x42): ("CmdReserveSEL", "User", False),
+        (0x04, 0x02): ("CmdPlatformEvent", "Operator", True),
+    }
+    for (netfn, cmd), (name, priv, sessionless) in pinned.items():
+        e = DELL_DISPATCH[(netfn, cmd)]
+        assert e.name == name, f"{(netfn, cmd)} name"
+        assert e.priv == priv, f"{(netfn, cmd)} priv"
+        assert e.sessionless == sessionless, f"{(netfn, cmd)} sessionless"
 
 
 def test_known_oem_entries():
@@ -37,15 +48,23 @@ def test_known_oem_entries():
     assert e.priv == "User"
 
 
-def test_disabled_set_includes_known_stubs():
-    """The 8 documented Dell-stubbed commands are in DELL_DISABLED."""
-    from zipmi.scapy_ipmi.oem.dell_generated import DELL_DISABLED
-    # From fullfw doc §4.5 + §5.x: SDR clear / part-add / sensor factors
-    # are stubbed by the OEM dispatch override.
-    # Note: the parser only marks entries with explicit "NOT PRESENT" in
-    # the OEM-table layout; the override-table stubs may not appear here.
-    # Check we found at least a few.
-    assert len(DELL_DISABLED) >= 5
+def test_disabled_set_is_exact():
+    """DELL_DISABLED is the exact set of 'NOT PRESENT' 0x30 stubs, and each
+    corresponds to a not_present row in DELL_DISPATCH.
+
+    Keys read straight from the parsed data. A dropped stub or a mis-parsed
+    not_present flag fails.
+    """
+    from zipmi.scapy_ipmi.oem.dell_generated import DELL_DISABLED, DELL_DISPATCH
+    expected = {
+        (0x30, 0x00), (0x30, 0x01), (0x30, 0x02), (0x30, 0x04),
+        (0x30, 0x05), (0x30, 0x06), (0x30, 0x0a), (0x30, 0x18),
+    }
+    assert DELL_DISABLED == expected
+    # DELL_DISABLED must be exactly the not_present rows of the dispatch table.
+    assert DELL_DISABLED == {k for k, e in DELL_DISPATCH.items() if e.not_present}
+    # And the pinned first stub carries its real name.
+    assert DELL_DISPATCH[(0x30, 0x00)].name == "CmdOEMGetChassisCapabilities"
 
 
 def test_load_vendor_dell_now_has_many_names():

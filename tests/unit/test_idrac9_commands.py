@@ -26,6 +26,17 @@ from zipmi.scapy_ipmi.oem.idrac9_commands_generated import IDRAC9_COMMANDS
 _PRIVS = ("Admin", "Operator", "User", "Callback", "OEM", "undetermined")
 
 
+# name -> (netfn, cmd, subcmd, priv-substring, lib). Read straight from
+# IDRAC9_COMMANDS; spans every distinct lib so a content swap fails.
+_PINNED_CMDS = {
+    "DellCmdBladeVirtualMAC/SetVirtualMAC": (0x30, 0xc9, 0x00, "Admin", "liboemcmds"),
+    "CmdOEMPOSTMASERAccess/CmdOEMPOSTMASERAttachPartition":
+        (0x30, 0xa1, 0x02, "User", "liboemcmds"),
+    "CmdOEMSetCCRAutoSyncState": (0x18, 0x8c, None, "Operator", "libmaser"),
+    "DellCmdGetMgrCertFingerprint": (0x2c, 0x01, None, "Admin", "libipmicmdtableapi"),
+}
+
+
 @pytest.mark.parametrize("c", IDRAC9_COMMANDS, ids=lambda c: c.name)
 def test_every_command_wellformed(c):
     """One case per catalog entry — a dropped/fabricated/malformed command fails loudly."""
@@ -46,6 +57,27 @@ def test_every_command_wellformed(c):
     # not a hole. Blank IS a hole.
     for field in ("purpose", "request", "response", "confidence", "lib"):
         assert getattr(c, field).strip(), f"empty {field}"
+    # Pinned rows must carry their real content through the loop too.
+    pin = _PINNED_CMDS.get(c.name)
+    if pin:
+        netfn, cmd, subcmd, priv_sub, lib = pin
+        assert (c.netfn, c.cmd, c.subcmd) == (netfn, cmd, subcmd)
+        assert priv_sub.lower() in c.priv.lower()
+        assert c.lib == lib
+
+
+def test_known_commands_resolve():
+    """Pin name -> exact (netfn,cmd,subcmd,priv,lib) across every distinct lib.
+
+    A scrambled name->row mapping or offset corruption fails at least one.
+    """
+    for name, (netfn, cmd, subcmd, priv_sub, lib) in _PINNED_CMDS.items():
+        c = next(x for x in IDRAC9_COMMANDS if x.name == name)
+        assert c.netfn == netfn, f"{name} netfn"
+        assert c.cmd == cmd, f"{name} cmd"
+        assert c.subcmd == subcmd, f"{name} subcmd"
+        assert priv_sub.lower() in c.priv.lower(), f"{name} priv"
+        assert c.lib == lib, f"{name} lib"
 
 
 def test_catalog_keys_unique():

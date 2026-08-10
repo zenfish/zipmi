@@ -54,10 +54,22 @@ def test_destructive_requires_force():
     assert cc == 0
 
 
-def test_attack_catalog_size():
+def test_attack_catalog_resolves_primitives_by_name():
+    """Named catalog entries resolve to their exact wire bytes + gating.
+
+    Pins two independent primitives fully — not just a count — so a
+    mis-wired netfn/cmd/data or a flipped destructive flag is caught.
+    """
     from zipmi.attacks.dell import ATTACKS
     assert len(ATTACKS) >= 10
-    assert "DellCmdThrottleCPU.assert" in ATTACKS
+
+    a = ATTACKS["DellCmdThrottleCPU.assert"]
+    assert (a.netfn, a.cmd, a.data) == (0x30, 0xC0, b"\x01\x01")
+    assert a.destructive is True
+
+    p = ATTACKS["DellCmdReadPSUInfo.psu1"]
+    assert (p.netfn, p.cmd, p.data) == (0x30, 0xB0, b"\x0a\x01")
+    assert p.destructive is False
 
 
 def test_extended_config_get_factory():

@@ -22,8 +22,18 @@ def test_ipmi_listing_shape_and_size():
 
 
 def test_ipmi_stats_total_equals_named():
+    """ipmi has no nameless dispatch stubs (unlike iDRAC9), so total ==
+    named. Prove it against the ACTUAL rendered listing (what the user
+    browses) rather than circularly against IPMI_CMD_NAMES — and spot-check
+    that a real spec command is present and named in that listing, so the
+    count reflects resolvable commands, not an empty coincidence."""
     total, named = _vendor_stats("ipmi")
-    assert total == named == len(IPMI_CMD_NAMES)
+    listing = _vendor_listing("ipmi")
+    assert total == named == len(listing)
+    # Every listing row carries a non-empty resolved name (nothing nameless).
+    assert all(row["name"] for row in listing.values())
+    # A known spec command actually resolves in that listing.
+    assert listing[(0x06, 0x01)]["name"] == "GetDeviceID"
 
 
 from zipmi.cli.oem_cmds import _find_cmd
@@ -47,8 +57,18 @@ def test_normalized_forms_unique():
 
 
 def test_ambiguous_substring_lists_many():
-    hits = _hits("Get Chassis")
-    assert len(hits) >= 2  # Capabilities + Status (+ more)
+    """A loose substring returns the SPECIFIC set of matching commands, and
+    each resolves to its real spec (netfn,cmd). Assert the identities, not
+    just a count — a count passes even if the resolver returns garbage."""
+    hits = dict((k, v["name"]) for k, v in _hits("Get Chassis"))
+    # Get Chassis Capabilities = Chassis NetFn 0x00 / cmd 0x00;
+    # Get Chassis Status       = Chassis NetFn 0x00 / cmd 0x01.
+    # (IPMI 2.0 spec Table G-1, Chassis Device commands.)
+    assert hits.get((0x00, 0x00)) == "GetChassisCapabilities"
+    assert hits.get((0x00, 0x01)) == "GetChassisStatus"
+    # And each disambiguated name resolves UNIQUELY back to its wire bytes.
+    assert _hits("Get Chassis Status")[0][0] == (0x00, 0x01)
+    assert _hits("Get Chassis Capabilities")[0][0] == (0x00, 0x00)
 
 
 def test_no_match_returns_empty():

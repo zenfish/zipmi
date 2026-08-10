@@ -8,9 +8,6 @@ from datetime import datetime, timezone
 import pytest
 
 from zipmi.sel_decode import (
-    GENERIC_EVENT,
-    SENSOR_SPECIFIC_EVENT,
-    SENSOR_TYPE,
     SensorInfo,
     decode_sdr_record,
     format_sel_record_extended,
@@ -232,19 +229,91 @@ def test_format_sel_short_record():
     assert "short SEL record" in line
 
 
-# -- lookup table sanity ---------------------------------------------------
+# -- table entries exercised through real decodes --------------------------
+#
+# Instead of asserting a dict constant contains keys, feed a SEL record whose
+# sensor type / event offset hits the entry and assert the DECODED human
+# string. This catches a wrong table value or a mislookup, which a
+# `key in dict` check cannot.
 
-def test_sensor_type_table_covers_common():
-    for code in (0x01, 0x04, 0x07, 0x08, 0x0C, 0x14):
-        assert code in SENSOR_TYPE
+def test_sensor_type_names_render_in_decoded_line():
+    """Each common sensor type code must render its Table 42-3 name in output.
+
+    A SEL record with event_type 0x6F, offset 0x00 for a sensor type that has
+    no offset-0 entry falls back to 'sensor-specific offset 0x00', so we pick
+    the type label out of the "<type_name> #0xNN" sensor field.
+    Expected names come straight from IPMI 2.0 Table 42-3.
+    """
+    expected = {
+        0x01: "Temperature",
+        0x04: "Fan",
+        0x07: "Processor",
+        0x08: "Power Supply",
+        0x0C: "Memory",
+        0x14: "Button",
+    }
+    for stype, label in expected.items():
+        rec = _build_sel_record(
+            ts=0x40000000, sensor_type=stype, sensor_num=0x77,
+            ev_byte=0x6F, ev_data1=0x0E,   # offset 0x0E: not in any table -> hex fallback
+        )
+        line = format_sel_record_extended(rec, {})
+        assert f"{label} #0x77" in line
 
 
-def test_generic_event_table_threshold_complete():
-    """Threshold event type (0x01) needs offsets 0x00..0x0B per IPMI 2.0."""
+def test_threshold_offsets_decode_to_spec_strings():
+    """Event type 0x01 (threshold) offsets 0x00..0x0B decode to Table 42-1 text.
+
+    Feed ev_byte=0x01 (threshold), ev_data1=offset, and assert the exact human
+    string from IPMI 2.0 Table 42-1, so a wrong table value would fail here.
+    """
+    expected = {
+        0x00: "Lower Non-critical going low",
+        0x03: "Lower Critical going high",
+        0x09: "Upper Critical going high",
+        0x0B: "Upper Non-recoverable going high",
+    }
+    for off, text in expected.items():
+        rec = _build_sel_record(
+            ts=0x40000000, sensor_type=0x01, sensor_num=0x20,
+            ev_byte=0x01, ev_data1=off,
+        )
+        line = format_sel_record_extended(rec, {})
+        assert text in line
+    # All 12 threshold offsets must resolve (none fall through to hex).
     for off in range(0x0C):
-        assert (0x01, off) in GENERIC_EVENT
+        rec = _build_sel_record(
+            ts=0x40000000, sensor_type=0x01, sensor_num=0x20,
+            ev_byte=0x01, ev_data1=off,
+        )
+        line = format_sel_record_extended(rec, {})
+        assert f"offset 0x{off:02x}" not in line
 
 
-def test_sensor_specific_power_supply_events_present():
+def test_power_supply_offsets_decode_to_spec_strings():
+    """Sensor type 0x08 (Power Supply), event 0x6F, offsets 0x00..0x06.
+
+    Expected strings from IPMI 2.0 Table 42-3 sensor-specific offsets.
+    """
+    expected = {
+        0x00: "Presence detected",
+        0x01: "Power Supply Failure detected",
+        0x02: "Predictive Failure",
+        0x03: "Power Supply input lost (AC/DC)",
+        0x06: "Configuration error",
+    }
+    for off, text in expected.items():
+        rec = _build_sel_record(
+            ts=0x40000000, sensor_type=0x08, sensor_num=0x51,
+            ev_byte=0x6F, ev_data1=off,
+        )
+        line = format_sel_record_extended(rec, {})
+        assert f"| {text} |" in line
+    # None of offsets 0..6 fall through to the "sensor-specific offset" hex form.
     for off in range(7):
-        assert (0x08, off) in SENSOR_SPECIFIC_EVENT
+        rec = _build_sel_record(
+            ts=0x40000000, sensor_type=0x08, sensor_num=0x51,
+            ev_byte=0x6F, ev_data1=off,
+        )
+        line = format_sel_record_extended(rec, {})
+        assert "sensor-specific offset" not in line

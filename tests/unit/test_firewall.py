@@ -179,11 +179,19 @@ def test_cmd_firewall_no_netfns_is_clean(monkeypatch, capsys):
 # -- parser wiring --------------------------------------------------------
 
 def test_firewall_subcommand_registered():
-    p = build_parser() if callable(build_parser) else None
-    assert p is not None
+    """Parser routes `firewall` to cmd_firewall AND defaults to safe mode.
+
+    The safe-by-default contract (commit 537ed73) lives in the parser
+    defaults: with no flags, probing is off and --unsafe is off, so a bare
+    `firewall` invocation can never fire state-changing commands. Pin those
+    defaults, not just that the subcommand parses.
+    """
+    p = build_parser()
     ns = p.parse_args(["-H", "x", "firewall", "--channel", "0x0e"])
     assert ns.func is cmd_firewall
     assert ns.channel == "0x0e"
+    assert ns.probe is False        # discovery is read-only by default
+    assert getattr(ns, "unsafe", False) is False  # state-changing gated off
 
 
 def test_probe_safe_gates_state_changing(monkeypatch, capsys):
