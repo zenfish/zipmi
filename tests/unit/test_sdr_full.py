@@ -177,3 +177,68 @@ def test_unit_name_unknown_falls_back_to_hex():
 def test_unit_table_has_common_entries():
     for code in (1, 4, 5, 6, 18, 19, 22):
         assert code in SENSOR_UNIT
+
+
+# -- Independent hand-laid-out SDR bytes (no _build_full_sdr) -------------
+#
+# Constructed by hand from IPMI 2.0 Table 43-1 (Full Sensor Record), so an
+# offset bug shifts a field and breaks a decoded value rather than passing a
+# self-consistent round-trip. Expected values come from the layout comments,
+# not from running the parser.
+#
+# Byte offsets into the record (only the ones parse_full_sdr reads named):
+#   [3]  0x01  record type = Full Sensor Record (Type 1)
+#   [7]  0x30  sensor number = 48
+#   [12] 0x02  sensor type   = 0x02 (Voltage)
+#   [20] 0x40  units1: bits[7:6] = 0b01 -> analog_format = 1 (1's comp)
+#   [21] 0x04  unit_code = 4 (Volts)
+#   [23] 0x00  linearization = 0 (linear)
+#   [24] 0x02  M low  = 2   ) M = 2 (10-bit, high bits 0)
+#   [25] 0x00  M high = 0   )
+#   [26] 0x0A  B low  = 10  ) B = 10
+#   [27] 0x00  B high = 0   )
+#   [29] 0x00  R_exp (bits 7:4)=0, B_exp (bits 3:0)=0
+#   [47] 0xC7  ID TL: type=0b11 (8-bit ASCII), length=7
+#   [48..54]  "VoltXYZ" = 0x56 0x6F 0x6C 0x74 0x58 0x59 0x5A
+def _hand_sdr() -> bytes:
+    rec = bytearray(48)
+    rec[3] = 0x01
+    rec[7] = 0x30
+    rec[12] = 0x02
+    rec[20] = 0x40          # 0b01 << 6
+    rec[21] = 0x04
+    rec[23] = 0x00
+    rec[24] = 0x02
+    rec[25] = 0x00
+    rec[26] = 0x0A
+    rec[27] = 0x00
+    rec[29] = 0x00
+    rec[47] = 0xC7          # (0b11 << 6) | 7
+    return bytes(rec) + b"VoltXYZ"
+
+
+def test_parse_full_sdr_hand_bytes():
+    """Independent bytes: sensor number, type, unit, analog format, name."""
+    meta = parse_full_sdr(_hand_sdr())
+    assert meta is not None
+    assert meta.sensor_number == 0x30
+    assert meta.sensor_type == 0x02
+    assert meta.analog_format == 1        # units1 bits 7:6 = 0b01
+    assert meta.unit_code == 4
+    assert unit_name(meta.unit_code) == "Volts"
+    assert meta.linearization == 0
+    assert meta.m == 2
+    assert meta.b == 10
+    assert meta.r_exp == 0
+    assert meta.b_exp == 0
+    assert meta.name == "VoltXYZ"
+
+
+def test_cook_reading_hand_bytes_end_to_end():
+    """From the hand SDR: y = M*x + B*10^Bexp = 2*x + 10. Raw 5 -> 20.0.
+
+    analog_format=1 (1's complement); raw 5 < 0x80 so x = 5.
+    """
+    meta = parse_full_sdr(_hand_sdr())
+    assert meta is not None
+    assert cook_reading(meta, 5) == 20.0

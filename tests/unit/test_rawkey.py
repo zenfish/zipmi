@@ -89,3 +89,9 @@ def test_dell_ipmikey_used_as_sha256_kuid():
     code = rakp3_authcode(cs, ipmikey, SID_C, RM, ROLE, UNAME)
     assert len(code) == 32                                     # SHA-256
     assert code != rakp3_authcode(cs, PW, SID_C, RM, ROLE, UNAME)
+    # Regression vector — the RAKP3 message construction is validated by the
+    # real-capture SHA1 oracle in test_rawkey_equivalent_to_password; this pins
+    # the SHA256 (cipher 17) output so a silently-wrong-but-32-byte HMAC fails,
+    # not just a length change.
+    assert code == bytes.fromhex(
+        "44765895a9624e1e26ceb154e77856707c6d046905d968151396f17416adb561")

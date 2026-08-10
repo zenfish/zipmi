@@ -193,3 +193,77 @@ def test_parse_product_info_full():
 
 def test_fru_epoch_is_1996_utc():
     assert FRU_EPOCH == datetime(1996, 1, 1, tzinfo=timezone.utc)
+
+
+# -- Independent hand-laid-out bytes (no _build_* helpers) ---------------
+#
+# These decode a byte literal constructed by hand from the FRU v1.3 spec, so
+# an offset bug in the parser would produce wrong strings/dates rather than a
+# self-consistent round-trip. Expected values come from the layout below, not
+# from running the parser.
+
+# Board Info area, hand-built. Absolute offsets within the AREA:
+#   [0]  0x01  format_version = 1
+#   [1]  0x03  length = 3 x 8 = 24 bytes total (set to match padded length)
+#   [2]  0x00  language code = 0 (English)
+#   [3]  0xA0  \
+#   [4]  0x05   > mfg_min = 0x0005A0 = 1440 (LE) = exactly 1 day of minutes
+#   [5]  0x00  /
+#   [6]  0xC3  TL: type=0b11 (8-bit ASCII), len=3  -> manufacturer
+#   [7..9]    "DEL"                                 = 0x44 0x45 0x4C
+#   [10] 0xC4  TL: len=4                            -> product
+#   [11..14]  "R640"                                = 0x52 0x36 0x34 0x30
+#   [15] 0xC5  TL: len=5                            -> serial
+#   [16..20]  "CN123"                               = 0x43 0x4E 0x31 0x32 0x33
+#   [21] 0xC0  TL: len=0  -> part_number = ""
+#   [22] 0xC1  end-of-area marker
+#   [23] 0x00  padding to reach 24 bytes (still needs checksum -> see below)
+# 23 bytes so far; area len must be a multiple of 8. We target 24 bytes:
+# bytes [0..22] as above (23 bytes) + 1 checksum byte = 24 = 3 x 8. So no
+# extra 0x00 pad is needed; drop [23] and put the checksum there instead.
+_BOARD_AREA_NO_CKSUM = bytes([
+    0x01, 0x03, 0x00,               # fmt, len(x8)=24, lang
+    0xA0, 0x05, 0x00,               # mfg_min = 1440 LE
+    0xC3, 0x44, 0x45, 0x4C,         # "DEL"
+    0xC4, 0x52, 0x36, 0x34, 0x30,   # "R640"
+    0xC5, 0x43, 0x4E, 0x31, 0x32, 0x33,   # "CN123"
+    0xC0,                           # part_number = ""
+    0xC1,                           # end-of-area
+])  # 23 bytes; +1 zero-sum checksum below = 24 total
+_BOARD_AREA = _BOARD_AREA_NO_CKSUM + bytes([(-sum(_BOARD_AREA_NO_CKSUM)) & 0xFF])
+
+# Common Header, hand-built. board_off is 8 (right after header), stored x8.
+#   [3] = 8 // 8 = 1  -> board_info offset field
+_HEADER_NO_CKSUM = bytes([0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00])
+_HEADER = _HEADER_NO_CKSUM + bytes([(-sum(_HEADER_NO_CKSUM)) & 0xFF])
+
+_HAND_BLOB = _HEADER + _BOARD_AREA
+
+
+def test_parse_common_header_hand_bytes():
+    """Header field [3]=1 must decode to board_off = 1*8 = 8."""
+    h = parse_common_header(_HAND_BLOB)
+    assert h is not None
+    assert h.format_version == 1
+    assert h.board_off == 8
+    assert h.product_off == 0
+    assert h.checksum_ok is True
+
+
+def test_parse_board_info_hand_bytes_strings():
+    """Independent bytes: manufacturer/product/serial from a hand layout."""
+    b = parse_board_info(_HAND_BLOB, 8)
+    assert b is not None
+    assert b.language_code == 0
+    assert b.manufacturer == "DEL"
+    assert b.product == "R640"
+    assert b.serial == "CN123"
+    assert b.part_number == ""
+    assert b.checksum_ok is True
+
+
+def test_parse_board_info_hand_bytes_mfg_date():
+    """mfg_min = 1440 (0x0005A0 LE) = exactly one day -> 1996-01-02 00:00 UTC."""
+    b = parse_board_info(_HAND_BLOB, 8)
+    assert b is not None
+    assert b.mfg_date == datetime(1996, 1, 2, 0, 0, tzinfo=timezone.utc)

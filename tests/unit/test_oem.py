@@ -9,27 +9,37 @@ RELATED  zipmi/__init__.py:load_vendor, scapy_ipmi/oem/_registry.py
 
 from __future__ import annotations
 
+import subprocess
+import sys
+
 import pytest
 
 
 def test_base_namespace_no_oem_by_default():
-    """Importing zipmi alone must NOT populate the OEM registry."""
-    # Reload of submodules to simulate a fresh import isn't trivial in
-    # pytest; instead just assert the registry is mostly empty when no
-    # vendor has been explicitly loaded.
-    from zipmi.scapy_ipmi.oem._registry import OEM_CMD_NAMES, ENTERPRISE_IDS
-    # If a previous test already loaded a vendor, the entries are present
-    # — that's fine; we just check the registry exists and is a dict.
-    assert isinstance(OEM_CMD_NAMES, dict)
-    assert isinstance(ENTERPRISE_IDS, dict)
+    """Importing zipmi alone must NOT populate the OEM registry.
+
+    Must run in a FRESH interpreter — in-process the registry is polluted by
+    other tests that load vendors, which is exactly why the old version gave up
+    and asserted nothing meaningful."""
+    code = (
+        "import zipmi;"
+        "from zipmi.scapy_ipmi.oem._registry import OEM_CMD_NAMES, ENTERPRISE_IDS;"
+        "assert len(OEM_CMD_NAMES) == 0, OEM_CMD_NAMES;"
+        "assert len(ENTERPRISE_IDS) == 0, ENTERPRISE_IDS"
+    )
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert r.returncode == 0, f"bare import populated the OEM registry:\n{r.stderr}"
 
 
 def test_load_vendor_dell():
     import zipmi
     zipmi.load_vendor("dell")
     from zipmi.scapy_ipmi.oem._registry import OEM_CMD_NAMES, ENTERPRISE_IDS
-    assert ENTERPRISE_IDS.get(674) == "dell"
-    # PROCHOT cmd should be registered.
+    # IANA 674 is shared across the Dell family (dell/idrac9/idrac10) and the
+    # registry is first-writer-wins, so whichever loaded first owns the label —
+    # asserting exactly "dell" is order-dependent (fails when idrac9 loaded
+    # first). What load_vendor("dell") guarantees is dell's OWN commands:
+    assert ENTERPRISE_IDS.get(674) in ("dell", "idrac9", "idrac10")
     assert OEM_CMD_NAMES.get((0x30, 0xC0)) == "Dell PROCHOTThrottle"
 
 

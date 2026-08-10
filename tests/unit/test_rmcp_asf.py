@@ -64,26 +64,32 @@ def test_rmcp_asf_dispatch():
 
 
 def test_pong_round_trip():
+    # 4542 (ASF's own IANA) = 0x000011BE — distinct LE vs BE, so this catches an
+    # endianness flip. oem_iana is emitted LSB-first on the wire (real BMCs do);
+    # 674 was a bad choice because its low bytes read the same either way.
     pong = ASFPresencePong(
-        oem_iana=674,
+        oem_iana=4542,
         oem_defined=0,
         supported_entities=0x81,    # IPMI bit + ASF v1.0
         supported_interactions=0x00,
     )
     raw = bytes(pong)
     assert len(raw) == 16
+    assert raw[0:4] == bytes.fromhex("be110000")   # LSB-first; big-endian would be 000011be
     again = ASFPresencePong(raw)
-    assert again.oem_iana == 674
+    assert again.oem_iana == 4542
     assert again.supported_entities == 0x81
 
 
 def test_parse_pong_helper():
     """ASF header carrying a Pong body decodes via parse_pong()."""
-    body = ASFPresencePong(oem_iana=674, supported_entities=0x81)
+    body = ASFPresencePong(oem_iana=4542, supported_entities=0x81)
+    # confirm the on-wire bytes are little-endian (the field that regressed)
+    assert bytes(body)[0:4] == bytes.fromhex("be110000")
     asf = ASF(msg_type=0x40, msg_tag=0x42, data=bytes(body))
     decoded = parse_pong(asf)
     assert decoded is not None
-    assert decoded.oem_iana == 674
+    assert decoded.oem_iana == 4542
     assert decoded.supported_entities & 0x80
 
 

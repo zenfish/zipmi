@@ -56,3 +56,19 @@ def test_handler_symbols_unique():
     keys = [(h.library, h.handler) for h in IDRAC9_HANDLERS]
     dupes = {k for k in keys if keys.count(k) > 1}
     assert not dupes, f"duplicate handler rows: {dupes}"
+
+
+def test_known_rows_pinned():
+    """Pin real (NetFn,cmd)->symbol/handler mappings so a scrambled catalog fails.
+
+    Values read straight from IDRAC9_DISPATCH / IDRAC9_HANDLERS.
+    """
+    e = IDRAC9_DISPATCH[(0x00, 0x05)]
+    assert e.handler_symbol == "CmdOEMSetChassisCapabilities"
+    assert e.priv == 4
+    assert e.table == "G_asOEMIPMIReqeustHandleTable"
+
+    row = next(h for h in IDRAC9_HANDLERS if h.handler == "CmdChassisControl")
+    assert row.section == "Chassis"
+    assert row.cmd_name == "Chassis Control"
+    assert row.library == "libchassiscmds.so"

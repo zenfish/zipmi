@@ -2,10 +2,10 @@
 test_idrac10_commands.py — verify the iDRAC10 rich-command catalog codegen.
 
 WHAT     Loads idrac10_commands_generated.py + the idrac10.py consumer and
-         asserts the catalog imports, has all 447 entries, that
+         asserts the catalog imports, has all 446 entries, that
          load_vendor("idrac10") still registers, and spot-checks specific
          commands round-trip with correct NetFn/cmd/subcmd/priv.
-WHY      The catalog is generated from idrac10-commands.json (447 RE'd +
+WHY      The catalog is generated from idrac10-commands.json (446 RE'd +
          adversarially verified commands). A regression that drops entries
          or mis-parses hex NetFn/cmd/subcmd should fail loudly. Mirror of
          test_idrac9_dispatch.py.

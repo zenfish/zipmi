@@ -112,5 +112,6 @@ def test_activate_session_resp_decode():
 
 
 def test_set_session_priv_req_bytes():
-    req = SetSessionPrivLevelReq(priv=0x04)
-    assert bytes(req) == b"\x04"
+    # two distinct values so this isn't a one-constant passthrough tautology
+    assert bytes(SetSessionPrivLevelReq(priv=0x04)) == b"\x04"   # Administrator
+    assert bytes(SetSessionPrivLevelReq(priv=0x03)) == b"\x03"   # Operator

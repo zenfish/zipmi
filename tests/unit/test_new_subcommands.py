@@ -7,6 +7,7 @@ by integration tests / manual runs.
 
 import pytest
 
+import zipmi.cli.zipmi as _z
 from zipmi.cli.zipmi import parse_cli
 
 
@@ -176,6 +177,47 @@ def test_mc_watchdog_off_requires_yes_and_dispatches():
     assert args.yes is False
     args2 = parse_cli(["-H", "x", "mc", "watchdog", "off", "--yes"])
     assert args2.yes is True
+
+
+class _FakeSession:
+    """Records send_raw calls; context-manager like the real Session."""
+    def __init__(self):
+        self.sent = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+    def send_raw(self, netfn, cmd, data):
+        self.sent.append((netfn, cmd, bytes(data)))
+        if (netfn, cmd) == (0x06, 0x25):        # Get Watchdog: 8 bytes; running bit set
+            return 0x00, bytes([0x40 | 0x05, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00])
+        return 0x00, b""
+
+
+def test_mc_watchdog_off_without_yes_sends_nothing(monkeypatch):
+    """The destructive gate must BLOCK the write, not just parse a flag."""
+    def _boom(_args):
+        raise AssertionError("_open_session called — gate failed to block!")
+    monkeypatch.setattr(_z, "_open_session", _boom)
+    args = parse_cli(["-H", "x", "mc", "watchdog", "off"])   # no --yes
+    rc = _z.cmd_mc_watchdog_off(args)
+    assert rc == 2                                            # refused, nothing sent
+
+
+def test_mc_watchdog_off_with_yes_clears_running_bit(monkeypatch):
+    """With --yes it reads (0x25) then writes (0x24) with the 0x40 running bit
+    cleared — the actual disable logic, not just dispatch."""
+    fake = _FakeSession()
+    monkeypatch.setattr(_z, "_open_session", lambda _args: fake)
+    args = parse_cli(["-H", "x", "mc", "watchdog", "off", "--yes"])
+    rc = _z.cmd_mc_watchdog_off(args)
+    assert rc == 0
+    assert fake.sent[0][:2] == (0x06, 0x25)                  # reads current config first
+    assert fake.sent[1][:2] == (0x06, 0x24)                  # then Set Watchdog
+    assert fake.sent[1][2][0] == 0x05                        # 0x45 & ~0x40 → running bit cleared
 
 
 # -- -V / --version global -----------------------------------------------

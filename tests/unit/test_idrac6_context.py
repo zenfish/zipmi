@@ -46,3 +46,13 @@ def test_context_entry_wellformed(item):
 def test_context_keys_unique():
     """Dict keys are inherently unique — guard against accidental value-merge shape drift."""
     assert len(KNOWN_CONTEXT) == len(set(KNOWN_CONTEXT)) == 211
+
+
+def test_known_rows_pinned():
+    """Pin real (NetFn,cmd)->name rows so a content swap / scrambled mapping fails.
+
+    Values below were read straight from idrac6_known_context.KNOWN_CONTEXT.
+    """
+    assert KNOWN_CONTEXT[(0x00, 0x02)]["name"] == "ChassisControl"
+    assert "Chassis Control" in KNOWN_CONTEXT[(0x00, 0x02)]["summary"]
+    assert KNOWN_CONTEXT[(0x00, 0x08)]["name"] == "SetSystemBootOptions"
