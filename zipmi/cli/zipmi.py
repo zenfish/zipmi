@@ -2351,18 +2351,10 @@ def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
     return 0
 
 
-_CIPHER_ALGO = {
-    0: "none/none/none (CIPHER 0)", 1: "sha1/none/none",
-    2: "sha1/sha1-96/none", 3: "sha1/sha1-96/aes-cbc-128",
-    6: "md5/none/none", 7: "md5/md5-128/none", 8: "md5/md5-128/aes-cbc-128",
-    17: "sha256/sha256-128/aes-cbc-128",
-}
-
-
 def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
     """Enumerate the BMC's advertised RMCP+ cipher suites via Get Channel
     Cipher Suites (0x54). Sessionless, present channel."""
-    from .bmc_id import probe_cipher_suites
+    from .bmc_id import probe_cipher_suites, cipher_suite_algs
     host = _require_host(args)
     t = Transport(host=host, port=args.port, timeout=args.timeout)
     _apply_trace(t, args)
@@ -2376,9 +2368,10 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
         return 1
     suites = result["cipher_list"]
     print(f"cipher-suites {host}: [{', '.join(str(s) for s in suites) or '—'}]")
-    for s in suites:
-        warn = "  ⚠ CVE-2013-4783 (unauth access)" if s == 0 else ""
-        print(f"  {s:>2}: {_CIPHER_ALGO.get(s, 'unknown')}{warn}")
+    for rec in result.get("cipher_details", []):
+        oem = f"  (OEM IANA {rec['oem_iana']})" if rec.get("oem_iana") else ""
+        warn = "  ⚠ CVE-2013-4783 (unauth access)" if rec["id"] == 0 else ""
+        print(f"  {rec['id']:>2}: {cipher_suite_algs(rec)}{oem}{warn}")
     if result.get("cipher0"):
         print("  WARNING: cipher suite 0 advertised — run 'scan cipher-zero' to confirm exploitability")
     return 0

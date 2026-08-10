@@ -316,14 +316,69 @@ def fingerprint_guid(guid: bytes) -> dict:
     return {"pattern": "unrecognized", "note": "no known vendor signature"}
 
 
+# Algorithm-number → name (IPMI 2.0 §13.28, tables 13-17/18/19).
+_AUTH_ALG = {0: "none", 1: "sha1", 2: "md5", 3: "sha256"}
+_INTEG_ALG = {0: "none", 1: "sha1-96", 2: "md5-128", 3: "md5", 4: "sha256-128"}
+_CONF_ALG = {0: "none", 1: "aes-cbc-128", 2: "xrc4-128", 3: "xrc4-40"}
+
+
+def parse_cipher_suite_records(data: bytes) -> list[dict]:
+    """Decode the 'List Algorithms by Cipher Suite' payload (IPMI 2.0 §22.15.1).
+
+    A sequence of records, each: a Start-Of-Record byte (0xC0 = standard, next
+    byte is the suite ID; 0xC1 = OEM, next 3 bytes are the OEM IANA LS-first,
+    then the suite ID), followed by algorithm bytes whose top two bits give the
+    type — 00b auth, 01b integrity, 10b confidentiality — and low 6 bits the
+    algorithm number. Records may span 16-byte fetch chunks, so this parses the
+    *accumulated* payload (channel byte already stripped)."""
+    out: list[dict] = []
+    cur: dict | None = None
+    i, n = 0, len(data)
+    while i < n:
+        b = data[i]
+        if b & 0xC0 == 0xC0:                     # start of record
+            if b == 0xC1:                        # OEM: 3-byte IANA + id
+                if i + 4 >= n:
+                    break
+                iana = data[i + 1] | (data[i + 2] << 8) | (data[i + 3] << 16)
+                cur = {"id": data[i + 4], "auth": None, "integ": None,
+                       "conf": None, "oem_iana": iana}
+                i += 5
+            else:                                # standard (0xC0): 1-byte id
+                if i + 1 >= n:
+                    break
+                cur = {"id": data[i + 1], "auth": None, "integ": None,
+                       "conf": None, "oem_iana": None}
+                i += 2
+            out.append(cur)
+            continue
+        if cur is not None:                      # algorithm byte
+            tag, val = b & 0xC0, b & 0x3F
+            if tag == 0x00:
+                cur["auth"] = val
+            elif tag == 0x40:
+                cur["integ"] = val
+            elif tag == 0x80:
+                cur["conf"] = val
+        i += 1
+    return out
+
+
+def cipher_suite_algs(rec: dict) -> str:
+    """'sha1/sha1-96/aes-cbc-128' for one decoded record."""
+    def name(m, v):
+        return "?" if v is None else m.get(v, f"{v}")
+    return "/".join((name(_AUTH_ALG, rec["auth"]),
+                     name(_INTEG_ALG, rec["integ"]),
+                     name(_CONF_ALG, rec["conf"])))
+
+
 def parse_cipher_list(payload: bytes) -> list[int]:
-    """Get-Channel-Cipher-Suites response payload. With list_index bit-7 set,
-    the BMC returns the channel byte + a list of cipher-suite IDs (one byte
-    each in the 'list algos by cipher suite' encoding). We strip the leading
-    channel byte and treat the rest as suite IDs."""
-    if not payload or len(payload) < 1:
+    """Suite IDs from a single Get-Channel-Cipher-Suites payload (leading
+    channel byte stripped). Correctly decodes the by-cipher-suite records."""
+    if not payload:
         return []
-    return list(payload[1:])
+    return [r["id"] for r in parse_cipher_suite_records(bytes(payload[1:]))]
 
 
 # ──────────────────────── probe runners ────────────────────────
@@ -393,23 +448,36 @@ def probe_system_guid(t: Transport) -> dict | None:
 
 
 def probe_cipher_suites(t: Transport) -> dict | None:
+    """Enumerate advertised cipher suites via Get Channel Cipher Suites (0x54),
+    'list algorithms by cipher suite'. Fetches 16 bytes per list index and
+    keeps going until a short chunk (<16 data bytes) signals the end; records
+    can span chunk boundaries so we accumulate then decode."""
     vlog("→ Get Channel Cipher Suites (NetFn 0x06 / Cmd 0x54)")
-    req = GetChannelCipherSuitesReq(channel=0xE, payload_type=0, list_index=0x80)
-    try:
-        msg, resp = t.sessionless_request(0x06, 0x54, req, rq_seq=4)
-    except OSError as e:
-        return {"error": f"transport: {e}"}
-    if resp is None or resp.comp_code != 0x00:
-        cc = resp.comp_code if resp is not None else None
-        return {"error": f"comp_code={cc}"}
-    # _BareCCResp has variable trailing payload after comp_code. Pull the
-    # raw bytes from the IPMI message body.
-    raw = bytes(msg.data) if msg is not None else b""
-    # raw layout: [comp_code][channel][cipher-suite IDs...]
-    suites = parse_cipher_list(raw[1:]) if len(raw) >= 2 else []
+    acc = b""
+    for idx in range(0x40):                        # list index 0..63 (safety cap)
+        req = GetChannelCipherSuitesReq(channel=0xE, payload_type=0,
+                                        list_index=0x80 | idx)
+        try:
+            msg, resp = t.sessionless_request(0x06, 0x54, req, rq_seq=4)
+        except OSError as e:
+            return {"error": f"transport: {e}"}
+        if resp is None or resp.comp_code != 0x00:
+            if idx == 0:                           # first fetch failed → real error
+                cc = resp.comp_code if resp is not None else None
+                return {"error": f"comp_code={cc}"}
+            break                                  # later index rejected → done
+        raw = bytes(msg.data) if msg is not None else b""
+        # raw layout: [comp_code][channel][up to 16 data bytes]
+        chunk = raw[2:] if len(raw) >= 2 else b""
+        acc += chunk
+        if len(chunk) < 16:                        # last chunk
+            break
+    records = parse_cipher_suite_records(acc)
+    suites = [r["id"] for r in records]
     return {
-        "cipher_list": suites,
-        "cipher0":     0 in suites,
+        "cipher_list":    suites,
+        "cipher0":        0 in suites,
+        "cipher_details": records,
     }
 
 

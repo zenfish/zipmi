@@ -642,7 +642,8 @@ class Session:
             weak.append("no integrity protection")
         if weak:
             print(f"zipmi: warning: cipher suite {self.cipher_suite} — "
-                  f"{'; '.join(weak)}. Pass -C to change.", file=sys.stderr)
+                  f"{'; '.join(weak)}. Use a non-zero suite (e.g. -C 3 or -C 17) "
+                  f"for an authenticated session.", file=sys.stderr)
 
         # Pick a random remote console session ID (avoid 0).
         import os, secrets
