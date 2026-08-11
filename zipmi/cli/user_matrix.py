@@ -254,3 +254,38 @@ def evaluate_findings(matrix: dict) -> list[dict]:
         if caps.get("user_level_auth") is False:
             out.append({"severity": "low", "channel": chn, "issue": "user-level auth disabled"})
     return out
+
+
+def _cell(acc) -> str:
+    if isinstance(acc, str):                 # err:*
+        return acc
+    flags = "".join(f for f, on in (("E", acc.get("ipmi_msg")),
+                                    ("la", acc.get("link_auth")),
+                                    ("ci", acc.get("callin"))) if on)
+    return f"{acc.get('priv', '?')} {flags}".rstrip()
+
+
+def render_table(matrix: dict) -> str:
+    chans = [k for k, v in matrix["channels"].items() if not v.get("empty")]
+    lines = [f"target {matrix['target']}  "
+             f"users {matrix['enabled_user_count']}/{matrix['max_user_count']}", ""]
+    for ch in chans:
+        info = matrix["channels"][ch]
+        ceil = info.get("access", {}).get("present", {}).get("priv_limit", "?")
+        lines.append(f"  ch{ch}: {info.get('medium','?')} / "
+                     f"{info.get('session_support','?')} / limit={ceil}")
+    lines.append("")
+    lines.append(f"{'user':16}  " + "  ".join(f"ch{c}" for c in chans))
+    for uid, u in matrix["users"].items():
+        cells = "  ".join(_cell(u["access"].get(c, "—")) for c in chans)
+        lines.append(f"{uid:>2} {u['name']:13}  {cells}")
+    for ch in chans:
+        delta = matrix["channels"][ch].get("access", {}).get("nv_delta")
+        if delta:
+            for field, d in delta.items():
+                lines.append(f"Δ ch{ch}: {field} present={d['present']} "
+                             f"non-volatile={d['nonvolatile']} (pending/override)")
+    lines.append("")
+    lines.append("legend: cell = <priv> [E=ipmi-msg la=link-auth ci=callin]; "
+                 "Δ = present≠non-volatile")
+    return "\n".join(lines)

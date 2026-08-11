@@ -157,3 +157,25 @@ def test_evaluate_findings_clean_channel_empty():
                       "auth_types": ["md5"], "per_msg_auth": True,
                       "user_level_auth": True}}}, "users": {}}
     assert evaluate_findings(matrix) == []
+
+
+def test_render_table_contains_users_channels_and_delta():
+    from zipmi.cli.user_matrix import render_table
+    matrix = {
+        "target": "10.0.0.1", "max_user_count": 1, "enabled_user_count": 1,
+        "channels": {"1": {
+            "medium": "802.3 LAN", "session_support": "multi-session",
+            "access": {"present": {"priv_limit": "operator"},
+                       "nonvolatile": {"priv_limit": "administrator"},
+                       "nv_delta": {"priv_limit": {"present": "operator",
+                                                   "nonvolatile": "administrator"}}},
+            "cipher_suites": [3, 17], "auth_caps": {"auth_types": ["md5"]}}},
+        "users": {"2": {"name": "root",
+                        "access": {"1": {"priv": "administrator", "ipmi_msg": True,
+                                         "link_auth": True, "callin": False}}}},
+        "findings": []}
+    out = render_table(matrix)
+    assert "root" in out
+    assert "802.3 LAN" in out
+    assert "administrator" in out or "admin" in out
+    assert "Δ" in out and "operator" in out
