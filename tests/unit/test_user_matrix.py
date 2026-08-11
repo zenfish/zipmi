@@ -229,3 +229,31 @@ def test_build_matrix_discovers_users_when_channel0_rejects():
     assert isinstance(m["users"]["2"]["access"]["0"], str)      # err:*
     assert m["users"]["2"]["access"]["1"]["priv"] == "administrator"
 
+
+
+def test_build_matrix_bridge_probe_per_channel():
+    """--bridge adds a per-channel bridgeability probe (Send Message 0x34)."""
+    from zipmi.cli.user_matrix import build_matrix
+    from zipmi.scapy_ipmi.commands import (
+        GetChannelInfoResp, GetUserAccessResp, GetUserNameResp)
+
+    class Fake:
+        def send_cmd(self, netfn, cmd, req):
+            ch = getattr(req, "channel", None); uid = getattr(req, "user_id", None)
+            if cmd == 0x42:
+                if ch != 1: raise RuntimeError("cc=0xcc")
+                return GetChannelInfoResp(bytes([0x00, 1, 0x04, 0x01, 0x80, 0,0,0,0,0]))
+            if cmd == 0x44:
+                return GetUserAccessResp(bytes([0x00, 0x01, 0x01, 0x00, 0x54]))
+            if cmd == 0x46:
+                return GetUserNameResp(bytes([0x00]) + b"root".ljust(16, b"\x00"))
+            raise RuntimeError("cc=0xcc")   # access/auth-caps err → graceful
+        def send_raw(self, netfn, cmd, payload):
+            if cmd == 0x34:                 # Send Message → accepted (bridgeable)
+                return 0x00, b""
+            raise RuntimeError("no cipher")
+
+    m = build_matrix(Fake(), "10.0.0.1", bridge=True)
+    assert m["channels"]["1"]["bridge"]["bridgeable"] is True
+    # and it really issued a Send Message wrapping Get Device ID onto ch1
+    # (0x41 tracking/channel byte, then the encapsulated Get Device ID)

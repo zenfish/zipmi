@@ -179,7 +179,8 @@ def _cipher_suites(sender, n: int):
     return [r["id"] for r in bmc_id.parse_cipher_suite_records(acc)]
 
 
-def build_matrix(sender, target: str, *, include_empty=False, per_priv=False) -> dict:
+def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
+                 bridge=False) -> dict:
     channels: dict[str, dict] = {}
     for n in range(0x00, 0x10):
         if n == 0x0E:                    # self-alias — skip
@@ -192,6 +193,9 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False) ->
         info["access"] = _channel_access(sender, n)
         info["auth_caps"] = _auth_caps(sender, n, per_priv)
         info["cipher_suites"] = _cipher_suites(sender, n)
+        if bridge:                        # can the BMC bridge onto this channel?
+            from .bridge import probe_bridge
+            info["bridge"] = probe_bridge(sender, n)
         channels[str(n)] = info
 
     populated = [int(k) for k, v in channels.items() if not v.get("empty")]
@@ -278,8 +282,14 @@ def render_table(matrix: dict) -> str:
     for ch in chans:
         info = matrix["channels"][ch]
         ceil = info.get("access", {}).get("present", {}).get("priv_limit", "?")
+        br = info.get("bridge")
+        brtag = ""
+        if br is not None:
+            brtag = ("  bridge:yes" if br.get("bridgeable")
+                     else "  bridge:no" if br.get("bridgeable") is False
+                     else "  bridge:?")
         lines.append(f"  ch{ch}: {info.get('medium','?')} / "
-                     f"{info.get('session_support','?')} / limit={ceil}")
+                     f"{info.get('session_support','?')} / limit={ceil}{brtag}")
     lines.append("")
     lines.append(f"{'user':16}  " + "  ".join(f"ch{c}" for c in chans))
     for uid, u in matrix["users"].items():

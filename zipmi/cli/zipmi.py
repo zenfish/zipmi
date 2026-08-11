@@ -996,6 +996,7 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
             s, _require_host(args),
             include_empty=getattr(args, "all", False),
             per_priv=getattr(args, "per_priv", False),
+            bridge=getattr(args, "bridge", False),
         )
     if getattr(args, "findings", False):
         matrix["findings"] = _user_matrix.evaluate_findings(matrix)
@@ -2948,6 +2949,9 @@ def build_parser() -> argparse.ArgumentParser:
                           help="sweep auth-caps at all 5 privilege levels")
     umx_list.add_argument("--findings", action="store_true",
                           help="also emit derived posture flags")
+    umx_list.add_argument("--bridge", action="store_true",
+                          help="probe whether the BMC will bridge (Send Message) "
+                               "onto each channel — reach edges for the hw graph")
     umx_list.set_defaults(func=cmd_user_matrix_list)
 
     user = sub.add_parser("user", help="user accounts")
