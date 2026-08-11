@@ -1011,6 +1011,45 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serial_config(args: argparse.Namespace) -> int:
+    """Enumerate serial/modem config params (read-only recon) — connection mode,
+    modem init/dial strings, callback + alert-destination config."""
+    import json
+    from . import serial_modem
+    ch = getattr(args, "channel", 0x0E)
+    with _open_session(args) as s:
+        rows = serial_modem.serial_config_sweep(s, ch)
+    if getattr(args, "json", False):
+        print(json.dumps({"channel": ch, "params": rows}, indent=2))
+        return 0
+    print(f"serial/modem config, channel 0x{ch:x}:")
+    for r in rows:
+        extra = f"   {r['ascii']!r}" if r.get("ascii") else ""
+        print(f"  [{r['param']:2}] {r['name']:26} {r['raw']}{extra}")
+    return 0
+
+
+def cmd_serial_set(args: argparse.Namespace) -> int:
+    """Set a serial/modem config param (WRITE — admin). This is the dial-out
+    surface: modem init string (raw AT), destination dial numbers, callback."""
+    from . import serial_modem
+    if not args.yes:
+        print("warning: 'serial set' writes BMC serial/modem config (the dial-out "
+              "surface — init/dial strings, callback numbers). Pass --yes.",
+              file=sys.stderr)
+        return 2
+    ch = args.channel
+    param = int(args.param, 0)
+    data = bytes.fromhex(args.hexdata)
+    with _open_session(args) as s:
+        cc, _ = serial_modem.set_serial_param(s, ch, param, data)
+    if cc != 0x00:
+        print(f"  cc=0x{cc:02x}", file=sys.stderr)
+        return 1
+    print(f"serial channel 0x{ch:x} param {param}: set ({data.hex()})")
+    return 0
+
+
 CHANNEL_MEDIUM: dict[int, str] = {
     0x00: "reserved",
     0x01: "IPMB (I2C)",
@@ -2957,6 +2996,21 @@ def build_parser() -> argparse.ArgumentParser:
                           help="per-channel substrate config: LAN mac/ip/vlan, "
                                "serial connection-mode/modem, system-interface caps")
     umx_list.set_defaults(func=cmd_user_matrix_list)
+
+    ser = sub.add_parser("serial", help="serial/modem channel config (read / write)")
+    ser_sub = ser.add_subparsers(dest="action", required=True)
+    ser_cfg = ser_sub.add_parser("config", help="enumerate serial/modem params (read)")
+    ser_cfg.add_argument("channel", nargs="?", type=lambda x: int(x, 0), default=0x0E,
+                         help="channel number (default 0xE = present)")
+    ser_cfg.add_argument("--json", action="store_true")
+    ser_cfg.set_defaults(func=cmd_serial_config)
+    ser_set = ser_sub.add_parser("set", help="set a serial/modem param (WRITE, admin)")
+    ser_set.add_argument("channel", type=lambda x: int(x, 0))
+    ser_set.add_argument("param", help="param selector (e.g. 13 = modem dial command)")
+    ser_set.add_argument("hexdata", help="config bytes as hex")
+    ser_set.add_argument("--yes", action="store_true",
+                         help="confirm the BMC serial/modem write")
+    ser_set.set_defaults(func=cmd_serial_set)
 
     user = sub.add_parser("user", help="user accounts")
     user_sub = user.add_subparsers(dest="action", required=True)

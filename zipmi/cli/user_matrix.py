@@ -213,19 +213,15 @@ def _medium_detail(sender, ch: int, medium_raw: int) -> dict:
                 out["vlan"] = (v & 0x0FFF) if (v & 0x8000) else None
             return out
         if medium_raw == 0x05:            # async serial/modem
-            # Get Serial/Modem Config (0x0C/0x11) param 4 = Connection Mode.
-            # byte bits: [0]=Basic, [1]=PPP, [2]=Terminal mode enabled.
-            try:
-                cc, data = sender.send_raw(0x0C, 0x11, bytes([ch, 4, 0, 0]))
-            except Exception as e:
-                return {"error": _err(e)}
-            if cc != 0x00 or len(data) < 2:
-                return {"error": f"serial cfg cc=0x{cc:02x}"}
-            mode = data[1]
-            modes = [m for bit, m in ((0x01, "basic"), (0x02, "ppp"),
-                                      (0x04, "terminal")) if mode & bit]
-            return {"connection_mode_raw": mode, "modes": modes,
-                    "modem_configured": bool(mode & 0x02)}   # PPP ⇒ dial/modem path
+            # Full Get Serial/Modem Config sweep — connection mode + every modem
+            # string (init / dial / escape) and alert-destination config.
+            from .serial_modem import serial_config_sweep
+            params = serial_config_sweep(sender, ch)
+            out = {"serial_params": params}
+            for p in params:               # surface dial/init strings for the table
+                if p.get("ascii") and p["param"] in (10, 13):
+                    out.setdefault("strings", {})[p["name"]] = p["ascii"]
+            return out
         if medium_raw == 0x0C:            # system interface (KCS/SMIC/BT)
             # Get System Interface Capabilities (App 0x06/0x57), SI type 1 = KCS.
             try:
@@ -375,9 +371,8 @@ def render_table(matrix: dict) -> str:
             bits.append(f"ip={md['ip']}" + (f"/{md['ip_source']}" if md.get("ip_source") else ""))
         if md.get("vlan") is not None:
             bits.append(f"vlan={md['vlan']}")
-        if md.get("modes"):
-            bits.append("mode=" + "+".join(md["modes"])
-                        + (" modem" if md.get("modem_configured") else ""))
+        for name, s in (md.get("strings") or {}).items():
+            bits.append(f"{name}={s}")     # modem init / dial strings
         if bits:
             lines.append(f"        └ {'  '.join(bits)}")
     lines.append("")
