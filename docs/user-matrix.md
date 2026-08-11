@@ -153,12 +153,17 @@ zipmi -H <bmc> ... user-matrix list --medium
   VLAN (20). **Different MAC on ch1 vs ch9 = genuinely different NICs**; same MAC
   = one NIC exposed as two channels. This is how you answer the "same wire?"
   question.
-- **Serial/modem** (`Get Serial/Modem Config 0x0C/0x11`, Connection Mode): which
-  modes are enabled (basic/PPP/terminal) and whether **modem** (dial) is
-  configured. IPMI has no direct "is a modem physically plugged in" query —
-  `modem` here means the channel is *set up* for PPP/dial; live use shows via
-  `Serial/Modem Connection Active`. Physical presence is inferred from config +
-  carrier, not pingable over IPMI.
+- **Serial/modem** (`Get Serial/Modem Config 0x0C/0x11`): `--medium` sweeps
+  **every** param — connection mode, **modem init/dial strings** (ASCII-decoded,
+  so you see the actual `ATDT…` and phone numbers), callback control, alert
+  destinations. `zipmi serial config [chan]` dumps them standalone. IPMI has no
+  direct "is a modem physically plugged in" query — a dial string configured
+  means the channel is *set up* to dial; physical presence is inferred from
+  config + carrier. **Dial-out surface:** `zipmi serial set <chan> <param> <hex>`
+  (admin, `--yes`) writes those params — e.g. a destination dial number or the
+  raw modem AT init string. With a matching PEF alert (or callback) that makes
+  the BMC **dial an arbitrary number** — callback hijack / war-dial / PSTN pivot.
+  Full PoC is research task `26-08-10-e`.
 - **System interface** (`Get System Interface Capabilities 0x06/0x57`): KCS/BT
   transaction capabilities (raw for now).
 
