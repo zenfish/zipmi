@@ -218,8 +218,10 @@ def _medium_detail(sender, ch: int, medium_raw: int) -> dict:
             from .serial_modem import serial_config_sweep
             params = serial_config_sweep(sender, ch)
             out = {"serial_params": params}
-            for p in params:               # surface dial/init strings for the table
-                if p.get("ascii") and p["param"] in (10, 13):
+            # surface the juicy strings: init (10), dial command (13), and the
+            # actual destination phone number(s) (21).
+            for p in params:
+                if p.get("ascii") and p["param"] in (10, 13, 21):
                     out.setdefault("strings", {})[p["name"]] = p["ascii"]
             return out
         if medium_raw == 0x0C:            # system interface (KCS/SMIC/BT)

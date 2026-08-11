@@ -107,3 +107,29 @@ def test_serial_set_with_yes_writes_exact_bytes(monkeypatch):
     assert _z.cmd_serial_set(ns) == 0
     # Set Serial/Modem Config (0x0C/0x10): [ch=2, param=13] + data
     assert fake.sent == [(0x0C, 0x10, bytes([0x02, 0x0D]) + bytes.fromhex("415454"))]
+
+
+class _DialFake:
+    """Returns the dial-out params: init(10), dial cmd(13), phone number(21)."""
+    def send_raw(self, netfn, cmd, data):
+        if (netfn, cmd) == (0x0C, 0x11):
+            param = data[1]
+            body = {10: b"ATE0", 13: b"ATDT", 21: b"18005551234"}.get(param)
+            return (0x00, bytes([0x11]) + body) if body else (0xC9, b"")
+        raise AssertionError
+
+
+def test_param_21_is_the_phone_number_and_labeled():
+    # param 21 = Destination Dial String — the number the BMC dials (freeipmi
+    # _DESTINATION_DIAL_STRINGS / ipmiutil iserial.c:261, 33-byte field).
+    assert SERIAL_PARAM[21] == "destination_dial_strings"
+    assert 21 in __import__("zipmi.cli.serial_modem", fromlist=["_ASCII_PARAMS"])._ASCII_PARAMS
+    rows = serial_config_sweep(_DialFake(), 2, params=[10, 13, 21])
+    by = {r["param"]: r for r in rows}
+    assert by[21]["name"] == "destination_dial_strings"
+    assert by[21]["ascii"] == "18005551234"        # decoded phone number
+    assert by[13]["ascii"] == "ATDT"
+
+
+def test_param_5_labeled_channel_callback_control():
+    assert SERIAL_PARAM[5] == "channel_callback_control"

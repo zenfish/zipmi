@@ -24,21 +24,36 @@ NOTE   Parameter numbers are per IPMI 2.0 §25 (Table 25-*). The name map below 
 """
 from __future__ import annotations
 
-# Serial/Modem config parameter selectors (IPMI 2.0 §25). Best-effort labels;
-# raw data is authoritative regardless.
+# Serial/Modem config parameter selectors — authoritative, per IPMI 2.0 §25
+# Table 25-4, cross-confirmed against freeipmi (ipmi-serial-modem-configuration-
+# parameters-spec.h) and ipmiutil (iserial.c serparams[]). Raw data is faithful
+# regardless; these are the correct names.
 SERIAL_PARAM: dict[int, str] = {
     0: "set_in_progress", 1: "auth_type_support", 2: "auth_type_enables",
-    3: "connection_mode", 4: "session_inactivity_timeout", 5: "callback_control",
-    6: "session_termination", 7: "ipmi_msg_comm_settings", 8: "mux_switch_control",
-    9: "modem_ring_time", 10: "modem_init_string", 11: "modem_escape_seq",
-    12: "modem_hangup_seq", 13: "modem_dial_command", 14: "page_blackout_interval",
-    15: "community_string", 16: "num_alert_destinations", 17: "destination_info",
-    18: "call_retry_interval", 19: "destination_comm_settings",
-    29: "terminal_mode_config",
+    3: "connection_mode", 4: "session_inactivity_timeout",
+    5: "channel_callback_control", 6: "session_termination",
+    7: "ipmi_msg_comm_settings", 8: "mux_switch_control", 9: "modem_ring_time",
+    10: "modem_init_string", 11: "modem_escape_seq", 12: "modem_hangup_seq",
+    13: "modem_dial_command", 14: "page_blackout_interval", 15: "community_string",
+    16: "num_alert_destinations", 17: "destination_info", 18: "call_retry_interval",
+    19: "destination_comm_settings", 20: "num_dial_strings",
+    21: "destination_dial_strings",          # <-- the phone number(s) dialed
+    22: "num_alert_dest_ip_addrs", 23: "destination_ip_addrs",
+    24: "num_tap_accounts", 25: "tap_account", 26: "tap_passwords",
+    27: "tap_pager_id_strings", 28: "tap_service_settings",
+    29: "terminal_mode_config", 30: "ppp_protocol_options",
+    31: "ppp_primary_rmcp_port", 32: "ppp_secondary_rmcp_port", 33: "ppp_link_auth",
+    34: "chap_name", 35: "ppp_accm", 36: "ppp_snoop_accm", 37: "num_ppp_account",
+    38: "ppp_account_dial_string_selector", 39: "ppp_account_bmc_ip_addresses",
+    40: "ppp_account_user_names", 41: "ppp_account_user_domains",
+    42: "ppp_account_user_passwords", 43: "ppp_account_auth_settings",
+    44: "ppp_account_connection_hold_times", 45: "ppp_udp_proxy_ip_header_data",
+    46: "ppp_udp_proxy_transmit_buffer_size", 47: "ppp_udp_proxy_receive_buffer_size",
+    48: "ppp_remote_console_ip_address",
 }
 
-# Params whose payload is ASCII (dial numbers / AT strings live here).
-_ASCII_PARAMS = {10, 11, 12, 13, 15}
+# Params whose payload is ASCII text — dial numbers / AT strings / names live here.
+_ASCII_PARAMS = {10, 11, 12, 13, 15, 21, 25, 27, 34, 40, 41}
 
 
 def _ascii(b: bytes) -> str | None:
@@ -61,7 +76,7 @@ def get_serial_param(sender, channel: int, param: int,
 
 
 def serial_config_sweep(sender, channel: int,
-                        params=range(0, 30)) -> list[dict]:
+                        params=range(0, 49)) -> list[dict]:
     """Read every serial/modem config parameter that answers. Returns
     [{param, name, raw(hex), ascii?}] — the deep serial recon."""
     out: list[dict] = []
