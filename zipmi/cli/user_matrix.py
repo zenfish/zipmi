@@ -331,7 +331,8 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
         except Exception as e:
             name = _err(e)
         acc: dict[str, dict | str] = {}
-        for n in populated:
+        enabled = 0                           # Get User Access byte4[7:6]: 0=unspec
+        for n in populated:                   #   1=enabled, 2=disabled (global/user)
             sup = ua_support[n]
             if sup == "no":                   # BMC returned cc=0xcc → n/a, evidenced
                 acc[str(n)] = "n/a"
@@ -345,9 +346,11 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
                     acc[str(n)] = _err(RuntimeError(f"cc=0x{int(ua.comp_code):02x}"))
                 else:
                     acc[str(n)] = decode_user_access(int(ua.user_access))
+                    if not enabled:           # per-user enable is global; first wins
+                        enabled = (int(ua.fixed_name_users) >> 6) & 0x3
             except Exception as e:
                 acc[str(n)] = _err(e)
-        users[str(uid)] = {"name": name, "access": acc}
+        users[str(uid)] = {"name": name, "access": acc, "enabled": enabled}
 
     # Record the granted ceiling on the connected channel (from the pre-walk raise).
     if effective_priv is not None and connected is not None and str(connected) in channels:
@@ -460,17 +463,19 @@ def render_table(matrix: dict) -> str:
             return chan_code[c] + "*"          # inherited from channel limit
         return _cell(v)
 
+    _EN = {0: "?", 1: "y", 2: "n", 3: "?"}    # byte4[7:6] enable status
     grid = []
     for uid, u in matrix["users"].items():
         name = u["name"] or "<null>"          # zero-length username = the null/anon user
-        grid.append((uid, name, [gridcell(c, u["access"].get(c, "unknown")) for c in chans]))
+        en = _EN.get(u.get("enabled", 0), "?")
+        grid.append((uid, name, en, [gridcell(c, u["access"].get(c, "unknown")) for c in chans]))
     widths = [len(h) for h in headers]
-    for _, _, cells in grid:
+    for _, _, _, cells in grid:
         for i, c in enumerate(cells):
             widths[i] = max(widths[i], len(c))
-    lines.append(f"{'user':16}  " + "  ".join(h.ljust(widths[i]) for i, h in enumerate(headers)))
-    for uid, name, cells in grid:
-        lines.append(f"{uid:>2} {name:13}  "
+    lines.append(f"{'user':16} en  " + "  ".join(h.ljust(widths[i]) for i, h in enumerate(headers)))
+    for uid, name, en, cells in grid:
+        lines.append(f"{uid:>2} {name:13} {en:2}  "
                      + "  ".join(c.ljust(widths[i]) for i, c in enumerate(cells)))
     for ch in chans:
         delta = matrix["channels"][ch].get("access", {}).get("nv_delta")
@@ -484,4 +489,6 @@ def render_table(matrix: dict) -> str:
     lines.append("        flags I=ipmi-msg L=link-auth c=callin   Δ=present≠non-volatile")
     lines.append("        ←connected = channel this session rode in on   "
                  "<null> = zero-length (anonymous) username")
+    lines.append("        en (global enable, Get User Access byte4[7:6]): y=enabled "
+                 "n=disabled ?=BMC unspecified — count in header 'users e/max'")
     return "\n".join(lines)

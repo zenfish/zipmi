@@ -832,13 +832,22 @@ def cmd_sdr_list(args: argparse.Namespace) -> int:
 
 
 def cmd_user_list(args: argparse.Namespace) -> int:
-    """Walk users 1..max via Get User Access + Get User Name."""
+    """Walk users 1..max via Get User Access + Get User Name (present channel 0xE).
+
+    Decodes the access byte (priv + flags) and the per-user enable status from
+    Get User Access byte4[7:6] (many BMCs report 'unspecified' → '?'; the global
+    enabled COUNT is on the header line). Access is orthogonal to enable: a user
+    can be enabled with no channel access, or hold configured access while disabled.
+    """
+    from .user_matrix import decode_user_access
+    EN = {0: "?", 1: "yes", 2: "no", 3: "?"}
     with _open_session(args) as s:
-        # Probe user 1 to discover max_user_count.
         ua1 = s.send_cmd(0x06, 0x44, GetUserAccessReq(channel=0xE, user_id=1))
         max_users = ua1.max_user_count & 0x3F
-        print(f"max_user_count={max_users}  enabled={ua1.enabled_user_count & 0x3F}")
-        print(f"{'ID':>3}  {'Name':16}  {'Access':10}")
+        print(f"max_user_count={max_users}  enabled(count)={ua1.enabled_user_count & 0x3F}"
+              f"  (access shown for present channel 0xE)")
+        print(f"{'ID':>3}  {'Name':16}  {'Priv':13}  {'IPMIMsg':7}  {'LinkAuth':8}  "
+              f"{'Callin':6}  {'Enabled':7}")
         for uid in range(1, max_users + 1):
             try:
                 ua = s.send_cmd(0x06, 0x44,
@@ -847,9 +856,11 @@ def cmd_user_list(args: argparse.Namespace) -> int:
             except Exception as e:
                 print(f"  user {uid}: {e}", file=sys.stderr)
                 continue
-            name = bytes(un.user_name).rstrip(b"\x00").decode("utf-8", errors="replace")
-            access = ua.user_access
-            print(f"{uid:3}  {name:16}  0x{access:02x}")
+            name = bytes(un.user_name).rstrip(b"\x00").decode("utf-8", errors="replace") or "<null>"
+            d = decode_user_access(int(ua.user_access))
+            en = EN[(int(ua.fixed_name_users) >> 6) & 0x3]
+            print(f"{uid:3}  {name:16}  {d['priv']:13}  {str(d['ipmi_msg']):7}  "
+                  f"{str(d['link_auth']):8}  {str(d['callin']):6}  {en:7}")
     return 0
 
 
