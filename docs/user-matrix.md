@@ -123,7 +123,46 @@ host OS (`/dev/ipmi0`) touches them; they are **not remotely reachable**.
 IPMI has no "set default channel" command. `0xE` = "the channel this request
 arrived on" is the contextual default. Your remote session lands on whatever LAN
 channel `-H` reached; the host's default is the system interface. `user-matrix`
-can mark which channel your session is on (resolve `0xE` → its real number).
+resolves `Get Channel Info(0xE)` and **marks the channel your session is on**:
+
+```
+ch1: 802.3 LAN / multi-session / limit=administrator  ← connected
+```
+
+(`"connected": true` on that channel in JSON.) Note: ipmitool/freeipmi don't
+hardcode a channel either — they **discover** the first LAN channel by walking
+`Get Channel Info` for `medium == 802.3 LAN` (ipmitool's `find_lan_channel`,
+searching from channel 1 up), and use `0xE` for "current channel" elsewhere.
+
+## `--medium` — as much about the substrate as we can query
+
+Get Channel Info gives the medium *type*; `--medium` pulls the medium-specific
+config, the analog of `Get LAN Config` for each wire:
+
+```
+zipmi -H <bmc> ... user-matrix list --medium
+  ch1: 802.3 LAN / multi-session / limit=administrator  ← connected
+        └ mac=aa:bb:cc:dd:ee:ff  ip=10.0.0.5/static  vlan=100
+  ch9: 802.3 LAN / multi-session / limit=administrator
+        └ mac=aa:bb:cc:dd:ee:00  ip=10.0.1.5/static
+  ch2: asynch serial/modem / single-session / limit=administrator
+        └ mode=ppp modem
+```
+
+- **LAN** (`Get LAN Config 0x0C/0x02`): MAC (param 5), IP (3), IP source (4),
+  VLAN (20). **Different MAC on ch1 vs ch9 = genuinely different NICs**; same MAC
+  = one NIC exposed as two channels. This is how you answer the "same wire?"
+  question.
+- **Serial/modem** (`Get Serial/Modem Config 0x0C/0x11`, Connection Mode): which
+  modes are enabled (basic/PPP/terminal) and whether **modem** (dial) is
+  configured. IPMI has no direct "is a modem physically plugged in" query —
+  `modem` here means the channel is *set up* for PPP/dial; live use shows via
+  `Serial/Modem Connection Active`. Physical presence is inferred from config +
+  carrier, not pingable over IPMI.
+- **System interface** (`Get System Interface Capabilities 0x06/0x57`): KCS/BT
+  transaction capabilities (raw for now).
+
+Unreadable params are omitted, not guessed.
 
 ## Talking to a channel you are not on — bridging
 
@@ -137,9 +176,27 @@ ways to reach them:
 2. **Be a node on the bus** — physically attach to the IPMB and speak to the
    BMC's slave address `0x20`, no auth.
 
-Whether the BMC *permits* bridging (and to which channels) is itself
-enumerable — see `zipmi bridge` / the `--bridge` column. Bridgeable channels are
-**reach edges** and feed the hardware connectivity graph (`~/phd/bmc/hwmaps/`).
+Whether the BMC *permits* bridging (and to which channels) is enumerable with
+`--bridge`:
+
+```
+zipmi -H <bmc> ... user-matrix list --bridge
+  ch0:  IPMB (I2C) / sessionless / limit=?  bridge:yes
+  ch1:  802.3 LAN / multi-session / limit=administrator  bridge:no  ← connected
+```
+
+**How the probe works:** for each channel it issues `Send Message (0x34)`
+wrapping a benign `Get Device ID` (App `0x06/0x01`) — the request is
+IPMB-encapsulated (rsSA / netFn / checksum / rqSA / seq / cmd / checksum) and the
+channel/tracking byte selects the target. The completion code tells you:
+`0x00` = **bridge accepted** (`bridge:yes`), `0xC1` = Send Message unsupported,
+any other cc = permitted-but-rejected-for-this-channel. (JSON carries
+`{"bridge": {"supported", "bridgeable", "cc", "detail"}}` per channel.)
+
+Bridgeable channels are **reach edges** — `user-matrix list --json --bridge`
+(with `--medium` for the MACs/IPs) is the connectivity source that feeds the
+hardware graph in `~/phd/bmc/hwmaps/`: LAN channels → external reach, bridge:yes
+channels → internal reach onto the IPMB/other buses.
 
 ## Relation to the protocol writeup
 
