@@ -249,8 +249,28 @@ def _connected_channel(sender) -> int | None:
 
 
 def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
-                 bridge=False, medium=False, probe_priv=False) -> dict:
+                 bridge=False, medium=False, raise_priv=True) -> dict:
     connected = _connected_channel(sender)
+
+    # Raise our session to its granted maximum BEFORE walking the grid. Get User
+    # Access (and channel/auth-caps reads) may require Operator/Administrator; a
+    # session left at a low default operating priv would get cc=0xcc/0xd4 back and
+    # MIS-report real access as "no access". Set Session Privilege Level (0x3B)
+    # only raises within our own entitlement (grants min(user,channel,requested))
+    # and only affects this ephemeral session — no persistent BMC change. The
+    # granted level is also the authoritative effective ceiling on the connected
+    # channel, recorded below. Best-effort: if 0x3B is rejected we walk as-is.
+    effective_priv = None
+    if raise_priv:
+        for lvl in (0x04, 0x05):              # administrator, then oem
+            try:
+                r = sender.send_cmd(0x06, 0x3B, SetSessionPrivLevelReq(priv=lvl))
+            except Exception:
+                break
+            if int(r.comp_code) != 0x00:      # requested exceeds ceiling → stop
+                break
+            effective_priv = int(r.priv) & 0x0F
+
     channels: dict[str, dict] = {}
     for n in range(0x00, 0x10):
         if n == 0x0E:                    # self-alias — skip
@@ -329,23 +349,10 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
                 acc[str(n)] = _err(e)
         users[str(uid)] = {"name": name, "access": acc}
 
-    # Optional ACTIVE probe: Set Session Privilege Level (0x3B) to the max the BMC
-    # will grant on the CONNECTED channel — the authoritative effective ceiling
-    # = min(user priv, channel priv), independent of the (optional) Get User/
-    # Channel Access commands. Mutates only our own session's operating priv.
-    if probe_priv and connected is not None:
-        granted = None
-        for lvl in (0x04, 0x05):              # administrator, then oem
-            try:
-                r = sender.send_cmd(0x06, 0x3B, SetSessionPrivLevelReq(priv=lvl))
-            except Exception:
-                break
-            if int(r.comp_code) != 0x00:      # requested level exceeds the ceiling
-                break
-            granted = int(r.priv) & 0x0F
-        if granted is not None and str(connected) in channels:
-            channels[str(connected)]["effective_priv"] = PRIV_NAME.get(
-                granted, f"raw-0x{granted:x}")
+    # Record the granted ceiling on the connected channel (from the pre-walk raise).
+    if effective_priv is not None and connected is not None and str(connected) in channels:
+        channels[str(connected)]["effective_priv"] = PRIV_NAME.get(
+            effective_priv, f"raw-0x{effective_priv:x}")
 
     return {
         "target": target,

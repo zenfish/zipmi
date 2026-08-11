@@ -261,9 +261,9 @@ def test_build_matrix_bridge_probe_per_channel():
     # (0x41 tracking/channel byte, then the encapsulated Get Device ID)
 
 
-def test_build_matrix_probe_priv_records_effective_ceiling():
-    """--probe-priv issues Set Session Privilege Level (0x3B) on the connected
-    channel and records the granted level as effective_priv."""
+def test_build_matrix_raises_priv_and_records_effective_ceiling():
+    """By default build_matrix raises session priv (Set Session Priv 0x3B) before
+    walking, and records the granted level as the connected channel's effective_priv."""
     from zipmi.cli.user_matrix import build_matrix
     from zipmi.scapy_ipmi.commands import (
         GetChannelInfoResp, GetUserAccessResp, GetUserNameResp,
@@ -288,8 +288,10 @@ def test_build_matrix_probe_priv_records_effective_ceiling():
         def send_raw(self, netfn, cmd, payload):
             raise RuntimeError("no cipher")
 
-    m = build_matrix(Fake(), "10.0.0.1", probe_priv=True)
+    m = build_matrix(Fake(), "10.0.0.1")                     # raise is the default
     assert m["channels"]["1"]["effective_priv"] == "administrator"
+    assert build_matrix(Fake(), "10.0.0.1", raise_priv=False)[
+        "channels"]["1"].get("effective_priv") is None        # opt-out skips 0x3B
 
 
 class _LanSender:

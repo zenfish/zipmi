@@ -988,7 +988,8 @@ def cmd_user_priv(args: argparse.Namespace) -> int:
 
 
 def cmd_user_matrix_list(args: argparse.Namespace) -> int:
-    """Full user × channel privilege/auth/cipher matrix (read-only, one session)."""
+    """Full user × channel privilege/auth/cipher matrix (one session; raises own
+    session priv before walking by default — no persistent BMC change)."""
     import json
     from . import user_matrix as _user_matrix
     with _open_session(args) as s:
@@ -998,7 +999,7 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
             per_priv=getattr(args, "per_priv", False),
             bridge=getattr(args, "bridge", False),
             medium=getattr(args, "medium", False),
-            probe_priv=getattr(args, "probe_priv", False),
+            raise_priv=getattr(args, "raise_priv", True),
         )
     if getattr(args, "findings", False):
         matrix["findings"] = _user_matrix.evaluate_findings(matrix)
@@ -2982,7 +2983,8 @@ def build_parser() -> argparse.ArgumentParser:
     # user
     umx = sub.add_parser("user-matrix", help="full user × channel privilege matrix")
     umx_sub = umx.add_subparsers(dest="action", required=True)
-    umx_list = umx_sub.add_parser("list", help="enumerate the whole grid (read-only)")
+    umx_list = umx_sub.add_parser("list", help="enumerate the whole grid (one session; "
+                                  "raises own session priv by default, no persistent change)")
     umx_list.add_argument("--json", action="store_true", help="emit JSON to stdout")
     umx_list.add_argument("--all", action="store_true",
                           help="include empty/unimplemented channels")
@@ -2996,11 +2998,12 @@ def build_parser() -> argparse.ArgumentParser:
     umx_list.add_argument("--medium", action="store_true",
                           help="per-channel substrate config: LAN mac/ip/vlan, "
                                "serial connection-mode/modem, system-interface caps")
-    umx_list.add_argument("--probe-priv", dest="probe_priv", action="store_true",
-                          help="ACTIVE: Set Session Privilege Level (0x3B) to max on "
-                               "the connected channel → authoritative effective ceiling "
-                               "(mutates only our own session priv)")
-    umx_list.set_defaults(func=cmd_user_matrix_list)
+    umx_list.add_argument("--no-raise", dest="raise_priv", action="store_false",
+                          help="do NOT raise session privilege before walking the grid "
+                               "(default: Set Session Priv 0x3B to our granted max first, "
+                               "so low-default-priv sessions don't misreport reads as "
+                               "no-access; also records the connected-channel ceiling)")
+    umx_list.set_defaults(func=cmd_user_matrix_list, raise_priv=True)
 
     ser = sub.add_parser("serial", help="serial/modem channel config (read / write)")
     ser_sub = ser.add_subparsers(dest="action", required=True)
