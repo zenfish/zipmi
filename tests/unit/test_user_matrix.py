@@ -187,3 +187,45 @@ def test_decode_user_access_no_access_priv_uses_full_nibble():
     d = decode_user_access(0x0F)
     assert d["priv"] == "no-access"
     assert d["priv_raw"] == 0x0F
+
+
+def test_build_matrix_discovers_users_when_channel0_rejects():
+    """Regression: user discovery must not lead with populated[0] (IPMB/KCS
+    reject Get User Access). 0xE (connected channel) answers → users found."""
+    from zipmi.cli.user_matrix import build_matrix
+    from zipmi.scapy_ipmi.commands import (
+        GetChannelInfoResp, GetUserAccessResp, GetUserNameResp)
+
+    class Fake:
+        def send_cmd(self, netfn, cmd, req):
+            ch = getattr(req, "channel", None)
+            uid = getattr(req, "user_id", None)
+            if cmd == 0x42:                       # ch0 (IPMB) + ch1 (LAN) populated
+                if ch not in (0, 1):
+                    raise RuntimeError("cc=0xcc")
+                medium = 0x01 if ch == 0 else 0x04
+                sess = 0x00 if ch == 0 else 0x80   # ch0 sessionless, ch1 multi
+                return GetChannelInfoResp(bytes([0x00, ch, medium, 0x01, sess,
+                                                 0, 0, 0, 0, 0]))
+            if cmd == 0x44:                       # Get User Access
+                if ch == 0:                        # IPMB rejects the query
+                    raise RuntimeError("cc=0xcc")
+                if uid == 1:                        # discovery on 0xE / ch1: max=3
+                    return GetUserAccessResp(bytes([0x00, 0x03, 0x02, 0x00, 0x54]))
+                return GetUserAccessResp(bytes([0x00, 0x03, 0x02, 0x00, 0x54]))
+            if cmd == 0x46:
+                return GetUserNameResp(bytes([0x00]) + b"root".ljust(16, b"\x00"))
+            if cmd == 0x41 or cmd == 0x38:         # let access/auth-caps error out
+                raise RuntimeError("cc=0xcc")
+            raise AssertionError(f"cmd 0x{cmd:02x}")
+
+        def send_raw(self, netfn, cmd, payload):
+            raise RuntimeError("no cipher")         # graceful err
+
+    m = build_matrix(Fake(), "10.0.0.1")
+    assert m["max_user_count"] == 3               # not 0 — the bug
+    assert set(m["users"].keys()) == {"1", "2", "3"}
+    # ch0 user-access cells are err (IPMB rejects), ch1 decodes
+    assert isinstance(m["users"]["2"]["access"]["0"], str)      # err:*
+    assert m["users"]["2"]["access"]["1"]["priv"] == "administrator"
+

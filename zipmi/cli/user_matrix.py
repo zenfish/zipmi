@@ -195,13 +195,19 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False) ->
         channels[str(n)] = info
 
     populated = [int(k) for k, v in channels.items() if not v.get("empty")]
-    disc_ch = populated[0] if populated else 0x0E
-    try:
-        u1 = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=disc_ch, user_id=1))
-        max_users = int(u1.max_user_count) & 0x3F
-        enabled = int(u1.enabled_user_count) & 0x3F
-    except Exception:
-        max_users, enabled = 0, 0
+    # Discover the user count on a channel that actually answers Get User Access.
+    # 0xE = the present/connected channel (our session) is tried first; sessionless
+    # channels like IPMB (0) and KCS reject the query, so never lead with populated[0].
+    max_users, enabled = 0, 0
+    for dch in [0x0E, *populated]:
+        try:
+            u1 = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=dch, user_id=1))
+        except Exception:
+            continue
+        if int(u1.comp_code) == 0x00 and (int(u1.max_user_count) & 0x3F):
+            max_users = int(u1.max_user_count) & 0x3F
+            enabled = int(u1.enabled_user_count) & 0x3F
+            break
 
     users: dict[str, dict] = {}
     for uid in range(1, max_users + 1):
