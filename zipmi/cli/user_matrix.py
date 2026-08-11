@@ -48,3 +48,15 @@ def decode_channel_access(resp) -> dict:
         "per_msg_auth": not (a & 0x20),      # bit5 set = disabled
         "user_level_auth": not (a & 0x10),   # bit4 set = disabled
     }
+
+
+def nv_delta(present: dict, nonvol: dict) -> dict:
+    """Fields where the present (volatile) copy differs from non-volatile.
+    Compares only keys common to both, ignoring raw-int companions."""
+    out = {}
+    for k in present:
+        if k.endswith("_raw"):
+            continue
+        if k in nonvol and present[k] != nonvol[k]:
+            out[k] = {"present": present[k], "nonvolatile": nonvol[k]}
+    return out

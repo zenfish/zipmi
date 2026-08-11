@@ -42,3 +42,17 @@ def test_decode_channel_access_positives_and_mode():
     assert d["per_msg_auth"] is False      # bit set = disabled → False
     assert d["user_level_auth"] is True    # bit4 clear = enabled
     assert d["alerting"] is True           # bit6 clear = enabled
+
+
+def test_nv_delta_reports_only_differences():
+    from zipmi.cli.user_matrix import nv_delta
+    present = {"priv_limit": "operator", "access_mode": "always-available"}
+    nonvol = {"priv_limit": "administrator", "access_mode": "always-available"}
+    assert nv_delta(present, nonvol) == {
+        "priv_limit": {"present": "operator", "nonvolatile": "administrator"}}
+
+
+def test_nv_delta_empty_when_identical():
+    from zipmi.cli.user_matrix import nv_delta
+    same = {"priv_limit": "administrator", "access_mode": "shared"}
+    assert nv_delta(same, dict(same)) == {}
