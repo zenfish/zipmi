@@ -257,3 +257,44 @@ def test_build_matrix_bridge_probe_per_channel():
     assert m["channels"]["1"]["bridge"]["bridgeable"] is True
     # and it really issued a Send Message wrapping Get Device ID onto ch1
     # (0x41 tracking/channel byte, then the encapsulated Get Device ID)
+
+
+class _LanSender:
+    """Answers Get Channel Info(0xE)→ch1 (connected) and Get LAN Config params."""
+    def send_cmd(self, netfn, cmd, req):
+        from zipmi.scapy_ipmi.commands import GetChannelInfoResp
+        if cmd == 0x42:
+            ch = req.channel
+            n = 1 if ch in (0x0E, 1) else ch
+            if n != 1:
+                raise RuntimeError("cc=0xcc")
+            return GetChannelInfoResp(bytes([0x00, 1, 0x04, 0x01, 0x80, 0,0,0,0,0]))
+        raise RuntimeError("cc=0xcc")
+
+    def send_raw(self, netfn, cmd, data):
+        if netfn == 0x0C and cmd == 0x02:            # Get LAN Config: [ch,param,0,0]
+            param = data[1]
+            body = {
+                5:  bytes([0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]),   # MAC
+                3:  bytes([192, 168, 0, 23]),                      # IP
+                4:  bytes([0x01]),                                 # source = static
+                20: bytes([0x64, 0x80]),                           # VLAN 100, enabled
+            }.get(param)
+            if body is None:
+                return 0xC9, b""
+            return 0x00, bytes([0x11]) + body        # [param-rev] + config
+        raise RuntimeError("no")
+
+
+def test_medium_detail_lan_mac_ip_vlan():
+    from zipmi.cli.user_matrix import _medium_detail
+    d = _medium_detail(_LanSender(), 1, 0x04)
+    assert d["mac"] == "aa:bb:cc:dd:ee:ff"
+    assert d["ip"] == "192.168.0.23"
+    assert d["ip_source"] == "static"
+    assert d["vlan"] == 100
+
+
+def test_connected_channel_resolves_0xE():
+    from zipmi.cli.user_matrix import _connected_channel
+    assert _connected_channel(_LanSender()) == 1

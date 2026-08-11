@@ -179,8 +179,80 @@ def _cipher_suites(sender, n: int):
     return [r["id"] for r in bmc_id.parse_cipher_suite_records(acc)]
 
 
+def _lan_param(sender, ch: int, param: int) -> bytes | None:
+    """One Get LAN Config Parameters value (Transport 0x0C/0x02); config bytes
+    with the leading parameter-revision byte stripped. None on error."""
+    try:
+        cc, data = sender.send_raw(0x0C, 0x02, bytes([ch, param, 0, 0]))
+    except Exception:
+        return None
+    if cc != 0x00 or len(data) < 2:
+        return None
+    return data[1:]                       # drop param-revision byte
+
+
+def _medium_detail(sender, ch: int, medium_raw: int) -> dict:
+    """Substrate-specific config, dispatched by medium — the analog of Get LAN
+    Config for each wire. Best-effort; unreadable params are simply omitted."""
+    try:
+        if medium_raw in (0x04, 0x06):    # 802.3 LAN / other LAN
+            out: dict = {}
+            mac = _lan_param(sender, ch, 5)          # param 5 = MAC
+            if mac and len(mac) >= 6:
+                out["mac"] = ":".join(f"{b:02x}" for b in mac[:6])
+            ip = _lan_param(sender, ch, 3)           # param 3 = IP address
+            if ip and len(ip) >= 4:
+                out["ip"] = ".".join(str(b) for b in ip[:4])
+            src = _lan_param(sender, ch, 4)          # param 4 = IP address source
+            if src:
+                out["ip_source"] = {1: "static", 2: "dhcp", 3: "bios",
+                                    4: "other"}.get(src[0], src[0])
+            vlan = _lan_param(sender, ch, 20)        # param 20 = VLAN id
+            if vlan and len(vlan) >= 2:
+                v = vlan[0] | (vlan[1] << 8)
+                out["vlan"] = (v & 0x0FFF) if (v & 0x8000) else None
+            return out
+        if medium_raw == 0x05:            # async serial/modem
+            # Get Serial/Modem Config (0x0C/0x11) param 4 = Connection Mode.
+            # byte bits: [0]=Basic, [1]=PPP, [2]=Terminal mode enabled.
+            try:
+                cc, data = sender.send_raw(0x0C, 0x11, bytes([ch, 4, 0, 0]))
+            except Exception as e:
+                return {"error": _err(e)}
+            if cc != 0x00 or len(data) < 2:
+                return {"error": f"serial cfg cc=0x{cc:02x}"}
+            mode = data[1]
+            modes = [m for bit, m in ((0x01, "basic"), (0x02, "ppp"),
+                                      (0x04, "terminal")) if mode & bit]
+            return {"connection_mode_raw": mode, "modes": modes,
+                    "modem_configured": bool(mode & 0x02)}   # PPP ⇒ dial/modem path
+        if medium_raw == 0x0C:            # system interface (KCS/SMIC/BT)
+            # Get System Interface Capabilities (App 0x06/0x57), SI type 1 = KCS.
+            try:
+                cc, data = sender.send_raw(0x06, 0x57, bytes([0x01]))
+            except Exception as e:
+                return {"error": _err(e)}
+            if cc != 0x00:
+                return {"error": f"si-caps cc=0x{cc:02x}"}
+            return {"si_caps_raw": data.hex()}
+    except Exception as e:
+        return {"error": _err(e)}
+    return {}
+
+
+def _connected_channel(sender) -> int | None:
+    """Resolve which channel our session is on: Get Channel Info(0xE), the
+    'present channel' alias, returns its real number."""
+    try:
+        r = sender.send_cmd(0x06, 0x42, GetChannelInfoReq(channel=0x0E))
+    except Exception:
+        return None
+    return int(r.channel) if int(r.comp_code) == 0x00 else None
+
+
 def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
-                 bridge=False) -> dict:
+                 bridge=False, medium=False) -> dict:
+    connected = _connected_channel(sender)
     channels: dict[str, dict] = {}
     for n in range(0x00, 0x10):
         if n == 0x0E:                    # self-alias — skip
@@ -193,6 +265,10 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
         info["access"] = _channel_access(sender, n)
         info["auth_caps"] = _auth_caps(sender, n, per_priv)
         info["cipher_suites"] = _cipher_suites(sender, n)
+        if n == connected:
+            info["connected"] = True
+        if medium:
+            info["medium_detail"] = _medium_detail(sender, n, info["medium_raw"])
         if bridge:                        # can the BMC bridge onto this channel?
             from .bridge import probe_bridge
             info["bridge"] = probe_bridge(sender, n)
@@ -288,8 +364,22 @@ def render_table(matrix: dict) -> str:
             brtag = ("  bridge:yes" if br.get("bridgeable")
                      else "  bridge:no" if br.get("bridgeable") is False
                      else "  bridge:?")
+        conn = "  ← connected" if info.get("connected") else ""
         lines.append(f"  ch{ch}: {info.get('medium','?')} / "
-                     f"{info.get('session_support','?')} / limit={ceil}{brtag}")
+                     f"{info.get('session_support','?')} / limit={ceil}{brtag}{conn}")
+        md = info.get("medium_detail") or {}
+        bits = []
+        if md.get("mac"):
+            bits.append(f"mac={md['mac']}")
+        if md.get("ip"):
+            bits.append(f"ip={md['ip']}" + (f"/{md['ip_source']}" if md.get("ip_source") else ""))
+        if md.get("vlan") is not None:
+            bits.append(f"vlan={md['vlan']}")
+        if md.get("modes"):
+            bits.append("mode=" + "+".join(md["modes"])
+                        + (" modem" if md.get("modem_configured") else ""))
+        if bits:
+            lines.append(f"        └ {'  '.join(bits)}")
     lines.append("")
     lines.append(f"{'user':16}  " + "  ".join(f"ch{c}" for c in chans))
     for uid, u in matrix["users"].items():

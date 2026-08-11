@@ -997,6 +997,7 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
             include_empty=getattr(args, "all", False),
             per_priv=getattr(args, "per_priv", False),
             bridge=getattr(args, "bridge", False),
+            medium=getattr(args, "medium", False),
         )
     if getattr(args, "findings", False):
         matrix["findings"] = _user_matrix.evaluate_findings(matrix)
@@ -2952,6 +2953,9 @@ def build_parser() -> argparse.ArgumentParser:
     umx_list.add_argument("--bridge", action="store_true",
                           help="probe whether the BMC will bridge (Send Message) "
                                "onto each channel — reach edges for the hw graph")
+    umx_list.add_argument("--medium", action="store_true",
+                          help="per-channel substrate config: LAN mac/ip/vlan, "
+                               "serial connection-mode/modem, system-interface caps")
     umx_list.set_defaults(func=cmd_user_matrix_list)
 
     user = sub.add_parser("user", help="user accounts")
