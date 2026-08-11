@@ -451,6 +451,37 @@ class GetChannelInfoResp(Packet):
         return b"", s
 
 
+# -- Get Channel Access (App, 0x41) — IPMI 2.0 §22.23 --
+
+class GetChannelAccessReq(Packet):
+    name = "Get Channel Access Request"
+    fields_desc = [
+        ByteField("channel", 0xE),           # bits 3:0 = channel number
+        # byte 2 bits [7:6] select which copy: 01b = non-volatile,
+        # 10b = present volatile.
+        BitField("access_type", 0b10, 2),
+        BitField("reserved", 0, 6),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetChannelAccessResp(Packet):
+    name = "Get Channel Access Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        # byte 2: [6] alerting-disabled, [5] per-msg-auth-disabled,
+        #         [4] user-level-auth-disabled, [2:0] access mode
+        XByteField("access_byte", 0x00),
+        # byte 3: [3:0] channel privilege-limit
+        XByteField("priv_byte", 0x00),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
 # -- Get User Access (App, 0x44) / Get User Name (App, 0x46) --
 
 class GetUserAccessReq(Packet):
@@ -900,6 +931,7 @@ CMD_PAYLOADS: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet]]] = 
     (0x06, 0x04): (None,                    GetSelfTestResultsResp),
     (0x06, 0x08): (None,                    GetDeviceGUIDResp),
     (0x06, 0x37): (None,                    GetSystemGUIDResp),
+    (0x06, 0x41): (GetChannelAccessReq,     GetChannelAccessResp),
     (0x06, 0x42): (GetChannelInfoReq,       GetChannelInfoResp),
     (0x06, 0x44): (GetUserAccessReq,        GetUserAccessResp),
     (0x06, 0x46): (GetUserNameReq,          GetUserNameResp),
