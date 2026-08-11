@@ -56,3 +56,26 @@ def test_nv_delta_empty_when_identical():
     from zipmi.cli.user_matrix import nv_delta
     same = {"priv_limit": "administrator", "access_mode": "shared"}
     assert nv_delta(same, dict(same)) == {}
+
+
+def test_decode_auth_caps_md5_ipmi20_nonnull():
+    from zipmi.cli.user_matrix import decode_auth_caps
+    from zipmi.scapy_ipmi.commands import GetChanAuthCapsResp
+    # auth_type_support 0x84 = bit7(ipmi2.0)+bit2(md5); status 0x08 = bit3 non-null
+    r = GetChanAuthCapsResp(bytes([0x00, 0x01, 0x84, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00]))
+    d = decode_auth_caps(r)
+    assert d["ipmi20"] is True
+    assert "md5" in d["auth_types"]
+    assert "none" not in d["auth_types"]
+    assert d["non_null_user"] is True
+    assert d["anon_login"] is False
+
+
+def test_decode_auth_caps_flags_none_and_anon():
+    from zipmi.cli.user_matrix import decode_auth_caps
+    from zipmi.scapy_ipmi.commands import GetChanAuthCapsResp
+    # auth 0x01 = none; status 0x20 = anon-login
+    r = GetChanAuthCapsResp(bytes([0x00, 0x01, 0x01, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00]))
+    d = decode_auth_caps(r)
+    assert "none" in d["auth_types"]
+    assert d["anon_login"] is True

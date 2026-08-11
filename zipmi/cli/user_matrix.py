@@ -60,3 +60,21 @@ def nv_delta(present: dict, nonvol: dict) -> dict:
         if k in nonvol and present[k] != nonvol[k]:
             out[k] = {"present": present[k], "nonvolatile": nonvol[k]}
     return out
+
+
+_AUTH_BITS = [(0x10, "straight-pw"), (0x04, "md5"), (0x02, "md2"), (0x01, "none")]
+
+
+def decode_auth_caps(resp) -> dict:
+    """Get Channel Auth Caps response (IPMI 2.0 §22.13)."""
+    ats = int(resp.auth_type_support)
+    st = int(resp.status)
+    return {
+        "ipmi20": bool(ats & 0x80),
+        "auth_types": [name for bit, name in _AUTH_BITS if ats & bit],
+        "anon_login": bool(st & 0x20),
+        "null_user": bool(st & 0x10),
+        "non_null_user": bool(st & 0x08),
+        "per_msg_auth": not (st & 0x04),      # bit set = disabled
+        "user_level_auth": not (st & 0x02),   # bit set = disabled
+    }
