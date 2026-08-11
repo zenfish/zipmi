@@ -79,3 +79,59 @@ def test_decode_auth_caps_flags_none_and_anon():
     d = decode_auth_caps(r)
     assert "none" in d["auth_types"]
     assert d["anon_login"] is True
+
+
+def test_build_matrix_one_channel_two_users():
+    from zipmi.cli.user_matrix import build_matrix
+    from zipmi.scapy_ipmi.commands import (
+        GetChannelInfoResp, GetChannelAccessResp, GetChanAuthCapsResp,
+        GetUserAccessResp, GetUserNameResp,
+    )
+
+    class FakeSender:
+        """Answers only channel 1; other channels raise (unpopulated)."""
+        def send_cmd(self, netfn, cmd, req):
+            ch = getattr(req, "channel", None)
+            uid = getattr(req, "user_id", None)
+            if cmd == 0x42:                      # Get Channel Info
+                if ch != 1:
+                    raise RuntimeError("cc=0xcc")
+                return GetChannelInfoResp(bytes([0x00, 0x01, 0x04, 0x01, 0x80,
+                                                 0x00, 0x00, 0x00, 0x00, 0x00]))
+            if cmd == 0x41:                      # Get Channel Access (vol/nv)
+                pv = 0x03 if req.access_type == 0b10 else 0x04   # present op / nv admin
+                return GetChannelAccessResp(bytes([0x00, 0x02, pv]))
+            if cmd == 0x38:                      # Auth caps: md5 + ipmi2.0, non-null
+                return GetChanAuthCapsResp(bytes([0x00, 0x01, 0x84, 0x08,
+                                                  0, 0, 0, 0, 0]))
+            if cmd == 0x44:                      # Get User Access
+                if uid == 1:                     # discovery: max=3, enabled=2
+                    return GetUserAccessResp(bytes([0x00, 0x03, 0x02, 0x00, 0x54]))
+                acc = 0x54 if uid == 2 else 0x23   # u2 admin, u3 operator
+                return GetUserAccessResp(bytes([0x00, 0x02, 0x02, 0x00, acc]))
+            if cmd == 0x46:                      # Get User Name
+                name = (b"root" if uid == 2 else b"admin").ljust(16, b"\x00")
+                return GetUserNameResp(bytes([0x00]) + name)
+            raise AssertionError(f"unexpected cmd 0x{cmd:02x}")
+
+        def send_raw(self, netfn, cmd, payload):
+            if cmd == 0x54:                      # cipher suites: channel + records 3,17
+                records = bytes([0xC0, 0x03, 0x01, 0x41, 0x81,
+                                 0xC0, 0x11, 0x03, 0x44, 0x81])
+                return 0x00, bytes([payload[0]]) + records
+            raise AssertionError
+
+    m = build_matrix(FakeSender(), "10.0.0.1")
+    assert m["target"] == "10.0.0.1"
+    assert m["max_user_count"] == 3
+    assert set(m["channels"].keys()) == {"1"}         # only populated
+    ch1 = m["channels"]["1"]
+    assert ch1["medium"] == "802.3 LAN"
+    assert ch1["access"]["present"]["priv_limit"] == "operator"
+    assert ch1["access"]["nv_delta"]["priv_limit"] == {
+        "present": "operator", "nonvolatile": "administrator"}
+    assert ch1["cipher_suites"] == [3, 17]
+    assert m["users"]["2"]["name"] == "root"
+    assert m["users"]["2"]["access"]["1"]["priv"] == "administrator"
+    assert m["users"]["3"]["access"]["1"]["priv"] == "operator"
+    assert m["findings"] == []

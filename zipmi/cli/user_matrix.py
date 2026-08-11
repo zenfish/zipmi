@@ -78,3 +78,155 @@ def decode_auth_caps(resp) -> dict:
         "per_msg_auth": not (st & 0x04),      # bit set = disabled
         "user_level_auth": not (st & 0x02),   # bit set = disabled
     }
+
+
+# -- one-session enumeration -------------------------------------------------
+
+from ..scapy_ipmi.commands import (          # noqa: E402
+    GetChannelInfoReq, GetChannelAccessReq, GetChanAuthCapsReq,
+    GetUserAccessReq, GetUserNameReq,
+)
+from . import bmc_id                          # noqa: E402
+
+
+def _err(exc: Exception) -> str:
+    return f"err:{exc or exc.__class__.__name__}"
+
+
+def _channel_info(sender, n: int) -> dict | None:
+    """Get Channel Info for channel n; None if unpopulated (any error/cc!=0)."""
+    from .zipmi import CHANNEL_MEDIUM, CHANNEL_PROTOCOL
+    try:
+        r = sender.send_cmd(0x06, 0x42, GetChannelInfoReq(channel=n))
+    except Exception:
+        return None
+    if int(r.comp_code) != 0x00:
+        return None
+    sess = int(r.session_support) >> 6
+    sess_name = {0: "sessionless", 1: "single-session",
+                 2: "multi-session", 3: "sessionless+session"}.get(sess, "unknown")
+    return {
+        "medium": CHANNEL_MEDIUM.get(int(r.medium), "unknown"),
+        "medium_raw": int(r.medium),
+        "protocol": CHANNEL_PROTOCOL.get(int(r.protocol), "unknown"),
+        "protocol_raw": int(r.protocol),
+        "session_support": sess_name,
+        "vendor_iana": int.from_bytes(bytes(r.oem_iana), "little"),
+    }
+
+
+def _channel_access(sender, n: int) -> dict:
+    def one(access_type):
+        r = sender.send_cmd(0x06, 0x41, GetChannelAccessReq(channel=n, access_type=access_type))
+        if int(r.comp_code) != 0x00:
+            raise RuntimeError(f"cc=0x{int(r.comp_code):02x}")
+        return decode_channel_access(r)
+    try:
+        present = one(0b10)
+        nonvol = one(0b01)
+    except Exception as e:
+        return {"error": _err(e)}
+    out = {"present": present, "nonvolatile": nonvol}
+    delta = nv_delta(present, nonvol)
+    if delta:
+        out["nv_delta"] = delta
+    return out
+
+
+def _auth_caps(sender, n: int, per_priv: bool) -> dict:
+    def one(p):
+        r = sender.send_cmd(0x06, 0x38, GetChanAuthCapsReq(v20_ext=1, channel=n, max_priv=p))
+        if int(r.comp_code) != 0x00:
+            raise RuntimeError(f"cc=0x{int(r.comp_code):02x}")
+        return decode_auth_caps(r)
+    if per_priv:
+        out = {}
+        for p, name in ((1, "callback"), (2, "user"), (3, "operator"),
+                        (4, "administrator"), (5, "oem")):
+            try:
+                out[name] = one(p)
+            except Exception as e:
+                out[name] = {"error": _err(e)}
+        return {"by_priv": out}
+    try:
+        d = one(4)
+        d["at_priv"] = "administrator"
+        return d
+    except Exception as e:
+        return {"error": _err(e)}
+
+
+def _cipher_suites(sender, n: int):
+    """Enumerate advertised cipher suites via Get Channel Cipher Suites (0x54),
+    looping list indices until a short chunk. Reuses the record decoder that the
+    scan verb uses, so the two agree."""
+    acc = b""
+    for idx in range(0x40):
+        try:
+            cc, data = sender.send_raw(0x06, 0x54, bytes([n, 0x00, 0x80 | idx]))
+        except Exception as e:
+            if idx == 0:
+                return _err(e)
+            break
+        if cc != 0x00:
+            if idx == 0:
+                return _err(RuntimeError(f"cc=0x{cc:02x}"))
+            break
+        chunk = data[1:]                 # strip leading channel byte
+        acc += chunk
+        if len(chunk) < 16:
+            break
+    return [r["id"] for r in bmc_id.parse_cipher_suite_records(acc)]
+
+
+def build_matrix(sender, target: str, *, include_empty=False, per_priv=False) -> dict:
+    channels: dict[str, dict] = {}
+    for n in range(0x00, 0x10):
+        if n == 0x0E:                    # self-alias — skip
+            continue
+        info = _channel_info(sender, n)
+        if info is None:
+            if include_empty:
+                channels[str(n)] = {"empty": True}
+            continue
+        info["access"] = _channel_access(sender, n)
+        info["auth_caps"] = _auth_caps(sender, n, per_priv)
+        info["cipher_suites"] = _cipher_suites(sender, n)
+        channels[str(n)] = info
+
+    populated = [int(k) for k, v in channels.items() if not v.get("empty")]
+    disc_ch = populated[0] if populated else 0x0E
+    try:
+        u1 = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=disc_ch, user_id=1))
+        max_users = int(u1.max_user_count) & 0x3F
+        enabled = int(u1.enabled_user_count) & 0x3F
+    except Exception:
+        max_users, enabled = 0, 0
+
+    users: dict[str, dict] = {}
+    for uid in range(1, max_users + 1):
+        try:
+            un = sender.send_cmd(0x06, 0x46, GetUserNameReq(user_id=uid))
+            name = bytes(un.user_name).rstrip(b"\x00").decode("utf-8", "replace")
+        except Exception as e:
+            name = _err(e)
+        acc: dict[str, dict | str] = {}
+        for n in populated:
+            try:
+                ua = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=n, user_id=uid))
+                if int(ua.comp_code) != 0x00:
+                    acc[str(n)] = _err(RuntimeError(f"cc=0x{int(ua.comp_code):02x}"))
+                else:
+                    acc[str(n)] = decode_user_access(int(ua.user_access))
+            except Exception as e:
+                acc[str(n)] = _err(e)
+        users[str(uid)] = {"name": name, "access": acc}
+
+    return {
+        "target": target,
+        "max_user_count": max_users,
+        "enabled_user_count": enabled,
+        "channels": channels,
+        "users": users,
+        "findings": [],
+    }
