@@ -48,3 +48,25 @@ def test_user_matrix_json_against_vbmc():
     finally:
         srv.terminate()
         srv.wait(timeout=5)
+
+
+def test_scan_all_json_runs_full_grid():
+    """scan all --json emits the user-matrix grid JSON (channels + findings)."""
+    port = _free_port()
+    srv = subprocess.Popen(
+        [sys.executable, "-m", "zipmi.cli.zipmi", "vbmc", "serve",
+         "--vpersona", "dell_idrac6", "--vport", str(port)],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        time.sleep(1.5)
+        out = subprocess.run(
+            [sys.executable, "-m", "zipmi.cli.zipmi", "-H", "127.0.0.1",
+             "-p", str(port), "-U", "root", "-P", "calvin",
+             "scan", "all", "--json"],
+            capture_output=True, text=True, timeout=30)
+        data = json.loads(out.stdout)                 # clean JSON, no text noise
+        assert "channels" in data and "findings" in data
+        assert isinstance(data["findings"], list)
+    finally:
+        srv.terminate()
+        srv.wait(timeout=5)

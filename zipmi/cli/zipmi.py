@@ -2403,10 +2403,25 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
 
 
 def cmd_scan_all(args: argparse.Namespace) -> int:
+    """asf-ping + present-channel posture probes + the full user × channel grid.
+
+    The grid (user-matrix) is the deep view: per-channel access ceiling, auth
+    caps, ciphers, and every user's privilege — with findings forced on (a scan
+    is a posture probe). With --json only the grid JSON hits stdout (clean for
+    tooling); without it, the quick text probes run first, then the grid table.
+    It degrades gracefully: sessionless data still populates, user rows show
+    err:* when no session/privilege.
+    """
     rc = 0
-    rc |= cmd_scan_asf_ping(args)
-    rc |= cmd_scan_auth_caps(args)
-    rc |= cmd_scan_cipher_suites(args)
+    args.findings = True
+    for attr, default in (("json", False), ("all", False), ("per_priv", False)):
+        if not hasattr(args, attr):
+            setattr(args, attr, default)
+    if not args.json:
+        rc |= cmd_scan_asf_ping(args)
+        rc |= cmd_scan_auth_caps(args)
+        rc |= cmd_scan_cipher_suites(args)
+    rc |= cmd_user_matrix_list(args)
     return rc
 
 
@@ -3137,6 +3152,9 @@ def build_parser() -> argparse.ArgumentParser:
                      ("cipher-zero", cmd_scan_cipher_zero),
                      ("all", cmd_scan_all)]:
         s = sc_sub.add_parser(name)
+        if name == "all":
+            s.add_argument("--json", action="store_true",
+                           help="emit the full-grid matrix as JSON (grid only)")
         s.set_defaults(func=fn)
 
     return p
