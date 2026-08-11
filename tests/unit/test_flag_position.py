@@ -90,3 +90,10 @@ def test_vbmc_old_port_goes_to_global_not_vport():
     ns = parse_cli(["vbmc", "serve", "--port", "7000"])
     assert ns.port == 7000      # global connection port got it
     assert ns.vport == 6230     # vBMC listen port stays at its default
+
+
+def test_user_matrix_list_parses():
+    ns = parse_cli(["user-matrix", "list", "--json", "--all"])
+    assert ns.func.__name__ == "cmd_user_matrix_list"
+    assert ns.json is True
+    assert ns.all is True

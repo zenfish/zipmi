@@ -987,6 +987,28 @@ def cmd_user_priv(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_user_matrix_list(args: argparse.Namespace) -> int:
+    """Full user × channel privilege/auth/cipher matrix (read-only, one session)."""
+    import json
+    from . import user_matrix as _user_matrix
+    with _open_session(args) as s:
+        matrix = _user_matrix.build_matrix(
+            s, _require_host(args),
+            include_empty=getattr(args, "all", False),
+            per_priv=getattr(args, "per_priv", False),
+        )
+    if getattr(args, "findings", False):
+        matrix["findings"] = _user_matrix.evaluate_findings(matrix)
+    if getattr(args, "json", False):
+        print(json.dumps(matrix, indent=2))
+    else:
+        print(_user_matrix.render_table(matrix))
+        for f in matrix["findings"]:
+            print(f"  ! [{f['severity']}] ch{f['channel']}: {f['issue']}",
+                  file=sys.stderr)
+    return 0
+
+
 CHANNEL_MEDIUM: dict[int, str] = {
     0x00: "reserved",
     0x01: "IPMB (I2C)",
@@ -2901,6 +2923,18 @@ def build_parser() -> argparse.ArgumentParser:
     sol_ab.set_defaults(func=cmd_sol_autobaud)
 
     # user
+    umx = sub.add_parser("user-matrix", help="full user × channel privilege matrix")
+    umx_sub = umx.add_subparsers(dest="action", required=True)
+    umx_list = umx_sub.add_parser("list", help="enumerate the whole grid (read-only)")
+    umx_list.add_argument("--json", action="store_true", help="emit JSON to stdout")
+    umx_list.add_argument("--all", action="store_true",
+                          help="include empty/unimplemented channels")
+    umx_list.add_argument("--per-priv", dest="per_priv", action="store_true",
+                          help="sweep auth-caps at all 5 privilege levels")
+    umx_list.add_argument("--findings", action="store_true",
+                          help="also emit derived posture flags")
+    umx_list.set_defaults(func=cmd_user_matrix_list)
+
     user = sub.add_parser("user", help="user accounts")
     user_sub = user.add_subparsers(dest="action", required=True)
     user_list = user_sub.add_parser("list", help="list users via Get User Access/Name")
