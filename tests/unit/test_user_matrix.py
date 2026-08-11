@@ -177,7 +177,7 @@ def test_render_table_contains_users_channels_and_delta():
     out = render_table(matrix)
     assert "root" in out
     assert "802.3 LAN" in out
-    assert "administrator" in out or "admin" in out
+    assert "AIL" in out                 # compact cell: administrator + ipmi-msg + link-auth
     assert "Δ" in out and "operator" in out
 
 
@@ -208,8 +208,8 @@ def test_build_matrix_discovers_users_when_channel0_rejects():
                 return GetChannelInfoResp(bytes([0x00, ch, medium, 0x01, sess,
                                                  0, 0, 0, 0, 0]))
             if cmd == 0x44:                       # Get User Access
-                if ch == 0:                        # IPMB rejects the query
-                    raise RuntimeError("cc=0xcc")
+                if ch == 0:                        # IPMB: BMC returns cc=0xcc (a
+                    return GetUserAccessResp(bytes([0xcc, 0, 0, 0, 0]))  # response, not a raise)
                 if uid == 1:                        # discovery on 0xE / ch1: max=3
                     return GetUserAccessResp(bytes([0x00, 0x03, 0x02, 0x00, 0x54]))
                 return GetUserAccessResp(bytes([0x00, 0x03, 0x02, 0x00, 0x54]))

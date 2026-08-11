@@ -287,12 +287,22 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
             enabled = int(u1.enabled_user_count) & 0x3F
             break
 
-    # Get User Access (0x44) is per-channel but only defined on session-based
-    # channels; sessionless media (IPMB, system interface KCS/SMIC/BT) reject it
-    # with cc=0xcc ("invalid data field"). Skip them and mark "n/a" once, rather
-    # than spraying the identical error into every user's cell.
-    sessionless = {n for n in populated
-                   if channels[str(n)].get("session_support") == "sessionless"}
+    # Classify each populated channel by how it ANSWERS Get User Access (0x44) —
+    # measured, not assumed. Probe once per channel (channel-level property, not
+    # per-user): cc=0x00 => per-user access is meaningful, query every user;
+    # cc=0xcc ("invalid data field") => the BMC itself says the query is undefined
+    # here (sessionless IPMB / system interface) → n/a, on evidence; any other cc
+    # or transport error => unknown (we could not determine it).
+    ua_support: dict[int, str] = {}
+    for n in populated:
+        try:
+            p = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=n, user_id=1))
+            cc = int(p.comp_code)
+            ua_support[n] = "yes" if cc == 0x00 else ("no" if cc == 0xCC else "unknown")
+        except Exception:
+            ua_support[n] = "unknown"
+        channels[str(n)]["user_access_query"] = ua_support[n]
+
     users: dict[str, dict] = {}
     for uid in range(1, max_users + 1):
         try:
@@ -302,8 +312,12 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
             name = _err(e)
         acc: dict[str, dict | str] = {}
         for n in populated:
-            if n in sessionless:
-                acc[str(n)] = "n/a"           # per-user access undefined on this medium
+            sup = ua_support[n]
+            if sup == "no":                   # BMC returned cc=0xcc → n/a, evidenced
+                acc[str(n)] = "n/a"
+                continue
+            if sup == "unknown":              # could not determine
+                acc[str(n)] = "unknown"
                 continue
             try:
                 ua = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=n, user_id=uid))
@@ -349,13 +363,26 @@ def evaluate_findings(matrix: dict) -> list[dict]:
     return out
 
 
+_PRIV_CODE = {"callback": "C", "user": "U", "operator": "O",
+              "administrator": "A", "oem": "M", "no-access": "x"}
+
+
 def _cell(acc) -> str:
-    if isinstance(acc, str):                 # err:*
+    """Compact grid code: priv letter + flag letters. "-"=n/a (sessionless),
+    "x"=no-access, "!"=unexpected error, "?"=unknown priv nibble."""
+    if isinstance(acc, str):
+        if acc == "n/a":
+            return "-"
+        if acc == "unknown":
+            return "?"
+        if acc.startswith("err:"):
+            return "!"
         return acc
-    flags = "".join(f for f, on in (("E", acc.get("ipmi_msg")),
-                                    ("la", acc.get("link_auth")),
-                                    ("ci", acc.get("callin"))) if on)
-    return f"{acc.get('priv', '?')} {flags}".rstrip()
+    code = _PRIV_CODE.get(acc.get("priv"), "?")
+    flags = "".join(f for f, on in (("I", acc.get("ipmi_msg")),
+                                    ("L", acc.get("link_auth")),
+                                    ("c", acc.get("callin"))) if on)
+    return code + flags
 
 
 def render_table(matrix: dict) -> str:
@@ -387,10 +414,20 @@ def render_table(matrix: dict) -> str:
         if bits:
             lines.append(f"        └ {'  '.join(bits)}")
     lines.append("")
-    lines.append(f"{'user':16}  " + "  ".join(f"ch{c}" for c in chans))
+    # aligned user × channel grid with compact codes
+    headers = [f"ch{c}" for c in chans]
+    grid = []
     for uid, u in matrix["users"].items():
-        cells = "  ".join(_cell(u["access"].get(c, "—")) for c in chans)
-        lines.append(f"{uid:>2} {u['name']:13}  {cells}")
+        name = u["name"] or "<null>"          # zero-length username = the null/anon user
+        grid.append((uid, name, [_cell(u["access"].get(c, "unknown")) for c in chans]))
+    widths = [len(h) for h in headers]
+    for _, _, cells in grid:
+        for i, c in enumerate(cells):
+            widths[i] = max(widths[i], len(c))
+    lines.append(f"{'user':16}  " + "  ".join(h.ljust(widths[i]) for i, h in enumerate(headers)))
+    for uid, name, cells in grid:
+        lines.append(f"{uid:>2} {name:13}  "
+                     + "  ".join(c.ljust(widths[i]) for i, c in enumerate(cells)))
     for ch in chans:
         delta = matrix["channels"][ch].get("access", {}).get("nv_delta")
         if delta:
@@ -398,6 +435,9 @@ def render_table(matrix: dict) -> str:
                 lines.append(f"Δ ch{ch}: {field} present={d['present']} "
                              f"non-volatile={d['nonvolatile']} (pending/override)")
     lines.append("")
-    lines.append("legend: cell = <priv> [E=ipmi-msg la=link-auth ci=callin]; "
-                 "Δ = present≠non-volatile")
+    lines.append("legend: priv  A=administrator O=operator U=user C=callback M=oem   "
+                 "x=no-access  -=n/a(BMC cc=0xcc)  ?=unknown")
+    lines.append("        flags I=ipmi-msg L=link-auth c=callin   Δ=present≠non-volatile")
+    lines.append("        ←connected = channel this session rode in on   "
+                 "<null> = zero-length (anonymous) username")
     return "\n".join(lines)
