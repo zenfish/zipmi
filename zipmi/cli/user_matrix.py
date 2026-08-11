@@ -230,3 +230,27 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False) ->
         "users": users,
         "findings": [],
     }
+
+
+def evaluate_findings(matrix: dict) -> list[dict]:
+    """Passive posture flags derived from an already-built matrix (no new sends)."""
+    out: list[dict] = []
+    for ch, info in matrix.get("channels", {}).items():
+        if info.get("empty"):
+            continue
+        chn = int(ch)
+        suites = info.get("cipher_suites")
+        if isinstance(suites, list) and 0 in suites:
+            out.append({"severity": "high", "channel": chn, "issue": "cipher-0 advertised"})
+        caps = info.get("auth_caps", {})
+        if caps.get("anon_login"):
+            out.append({"severity": "high", "channel": chn, "issue": "anonymous login enabled"})
+        if caps.get("null_user"):
+            out.append({"severity": "med", "channel": chn, "issue": "null username enabled"})
+        if "none" in (caps.get("auth_types") or []):
+            out.append({"severity": "high", "channel": chn, "issue": "auth type 'none' offered"})
+        if caps.get("per_msg_auth") is False:
+            out.append({"severity": "med", "channel": chn, "issue": "per-message auth disabled"})
+        if caps.get("user_level_auth") is False:
+            out.append({"severity": "low", "channel": chn, "issue": "user-level auth disabled"})
+    return out

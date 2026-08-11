@@ -135,3 +135,25 @@ def test_build_matrix_one_channel_two_users():
     assert m["users"]["2"]["access"]["1"]["priv"] == "administrator"
     assert m["users"]["3"]["access"]["1"]["priv"] == "operator"
     assert m["findings"] == []
+
+
+def test_evaluate_findings_flags_cipher0_and_anon():
+    from zipmi.cli.user_matrix import evaluate_findings
+    matrix = {"channels": {"1": {
+        "cipher_suites": [0, 3, 17],
+        "auth_caps": {"anon_login": True, "null_user": False,
+                      "auth_types": ["md5"], "per_msg_auth": True,
+                      "user_level_auth": True}}}, "users": {}}
+    issues = {f["issue"] for f in evaluate_findings(matrix)}
+    assert "cipher-0 advertised" in issues
+    assert "anonymous login enabled" in issues
+
+
+def test_evaluate_findings_clean_channel_empty():
+    from zipmi.cli.user_matrix import evaluate_findings
+    matrix = {"channels": {"1": {
+        "cipher_suites": [3, 17],
+        "auth_caps": {"anon_login": False, "null_user": False,
+                      "auth_types": ["md5"], "per_msg_auth": True,
+                      "user_level_auth": True}}}, "users": {}}
+    assert evaluate_findings(matrix) == []
