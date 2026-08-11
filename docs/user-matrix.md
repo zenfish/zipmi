@@ -195,8 +195,19 @@ any other cc = permitted-but-rejected-for-this-channel. (JSON carries
 
 Bridgeable channels are **reach edges** — `user-matrix list --json --bridge`
 (with `--medium` for the MACs/IPs) is the connectivity source that feeds the
-hardware graph in `~/phd/bmc/hwmaps/`: LAN channels → external reach, bridge:yes
-channels → internal reach onto the IPMB/other buses.
+hardware graph in `~/phd/bmc/hwmaps/`. Convert it with
+`~/phd/bmc/tools/usermatrix2hwmap.py`:
+
+```
+zipmi -H <bmc> -U .. -P .. user-matrix list --json --bridge --medium > um.json
+~/phd/bmc/tools/usermatrix2hwmap.py um.json -o graphs/<box>-channels.json
+# merge-hwmap.py then folds the channel reach-edges into the box's graph
+```
+
+It emits: `BMC → CHn` per channel, `CHn(LAN) → LAN` (external reach, labelled
+with MAC/IP), and — the payoff — `<connected-channel> → CHn` for every
+`bridge:yes` channel (internal reach: which buses your LAN session can pivot
+onto via Send Message).
 
 ## Relation to the protocol writeup
 
