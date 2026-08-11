@@ -225,8 +225,10 @@ def test_build_matrix_discovers_users_when_channel0_rejects():
     m = build_matrix(Fake(), "10.0.0.1")
     assert m["max_user_count"] == 3               # not 0 — the bug
     assert set(m["users"].keys()) == {"1", "2", "3"}
-    # ch0 user-access cells are err (IPMB rejects), ch1 decodes
-    assert isinstance(m["users"]["2"]["access"]["0"], str)      # err:*
+    # ch0 is sessionless (IPMB) → per-user access is n/a, not a sprayed error;
+    # ch1 (LAN) decodes normally.
+    assert m["users"]["2"]["access"]["0"] == "n/a"
+    assert not m["users"]["2"]["access"]["0"].startswith("err:")
     assert m["users"]["2"]["access"]["1"]["priv"] == "administrator"
 
 

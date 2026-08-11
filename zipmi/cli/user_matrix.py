@@ -287,6 +287,12 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
             enabled = int(u1.enabled_user_count) & 0x3F
             break
 
+    # Get User Access (0x44) is per-channel but only defined on session-based
+    # channels; sessionless media (IPMB, system interface KCS/SMIC/BT) reject it
+    # with cc=0xcc ("invalid data field"). Skip them and mark "n/a" once, rather
+    # than spraying the identical error into every user's cell.
+    sessionless = {n for n in populated
+                   if channels[str(n)].get("session_support") == "sessionless"}
     users: dict[str, dict] = {}
     for uid in range(1, max_users + 1):
         try:
@@ -296,6 +302,9 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
             name = _err(e)
         acc: dict[str, dict | str] = {}
         for n in populated:
+            if n in sessionless:
+                acc[str(n)] = "n/a"           # per-user access undefined on this medium
+                continue
             try:
                 ua = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=n, user_id=uid))
                 if int(ua.comp_code) != 0x00:
