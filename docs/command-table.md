@@ -96,7 +96,7 @@ and per-platform live test results.
 | 3Dh  | Get Session Info | 22.20 | U | ✗ | ? | ? |
 | 3Fh  | Get AuthCode | 22.21 | U | ✗ | ? | ? |
 | 40h  | Set Channel Access | 22.22 | A | ✗ | ? | ? |
-| 41h  | Get Channel Access | 22.23 | U | ✗ | ? | ? |
+| 41h  | Get Channel Access | 22.23 | U | ✓ | ? | ? |
 | 42h  | Get Channel Info Command | 22.24 | U | ✓ | ? | ? |
 | 43h  | Set User Access Command | 22.26 | A | ✗ | ? | ? |
 | 44h  | Get User Access Command | 22.27 | O | ✓ | ✓ | ? |

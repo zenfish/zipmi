@@ -174,6 +174,9 @@ zipmi scan asf-ping
 zipmi scan auth-caps
 zipmi scan cipher-suites             # enumerate advertised RMCP+ ciphers (0x54)
 zipmi scan cipher-zero
+zipmi user-matrix list               # full user × channel privilege grid (audit)
+zipmi user-matrix list --json | jq '.channels'   # machine-readable
+zipmi scan all --json                # asf-ping + the full grid, findings on
 zipmi fuzz sweep --netfn 0x30 -v     # Dell OEM cmd surface, named
 
 # Sessionless mode — omit -U/-P (and unset ZIPMI_USER/ZIPMI_PASS) and
@@ -204,6 +207,8 @@ sdr      list
 sensor   list
 lan      print
 user     list
+user-matrix list [--json] [--all] [--per-priv] [--findings]
+                 # full user × channel privilege/auth/cipher grid (read-only)
 raw      <netfn> <cmd> [byte ...]
 ipmi     [cmd-name [byte ...]]           # standard IPMI cmd by name; no args = list Table G-1
 oem      [vendor [cmd-name [byte ...]]]   # OEM cmd dispatcher; no args = list vendors
