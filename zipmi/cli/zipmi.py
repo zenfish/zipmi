@@ -2160,10 +2160,13 @@ def cmd_fuzz_sweep(args: argparse.Namespace) -> int:
         print(f"  0x{r.cmd:02x}  0x{r.cc:02x}  {len(r.body):3d}  "
               f"{r.cc_name:<55}  {name}", flush=True)
 
+    from ..fuzz.sweep import BOUNDARY_DATA
+    variants = BOUNDARY_DATA if getattr(args, "data_fuzz", False) else None
     with _open_session(args) as s:
         results = sweep_netfn(
             s, netfn=netfn, rate_hz=args.rate,
             on_result=_emit if streaming else None,
+            data_variants=variants,
         )
     summary = summarize(results)
 
@@ -3049,6 +3052,9 @@ def build_parser() -> argparse.ArgumentParser:
     fz_sub = fz.add_subparsers(dest="action", required=True)
     fz_sweep = fz_sub.add_parser("sweep", help="walk every cmd of one NetFn")
     fz_sweep.add_argument("--netfn", default="0x06", help="NetFn to sweep")
+    fz_sweep.add_argument("--data-fuzz", dest="data_fuzz", action="store_true",
+                          help="also send boundary request-data payloads per cmd "
+                               "(empty/0x00/0xff/16B/oversized), not just empty")
     fz_sweep.add_argument("--rate", type=float, default=10.0,
                           help="probe rate in Hz (default 10)")
     fz_sweep.set_defaults(func=cmd_fuzz_sweep)

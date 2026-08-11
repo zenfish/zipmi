@@ -38,6 +38,20 @@ from ..consts import COMP_CODE
 from ..core import IPMIError, Session
 
 
+# Boundary request-data payloads for data-fuzz: empty, single bytes, full and
+# incrementing 16-byte blocks, and an over-long run. Deliberately small so a
+# sweep stays fast and doesn't hammer the BMC into a DoS.
+BOUNDARY_DATA: tuple[bytes, ...] = (
+    b"",
+    b"\x00",
+    b"\xff",
+    b"\x00" * 16,
+    b"\xff" * 16,
+    bytes(range(16)),
+    b"\xff" * 64,
+)
+
+
 @dataclass
 class SweepResult:
     netfn: int
@@ -46,6 +60,7 @@ class SweepResult:
     body: bytes = b""
     error: str = ""
     elapsed_ms: float = 0.0
+    req_data: bytes = b""      # request payload actually sent (data-fuzz)
 
     @property
     def bmc_responded(self) -> bool:
@@ -77,6 +92,7 @@ def sweep_netfn(
     rate_hz: float = 10.0,
     skip: set[tuple[int, int]] | None = None,
     on_result: Callable[[SweepResult], None] | None = None,
+    data_variants: list[bytes] | tuple[bytes, ...] | None = None,
 ) -> list[SweepResult]:
     """Iterate cmd 0x00..0xFF for one NetFn; rate-limit with rate_hz.
 
@@ -100,8 +116,13 @@ def sweep_netfn(
             (0x00, 0x04),     # Chassis Identify — visible side effect
             (0x0A, 0x47),     # Clear SEL — destructive
         }
+    # Default = a single empty payload (pure surface enumeration). Passing
+    # data_variants (e.g. BOUNDARY_DATA) turns it into a real request-data fuzz:
+    # each cmd is probed once per payload.
+    variants = list(data_variants) if data_variants else [b""]
     period = 1.0 / rate_hz if rate_hz else 0.0
     out: list[SweepResult] = []
+    wedged = False
     for cmd in cmds:
         if (netfn, cmd) in skip:
             r = SweepResult(netfn, cmd, cc=None, error="skipped")
@@ -109,30 +130,34 @@ def sweep_netfn(
             if on_result:
                 on_result(r)
             continue
-        t0 = time.perf_counter()
-        result = SweepResult(netfn=netfn, cmd=cmd)
-        try:
-            cc, body = session.send_raw(netfn, cmd, b"")
-            result.cc = cc
-            result.body = body
-        except IPMIError as e:
-            result.error = f"ipmi:{e}"
-        except (OSError, TimeoutError) as e:
-            result.error = f"transport:{e}"
-            # Transport error means session may be wedged — bail out.
+        for data in variants:
+            t0 = time.perf_counter()
+            result = SweepResult(netfn=netfn, cmd=cmd, req_data=bytes(data))
+            try:
+                cc, body = session.send_raw(netfn, cmd, data)
+                result.cc = cc
+                result.body = body
+            except IPMIError as e:
+                result.error = f"ipmi:{e}"
+            except (OSError, TimeoutError) as e:
+                result.error = f"transport:{e}"
+                # Transport error means session may be wedged — bail out.
+                result.elapsed_ms = (time.perf_counter() - t0) * 1000
+                out.append(result)
+                if on_result:
+                    on_result(result)
+                wedged = True
+                break
+            except Exception as e:
+                result.error = f"crash:{type(e).__name__}:{e}"
             result.elapsed_ms = (time.perf_counter() - t0) * 1000
             out.append(result)
             if on_result:
                 on_result(result)
+            if period:
+                time.sleep(period)
+        if wedged:
             break
-        except Exception as e:
-            result.error = f"crash:{type(e).__name__}:{e}"
-        result.elapsed_ms = (time.perf_counter() - t0) * 1000
-        out.append(result)
-        if on_result:
-            on_result(result)
-        if period:
-            time.sleep(period)
     return out
 
 

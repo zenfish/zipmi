@@ -20,8 +20,38 @@ import pytest
 
 from zipmi.core import Session
 from zipmi.fuzz.length import length_corrupt
-from zipmi.fuzz.sweep import sweep_netfn, summarize
+from zipmi.fuzz.sweep import sweep_netfn, summarize, BOUNDARY_DATA
 from zipmi.vbmc.personas import dell_idrac6
+
+
+class _RecordingSession:
+    """Records every send_raw payload; no network."""
+    def __init__(self):
+        self.sent = []
+
+    def send_raw(self, netfn, cmd, data):
+        self.sent.append((netfn, cmd, bytes(data)))
+        return 0x00, b""
+
+
+def test_sweep_default_sends_only_empty_payload():
+    """Without data_variants the sweep is pure enumeration: one empty probe/cmd."""
+    s = _RecordingSession()
+    sweep_netfn(s, netfn=0x06, cmds=[0x01, 0x04], rate_hz=0, skip=set())
+    assert s.sent == [(0x06, 0x01, b""), (0x06, 0x04, b"")]
+
+
+def test_sweep_data_fuzz_sends_every_variant_per_cmd():
+    """--data-fuzz (BOUNDARY_DATA) actually mutates request data: each cmd is
+    probed once per payload, all distinct, recorded in req_data."""
+    s = _RecordingSession()
+    results = sweep_netfn(s, netfn=0x06, cmds=[0x01], rate_hz=0, skip=set(),
+                          data_variants=BOUNDARY_DATA)
+    sent_payloads = [d for (_nf, _c, d) in s.sent]
+    assert sent_payloads == list(BOUNDARY_DATA)              # every variant hit the wire
+    assert len(set(sent_payloads)) == len(BOUNDARY_DATA)     # all distinct
+    assert [r.req_data for r in results] == list(BOUNDARY_DATA)
+    assert all(r.cc == 0x00 for r in results)
 from zipmi.vbmc.server import VBMC
 from zipmi.vbmc.state import State
 
