@@ -179,3 +179,11 @@ def test_render_table_contains_users_channels_and_delta():
     assert "802.3 LAN" in out
     assert "administrator" in out or "admin" in out
     assert "Δ" in out and "operator" in out
+
+
+def test_decode_user_access_no_access_priv_uses_full_nibble():
+    # 0x0F = no-access (priv nibble 15) — guards the full 4-bit mask (a 3-bit
+    # mask would wrongly yield 7). Caught a coverage gap in mutation testing.
+    d = decode_user_access(0x0F)
+    assert d["priv"] == "no-access"
+    assert d["priv_raw"] == 0x0F
