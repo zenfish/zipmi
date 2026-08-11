@@ -998,6 +998,7 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
             per_priv=getattr(args, "per_priv", False),
             bridge=getattr(args, "bridge", False),
             medium=getattr(args, "medium", False),
+            probe_priv=getattr(args, "probe_priv", False),
         )
     if getattr(args, "findings", False):
         matrix["findings"] = _user_matrix.evaluate_findings(matrix)
@@ -2995,6 +2996,10 @@ def build_parser() -> argparse.ArgumentParser:
     umx_list.add_argument("--medium", action="store_true",
                           help="per-channel substrate config: LAN mac/ip/vlan, "
                                "serial connection-mode/modem, system-interface caps")
+    umx_list.add_argument("--probe-priv", dest="probe_priv", action="store_true",
+                          help="ACTIVE: Set Session Privilege Level (0x3B) to max on "
+                               "the connected channel → authoritative effective ceiling "
+                               "(mutates only our own session priv)")
     umx_list.set_defaults(func=cmd_user_matrix_list)
 
     ser = sub.add_parser("serial", help="serial/modem channel config (read / write)")

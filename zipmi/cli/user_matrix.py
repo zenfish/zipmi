@@ -84,7 +84,7 @@ def decode_auth_caps(resp) -> dict:
 
 from ..scapy_ipmi.commands import (          # noqa: E402
     GetChannelInfoReq, GetChannelAccessReq, GetChanAuthCapsReq,
-    GetUserAccessReq, GetUserNameReq,
+    GetUserAccessReq, GetUserNameReq, SetSessionPrivLevelReq,
 )
 from . import bmc_id                          # noqa: E402
 
@@ -249,7 +249,7 @@ def _connected_channel(sender) -> int | None:
 
 
 def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
-                 bridge=False, medium=False) -> dict:
+                 bridge=False, medium=False, probe_priv=False) -> dict:
     connected = _connected_channel(sender)
     channels: dict[str, dict] = {}
     for n in range(0x00, 0x10):
@@ -329,6 +329,24 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
                 acc[str(n)] = _err(e)
         users[str(uid)] = {"name": name, "access": acc}
 
+    # Optional ACTIVE probe: Set Session Privilege Level (0x3B) to the max the BMC
+    # will grant on the CONNECTED channel — the authoritative effective ceiling
+    # = min(user priv, channel priv), independent of the (optional) Get User/
+    # Channel Access commands. Mutates only our own session's operating priv.
+    if probe_priv and connected is not None:
+        granted = None
+        for lvl in (0x04, 0x05):              # administrator, then oem
+            try:
+                r = sender.send_cmd(0x06, 0x3B, SetSessionPrivLevelReq(priv=lvl))
+            except Exception:
+                break
+            if int(r.comp_code) != 0x00:      # requested level exceeds the ceiling
+                break
+            granted = int(r.priv) & 0x0F
+        if granted is not None and str(connected) in channels:
+            channels[str(connected)]["effective_priv"] = PRIV_NAME.get(
+                granted, f"raw-0x{granted:x}")
+
     return {
         "target": target,
         "max_user_count": max_users,
@@ -391,7 +409,11 @@ def render_table(matrix: dict) -> str:
              f"users {matrix['enabled_user_count']}/{matrix['max_user_count']}", ""]
     for ch in chans:
         info = matrix["channels"][ch]
-        ceil = info.get("access", {}).get("present", {}).get("priv_limit", "?")
+        acc_info = info.get("access", {})
+        if "present" in acc_info:                       # Get Channel Access answered
+            ceil = acc_info["present"].get("priv_limit", "?")
+        else:                                           # errored — mirror the cell semantics
+            ceil = "n/a" if "cc=0xcc" in acc_info.get("error", "") else "?"
         br = info.get("bridge")
         brtag = ""
         if br is not None:
@@ -399,8 +421,9 @@ def render_table(matrix: dict) -> str:
                      else "  bridge:no" if br.get("bridgeable") is False
                      else "  bridge:?")
         conn = "  ← connected" if info.get("connected") else ""
+        eff = f"  effective={info['effective_priv']}" if info.get("effective_priv") else ""
         lines.append(f"  ch{ch}: {info.get('medium','?')} / "
-                     f"{info.get('session_support','?')} / limit={ceil}{brtag}{conn}")
+                     f"{info.get('session_support','?')} / limit={ceil}{brtag}{conn}{eff}")
         md = info.get("medium_detail") or {}
         bits = []
         if md.get("mac"):
@@ -416,10 +439,24 @@ def render_table(matrix: dict) -> str:
     lines.append("")
     # aligned user × channel grid with compact codes
     headers = [f"ch{c}" for c in chans]
+    # Per IPMI 2.0: per-user privilege limits are OPTIONAL. Where the per-user
+    # query is unavailable (n/a / unknown) but the channel HAS a known privilege
+    # limit, that channel limit applies to every user — render it, marked '*'
+    # (inherited), instead of leaving the cell blank.
+    chan_code = {}
+    for c in chans:
+        pl = matrix["channels"][c].get("access", {}).get("present", {}).get("priv_limit")
+        chan_code[c] = _PRIV_CODE.get(pl) if pl else None
+
+    def gridcell(c, v):
+        if isinstance(v, str) and v in ("n/a", "unknown") and chan_code.get(c):
+            return chan_code[c] + "*"          # inherited from channel limit
+        return _cell(v)
+
     grid = []
     for uid, u in matrix["users"].items():
         name = u["name"] or "<null>"          # zero-length username = the null/anon user
-        grid.append((uid, name, [_cell(u["access"].get(c, "unknown")) for c in chans]))
+        grid.append((uid, name, [gridcell(c, u["access"].get(c, "unknown")) for c in chans]))
     widths = [len(h) for h in headers]
     for _, _, cells in grid:
         for i, c in enumerate(cells):
@@ -436,7 +473,7 @@ def render_table(matrix: dict) -> str:
                              f"non-volatile={d['nonvolatile']} (pending/override)")
     lines.append("")
     lines.append("legend: priv  A=administrator O=operator U=user C=callback M=oem   "
-                 "x=no-access  -=n/a(BMC cc=0xcc)  ?=unknown")
+                 "x=no-access  -=n/a(BMC cc=0xcc)  ?=unknown  *=channel-limit(per-user n/a)")
     lines.append("        flags I=ipmi-msg L=link-auth c=callin   Δ=present≠non-volatile")
     lines.append("        ←connected = channel this session rode in on   "
                  "<null> = zero-length (anonymous) username")

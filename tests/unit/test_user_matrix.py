@@ -261,6 +261,37 @@ def test_build_matrix_bridge_probe_per_channel():
     # (0x41 tracking/channel byte, then the encapsulated Get Device ID)
 
 
+def test_build_matrix_probe_priv_records_effective_ceiling():
+    """--probe-priv issues Set Session Privilege Level (0x3B) on the connected
+    channel and records the granted level as effective_priv."""
+    from zipmi.cli.user_matrix import build_matrix
+    from zipmi.scapy_ipmi.commands import (
+        GetChannelInfoResp, GetUserAccessResp, GetUserNameResp,
+        SetSessionPrivLevelResp)
+
+    class Fake:
+        def send_cmd(self, netfn, cmd, req):
+            ch = getattr(req, "channel", None)
+            if cmd == 0x42:                         # ch1 populated; 0xE → ch1
+                if ch not in (1, 0x0E): raise RuntimeError("cc=0xcc")
+                return GetChannelInfoResp(bytes([0x00, 1, 0x04, 0x01, 0x80, 0,0,0,0,0]))
+            if cmd == 0x44:
+                return GetUserAccessResp(bytes([0x00, 0x01, 0x01, 0x00, 0x54]))
+            if cmd == 0x46:
+                return GetUserNameResp(bytes([0x00]) + b"root".ljust(16, b"\x00"))
+            if cmd == 0x3B:                         # grant admin (0x04), reject oem (0x05)
+                lvl = int(getattr(req, "priv")) & 0x0F
+                if lvl == 0x04:
+                    return SetSessionPrivLevelResp(bytes([0x00, 0x04]))  # comp=0, priv=4
+                return SetSessionPrivLevelResp(bytes([0x80, 0x00]))      # cc=0x80 reject
+            raise RuntimeError("cc=0xcc")
+        def send_raw(self, netfn, cmd, payload):
+            raise RuntimeError("no cipher")
+
+    m = build_matrix(Fake(), "10.0.0.1", probe_priv=True)
+    assert m["channels"]["1"]["effective_priv"] == "administrator"
+
+
 class _LanSender:
     """Answers Get Channel Info(0xE)→ch1 (connected) and Get LAN Config params."""
     def send_cmd(self, netfn, cmd, req):
