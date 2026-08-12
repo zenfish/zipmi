@@ -45,11 +45,15 @@ install:
 	@echo ">> interpreter: $$($(PY) -c 'import sys;print(sys.executable)')"
 	@# CRITICAL: setuptools reuses build/ by mtime and ships stale code, so wipe it.
 	@rm -rf build dist *.egg-info
-	@# Two-step: resolve deps (no-op if satisfied), then force-overwrite the
-	@# package itself. Plain `pip install .` is a no-op when the version is
-	@# unchanged; --force-reinstall fixes that, and --no-cache-dir stops pip
-	@# from reinstalling a *stale* cached 0.0.1 wheel built from old source.
-	@if $(PY) -m pip install . 2>/tmp/zipmi-pip.err \
+	@# Stamp the git sha into the packaged copy so the INSTALLED (non-editable)
+	@# zipmi -V can report which commit it was built from. Removed from the
+	@# source tree on exit (it's gitignored, and editable installs read .git live).
+	@trap 'rm -f zipmi/_buildstamp.py' EXIT; \
+	sha=$$(git rev-parse --short HEAD 2>/dev/null || true); \
+	if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then dirty=True; else dirty=False; fi; \
+	printf 'GIT_SHA = "%s"\nGIT_DIRTY = %s\n' "$$sha" "$$dirty" > zipmi/_buildstamp.py; \
+	echo ">> stamped build: g$$sha (dirty=$$dirty)"; \
+	if $(PY) -m pip install . 2>/tmp/zipmi-pip.err \
 	   && $(PY) -m pip install --force-reinstall --no-deps --no-cache-dir . 2>/tmp/zipmi-pip.err; then \
 		echo ">> installed (global/venv)"; \
 	else \
