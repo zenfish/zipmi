@@ -847,7 +847,7 @@ def cmd_user_list(args: argparse.Namespace) -> int:
         print(f"max_user_count={max_users}  enabled(count)={ua1.enabled_user_count & 0x3F}"
               f"  (access shown for present channel 0xE)")
         print(f"{'ID':>3}  {'Name':16}  {'Priv':13}  {'IPMIMsg':7}  {'LinkAuth':8}  "
-              f"{'Callin':6}  {'Enabled':7}")
+              f"{'CbkRestr':8}  {'Enabled':7}")
         for uid in range(1, max_users + 1):
             try:
                 ua = s.send_cmd(0x06, 0x44,
@@ -860,7 +860,7 @@ def cmd_user_list(args: argparse.Namespace) -> int:
             d = decode_user_access(int(ua.user_access))
             en = EN[(int(ua.fixed_name_users) >> 6) & 0x3]
             print(f"{uid:3}  {name:16}  {d['priv']:13}  {str(d['ipmi_msg']):7}  "
-                  f"{str(d['link_auth']):8}  {str(d['callin']):6}  {en:7}")
+                  f"{str(d['link_auth']):8}  {str(d['callback_restricted']):8}  {en:7}")
     return 0
 
 

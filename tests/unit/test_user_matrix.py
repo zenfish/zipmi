@@ -13,11 +13,11 @@ from zipmi.scapy_ipmi.commands import GetChannelAccessResp
 
 
 def test_decode_user_access_admin_all_flags():
-    # 0x54 = bit6(callin)+bit4(ipmi_msg)+priv 4 : 0101_0100
+    # 0x54 = bit6(callback-restricted)+bit4(ipmi_msg)+priv 4 : 0101_0100
     d = decode_user_access(0x54)
     assert d["priv"] == "administrator"
     assert d["priv_raw"] == 4
-    assert d["callin"] is True
+    assert d["callback_restricted"] is True
     assert d["link_auth"] is False
     assert d["ipmi_msg"] is True
 
@@ -27,7 +27,7 @@ def test_decode_user_access_operator_linkauth():
     d = decode_user_access(0x23)
     assert d["priv"] == "operator"
     assert d["link_auth"] is True
-    assert d["callin"] is False
+    assert d["callback_restricted"] is False
     assert d["ipmi_msg"] is False
 
 
@@ -172,7 +172,7 @@ def test_render_table_contains_users_channels_and_delta():
             "cipher_suites": [3, 17], "auth_caps": {"auth_types": ["md5"]}}},
         "users": {"2": {"name": "root",
                         "access": {"1": {"priv": "administrator", "ipmi_msg": True,
-                                         "link_auth": True, "callin": False}}}},
+                                         "link_auth": True, "callback_restricted": False}}}},
         "findings": []}
     out = render_table(matrix)
     assert "root" in out

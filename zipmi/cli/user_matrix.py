@@ -10,7 +10,7 @@ WHY    Identity is global but access is per-channel with two stacking ceilings;
        successor to ~/bin/mega_chan.py (2014).
 
 Bit layouts: Get User Access response access byte (IPMI 2.0 §22.27, symmetric
-with §22.26 Set): [6]=restricted-to-callback (callin), [5]=link-auth-enabled,
+with §22.26 Set): [6]=restricted-to-callback, [5]=link-auth-enabled,
 [4]=ipmi-messaging-enabled, [3:0]=privilege limit.
 """
 from __future__ import annotations
@@ -30,7 +30,8 @@ def decode_user_access(b: int) -> dict:
     return {
         "priv": PRIV_NAME.get(b & 0x0F, f"raw-0x{b & 0x0F:x}"),
         "priv_raw": b & 0x0F,
-        "callin": bool(b & 0x40),        # bit 6: restricted to callback
+        "callback_restricted": bool(b & 0x40),   # bit 6: user restricted to callback
+                                          # (inverse of ipmitool's "Callin" column)
         "link_auth": bool(b & 0x20),     # bit 5
         "ipmi_msg": bool(b & 0x10),      # bit 4
     }
@@ -409,7 +410,7 @@ def _cell(acc) -> str:
     code = _PRIV_CODE.get(acc.get("priv"), "?")
     flags = "".join(f for f, on in (("I", acc.get("ipmi_msg")),
                                     ("L", acc.get("link_auth")),
-                                    ("c", acc.get("callin"))) if on)
+                                    ("R", acc.get("callback_restricted"))) if on)
     return code + flags
 
 
@@ -486,7 +487,7 @@ def render_table(matrix: dict) -> str:
     lines.append("")
     lines.append("legend: priv  A=administrator O=operator U=user C=callback M=oem   "
                  "x=no-access  -=n/a(BMC cc=0xcc)  ?=unknown  *=channel-limit(per-user n/a)")
-    lines.append("        flags I=ipmi-msg L=link-auth c=callin   Δ=present≠non-volatile")
+    lines.append("        flags I=ipmi-msg L=link-auth R=callback-restricted(bit6; inverse of ipmitool 'Callin')   Δ=present≠non-volatile")
     lines.append("        ←connected = channel this session rode in on   "
                  "<null> = zero-length (anonymous) username")
     lines.append("        en (global enable, Get User Access byte4[7:6]): y=enabled "
