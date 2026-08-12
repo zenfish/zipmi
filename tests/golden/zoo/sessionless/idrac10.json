@@ -1,0 +1,1840 @@
+{
+  "_meta": {
+    "cipher": null,
+    "danger": false,
+    "label": "idrac10",
+    "mode": "sessionless/both",
+    "note": "standard IPMI command sweep by scripts/ipmi_sweep.py; read-only unless --danger given",
+    "request_hex": "",
+    "source": "10.0.9.10:623"
+  },
+  "fixtures": {
+    "0x00,0x00": {
+      "cmd": 0,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Chassis Capabilities",
+      "netfn": 0,
+      "request_hex": ""
+    },
+    "0x00,0x01": {
+      "cmd": 1,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Chassis Status",
+      "netfn": 0,
+      "request_hex": ""
+    },
+    "0x00,0x07": {
+      "cmd": 7,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get System Restart Cause",
+      "netfn": 0,
+      "request_hex": ""
+    },
+    "0x00,0x09": {
+      "cmd": 9,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get System Boot Options",
+      "netfn": 0,
+      "request_hex": ""
+    },
+    "0x00,0x0f": {
+      "cmd": 15,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get POH Counter",
+      "netfn": 0,
+      "request_hex": ""
+    },
+    "0x02,0x00": {
+      "cmd": 0,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Bridge State",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x02": {
+      "cmd": 2,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get ICMB Address",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x05": {
+      "cmd": 5,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Bridge Statistics",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x06": {
+      "cmd": 6,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get ICMB Capabilities",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x09": {
+      "cmd": 9,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Bridge Proxy Address",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x0a": {
+      "cmd": 10,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get ICMB Connector Info",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x0b": {
+      "cmd": 11,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get ICMB Connection ID",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x11": {
+      "cmd": 17,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Addresses",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x13": {
+      "cmd": 19,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Chassis Device ID",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x30": {
+      "cmd": 48,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Event Count",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x34": {
+      "cmd": 52,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Event Destination",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x02,0x35": {
+      "cmd": 53,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Event Reception State",
+      "netfn": 2,
+      "request_hex": ""
+    },
+    "0x04,0x01": {
+      "cmd": 1,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Event Receiver",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x10": {
+      "cmd": 16,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get PEF Capabilities",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x13": {
+      "cmd": 19,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get PEF Configuration Parameters",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x15": {
+      "cmd": 21,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Last Processed Event ID",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x20": {
+      "cmd": 32,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Device SDR Info",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x21": {
+      "cmd": 33,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Device SDR",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x22": {
+      "cmd": 34,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Reserve Device SDR Repository",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x23": {
+      "cmd": 35,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Sensor Reading Factors",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x25": {
+      "cmd": 37,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Sensor Hysteresis",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x27": {
+      "cmd": 39,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Sensor Threshold",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x29": {
+      "cmd": 41,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Sensor Event Enable",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x2b": {
+      "cmd": 43,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Sensor Event Status",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x2d": {
+      "cmd": 45,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Sensor Reading",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x04,0x2f": {
+      "cmd": 47,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Sensor Type",
+      "netfn": 4,
+      "request_hex": ""
+    },
+    "0x06,0x01": {
+      "cmd": 1,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Device ID",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x04": {
+      "cmd": 4,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Self Test Results",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x07": {
+      "cmd": 7,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get ACPI Power State",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x08": {
+      "cmd": 8,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Device GUID",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x09": {
+      "cmd": 9,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get NetFn Support",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x0a": {
+      "cmd": 10,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Command Support",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x0b": {
+      "cmd": 11,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Command Sub-function Support",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x0c": {
+      "cmd": 12,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Configurable Commands",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x0d": {
+      "cmd": 13,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Configurable Command Sub-functions",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x25": {
+      "cmd": 37,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Watchdog Timer",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x2f": {
+      "cmd": 47,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get BMC Global Enables",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x31": {
+      "cmd": 49,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Message Flags",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x32": {
+      "cmd": 50,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Enable Message Channel Receive",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x33": {
+      "cmd": 51,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Message",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x35": {
+      "cmd": 53,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Read Event Message Buffer",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x36": {
+      "cmd": 54,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get BT Interface Capabilities",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x37": {
+      "cmd": 55,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 0,
+          "response_hex": "00000000000000000000000000000000"
+        },
+        "rmcpplus": {
+          "cc": 0,
+          "response_hex": "00000000000000000000000000000000"
+        }
+      },
+      "name": "Get System GUID",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x38": {
+      "cmd": 56,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 199,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 199,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Channel Authentication Capabilities",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x39": {
+      "cmd": 57,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Session Challenge",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x3d": {
+      "cmd": 61,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Session Info",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x3f": {
+      "cmd": 63,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get AuthCode",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x41": {
+      "cmd": 65,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Channel Access",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x42": {
+      "cmd": 66,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Channel Info",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x44": {
+      "cmd": 68,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get User Access",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x46": {
+      "cmd": 70,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get User Name",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x4a": {
+      "cmd": 74,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Payload Activation Status",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x4b": {
+      "cmd": 75,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Payload Instance Info",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x4d": {
+      "cmd": 77,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get User Payload Access",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x4e": {
+      "cmd": 78,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Channel Payload Support",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x4f": {
+      "cmd": 79,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Channel Payload Version",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x50": {
+      "cmd": 80,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Channel OEM Payload Info",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x54": {
+      "cmd": 84,
+      "framing_asymmetric": true,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 199,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Channel Cipher Suites",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x55": {
+      "cmd": 85,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Suspend/Resume Payload Encryption",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x57": {
+      "cmd": 87,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get System Interface Capabilities",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x59": {
+      "cmd": 89,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get System Info Parameters",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x5a": {
+      "cmd": 90,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Authorization Privilege Level",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x5b": {
+      "cmd": 91,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Authentication Capabilities (v2)",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x5c": {
+      "cmd": 92,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Session-Less Channel Privilege Level",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x5e": {
+      "cmd": 94,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Session-Less Channel Auth Caps",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x61": {
+      "cmd": 97,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Command Enables",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x63": {
+      "cmd": 99,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Command Sub-function Enables",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x06,0x64": {
+      "cmd": 100,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get OEM NetFn IANA Support",
+      "netfn": 6,
+      "request_hex": ""
+    },
+    "0x0a,0x10": {
+      "cmd": 16,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get FRU Inventory Area Info",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x11": {
+      "cmd": 17,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Read FRU Data",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x12": {
+      "cmd": 18,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Write FRU Data",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x20": {
+      "cmd": 32,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SDR Repository Info",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x21": {
+      "cmd": 33,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SDR Repository Allocation Info",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x22": {
+      "cmd": 34,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Reserve SDR Repository",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x23": {
+      "cmd": 35,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SDR",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x25": {
+      "cmd": 37,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Partial Add SDR",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x28": {
+      "cmd": 40,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SDR Repository Time",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x2a": {
+      "cmd": 42,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Enter SDR Repository Update Mode",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x2b": {
+      "cmd": 43,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Exit SDR Repository Update Mode",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x2c": {
+      "cmd": 44,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Run Initialization Agent",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x40": {
+      "cmd": 64,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SEL Info",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x41": {
+      "cmd": 65,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SEL Allocation Info",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x42": {
+      "cmd": 66,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Reserve SEL",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x43": {
+      "cmd": 67,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SEL Entry",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x45": {
+      "cmd": 69,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Partial Add SEL Entry",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x48": {
+      "cmd": 72,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SEL Time",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x5a": {
+      "cmd": 90,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Auxiliary Log Status",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0a,0x5c": {
+      "cmd": 92,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SEL Time UTC Offset",
+      "netfn": 10,
+      "request_hex": ""
+    },
+    "0x0c,0x02": {
+      "cmd": 2,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get LAN Configuration Parameters",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x04": {
+      "cmd": 4,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get IP/UDP/RMCP Statistics",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x11": {
+      "cmd": 17,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Serial/Modem Configuration",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x13": {
+      "cmd": 19,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get TAP Response Codes",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x15": {
+      "cmd": 21,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get PPP UDP Proxy Transmit Data",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x17": {
+      "cmd": 23,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get PPP UDP Proxy Receive Data",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x18": {
+      "cmd": 24,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Serial/Modem Connection Active",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x19": {
+      "cmd": 25,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Callback",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x1b": {
+      "cmd": 27,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get User Callback Options",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x20": {
+      "cmd": 32,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "SOL Activating",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x22": {
+      "cmd": 34,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get SOL Configuration Parameters",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x40": {
+      "cmd": 64,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Forwarded Command",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x42": {
+      "cmd": 66,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Get Forwarded Commands",
+      "netfn": 12,
+      "request_hex": ""
+    },
+    "0x0c,0x43": {
+      "cmd": 67,
+      "framing_asymmetric": false,
+      "framings": {
+        "ipmi15": {
+          "cc": 255,
+          "response_hex": ""
+        },
+        "rmcpplus": {
+          "cc": 255,
+          "response_hex": ""
+        }
+      },
+      "name": "Enable Forwarded Commands",
+      "netfn": 12,
+      "request_hex": ""
+    }
+  },
+  "summary": {
+    "asymmetric": 1,
+    "cc_err": 3,
+    "no_response": 209,
+    "ok": 2,
+    "skipped_write": 81,
+    "total": 188
+  }
+}

@@ -183,7 +183,9 @@ def sweep_authenticated(args, catalog, req) -> tuple[dict, dict]:
 def sweep_sessionless(args, catalog, req) -> tuple[dict, dict]:
     print(f"# ipmi_sweep (sessionless, framing={args.framing}) -> "
           f"{args.host}:{args.port}", file=sys.stderr)
-    t = Transport(host=args.host, port=args.port, timeout=args.timeout)
+    # retries=0: most pre-auth commands need a session and are silently dropped;
+    # the default 3 retries would burn 4x the timeout on every one of them.
+    t = Transport(host=args.host, port=args.port, timeout=args.timeout, retries=0)
     framings = (("ipmi15", False), ("rmcpplus", True)) if args.framing == "both" \
         else (("ipmi15", False),) if args.framing == "15" \
         else (("rmcpplus", True),)

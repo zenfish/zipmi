@@ -60,3 +60,33 @@ python3 scripts/ipmi_sweep.py --host 127.0.0.1 --port 5623 --user admin --passwo
 ```
 
 Boxes are started with `vbmc <box> start` (fleet: `vbmc list`).
+
+## Sessionless framing map (`--sessionless --framing both`)
+
+Each command sent pre-auth in **both** IPMI 1.5 and RMCP+ framing; a command is
+`framing_asymmetric` when it answers one wrapper but is silently dropped by the
+other. Empty-body baseline, so a supported command replies `0xC7` (data length)
+rather than `0x00` — the signal here is **answer vs. timeout**, not the code.
+
+Only a handful of commands are reachable before a session exists; the
+interesting one is **Get Channel Cipher Suites (0x54)**, an IPMI 2.0 command:
+
+| Box | 0x54 via IPMI 1.5 | 0x54 via RMCP+ | asymmetric |
+|-----|-------------------|----------------|:----------:|
+| **idrac9**  | timeout | 0xC7 (answers) | **YES** |
+| **idrac10** | timeout | 0xC7 (answers) | **YES** |
+| supermicro-x14 | 0xC7 | 0xC7 | no |
+| nvidia-obmc | 0xC7 | 0xC7 | no |
+| openbmc | 0xC7 | 0xC7 | no |
+| megarac-hpe | 0xC7 | 0xC7 | no |
+
+**Takeaway:** the Dell iDRAC BMCs answer the IPMI 2.0 command **only over
+RMCP+**; the OpenBMC/AMI-MegaRAC family answer over either wrapper. This is
+exactly why `scan cipher-suites` had to send 0x54 over RMCP+ — and it is *not*
+iDRAC10-specific: iDRAC9 drops the 1.5-framed probe just the same (it was only
+ever reported on iDRAC10). Sessionless captures: `tests/golden/zoo/sessionless/`.
+
+Pre-auth reachable set also differs by vendor: Dell answers System GUID + Auth
+Caps + 0x54; the OpenBMC family answers Auth Caps + Payload status + 0x54;
+MegaRAC additionally answers Get Session Challenge. Everything else times out
+pre-auth (`retries=0` keeps the sweep fast).
