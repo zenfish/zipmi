@@ -573,5 +573,6 @@ discovery — exposed / lockable / disabled).
 
 # License
 
-MIT. `third_party/pyghmi` (when cloned) is Apache-2.0 — used as algorithmic
-reference only, no code copy. Per-file headers cite pyghmi where relevant.
+MIT. No third-party code is included or vendored. `pyghmi` (Apache-2.0) was
+consulted as an algorithmic reference for IPMI packet formats — read, not
+copied; zipmi's wire code is its own.
