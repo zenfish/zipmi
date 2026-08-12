@@ -127,10 +127,12 @@ def test_cipher_suites_display_uses_records(monkeypatch, capsys):
         ],
     })
     rc = z.cmd_scan_cipher_suites(_args())
-    out = capsys.readouterr().out
+    cap = capsys.readouterr()
+    out = cap.out
     assert rc == 0
     assert "[0, 3]" in out
     assert " 0: none/none/none" in out
     assert " 3: sha1/sha1-96/aes-cbc-128" in out
     assert "CVE-2013-4783" in out
-    assert "cipher suite 0 advertised" in out
+    # the suite-0 warning is a diagnostic → stderr, not stdout
+    assert "cipher suite 0 advertised" in cap.err

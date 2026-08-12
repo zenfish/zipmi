@@ -63,6 +63,7 @@ from .scapy_ipmi.rakp import (
     integrity_payload,
 )
 from .scapy_ipmi.rmcp import RMCP
+from . import _msg
 
 
 # Auth type byte values used in the Session header (IPMI 1.5 §13.6).
@@ -624,9 +625,8 @@ class Session:
             # historical default 3 — the user didn't ask for a cipher, so tell
             # them what got picked. Non-fatal; we proceed either way.
             if self.cipher_suite != 3:
-                print(f"zipmi: note: auto-selected cipher suite "
-                      f"{self.cipher_suite} (BMC's strongest offered; default is 3)",
-                      file=sys.stderr)
+                _msg.info(f"auto-selected cipher suite {self.cipher_suite} "
+                          f"(BMC's strongest offered; default is 3)")
         if self.cipher_suite not in CIPHER_SUITES:
             raise IPMIError(f"unsupported cipher suite {self.cipher_suite}")
         cs = CIPHER_SUITES[self.cipher_suite]
@@ -641,9 +641,9 @@ class Session:
         if cs.integrity_alg == 0:
             weak.append("no integrity protection")
         if weak:
-            print(f"zipmi: warning: cipher suite {self.cipher_suite} — "
-                  f"{'; '.join(weak)}. Use a non-zero suite (e.g. -C 3 or -C 17) "
-                  f"for an authenticated session.", file=sys.stderr)
+            _msg.warn(f"cipher suite {self.cipher_suite} — {'; '.join(weak)}. "
+                      f"Use a non-zero suite (e.g. -C 3 or -C 17) for an "
+                      f"authenticated session.")
 
         # Pick a random remote console session ID (avoid 0).
         import os, secrets

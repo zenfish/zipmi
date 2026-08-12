@@ -73,6 +73,7 @@ from ..scapy_ipmi.commands import (
     encode_sol_bitrate,
 )
 from ..scapy_ipmi.rmcp import RMCP
+from .. import _msg
 
 
 AUTH_BY_NAME = {
@@ -1012,10 +1013,10 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
                 bridge=getattr(args, "bridge", False),
                 medium=getattr(args, "medium", False),
                 raise_priv=getattr(args, "raise_priv", True),
-                notify=lambda m: print(m, file=sys.stderr, flush=True),
+                notify=_msg.info,
             )
     except _user_matrix.WalkAborted as e:
-        print(f"user-matrix: {e}", file=sys.stderr)
+        _msg.error(f"user-matrix: {e}")
         return 1
     if getattr(args, "findings", False):
         matrix["findings"] = _user_matrix.evaluate_findings(matrix)
@@ -1024,8 +1025,9 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
     else:
         print(_user_matrix.render_table(matrix))
         for f in matrix["findings"]:
-            print(f"  ! [{f['severity']}] ch{f['channel']}: {f['issue']}",
-                  file=sys.stderr)
+            # high/med posture findings warrant a warn tag; low is informational.
+            line = f"ch{f['channel']}: {f['issue']}"
+            (_msg.info if f["severity"] == "low" else _msg.warn)(line)
     return 0
 
 
@@ -2329,7 +2331,7 @@ def cmd_scan_cipher_zero(args: argparse.Namespace) -> int:
     try:
         vulnerable, detail = s.probe_cipher_zero()
     except Exception as e:
-        print(f"cipher-zero {host}: error ({e})")
+        _msg.error(f"cipher-zero {host}: error ({e})")
         s.transport.close()
         return 2
     if vulnerable:
@@ -2388,7 +2390,7 @@ def cmd_scan_asf_ping(args: argparse.Namespace) -> int:
     try:
         data = t.send_recv(bytes(pkt))
     except socket.timeout:
-        print(f"asf-ping {host}: no reply within {args.timeout}s")
+        _msg.error(f"asf-ping {host}: no reply within {args.timeout}s")
         return 1
     finally:
         t.close()
@@ -2396,7 +2398,7 @@ def cmd_scan_asf_ping(args: argparse.Namespace) -> int:
     asf = reply.getlayer("ASF")
     pong = parse_pong(asf) if asf else None
     if pong is None:
-        print(f"asf-ping {host}: reply was not a Pong")
+        _msg.error(f"asf-ping {host}: reply was not a Pong")
         return 1
     iana = pong.oem_iana
     print(
@@ -2415,12 +2417,12 @@ def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
             0x06, 0x38, GetChanAuthCapsReq(v20_ext=1, channel=0xE, max_priv=0x4)
         )
     except (OSError, socket.timeout) as e:
-        print(f"auth-caps {host}: {e}")
+        _msg.error(f"auth-caps {host}: {e}")
         return 1
     finally:
         t.close()
     if resp is None or resp.comp_code != 0:
-        print(f"auth-caps {host}: no decoded reply")
+        _msg.error(f"auth-caps {host}: no decoded reply")
         return 1
     iana = resp.oem_iana_int()
     print(
@@ -2431,7 +2433,7 @@ def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
         f"oem_iana={iana} ({IANA.get(iana, 'unknown') if iana else '—'})"
     )
     if resp.auth_type_support & 0x01:
-        print(f"  WARNING: 'None' auth advertised — cipher-zero / null-auth risk")
+        _msg.warn(f"auth-caps {host}: 'None' auth advertised — cipher-zero / null-auth risk")
     return 0
 
 
@@ -2448,7 +2450,7 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
         t.close()
     if not result or "error" in result:
         detail = result.get("error", "no reply") if result else "no reply"
-        print(f"cipher-suites {host}: {detail}")
+        _msg.error(f"cipher-suites {host}: {detail}")
         return 1
     suites = result["cipher_list"]
     print(f"cipher-suites {host}: [{', '.join(str(s) for s in suites) or '—'}]")
@@ -2457,7 +2459,8 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
         warn = "  ⚠ CVE-2013-4783 (unauth access)" if rec["id"] == 0 else ""
         print(f"  {rec['id']:>2}: {cipher_suite_algs(rec)}{oem}{warn}")
     if result.get("cipher0"):
-        print("  WARNING: cipher suite 0 advertised — run 'scan cipher-zero' to confirm exploitability")
+        _msg.warn(f"cipher-suites {host}: cipher suite 0 advertised — "
+                  f"run 'scan cipher-zero' to confirm exploitability")
     return 0
 
 
@@ -2471,16 +2474,47 @@ def cmd_scan_all(args: argparse.Namespace) -> int:
     It degrades gracefully: sessionless data still populates, user rows show
     err:* when no session/privilege.
     """
-    rc = 0
     args.findings = True
     for attr, default in (("json", False), ("all", False), ("per_priv", False)):
         if not hasattr(args, attr):
             setattr(args, attr, default)
+    # Unauthenticated (sessionless) recon — text probes, skipped under --json
+    # (the grid emits the JSON).
+    steps = [] if args.json else [
+        ("asf-ping", cmd_scan_asf_ping),
+        ("auth-caps", cmd_scan_auth_caps),
+        ("cipher-suites", cmd_scan_cipher_suites),
+    ]
+    steps.append(("user-matrix", cmd_user_matrix_list))
+    # cipher-0 opens a null-auth session (accepts any password) — authenticated,
+    # not sessionless. `all` means all, so it runs; --json skips it (text output).
     if not args.json:
-        rc |= cmd_scan_asf_ping(args)
-        rc |= cmd_scan_auth_caps(args)
-        rc |= cmd_scan_cipher_suites(args)
-    rc |= cmd_user_matrix_list(args)
+        steps.append(("cipher-zero", cmd_scan_cipher_zero))
+    return _run_scan_steps(args, steps)
+
+
+def cmd_scan_unauth(args: argparse.Namespace) -> int:
+    """Unauthenticated probes only — asf-ping, auth-caps, cipher-suites. These
+    are sessionless (pre-session commands the spec permits with no credentials);
+    no session is ever opened. cipher-zero is NOT here (it opens a null-auth
+    session), nor is user-matrix (authenticated when -U/-P is given)."""
+    return _run_scan_steps(args, [
+        ("asf-ping", cmd_scan_asf_ping),
+        ("auth-caps", cmd_scan_auth_caps),
+        ("cipher-suites", cmd_scan_cipher_suites),
+    ])
+
+
+def _run_scan_steps(args: argparse.Namespace, steps) -> int:
+    """Run (name, fn) scan steps, each isolated: one failure (bad session,
+    decode error, WalkAborted handled downstream) still runs the rest."""
+    rc = 0
+    for name, fn in steps:
+        try:
+            rc |= fn(args)
+        except Exception as e:
+            _msg.error(f"scan {name}: failed — {e}")
+            rc |= 1
     return rc
 
 
@@ -3230,14 +3264,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sl.set_defaults(func=cmd_sessionless_list)
 
-    sc = sub.add_parser("scan", help="sessionless probes")
+    sc = sub.add_parser("scan", help="posture probes (sessionless + session)")
     sc_sub = sc.add_subparsers(dest="action", required=True)
     for name, fn in [("asf-ping", cmd_scan_asf_ping),
                      ("auth-caps", cmd_scan_auth_caps),
                      ("cipher-suites", cmd_scan_cipher_suites),
                      ("cipher-zero", cmd_scan_cipher_zero),
+                     ("unauth", cmd_scan_unauth),
                      ("all", cmd_scan_all)]:
-        s = sc_sub.add_parser(name)
+        s = sc_sub.add_parser(name, help={
+            "unauth": "unauthenticated (sessionless) probes only",
+            "all": "every probe (unauth + cipher-zero + user-matrix)",
+        }.get(name))
         if name == "all":
             s.add_argument("--json", action="store_true",
                            help="emit the full-grid matrix as JSON (grid only)")
@@ -3278,6 +3316,9 @@ def _normalize_interface_cipher(args: argparse.Namespace) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = parse_cli(argv)
     _normalize_interface_cipher(args)
+    # One color knob for the whole CLI: -n/--no-color forces off; otherwise the
+    # default policy (NO_COLOR / FORCE_COLOR / tty) applies per-stream.
+    _msg.configure(False if getattr(args, "no_color", False) else None)
     try:
         return args.func(args)
     except IPMIError as e:
