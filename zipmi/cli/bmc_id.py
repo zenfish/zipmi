@@ -459,7 +459,8 @@ def probe_cipher_suites(t: Transport) -> dict | None:
         req = GetChannelCipherSuitesReq(channel=0xE, payload_type=0,
                                         list_index=0x80 | idx)
         try:
-            msg, resp = t.sessionless_request(0x06, 0x54, req, rq_seq=4)
+            msg, resp = t.sessionless_request(0x06, 0x54, req, rq_seq=4,
+                                              rmcp_plus=True)
         except OSError as e:
             return {"error": f"transport: {e}"}
         if resp is None or resp.comp_code != 0x00:

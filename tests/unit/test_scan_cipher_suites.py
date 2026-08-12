@@ -77,7 +77,7 @@ class _ChunkTransport:
     def __init__(self, chunks):
         self.chunks = chunks
 
-    def sessionless_request(self, netfn, cmd, req, rq_seq=0):
+    def sessionless_request(self, netfn, cmd, req, rq_seq=0, rmcp_plus=False):
         idx = req.list_index & 0x3F
         chunk = self.chunks[idx] if idx < len(self.chunks) else b""
         return _Msg(bytes([0x00, 0x01]) + chunk), _Resp()
@@ -93,6 +93,55 @@ def test_probe_multichunk_accumulates_across_boundary():
     out = probe_cipher_suites(t)
     assert out["cipher_list"] == [0, 3, 17, 9]
     assert out["cipher0"] is True
+
+
+# ── wire framing: RMCP+ vs IPMI 1.5 (the iDRAC10 timeout regression) ─────────
+# Get Channel Cipher Suites (0x54) is an IPMI 2.0 command. iDRAC10 dropped its
+# 1.5 listener, so a 1.5-framed probe (auth byte 0x00) is silently dropped →
+# timeout. This exercises the REAL Transport.sessionless_request framing, not a
+# mock — the old _ChunkTransport stub could never have caught the wrong wrapper.
+from zipmi.core import Transport                                    # noqa: E402
+from zipmi.scapy_ipmi.ipmi15 import IPMI_Message                    # noqa: E402
+from zipmi.scapy_ipmi.ipmi20 import IPMI20_Session                  # noqa: E402
+from zipmi.scapy_ipmi.rmcp import RMCP                              # noqa: E402
+from zipmi.scapy_ipmi.commands import GetChannelCipherSuitesReq     # noqa: E402
+from scapy.packet import Raw                                        # noqa: E402
+
+
+def _rmcp_plus_reply(cc_channel_data: bytes) -> bytes:
+    """A full RMCP+ (auth 0x06) reply to Get Channel Cipher Suites."""
+    inner = bytes(IPMI_Message(rs_addr=0x81, net_fn=0x07, rq_addr=0x20,
+                               rq_seq=4, cmd=0x54, data=cc_channel_data))
+    return bytes(RMCP(msg_class=0x07)
+                 / IPMI20_Session(auth_type=0x06, payload_type=0,
+                                  session_id=0, session_seq=0)
+                 / Raw(inner))
+
+
+def test_rmcp_plus_framing_and_roundtrip():
+    sent = []
+    t = Transport(host="10.0.0.1")
+    # comp_code 0x00 + channel 0x0e + one full 16-byte record chunk
+    reply = _rmcp_plus_reply(bytes([0x00, 0x0E]) + REAL_CHUNK)
+    t.send_recv = lambda wire: (sent.append(bytes(wire)), reply)[1]
+
+    msg, resp = t.sessionless_request(0x06, 0x54, GetChannelCipherSuitesReq(
+        channel=0xE, payload_type=0, list_index=0x80), rq_seq=4, rmcp_plus=True)
+
+    # Wire MUST be RMCP+ (auth byte at offset 4 == 0x06), not IPMI 1.5 (0x00).
+    assert sent[0][4] == 0x06, "request framed as IPMI 1.5, not RMCP+"
+    # Reply round-trips: msg.data == comp_code + channel + records (checksum dropped).
+    assert resp.comp_code == 0x00
+    assert bytes(msg.data) == bytes([0x00, 0x0E]) + REAL_CHUNK
+
+
+def test_default_framing_is_ipmi15():
+    # Guard the 1.5-only probes (Get Session Challenge etc.): default stays 1.5.
+    sent = []
+    t = Transport(host="10.0.0.1")
+    t.send_recv = lambda wire: (sent.append(bytes(wire)), b"")[1]
+    t.sessionless_request(0x06, 0x38, None, rq_seq=1)
+    assert sent[0][4] == 0x00, "default framing must remain IPMI 1.5"
 
 
 # ── verb wiring + display ────────────────────────────────────────────────────

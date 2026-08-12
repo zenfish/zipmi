@@ -205,8 +205,17 @@ class Transport:
         cmd: int,
         req_payload: Packet | bytes | None = None,
         rq_seq: int = 0,
-    ) -> tuple[IPMI_Message, Packet | None]:
-        """Send an unauthenticated IPMI request (AuthType=0, SID=0, Seq=0)."""
+        rmcp_plus: bool = False,
+    ) -> tuple[IPMI_Message | None, Packet | None]:
+        """Send an unauthenticated IPMI request (SID=0, Seq=0).
+
+        Defaults to IPMI 1.5 session framing (AuthType=NONE). Set
+        rmcp_plus=True to frame the request in an IPMI 2.0 RMCP+ session
+        header (AuthType=0x06, payload type 0) instead — required for
+        IPMI-2.0-only commands such as Get Channel Cipher Suites (0x54) on
+        BMCs that no longer run a 1.5 listener (e.g. iDRAC10 silently drops
+        the 1.5-framed probe → timeout).
+        """
         data = _payload_bytes(req_payload)
         ipmb = IPMI_Message(
             rs_addr=self.rs_addr,
@@ -218,13 +227,40 @@ class Transport:
             cmd=cmd,
             data=data,
         )
+        if not rmcp_plus:
+            pkt = (
+                RMCP(msg_class=0x07)
+                / IPMI15_Session(auth_type=0, session_seq=0, session_id=0)
+                / ipmb
+            )
+            reply = RMCP(self.send_recv(bytes(pkt)))
+            msg = reply[IPMI_Message] if reply.haslayer(IPMI_Message) else None
+            decoded = _decode_response(msg) if msg else None
+            return msg, decoded
+
+        # RMCP+ framing. IPMI20_Session has no bind_layers to IPMI_Message for
+        # payload type 0, and the reply's auth byte (0x06) reroutes dissection
+        # away from IPMI_Message — so slice the inner IPMB out by offset (as
+        # _query_cipher_suites does) and re-frame it in a synthetic 1.5 header
+        # so IPMI_Message.data (length_from parent msg_length) parses.
+        from scapy.packet import Raw
         pkt = (
             RMCP(msg_class=0x07)
-            / IPMI15_Session(auth_type=0, session_seq=0, session_id=0)
-            / ipmb
+            / IPMI20_Session(auth_type=AUTH_RMCP_PLUS, payload_type=0,
+                             session_id=0, session_seq=0)
+            / Raw(bytes(ipmb))
         )
-        reply = RMCP(self.send_recv(bytes(pkt)))
-        msg = reply[IPMI_Message] if reply.haslayer(IPMI_Message) else None
+        raw = bytes(self.send_recv(bytes(pkt)))
+        # RMCP(4) + IPMI20_Session header(12): payload_length at [14:16], IPMB at [16:].
+        if len(raw) < 16:
+            return None, None
+        plen = raw[14] | (raw[15] << 8)
+        inner = raw[16:16 + plen]
+        if not inner:
+            return None, None
+        framed = bytes([0x00]) + b"\x00" * 8 + bytes([len(inner) & 0xFF]) + inner
+        sess = IPMI15_Session(framed)
+        msg = sess[IPMI_Message] if sess.haslayer(IPMI_Message) else None
         decoded = _decode_response(msg) if msg else None
         return msg, decoded
 
