@@ -52,7 +52,7 @@ import sys
 import time
 
 import zipmi  # noqa: F401  (registers base scapy layers)
-from zipmi.core import Session, Transport
+from zipmi.core import Session, Transport, IPMIError
 from zipmi.scapy_ipmi.cmd_names import IPMI_CMD_NAMES
 
 # Completion codes we special-case in the summary (mirrors oem_sweep).
@@ -258,12 +258,23 @@ def main() -> int:
     if args.danger:
         print("# --danger: destructive commands WILL be sent", file=sys.stderr)
 
-    if args.sessionless:
-        fixtures, counts = sweep_sessionless(args, catalog, req)
-        mode = f"sessionless/{args.framing}"
-    else:
-        fixtures, counts = sweep_authenticated(args, catalog, req)
-        mode = "authenticated"
+    try:
+        if args.sessionless:
+            fixtures, counts = sweep_sessionless(args, catalog, req)
+            mode = f"sessionless/{args.framing}"
+        else:
+            fixtures, counts = sweep_authenticated(args, catalog, req)
+            mode = "authenticated"
+    except KeyboardInterrupt:
+        print("\n# interrupted", file=sys.stderr)
+        return 130
+    except (IPMIError, OSError) as e:
+        # Wrong cipher / bad creds / unreachable — report cleanly, no traceback.
+        print(f"# session failed: {type(e).__name__}: {e}", file=sys.stderr)
+        if not args.sessionless:
+            print("#   hint: try a different --cipher (3 or 17), check -U/-P/-K",
+                  file=sys.stderr)
+        return 1
 
     out = {
         "_meta": {
