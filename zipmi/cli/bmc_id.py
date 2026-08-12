@@ -1768,8 +1768,17 @@ def process_one(target: str, *, timeout: float, do_https: bool, no_redfish: bool
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Entry point — works both as `python -m zipmi.cli.bmc_id` and as
-    setuptools console_script (which calls main() w/ no args)."""
+    """Entry point — catches ^C so it quits quietly instead of dumping a
+    traceback."""
+    try:
+        return _run(argv)
+    except KeyboardInterrupt:
+        return 130
+
+
+def _run(argv: list[str] | None = None) -> int:
+    """Works both as `python -m zipmi.cli.bmc_id` and as setuptools
+    console_script (which calls main() w/ no args)."""
     if argv is None:
         argv = sys.argv
     global VERBOSE, QUIET

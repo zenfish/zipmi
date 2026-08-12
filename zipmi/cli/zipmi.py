@@ -3305,6 +3305,8 @@ def main(argv: list[str] | None = None) -> int:
     _msg.configure(False if getattr(args, "no_color", False) else None)
     try:
         return args.func(args)
+    except KeyboardInterrupt:
+        return 130                       # ^C: quit quietly, no traceback
     except IPMIError as e:
         _msg.error(f"IPMI error: {e}")
         return 1

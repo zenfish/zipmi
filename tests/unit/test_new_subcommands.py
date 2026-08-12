@@ -548,6 +548,32 @@ def test_git_describe_returns_empty_outside_repo(tmp_path):
     assert _git_describe(str(tmp_path)) == ""
 
 
+# -- ^C handling: quit quietly, exit 130, no traceback -------------------------
+
+
+def test_ctrl_c_exits_130_no_traceback(monkeypatch, capsys):
+    import zipmi.cli.zipmi as z
+
+    def boom(_args):
+        raise KeyboardInterrupt
+
+    ns = z.parse_cli(["-H", "x", "chassis", "status"])
+    monkeypatch.setattr(ns, "func", boom)
+    monkeypatch.setattr(z, "parse_cli", lambda argv=None: ns)
+    # main() must swallow the KeyboardInterrupt and return 130, not re-raise.
+    assert z.main(["-H", "x", "chassis", "status"]) == 130
+
+
+def test_bmc_id_ctrl_c_exits_130(monkeypatch):
+    import zipmi.cli.bmc_id as b
+
+    def boom(argv=None):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(b, "_run", boom)
+    assert b.main(["bmc-id", "1.2.3.4"]) == 130
+
+
 # -- i2c / spd parser shape ----------------------------------------------
 
 
