@@ -1003,15 +1003,20 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
     session priv before walking by default — no persistent BMC change)."""
     import json
     from . import user_matrix as _user_matrix
-    with _open_session(args) as s:
-        matrix = _user_matrix.build_matrix(
-            s, _require_host(args),
-            include_empty=getattr(args, "all", False),
-            per_priv=getattr(args, "per_priv", False),
-            bridge=getattr(args, "bridge", False),
-            medium=getattr(args, "medium", False),
-            raise_priv=getattr(args, "raise_priv", True),
-        )
+    try:
+        with _open_session(args) as s:
+            matrix = _user_matrix.build_matrix(
+                s, _require_host(args),
+                include_empty=getattr(args, "all", False),
+                per_priv=getattr(args, "per_priv", False),
+                bridge=getattr(args, "bridge", False),
+                medium=getattr(args, "medium", False),
+                raise_priv=getattr(args, "raise_priv", True),
+                notify=lambda m: print(m, file=sys.stderr, flush=True),
+            )
+    except _user_matrix.WalkAborted as e:
+        print(f"user-matrix: {e}", file=sys.stderr)
+        return 1
     if getattr(args, "findings", False):
         matrix["findings"] = _user_matrix.evaluate_findings(matrix)
     if getattr(args, "json", False):

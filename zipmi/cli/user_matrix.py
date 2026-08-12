@@ -83,11 +83,52 @@ def decode_auth_caps(resp) -> dict:
 
 # -- one-session enumeration -------------------------------------------------
 
+import socket                                 # noqa: E402
 from ..scapy_ipmi.commands import (          # noqa: E402
     GetChannelInfoReq, GetChannelAccessReq, GetChanAuthCapsReq,
     GetUserAccessReq, GetUserNameReq, SetSessionPrivLevelReq,
 )
 from . import bmc_id                          # noqa: E402
+
+
+class WalkAborted(BaseException):
+    """The grid walk hit its first *real* transport timeout and bailed.
+
+    The grid fires the same session-required command class at every channel and
+    user; if the BMC gives no response to one, it gives none to the rest, so the
+    first no-response aborts the whole walk instead of repeating the wait dozens
+    of times. Subclasses BaseException (not Exception) on purpose: the per-probe
+    helpers below all `except Exception` and would otherwise swallow it — this
+    flies straight past them to the CLI. Not a command error (no bad completion
+    code); the BMC is simply not answering session-required probes."""
+
+
+class _FailFast:
+    """Session wrapper: the first socket.timeout on any send raises WalkAborted;
+    everything else forwards untouched. This is what turns a multi-minute silent
+    grind against a session-requiring BMC into one timeout + a clear message."""
+
+    def __init__(self, inner):
+        self._inner = inner
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+    def send_cmd(self, netfn, cmd, *a, **k):
+        try:
+            return self._inner.send_cmd(netfn, cmd, *a, **k)
+        except socket.timeout:
+            raise WalkAborted(f"no response to cmd 0x{netfn:02x}/0x{cmd:02x} "
+                              f"(real timeout) — BMC not answering session-required "
+                              f"probes") from None
+
+    def send_raw(self, netfn, cmd, *a, **k):
+        try:
+            return self._inner.send_raw(netfn, cmd, *a, **k)
+        except socket.timeout:
+            raise WalkAborted(f"no response to cmd 0x{netfn:02x}/0x{cmd:02x} "
+                              f"(real timeout) — BMC not answering session-required "
+                              f"probes") from None
 
 
 def _err(exc: Exception) -> str:
@@ -250,7 +291,22 @@ def _connected_channel(sender) -> int | None:
 
 
 def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
-                 bridge=False, medium=False, raise_priv=True) -> dict:
+                 bridge=False, medium=False, raise_priv=True, notify=None) -> dict:
+    say = notify or (lambda _m: None)
+    tp = getattr(sender, "transport", None)
+    sessionless = getattr(sender, "sessionless", False)
+    say("walking user×channel grid (≤16 channels × users)…"
+        + (" sessionless — session-required probes the BMC refuses will abort the "
+           "walk fast (pass -U/-P for a live session)" if sessionless else ""))
+    # Sessionless, a no-response to a session-required probe is a refusal, not a
+    # dropped datagram — retransmitting only multiplies the wait, so one attempt
+    # is enough: the first real timeout then aborts the whole walk (WalkAborted).
+    # No retries-restore: the Session/transport is single-use per call and the
+    # caller's `with` block closes it. ponytail: single-use session.
+    if tp is not None and sessionless:
+        tp.retries = 0
+    sender = _FailFast(sender)
+
     connected = _connected_channel(sender)
 
     # Raise our session to its granted maximum BEFORE walking the grid. Get User
@@ -276,6 +332,7 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
     for n in range(0x00, 0x10):
         if n == 0x0E:                    # self-alias — skip
             continue
+        say(f"  channel 0x{n:x}…")
         info = _channel_info(sender, n)
         if info is None:
             if include_empty:

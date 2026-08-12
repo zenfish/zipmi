@@ -333,3 +333,40 @@ def test_medium_detail_lan_mac_ip_vlan():
 def test_connected_channel_resolves_0xE():
     from zipmi.cli.user_matrix import _connected_channel
     assert _connected_channel(_LanSender()) == 1
+
+
+def test_build_matrix_fails_fast_on_first_real_timeout():
+    """A BMC that never answers session-required probes must NOT be walked
+    channel-by-channel (dozens of timeouts). The first real transport timeout
+    aborts the whole walk via WalkAborted, after exactly one send."""
+    import socket
+    from zipmi.cli.user_matrix import build_matrix, WalkAborted
+
+    class DeadSender:
+        sessionless = True
+
+        class transport:                     # build_matrix reads .retries/.timeout
+            retries = 3
+            timeout = 3.0
+
+        def __init__(self):
+            self.calls = 0
+
+        def send_cmd(self, netfn, cmd, req=None):
+            self.calls += 1
+            raise socket.timeout("no response")
+
+        def send_raw(self, netfn, cmd, data=b""):
+            self.calls += 1
+            raise socket.timeout("no response")
+
+    s = DeadSender()
+    notes = []
+    try:
+        build_matrix(s, "10.0.0.1", notify=notes.append)
+        assert False, "expected WalkAborted"
+    except WalkAborted as e:
+        assert "real timeout" in str(e)
+    assert s.calls == 1                       # bailed on the FIRST probe, not 15+
+    assert s.transport.retries == 0           # sessionless: retransmit disabled
+    assert notes and "walking" in notes[0]    # user got a heads-up on stderr
