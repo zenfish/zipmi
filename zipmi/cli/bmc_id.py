@@ -96,6 +96,7 @@ import struct
 
 from zipmi.consts import BMC_GENERATION, COMP_CODE, IANA, guess_bmc_generation
 from zipmi.core import Transport
+from zipmi import _msg
 from zipmi.scapy_ipmi.commands import (
     GetChanAuthCapsReq,
     GetChannelCipherSuitesReq,
@@ -1814,7 +1815,7 @@ def main(argv: list[str] | None = None) -> int:
         raw_targets = [ln.strip() for ln in sys.stdin
                        if ln.strip() and not ln.startswith("#")]
     if not raw_targets:
-        print("error: no targets given. Try --help", file=sys.stderr)
+        _msg.error("no targets given. Try --help")
         return 2
 
     targets = expand_targets(raw_targets)

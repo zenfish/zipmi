@@ -29,6 +29,7 @@ import argparse
 import re
 import sys
 
+from .. import _msg
 from ..scapy_ipmi.commands import COMP_CODE
 
 
@@ -949,8 +950,8 @@ def cmd_openbmc_index(args: argparse.Namespace) -> int:
     """`zipmi openbmc` / `zipmi oem openbmc` — list the vendor flavors."""
     cmd_name = getattr(args, "cmd_name", None)
     if cmd_name:
-        print("error: 'openbmc' is a vendor-flavor index, not a command set — "
-              "OpenBMC OEM commands are per-vendor.", file=sys.stderr)
+        _msg.error("'openbmc' is a vendor-flavor index, not a command set — "
+                   "OpenBMC OEM commands are per-vendor.")
         print(f"# Pick a flavor, e.g.: zipmi oem openbmc-intel {cmd_name!r}",
               file=sys.stderr)
         print("# Flavors: " + ", ".join(_openbmc_vendor_keys()), file=sys.stderr)
@@ -993,12 +994,11 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     try:
         listing = _vendor_listing(vendor)
     except KeyError as e:
-        print(f"error: {e}", file=sys.stderr)
+        _msg.error(f"{e}")
         return 2
     hits = _find_cmd(listing, cmd_name)
     if not hits:
-        print(f"no {vendor} command matches {cmd_name!r}",
-              file=sys.stderr)
+        _msg.error(f"no {vendor} command matches {cmd_name!r}")
         print(f"# Run `zipmi {_display_verb(vendor)}` to see the catalogue.",
               file=sys.stderr)
         return 1
@@ -1025,8 +1025,8 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     except ValueError:
         bad = next((b for b in raw_data
                     if not _is_int_literal(b)), None)
-        print(f"error: data byte {bad!r} is not numeric "
-              f"(use hex 0xNN or decimal)", file=sys.stderr)
+        _msg.error(f"data byte {bad!r} is not numeric "
+                   f"(use hex 0xNN or decimal)")
         print(f"# Hint: if you mean a user/channel ID, look it up first:",
               file=sys.stderr)
         print(f"#   zipmi -H <bmc> user list", file=sys.stderr)
@@ -1047,7 +1047,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
           file=sys.stderr)
     if cc != 0:
         cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
-        print(f"completion code: {cc_name}", file=sys.stderr)
+        _msg.error(f"completion code: {cc_name}")
         _suggest_for_cc(cc, netfn, cmd, info, vendor)
         return 1
     if resp:
@@ -1060,11 +1060,11 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
     try:
         listing = _vendor_listing(vendor)
     except KeyError as e:
-        print(f"error: {e}", file=sys.stderr)
+        _msg.error(f"{e}")
         return 2
     hits = _find_cmd(listing, query)
     if not hits:
-        print(f"no {vendor} cmd matches {query!r}", file=sys.stderr)
+        _msg.error(f"no {vendor} cmd matches {query!r}")
         return 1
     if len(hits) > 1:
         print(f"# {len(hits)} matches for {query!r}; listing each:")

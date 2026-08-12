@@ -108,8 +108,7 @@ def _env_int(name: str, *, warn: bool = True) -> int | None:
         return int(v, 0)
     except ValueError:
         if warn:
-            print(f"warning: {name}={v!r} is not an integer — ignoring",
-                  file=sys.stderr)
+            _msg.warn(f"{name}={v!r} is not an integer — ignoring")
         return None
 
 
@@ -193,7 +192,7 @@ def parse_cli(argv: list[str] | None = None) -> argparse.Namespace:
 
 def _require_host(args: argparse.Namespace) -> str:
     if not args.host:
-        print("error: --host required (or set ZIPMI_TARGET)", file=sys.stderr)
+        _msg.error("--host required (or set ZIPMI_TARGET)")
         sys.exit(2)
     return args.host
 
@@ -223,7 +222,7 @@ def _apply_trace(transport, args: argparse.Namespace) -> None:
         try:
             set_palette(resolve_palette(normalize_palette_name(palette)))
         except ValueError as e:
-            print(f"error: {e}", file=sys.stderr)
+            _msg.error(f"{e}")
             sys.exit(2)
 
 
@@ -239,23 +238,21 @@ def _open_session(args: argparse.Namespace) -> Session:
     if key is not None:
         # -K: authenticate with raw Kuid bytes, no password. RAKP-only.
         if args.password is not None:
-            print("error: -K/--key and -P/--password are mutually exclusive.",
-                  file=sys.stderr)
+            _msg.error("-K/--key and -P/--password are mutually exclusive.")
             sys.exit(2)
         if args.user is None:
-            print("error: -K/--key requires -U/--user (RAKP needs a username).",
-                  file=sys.stderr)
+            _msg.error("-K/--key requires -U/--user (RAKP needs a username).")
             sys.exit(2)
         try:
             key_bytes = bytes.fromhex(key.replace(":", "").replace(" ", ""))
         except ValueError:
-            print(f"error: -K/--key is not valid hex: {key!r}", file=sys.stderr)
+            _msg.error(f"-K/--key is not valid hex: {key!r}")
             sys.exit(2)
         from ..scapy_ipmi.crypto import RawKey
         password = RawKey(key_bytes)
     elif (args.user is None) != (args.password is None):
-        print("error: -U and -P must both be given (or neither). "
-              "Pass nothing for sessionless mode.", file=sys.stderr)
+        _msg.error("-U and -P must both be given (or neither). "
+                   "Pass nothing for sessionless mode.")
         sys.exit(2)
     lanplus = (args.interface == "lanplus")
     s = Session(
@@ -476,11 +473,10 @@ def cmd_chassis_status(args: argparse.Namespace) -> int:
 def cmd_chassis_power(args: argparse.Namespace) -> int:
     code_by_name = {v: k for k, v in CHASSIS_CTRL.items()}
     if args.action not in code_by_name:
-        print(f"error: unknown power action '{args.action}'", file=sys.stderr)
+        _msg.error(f"unknown power action '{args.action}'")
         return 2
     if args.action != "status" and not args.yes:
-        print(f"warning: '{args.action}' affects host power. Pass --yes to proceed.",
-              file=sys.stderr)
+        _msg.warn(f"'{args.action}' affects host power. Pass --yes to proceed.")
         return 2
     with _open_session(args) as s:
         s.send_cmd(0x00, 0x02, ChassisControlReq(action=code_by_name[args.action]))
@@ -518,7 +514,7 @@ def cmd_chassis_restart_cause(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, data = s.send_raw(0x00, 0x07, b"")
         if cc != 0x00 or len(data) < 2:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     cause = data[0] & 0x0F
     chan = data[1] & 0x0F
@@ -539,7 +535,7 @@ def cmd_chassis_policy(args: argparse.Namespace) -> int:
         with _open_session(args) as s:
             cc, data = s.send_raw(0x00, 0x06, b"\x03")
         if cc != 0x00 or not data:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
         bits = data[0]
         supported = [name for name, code in POWER_POLICY.items()
@@ -550,7 +546,7 @@ def cmd_chassis_policy(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, _ = s.send_raw(0x00, 0x06, bytes([code]))
         if cc != 0x00:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     print(f"Power restore policy set: {args.policy}")
     return 0
@@ -610,7 +606,7 @@ def cmd_sel_list(args: argparse.Namespace) -> int:
                                    offset=0, count=0xFF),
                 )
             except Exception as e:
-                print(f"  abort at record 0x{record_id:04x}: {e}", file=sys.stderr)
+                _msg.error(f"abort at record 0x{record_id:04x}: {e}")
                 return 1
             print(_decode_sel_record(bytes(resp.record)))
             seen += 1
@@ -637,7 +633,7 @@ def _build_sdr_sensor_map(s) -> dict:
         rsv = s.send_cmd(0x0A, 0x22)
         rid = rsv.reservation_id
     except Exception as e:
-        print(f"  SDR walk skipped: {e}", file=sys.stderr)
+        _msg.warn(f"SDR walk skipped: {e}")
         return out
     record_id = 0x0000
     seen = 0
@@ -649,7 +645,7 @@ def _build_sdr_sensor_map(s) -> dict:
                           offset=0, count=5),
             )
         except Exception as e:
-            print(f"  SDR abort at 0x{record_id:04x}: {e}", file=sys.stderr)
+            _msg.error(f"SDR abort at 0x{record_id:04x}: {e}")
             return out
         d = bytes(hdr.record_data)
         if len(d) < 5:
@@ -665,7 +661,7 @@ def _build_sdr_sensor_map(s) -> dict:
                 if info_rec is not None and info_rec.name:
                     out[info_rec.sensor_num] = info_rec
             except Exception as e:
-                print(f"  SDR record 0x{record_id:04x}: {e}", file=sys.stderr)
+                _msg.warn(f"SDR record 0x{record_id:04x}: {e}")
         seen += 1
         if next_id == 0xFFFF:
             break
@@ -703,8 +699,7 @@ def cmd_sel_elist(args: argparse.Namespace) -> int:
                                    offset=0, count=0xFF),
                 )
             except Exception as e:
-                print(f"  abort at record 0x{record_id:04x}: {e}",
-                      file=sys.stderr)
+                _msg.error(f"abort at record 0x{record_id:04x}: {e}")
                 return 1
             print(format_sel_record_extended(bytes(resp.record), sdr_map))
             seen += 1
@@ -728,7 +723,7 @@ def cmd_sel_clear(args: argparse.Namespace) -> int:
         clr = bytes([rid & 0xFF, (rid >> 8) & 0xFF]) + b"CLR" + b"\xAA"
         cc, data = s.send_raw(0x0A, 0x47, clr)
         if cc != 0x00:
-            print(f"  clear initiate failed: cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"clear initiate failed: cc=0x{cc:02x}")
             return 1
         # Poll erase status. Most BMCs complete in <1s but spec allows longer.
         import time
@@ -736,14 +731,14 @@ def cmd_sel_clear(args: argparse.Namespace) -> int:
             poll = bytes([rid & 0xFF, (rid >> 8) & 0xFF]) + b"CLR" + b"\x00"
             cc, data = s.send_raw(0x0A, 0x47, poll)
             if cc != 0x00:
-                print(f"  status poll failed: cc=0x{cc:02x}", file=sys.stderr)
+                _msg.error(f"status poll failed: cc=0x{cc:02x}")
                 return 1
             status = data[0] & 0x0F if data else 0
             if status == 1:
                 print("SEL cleared")
                 return 0
             time.sleep(0.25)
-        print("  clear timed out (still in progress)", file=sys.stderr)
+        _msg.error("clear timed out (still in progress)")
         return 1
 
 
@@ -753,7 +748,7 @@ def cmd_sel_time_get(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, data = s.send_raw(0x0A, 0x48, b"")
         if cc != 0x00 or len(data) < 4:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     ts = int.from_bytes(data[:4], "little")
     if ts < 0x20000000:
@@ -774,14 +769,13 @@ def cmd_sel_time_set(args: argparse.Namespace) -> int:
         try:
             ts = int(raw, 0)
         except ValueError:
-            print(f"  bad timestamp: {raw!r} (use 'now' or seconds-since-epoch)",
-                  file=sys.stderr)
+            _msg.error(f"bad timestamp: {raw!r} (use 'now' or seconds-since-epoch)")
             return 1
     payload = ts.to_bytes(4, "little")
     with _open_session(args) as s:
         cc, _ = s.send_raw(0x0A, 0x49, payload)
         if cc != 0x00:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
     print(f"SEL Time set: {dt.strftime('%m/%d/%Y %H:%M:%S %Z')}")
@@ -814,7 +808,7 @@ def cmd_sdr_list(args: argparse.Namespace) -> int:
                               offset=0, count=5),
                 )
             except Exception as e:
-                print(f"  abort at SDR 0x{record_id:04x}: {e}", file=sys.stderr)
+                _msg.error(f"abort at SDR 0x{record_id:04x}: {e}")
                 return 1
             data = bytes(resp.record_data)
             if len(data) >= 5:
@@ -855,7 +849,7 @@ def cmd_user_list(args: argparse.Namespace) -> int:
                                 GetUserAccessReq(channel=0xE, user_id=uid))
                 un = s.send_cmd(0x06, 0x46, GetUserNameReq(user_id=uid))
             except Exception as e:
-                print(f"  user {uid}: {e}", file=sys.stderr)
+                _msg.warn(f"user {uid}: {e}")
                 continue
             name = bytes(un.user_name).rstrip(b"\x00").decode("utf-8", errors="replace") or "<null>"
             d = decode_user_access(int(ua.user_access))
@@ -878,8 +872,7 @@ PRIV_LEVELS: dict[str, int] = {
 def _guard_write_user(args: argparse.Namespace, what: str) -> bool:
     """User-table writes can lock you out of the BMC. Require --yes."""
     if not args.yes:
-        print(f"warning: '{what}' modifies the BMC user table. Pass --yes to proceed.",
-              file=sys.stderr)
+        _msg.warn(f"'{what}' modifies the BMC user table. Pass --yes to proceed.")
         return False
     return True
 
@@ -890,17 +883,17 @@ def cmd_user_set_name(args: argparse.Namespace) -> int:
         return 2
     uid = args.user_id
     if not 1 <= uid <= 63:
-        print(f"  user_id {uid} out of range 1..63", file=sys.stderr)
+        _msg.error(f"user_id {uid} out of range 1..63")
         return 2
     name = args.name.encode("utf-8")
     if len(name) > 16:
-        print(f"  name too long ({len(name)} > 16 bytes)", file=sys.stderr)
+        _msg.error(f"name too long ({len(name)} > 16 bytes)")
         return 2
     payload = bytes([uid & 0x3F]) + name.ljust(16, b"\x00")
     with _open_session(args) as s:
         cc, _ = s.send_raw(0x06, 0x45, payload)
         if cc != 0x00:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     print(f"user {uid}: name set to {args.name!r}")
     return 0
@@ -914,14 +907,14 @@ def _user_password_op(args: argparse.Namespace, op: int, password: bytes = b"") 
     """
     uid = args.user_id
     if not 1 <= uid <= 63:
-        print(f"  user_id {uid} out of range 1..63", file=sys.stderr)
+        _msg.error(f"user_id {uid} out of range 1..63")
         return 2
     size = getattr(args, "size", 16)
     if size not in (16, 20):
-        print(f"  password size must be 16 or 20", file=sys.stderr)
+        _msg.error(f"password size must be 16 or 20")
         return 2
     if len(password) > size:
-        print(f"  password too long ({len(password)} > {size})", file=sys.stderr)
+        _msg.error(f"password too long ({len(password)} > {size})")
         return 2
     size_bit = 0x80 if size == 20 else 0x00
     payload = bytes([(uid & 0x3F) | size_bit, op & 0x03])
@@ -934,7 +927,7 @@ def _user_password_op(args: argparse.Namespace, op: int, password: bytes = b"") 
             if op == 0x03 and cc == 0x80:
                 print("password test: MISMATCH")
                 return 1
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     return 0
 
@@ -993,7 +986,7 @@ def cmd_user_priv(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, _ = s.send_raw(0x06, 0x43, payload)
         if cc != 0x00:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     print(f"user {uid} channel 0x{chan:x}: privilege set to {args.level}")
     return 0
@@ -1054,9 +1047,8 @@ def cmd_serial_set(args: argparse.Namespace) -> int:
     surface: modem init string (raw AT), destination dial numbers, callback."""
     from . import serial_modem
     if not args.yes:
-        print("warning: 'serial set' writes BMC serial/modem config (the dial-out "
-              "surface — init/dial strings, callback numbers). Pass --yes.",
-              file=sys.stderr)
+        _msg.warn("'serial set' writes BMC serial/modem config (the dial-out "
+                  "surface — init/dial strings, callback numbers). Pass --yes.")
         return 2
     ch = args.channel
     param = int(args.param, 0)
@@ -1064,7 +1056,7 @@ def cmd_serial_set(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, _ = serial_modem.set_serial_param(s, ch, param, data)
     if cc != 0x00:
-        print(f"  cc=0x{cc:02x}", file=sys.stderr)
+        _msg.error(f"cc=0x{cc:02x}")
         return 1
     print(f"serial channel 0x{ch:x} param {param}: set ({data.hex()})")
     return 0
@@ -1113,7 +1105,7 @@ def cmd_channel_info(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, data = s.send_raw(0x06, 0x42, bytes([chan & 0x0F]))
         if cc != 0x00 or len(data) < 9:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     actual = data[0] & 0x0F
     medium = data[1] & 0x7F
@@ -1137,7 +1129,7 @@ def cmd_channel_getaccess(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, data = s.send_raw(0x06, 0x44, payload)
         if cc != 0x00 or len(data) < 4:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     # IPMI 2.0 §22.27 Table 22-9:
     #   byte 1 [5:0]  = max user IDs
@@ -1194,7 +1186,7 @@ def cmd_session_info(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, data = s.send_raw(0x06, 0x3D, payload)
         if cc != 0x00 or len(data) < 6:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     handle = data[0]
     possible = data[1] & 0x3F
@@ -1248,7 +1240,7 @@ def cmd_mc_watchdog_get(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, data = s.send_raw(0x06, 0x25, b"")
         if cc != 0x00 or len(data) < 8:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     use_byte = data[0]
     use = use_byte & 0x07
@@ -1278,7 +1270,7 @@ def cmd_mc_watchdog_reset(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, _ = s.send_raw(0x06, 0x22, b"")
         if cc != 0x00:
-            print(f"  cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"cc=0x{cc:02x}")
             return 1
     print("Watchdog timer reset (kicked)")
     return 0
@@ -1290,20 +1282,19 @@ def cmd_mc_watchdog_off(args: argparse.Namespace) -> int:
     else, then turns the timer off.
     """
     if not args.yes:
-        print("warning: 'mc watchdog off' modifies BMC watchdog state. Pass --yes.",
-              file=sys.stderr)
+        _msg.warn("'mc watchdog off' modifies BMC watchdog state. Pass --yes.")
         return 2
     with _open_session(args) as s:
         cc, data = s.send_raw(0x06, 0x25, b"")
         if cc != 0x00 or len(data) < 8:
-            print(f"  get cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"get cc=0x{cc:02x}")
             return 1
         # Clear running bit (0x40) on the timer-use byte so the BMC stops it.
         use_byte = data[0] & ~0x40
         payload = bytes([use_byte, data[1], data[2], data[3]]) + data[4:6]
         cc, _ = s.send_raw(0x06, 0x24, payload)
         if cc != 0x00:
-            print(f"  set cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"set cc=0x{cc:02x}")
             return 1
     print("Watchdog timer disabled")
     return 0
@@ -1322,7 +1313,7 @@ def cmd_sensor_get(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         info = s.send_cmd(0x0A, 0x20)
         if info.record_count == 0:
-            print("(no SDR records)", file=sys.stderr)
+            _msg.error("(no SDR records)")
             return 1
         rsv = s.send_cmd(0x0A, 0x22)
         rid = rsv.reservation_id
@@ -1337,7 +1328,7 @@ def cmd_sensor_get(args: argparse.Namespace) -> int:
                               offset=0, count=5),
                 )
             except Exception as e:
-                print(f"  SDR abort at 0x{record_id:04x}: {e}", file=sys.stderr)
+                _msg.error(f"SDR abort at 0x{record_id:04x}: {e}")
                 return 1
             d = bytes(hdr.record_data)
             if len(d) < 5:
@@ -1354,21 +1345,20 @@ def cmd_sensor_get(args: argparse.Namespace) -> int:
                         found = meta
                         break
                 except Exception as e:
-                    print(f"  SDR record 0x{record_id:04x}: {e}",
-                          file=sys.stderr)
+                    _msg.warn(f"SDR record 0x{record_id:04x}: {e}")
             seen += 1
             if next_id == 0xFFFF:
                 break
             record_id = next_id
         if found is None:
-            print(f"  no Type-1 sensor named {target!r} in SDR", file=sys.stderr)
+            _msg.error(f"no Type-1 sensor named {target!r} in SDR")
             return 1
         # send_raw because some BMCs (e.g. iDRAC6) omit the trailing thresh2
         # byte; the scapy resp packet requires all 5 fields and silently
         # zero-fills on a short response. send_raw gives us the actual bytes.
         cc, rdata = s.send_raw(0x04, 0x2D, bytes([found.sensor_number]))
         if cc != 0x00 or len(rdata) < 2:
-            print(f"  Get Sensor Reading cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"Get Sensor Reading cc=0x{cc:02x}")
             return 1
     raw = rdata[0]
     status = rdata[1]
@@ -1423,7 +1413,7 @@ def cmd_fru_print(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         cc, data = s.send_raw(0x0A, 0x10, bytes([dev_id]))
         if cc != 0x00 or len(data) < 3:
-            print(f"  FRU inventory info cc=0x{cc:02x}", file=sys.stderr)
+            _msg.error(f"FRU inventory info cc=0x{cc:02x}")
             return 1
         size = data[0] | (data[1] << 8)
         access_word = bool(data[2] & 0x01)
@@ -1431,11 +1421,11 @@ def cmd_fru_print(args: argparse.Namespace) -> int:
               f"({'word' if access_word else 'byte'} access)")
         blob = _read_fru_blob(s, dev_id, size)
     if len(blob) < 8:
-        print(f"  short FRU blob ({len(blob)} bytes)", file=sys.stderr)
+        _msg.error(f"short FRU blob ({len(blob)} bytes)")
         return 1
     hdr = parse_common_header(blob)
     if hdr is None:
-        print("  invalid Common Header", file=sys.stderr)
+        _msg.error("invalid Common Header")
         return 1
     print(f"Common Header        : v{hdr.format_version}"
           f"  checksum {'OK' if hdr.checksum_ok else 'BAD'}")
@@ -1500,12 +1490,11 @@ def cmd_chassis_bootdev(args: argparse.Namespace) -> int:
         print("supported devices:", " ".join(sorted(set(devices))))
         return 0
     if args.device not in devices:
-        print(f"unknown device {args.device!r}; try `chassis bootdev list`",
-              file=sys.stderr)
+        _msg.error(f"unknown device {args.device!r}; try `chassis bootdev list`")
         return 2
     if not args.yes and args.device != "no_override":
-        print(f"warning: setting boot device to {args.device!r} affects host's "
-              f"next boot. Pass --yes to proceed.", file=sys.stderr)
+        _msg.warn(f"setting boot device to {args.device!r} affects host's "
+                  f"next boot. Pass --yes to proceed.")
         return 2
     payload = encode_boot_flags(args.device,
                                 persistent=args.persistent,
@@ -1546,7 +1535,7 @@ def cmd_chassis_identify(args: argparse.Namespace) -> int:
         secs = bytes([args.duration]) if args.duration is not None else b""
         cc, _ = s.send_raw(0x00, 0x04, secs)
     if cc != 0:
-        print(f"identify: cc=0x{cc:02x}", file=sys.stderr)
+        _msg.error(f"identify: cc=0x{cc:02x}")
         return 1
     if args.duration == 0:
         print("identify off")
@@ -1571,7 +1560,7 @@ def cmd_lan_print(args: argparse.Namespace) -> int:
     }
     channel = int(args.channel, 0) if args.channel is not None else 0x0E
     if not 0 <= channel <= 0x0F:
-        print(f"error: channel must be 0..15, got {channel}", file=sys.stderr)
+        _msg.error(f"channel must be 0..15, got {channel}")
         return 2
     print(f"channel {channel}" + (" (this channel)" if channel == 0x0E else ""))
     with _open_session(args) as s:
@@ -1638,7 +1627,7 @@ def cmd_sensor_list(args: argparse.Namespace) -> int:
                               offset=0, count=5),
                 )
             except Exception as e:
-                print(f"  abort: {e}", file=sys.stderr)
+                _msg.error(f"abort: {e}")
                 return 1
             d = bytes(hdr.record_data)
             if len(d) < 5:
@@ -1749,31 +1738,30 @@ def cmd_i2c(args: argparse.Namespace) -> int:
     try:
         bus_byte, rest = _parse_i2c_bus_chan(list(args.tokens))
     except ValueError as e:
-        print(f"error: {e}", file=sys.stderr)
+        _msg.error(f"{e}")
         return 2
     if len(rest) < 2:
-        print("usage: i2c [bus=public|#] [chan=#] <i2caddr> <read bytes> "
-              "[write data]", file=sys.stderr)
+        _msg.error("usage: i2c [bus=public|#] [chan=#] <i2caddr> <read bytes> "
+                   "[write data]")
         return 2
     try:
         slave = int(rest[0], 0)
         read_count = int(rest[1], 0)
         write_data = bytes(int(b, 0) & 0xFF for b in rest[2:])
     except ValueError as e:
-        print(f"error: bad numeric arg ({e})", file=sys.stderr)
+        _msg.error(f"bad numeric arg ({e})")
         return 2
     if not (0 < slave <= 0x7F):
-        print(f"error: slave address 0x{slave:02x} out of range (1..0x7f)",
-              file=sys.stderr)
+        _msg.error(f"slave address 0x{slave:02x} out of range (1..0x7f)")
         return 2
     if not (0 <= read_count <= 0xFF):
-        print("error: read count must be 0..255", file=sys.stderr)
+        _msg.error("read count must be 0..255")
         return 2
     with _open_session(args) as s:
         cc, resp = _master_write_read(s, bus_byte, slave, read_count, write_data)
     if cc != 0:
         cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
-        print(f"Master Write-Read failed: {cc_name}", file=sys.stderr)
+        _msg.error(f"Master Write-Read failed: {cc_name}")
         return 1
     if resp:
         print(" ".join(f"{b:02x}" for b in resp))
@@ -1802,7 +1790,7 @@ def cmd_i2cscan(args: argparse.Namespace) -> int:
     try:
         bus_byte, _ = _parse_i2c_bus_chan(list(args.tokens))
     except ValueError as e:
-        print(f"error: {e}", file=sys.stderr)
+        _msg.error(f"{e}")
         return 2
     lo, hi = args.lo, args.hi
     found = 0
@@ -1814,8 +1802,8 @@ def cmd_i2cscan(args: argparse.Namespace) -> int:
                 print(f"  present  7bit=0x{addr:02x}  8bit=0x{addr << 1:02x}"
                       f"  read1={first or '-'}")
                 found += 1
-    print(f"-- {found} device(s) on bus 0x{bus_byte:02x} "
-          f"(range 0x{lo:02x}..0x{hi:02x}) --", file=sys.stderr)
+    _msg.info(f"-- {found} device(s) on bus 0x{bus_byte:02x} "
+              f"(range 0x{lo:02x}..0x{hi:02x}) --")
     return 0
 
 
@@ -1824,10 +1812,10 @@ def cmd_i2c_id(args: argparse.Namespace) -> int:
     try:
         bus_byte, rest = _parse_i2c_bus_chan(list(args.tokens))
     except ValueError as e:
-        print(f"error: {e}", file=sys.stderr)
+        _msg.error(f"{e}")
         return 2
     if len(rest) != 1:
-        print("usage: i2c-id [bus=public|#] [chan=#] <i2caddr>", file=sys.stderr)
+        _msg.error("usage: i2c-id [bus=public|#] [chan=#] <i2caddr>")
         return 2
     slave = int(rest[0], 0)
     with _open_session(args) as s:
@@ -1847,21 +1835,20 @@ def cmd_spd(args: argparse.Namespace) -> int:
     try:
         bus_byte, rest = _parse_i2c_bus_chan(list(args.tokens))
     except ValueError as e:
-        print(f"error: {e}", file=sys.stderr)
+        _msg.error(f"{e}")
         return 2
     if len(rest) != 1:
-        print("usage: spd [bus=public|#] [chan=#] <i2caddr>", file=sys.stderr)
+        _msg.error("usage: spd [bus=public|#] [chan=#] <i2caddr>")
         return 2
     try:
         slave = int(rest[0], 0)
     except ValueError:
-        print(f"error: bad slave addr {rest[0]!r}", file=sys.stderr)
+        _msg.error(f"bad slave addr {rest[0]!r}")
         return 2
     if not (0x50 <= slave <= 0x57):
         # warn but proceed — JEDEC SPD lives at 0x50..0x57 but users may
         # have non-standard EEPROMs at other addresses
-        print(f"warning: 0x{slave:02x} outside JEDEC SPD range 0x50..0x57",
-              file=sys.stderr)
+        _msg.warn(f"0x{slave:02x} outside JEDEC SPD range 0x50..0x57")
     total = args.size
     chunk = 16  # safe IPMB payload
     buf = bytearray()
@@ -1873,8 +1860,7 @@ def cmd_spd(args: argparse.Namespace) -> int:
             )
             if cc != 0:
                 cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
-                print(f"SPD read failed at offset 0x{off:02x}: {cc_name}",
-                      file=sys.stderr)
+                _msg.error(f"SPD read failed at offset 0x{off:02x}: {cc_name}")
                 if buf:
                     print(_hex_dump(bytes(buf)))
                 return 1
@@ -1952,8 +1938,8 @@ def cmd_firewall(args: argparse.Namespace) -> int:
     host = getattr(args, "host", None) or ""
     unsafe = getattr(args, "unsafe", False)
     if unsafe and host not in ("127.0.0.1", "localhost", "::1"):
-        print(f"warning: --unsafe sends state-changing + unknown commands to {host} "
-              f"(may reset/mutate the BMC). Use a disposable target.", file=sys.stderr)
+        _msg.warn(f"--unsafe sends state-changing + unknown commands to {host} "
+                  f"(may reset/mutate the BMC). Use a disposable target.")
     result = {"host": host or None, "channel": channel, "netfns": {}}
     with _open_session(args) as s:
         netfns = _fw_netfn_support(s, channel)
@@ -2129,8 +2115,7 @@ def cmd_fuzz_length(args: argparse.Namespace) -> int:
     host = _require_host(args)
     with _open_session(args) as s:
         if s.lanplus:
-            print("error: length fuzzer requires IPMI 1.5; rerun without -I lanplus",
-                  file=sys.stderr)
+            _msg.error("length fuzzer requires IPMI 1.5; rerun without -I lanplus")
             return 2
         results = length_corrupt(s, netfn, cmd, b"")
     print(f"length-corrupt cmd 0x{netfn:02x}/0x{cmd:02x} on {host}:")
@@ -2301,7 +2286,7 @@ def cmd_vbmc_serve(args: argparse.Namespace) -> int:
         try:
             set_palette(resolve_palette(normalize_palette_name(palette)))
         except ValueError as e:
-            print(f"error: {e}", file=sys.stderr)
+            _msg.error(f"{e}")
             return 2
     try:
         asyncio.run(run(persona_name=args.vpersona,
@@ -2373,7 +2358,7 @@ def cmd_raw(args: argparse.Namespace) -> int:
     if name:
         print(f"# {name}", file=sys.stderr)
     if cc != 0:
-        print(f"completion code: {cc_name}", file=sys.stderr)
+        _msg.error(f"completion code: {cc_name}")
         return 1
     if resp:
         print(" ".join(f"{b:02x}" for b in resp))
@@ -2618,7 +2603,7 @@ def cmd_sol_baud(args: argparse.Namespace) -> int:
                 if baud:
                     print(baud)
                     return 0
-    print("error: could not read SOL bit rate", file=sys.stderr)
+    _msg.error("could not read SOL bit rate")
     return 1
 
 
@@ -2633,7 +2618,7 @@ def cmd_sol_payload(args: argparse.Namespace) -> int:
                 userid = 1
             cc, data = s.send_raw(0x06, 0x4D, bytes([channel & 0x0F, userid & 0x3F]))
             if cc != 0 or len(data) < 1:
-                print(f"Get User Payload Access: cc=0x{cc:02x}", file=sys.stderr)
+                _msg.error(f"Get User Payload Access: cc=0x{cc:02x}")
                 return 1
             enabled = bool(data[0] & 0x02)        # std payload 1 = SOL
             print(f"User {userid} on channel {channel}: "
@@ -2641,18 +2626,18 @@ def cmd_sol_payload(args: argparse.Namespace) -> int:
             return 0
         # enable / disable both WRITE config.
         if userid is None:
-            print("error: enable/disable require a user id "
-                  "(`sol payload enable <channel> <userid>`)", file=sys.stderr)
+            _msg.error("enable/disable require a user id "
+                       "(`sol payload enable <channel> <userid>`)")
             return 2
         if not args.yes:
-            print(f"warning: '{args.op}' changes SOL access for user {userid}. "
-                  f"Pass --yes to proceed.", file=sys.stderr)
+            _msg.warn(f"'{args.op}' changes SOL access for user {userid}. "
+                      f"Pass --yes to proceed.")
             return 2
         operation = 0x00 if args.op == "enable" else (0x01 << 6)
         req = bytes([channel & 0x0F, operation | (userid & 0x3F), 0x02, 0, 0, 0])
         cc, _ = s.send_raw(0x06, 0x4C, req)
     if cc != 0:
-        print(f"Set User Payload Access: cc=0x{cc:02x}", file=sys.stderr)
+        _msg.error(f"Set User Payload Access: cc=0x{cc:02x}")
         return 1
     print(f"SOL payload {args.op}d for user {userid} on channel {channel}")
     return 0
@@ -2679,8 +2664,8 @@ def cmd_sol_set(args: argparse.Namespace) -> int:
     param = args.parameter
     value = args.value
     if not args.yes:
-        print(f"warning: 'sol set {param}' writes BMC SOL config. "
-              f"Pass --yes to proceed.", file=sys.stderr)
+        _msg.warn(f"'sol set {param}' writes BMC SOL config. "
+                  f"Pass --yes to proceed.")
         return 2
 
     def truth(v: str) -> bool:
@@ -2706,7 +2691,7 @@ def cmd_sol_set(args: argparse.Namespace) -> int:
                     try:
                         pv = int(value, 0)
                     except ValueError:
-                        print(f"error: bad privilege level {value!r}", file=sys.stderr)
+                        _msg.error(f"bad privilege level {value!r}")
                         return 2
                 b = (b & ~0x0F) | (pv & 0x0F)
             cc = _sol_set_param(s, channel, 2, bytes([b & 0xFF]))
@@ -2717,7 +2702,7 @@ def cmd_sol_set(args: argparse.Namespace) -> int:
             try:
                 n = int(value, 0)
             except ValueError:
-                print(f"error: {param} needs an integer", file=sys.stderr)
+                _msg.error(f"{param} needs an integer")
                 return 2
             if param == "character-accumulate-level":
                 accum = max(1, round(n / 5)) & 0xFF      # value is ms, units of 5ms
@@ -2732,7 +2717,7 @@ def cmd_sol_set(args: argparse.Namespace) -> int:
             try:
                 n = int(value, 0)
             except ValueError:
-                print(f"error: {param} needs an integer", file=sys.stderr)
+                _msg.error(f"{param} needs an integer")
                 return 2
             if param == "retry-count":
                 data = bytes([n & 0x07, cur[1]])
@@ -2744,18 +2729,18 @@ def cmd_sol_set(args: argparse.Namespace) -> int:
             baud = _parse_bitrate_value(value)
             code = encode_sol_bitrate(baud) if baud else None
             if code is None:
-                print(f"error: unsupported bit rate {value!r} "
-                      f"(use 9.6/19.2/38.4/57.6/115.2)", file=sys.stderr)
+                _msg.error(f"unsupported bit rate {value!r} "
+                           f"(use 9.6/19.2/38.4/57.6/115.2)")
                 return 2
             sel = 6 if param == "volatile-bit-rate" else 5
             cc = _sol_set_param(s, channel, sel, bytes([code & 0x0F]))
 
         else:
-            print(f"error: unknown sol parameter {param!r}", file=sys.stderr)
+            _msg.error(f"unknown sol parameter {param!r}")
             return 2
 
     if cc != 0:
-        print(f"sol set {param}: cc=0x{cc:02x}", file=sys.stderr)
+        _msg.error(f"sol set {param}: cc=0x{cc:02x}")
         return 1
     print(f"sol set {param} = {value} (channel {channel})")
     return 0
@@ -2765,12 +2750,11 @@ def _require_lanplus_creds(args: argparse.Namespace, verb: str) -> int | None:
     """SOL payloads need an encrypted RMCP+ session. Return an exit code to
     abort, or None if the prerequisites are met."""
     if args.interface != "lanplus":
-        print(f"error: 'sol {verb}' requires -I lanplus "
-              f"(SOL rides an IPMI 2.0 RMCP+ session)", file=sys.stderr)
+        _msg.error(f"'sol {verb}' requires -I lanplus "
+                   f"(SOL rides an IPMI 2.0 RMCP+ session)")
         return 2
     if args.user is None or args.password is None:
-        print(f"error: 'sol {verb}' requires credentials (-U and -P)",
-              file=sys.stderr)
+        _msg.error(f"'sol {verb}' requires credentials (-U and -P)")
         return 2
     return None
 
@@ -2798,7 +2782,7 @@ def cmd_sol_deactivate(args: argparse.Namespace) -> int:
         print("SOL payload already deactivated")
         return 0
     if cc != 0:
-        print(f"Deactivate Payload: cc=0x{cc:02x}", file=sys.stderr)
+        _msg.error(f"Deactivate Payload: cc=0x{cc:02x}")
         return 1
     print("SOL payload deactivated")
     return 0
@@ -2845,9 +2829,9 @@ def cmd_sol_autobaud(args: argparse.Namespace) -> int:
         print(f"\n=> {applied} baud — set as volatile SOL rate. Now run:")
         print(f"   zipmi -I lanplus -H {args.host} -U {args.user} -P … sol activate")
         return 0
-    print("\nno rate produced clean text — host may be idle or powered off. "
-          "Try --dwell 5, ensure the host is actively printing, or lower "
-          "--threshold.", file=sys.stderr)
+    _msg.error("no rate produced clean text — host may be idle or powered off. "
+               "Try --dwell 5, ensure the host is actively printing, or lower "
+               "--threshold.")
     return 1
 
 
@@ -3306,9 +3290,9 @@ def _normalize_interface_cipher(args: argparse.Namespace) -> None:
         from ..scapy_ipmi.crypto import CIPHER_SUITES
         if cipher not in CIPHER_SUITES:
             supported = ", ".join(str(k) for k in sorted(CIPHER_SUITES))
-            print(f"error: unsupported cipher suite {cipher} "
-                  f"(from -C/--cipher or ZIPMI_CIPHER). "
-                  f"zipmi implements: {supported}", file=sys.stderr)
+            _msg.error(f"unsupported cipher suite {cipher} "
+                       f"(from -C/--cipher or ZIPMI_CIPHER). "
+                       f"zipmi implements: {supported}")
             sys.exit(2)
     args.cipher = cipher
 
@@ -3322,10 +3306,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return args.func(args)
     except IPMIError as e:
-        print(f"IPMI error: {e}", file=sys.stderr)
+        _msg.error(f"IPMI error: {e}")
         return 1
     except (OSError, socket.timeout) as e:
-        print(f"transport error: {e}", file=sys.stderr)
+        _msg.error(f"transport error: {e}")
         return 1
 
 

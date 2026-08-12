@@ -28,6 +28,7 @@ import argparse
 import re
 import sys
 
+from .. import _msg
 from ..scapy_ipmi.commands import COMP_CODE
 
 
@@ -212,13 +213,13 @@ def cmd_group_run(args: argparse.Namespace, body: str) -> int:
     try:
         rows = _body_listing(body)
     except KeyError as e:
-        print(f"error: {e}", file=sys.stderr)
+        _msg.error(f"{e}")
         return 2
 
     data_args = list(getattr(args, "data", None) or [])
     row, leftover = _find_row(rows, cmd_name, data_args)
     if row is None:
-        print(f"no {body} verb matches {cmd_name!r}", file=sys.stderr)
+        _msg.error(f"no {body} verb matches {cmd_name!r}")
         print(f"# Run `zipmi {body}` to see the verb list.",
               file=sys.stderr)
         return 1
@@ -236,8 +237,7 @@ def cmd_group_run(args: argparse.Namespace, body: str) -> int:
     except ValueError:
         bad = next((b for b in leftover
                     if not _is_int_literal(b)), None)
-        print(f"error: data byte {bad!r} is not numeric "
-              f"(use hex 0xNN or decimal)", file=sys.stderr)
+        _msg.error(f"data byte {bad!r} is not numeric (use hex 0xNN or decimal)")
         return 2
     # Wire framing: NetFn 0x2C, cmd byte, data = [group_code] + verb-prefix + user.
     payload = bytes([group_code]) + prefix + user_bytes
@@ -252,7 +252,7 @@ def cmd_group_run(args: argparse.Namespace, body: str) -> int:
           f"group 0x{group_code:02x})", file=sys.stderr)
     if cc != 0:
         cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
-        print(f"completion code: {cc_name}", file=sys.stderr)
+        _msg.error(f"completion code: {cc_name}")
         # Synthesise a fake info dict so the shared hinter can show desc.
         _suggest_for_cc(cc, 0x2C, cmd,
                         {"desc": row.get("desc")}, body)
