@@ -13,8 +13,8 @@ SUCCESS  `zipmi -H 192.168.0.23 -U root -P calvin mc info` prints a
          block of fields matching ipmitool's `mc info` output for the
          same target.
 
-TARGET   IPMI 1.5 LAN today (Phase 2). RMCP+ ('-I lanplus') comes in
-         Phase 3.
+TARGET   IPMI 2.0 RMCP+ by DEFAULT (-I lanplus, cipher auto-discovered).
+         Pass -I lan for a legacy 1.5-only BMC. Both are implemented.
 
 BUILD    `pip install -e .` — exposes the `zipmi` console script via
          pyproject.toml [project.scripts].
@@ -146,8 +146,8 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
     parser.add_argument("-I", "--interface", choices=["lan", "lanplus"],
                         default=d(None),
                         help="lan = IPMI 1.5; lanplus = IPMI 2.0 RMCP+. "
-                             "Default lan, but giving -C/--cipher implies "
-                             "lanplus (override with -I lan).")
+                             "DEFAULT lanplus (IPMI 2.0) — pass -I lan for a "
+                             "1.5-only BMC. Cipher is auto-discovered.")
     parser.add_argument("-C", "--cipher", type=int,
                         default=d(_env_int("ZIPMI_CIPHER", warn=not suppress)),
                         help="lanplus cipher suite (env: ZIPMI_CIPHER). Default: "
@@ -3242,17 +3242,18 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _normalize_interface_cipher(args: argparse.Namespace) -> None:
-    """Couple -C/-I. Specifying a cipher suite means you want RMCP+, so a
-    bare `-C 17` implies `-I lanplus` (the common OpenBMC case). An explicit
-    `-I lan` still wins if you really want to pair a cipher with 1.5. Fills
-    the historical defaults (interface=lan, cipher=3) when neither is given.
+    """Couple -C/-I and pick the default interface.
+
+    DEFAULT IS IPMI 2.0 RMCP+ (`-I lanplus`). Nearly every BMC made in the last
+    ~15 years speaks 2.0, OpenBMC is 2.0-only (cipher 17), and 2.0 encrypts the
+    session — so 2.0 is the right default. The cipher suite is still
+    auto-discovered (strongest the BMC offers). Pass `-I lan` for the rare
+    1.5-only BMC. (`-C`/`-K` also imply lanplus, but that's now moot.)
     """
     iface = getattr(args, "interface", None)
     cipher = getattr(args, "cipher", None)
-    key = getattr(args, "key", None)
     if iface is None:
-        # A cipher suite or a raw RAKP key (-K) both mean "I want RMCP+".
-        iface = "lanplus" if (cipher is not None or key is not None) else "lan"
+        iface = "lanplus"          # IPMI 2.0 RMCP+ default; -I lan for 1.5-only BMCs
     args.interface = iface
     # Leave cipher as None when unspecified → Session auto-discovers the strongest
     # suite the BMC offers (Get Channel Cipher Suites), falling back to 3. An explicit

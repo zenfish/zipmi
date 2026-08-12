@@ -21,6 +21,9 @@ zipmi oem
 ```
 Type "zipmi" or "zipmi --help" for other things it can do.
 
+Note — zipmi defaults to the IPMI 2.0 protocol. The `-I` flag may be used to
+specify "lan" to use IPMI 1.5 or "lanplus" for explicitly using 2.0.
+
 ### Other components:
 
 - `zipmi.scapy_ipmi` — Scapy `Packet` classes for RMCP, ASF (DSP0136), IPMI 1.5
@@ -286,14 +289,18 @@ OEM IPMI survey (upstream source review) documents the byte
 layouts that were recovered from source. A wrong-length payload comes back
 as a completion code (e.g. `0xC7` Request Data Length Invalid), not a crash.
 
-> **OpenBMC speaks only IPMI 2.0 (RMCP+).** It does NOT answer IPMI 1.5 at
-> all — a 1.5 request (the default `-I lan`) is silently dropped and you get
-> a **timeout, not an error**. Always use `-C 17` — or `export ZIPMI_CIPHER=17`
-> once — (which implies `-I lanplus`; OpenBMC offers only cipher suite 17 =
-> HMAC-SHA256 / AES-CBC-128). Once you
-> have a valid session, an unimplemented command returns a real completion
-> code (`0xC1` Invalid Command) — the timeout-vs-0xC1 distinction tells you
-> "wrong protocol/session" vs "command not supported".
+> **zipmi defaults to IPMI 2.0 RMCP+ (`-I lanplus`), cipher auto-discovered.**
+> The right default: nearly every BMC from the last ~15 years speaks 2.0,
+> OpenBMC is 2.0-only, and 2.0 encrypts the session. Pass `-I lan` only for a
+> legacy 1.5-only BMC. (Older zipmi defaulted to 1.5 `-I lan`; changed 2026-08.)
+>
+> **OpenBMC speaks only IPMI 2.0 (RMCP+).** It does NOT answer IPMI 1.5 at all —
+> a 1.5 request (`-I lan`) is silently dropped and you get a **timeout, not an
+> error**. With the 2.0 default you no longer need `-C 17`; the cipher is
+> auto-discovered (OpenBMC offers only suite 17 = HMAC-SHA256 / AES-CBC-128).
+> Once you have a valid session, an unimplemented command returns a real
+> completion code (`0xC1` Invalid Command) — the timeout-vs-0xC1 distinction
+> tells you "wrong protocol/session" vs "command not supported".
 
 The standard IPMI 2.0 set has the same by-name UX — `zipmi ipmi`
 lists Table G-1, `zipmi -H <bmc> ipmi "Get Channel Authentication
