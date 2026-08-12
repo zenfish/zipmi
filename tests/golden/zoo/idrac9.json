@@ -1,0 +1,876 @@
+{
+  "_meta": {
+    "cipher": 17,
+    "danger": false,
+    "label": "idrac9",
+    "mode": "authenticated",
+    "note": "standard IPMI command sweep by scripts/ipmi_sweep.py; read-only unless --danger given",
+    "request_hex": "",
+    "source": "10.0.9.9:623"
+  },
+  "fixtures": {
+    "0x00,0x00": {
+      "cc": 0,
+      "cmd": 0,
+      "name": "Get Chassis Capabilities",
+      "netfn": 0,
+      "request_hex": "",
+      "response_hex": "012020202020"
+    },
+    "0x00,0x01": {
+      "cc": 0,
+      "cmd": 1,
+      "name": "Get Chassis Status",
+      "netfn": 0,
+      "request_hex": "",
+      "response_hex": "ff004010"
+    },
+    "0x00,0x07": {
+      "cc": 0,
+      "cmd": 7,
+      "name": "Get System Restart Cause",
+      "netfn": 0,
+      "request_hex": "",
+      "response_hex": "0001"
+    },
+    "0x00,0x09": {
+      "cc": 199,
+      "cmd": 9,
+      "name": "Get System Boot Options",
+      "netfn": 0,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x00,0x0f": {
+      "cc": 193,
+      "cmd": 15,
+      "name": "Get POH Counter",
+      "netfn": 0,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x00": {
+      "cc": 193,
+      "cmd": 0,
+      "name": "Get Bridge State",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x02": {
+      "cc": 193,
+      "cmd": 2,
+      "name": "Get ICMB Address",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x05": {
+      "cc": 193,
+      "cmd": 5,
+      "name": "Get Bridge Statistics",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x06": {
+      "cc": 193,
+      "cmd": 6,
+      "name": "Get ICMB Capabilities",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x09": {
+      "cc": 193,
+      "cmd": 9,
+      "name": "Get Bridge Proxy Address",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x0a": {
+      "cc": 193,
+      "cmd": 10,
+      "name": "Get ICMB Connector Info",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x0b": {
+      "cc": 193,
+      "cmd": 11,
+      "name": "Get ICMB Connection ID",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x11": {
+      "cc": 193,
+      "cmd": 17,
+      "name": "Get Addresses",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x13": {
+      "cc": 193,
+      "cmd": 19,
+      "name": "Get Chassis Device ID",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x30": {
+      "cc": 193,
+      "cmd": 48,
+      "name": "Get Event Count",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x34": {
+      "cc": 193,
+      "cmd": 52,
+      "name": "Get Event Destination",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x02,0x35": {
+      "cc": 193,
+      "cmd": 53,
+      "name": "Get Event Reception State",
+      "netfn": 2,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x01": {
+      "cc": 0,
+      "cmd": 1,
+      "name": "Get Event Receiver",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": "2000"
+    },
+    "0x04,0x10": {
+      "cc": 0,
+      "cmd": 16,
+      "name": "Get PEF Capabilities",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": "511f28"
+    },
+    "0x04,0x13": {
+      "cc": 199,
+      "cmd": 19,
+      "name": "Get PEF Configuration Parameters",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x15": {
+      "cc": 0,
+      "cmd": 21,
+      "name": "Get Last Processed Event ID",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": "ffffffffffffffff0000"
+    },
+    "0x04,0x20": {
+      "cc": 193,
+      "cmd": 32,
+      "name": "Get Device SDR Info",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x21": {
+      "cc": 193,
+      "cmd": 33,
+      "name": "Get Device SDR",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x22": {
+      "cc": 193,
+      "cmd": 34,
+      "name": "Reserve Device SDR Repository",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x23": {
+      "cc": 193,
+      "cmd": 35,
+      "name": "Get Sensor Reading Factors",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x25": {
+      "cc": 199,
+      "cmd": 37,
+      "name": "Get Sensor Hysteresis",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x27": {
+      "cc": 199,
+      "cmd": 39,
+      "name": "Get Sensor Threshold",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x29": {
+      "cc": 199,
+      "cmd": 41,
+      "name": "Get Sensor Event Enable",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x2b": {
+      "cc": 199,
+      "cmd": 43,
+      "name": "Get Sensor Event Status",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x2d": {
+      "cc": 199,
+      "cmd": 45,
+      "name": "Get Sensor Reading",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x04,0x2f": {
+      "cc": 199,
+      "cmd": 47,
+      "name": "Get Sensor Type",
+      "netfn": 4,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x01": {
+      "cc": 0,
+      "cmd": 1,
+      "name": "Get Device ID",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": "20818300027fa20200000000000000"
+    },
+    "0x06,0x04": {
+      "cc": 0,
+      "cmd": 4,
+      "name": "Get Self Test Results",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": "5500"
+    },
+    "0x06,0x07": {
+      "cc": 0,
+      "cmd": 7,
+      "name": "Get ACPI Power State",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": "2a2a"
+    },
+    "0x06,0x08": {
+      "cc": 0,
+      "cmd": 8,
+      "name": "Get Device GUID",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": "00000000000000000000000000000000"
+    },
+    "0x06,0x09": {
+      "cc": 199,
+      "cmd": 9,
+      "name": "Get NetFn Support",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x0a": {
+      "cc": 199,
+      "cmd": 10,
+      "name": "Get Command Support",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x0b": {
+      "cc": 199,
+      "cmd": 11,
+      "name": "Get Command Sub-function Support",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x0c": {
+      "cc": 199,
+      "cmd": 12,
+      "name": "Get Configurable Commands",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x0d": {
+      "cc": 199,
+      "cmd": 13,
+      "name": "Get Configurable Command Sub-functions",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x25": {
+      "cc": 0,
+      "cmd": 37,
+      "name": "Get Watchdog Timer",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": "0000010096009600"
+    },
+    "0x06,0x2f": {
+      "cc": 0,
+      "cmd": 47,
+      "name": "Get BMC Global Enables",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": "08"
+    },
+    "0x06,0x31": {
+      "cc": 193,
+      "cmd": 49,
+      "name": "Get Message Flags",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x32": {
+      "cc": 193,
+      "cmd": 50,
+      "name": "Enable Message Channel Receive",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x33": {
+      "cc": 193,
+      "cmd": 51,
+      "name": "Get Message",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x35": {
+      "cc": 193,
+      "cmd": 53,
+      "name": "Read Event Message Buffer",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x36": {
+      "cc": 193,
+      "cmd": 54,
+      "name": "Get BT Interface Capabilities",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x37": {
+      "cc": 0,
+      "cmd": 55,
+      "name": "Get System GUID",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": "00000000000000000000000000000000"
+    },
+    "0x06,0x38": {
+      "cc": 199,
+      "cmd": 56,
+      "name": "Get Channel Authentication Capabilities",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x39": {
+      "cc": 213,
+      "cmd": 57,
+      "name": "Get Session Challenge",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x3d": {
+      "cc": 199,
+      "cmd": 61,
+      "name": "Get Session Info",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x3f": {
+      "cc": 199,
+      "cmd": 63,
+      "name": "Get AuthCode",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x41": {
+      "cc": 199,
+      "cmd": 65,
+      "name": "Get Channel Access",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x42": {
+      "cc": 199,
+      "cmd": 66,
+      "name": "Get Channel Info",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x44": {
+      "cc": 199,
+      "cmd": 68,
+      "name": "Get User Access",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x46": {
+      "cc": 199,
+      "cmd": 70,
+      "name": "Get User Name",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x4a": {
+      "cc": 199,
+      "cmd": 74,
+      "name": "Get Payload Activation Status",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x4b": {
+      "cc": 199,
+      "cmd": 75,
+      "name": "Get Payload Instance Info",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x4d": {
+      "cc": 199,
+      "cmd": 77,
+      "name": "Get User Payload Access",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x4e": {
+      "cc": 199,
+      "cmd": 78,
+      "name": "Get Channel Payload Support",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x4f": {
+      "cc": 199,
+      "cmd": 79,
+      "name": "Get Channel Payload Version",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x50": {
+      "cc": 199,
+      "cmd": 80,
+      "name": "Get Channel OEM Payload Info",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x54": {
+      "cc": 199,
+      "cmd": 84,
+      "name": "Get Channel Cipher Suites",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x55": {
+      "cc": 199,
+      "cmd": 85,
+      "name": "Suspend/Resume Payload Encryption",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x57": {
+      "cc": 193,
+      "cmd": 87,
+      "name": "Get System Interface Capabilities",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x59": {
+      "cc": 199,
+      "cmd": 89,
+      "name": "Get System Info Parameters",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x5a": {
+      "cc": 193,
+      "cmd": 90,
+      "name": "Get Authorization Privilege Level",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x5b": {
+      "cc": 193,
+      "cmd": 91,
+      "name": "Get Authentication Capabilities (v2)",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x5c": {
+      "cc": 193,
+      "cmd": 92,
+      "name": "Get Session-Less Channel Privilege Level",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x5e": {
+      "cc": 193,
+      "cmd": 94,
+      "name": "Get Session-Less Channel Auth Caps",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x61": {
+      "cc": 199,
+      "cmd": 97,
+      "name": "Get Command Enables",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x63": {
+      "cc": 199,
+      "cmd": 99,
+      "name": "Get Command Sub-function Enables",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x06,0x64": {
+      "cc": 199,
+      "cmd": 100,
+      "name": "Get OEM NetFn IANA Support",
+      "netfn": 6,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x10": {
+      "cc": 199,
+      "cmd": 16,
+      "name": "Get FRU Inventory Area Info",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x11": {
+      "cc": 199,
+      "cmd": 17,
+      "name": "Read FRU Data",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x12": {
+      "cc": 199,
+      "cmd": 18,
+      "name": "Write FRU Data",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x20": {
+      "cc": 210,
+      "cmd": 32,
+      "name": "Get SDR Repository Info",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x21": {
+      "cc": 193,
+      "cmd": 33,
+      "name": "Get SDR Repository Allocation Info",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x22": {
+      "cc": 0,
+      "cmd": 34,
+      "name": "Reserve SDR Repository",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": "0100"
+    },
+    "0x0a,0x23": {
+      "cc": 199,
+      "cmd": 35,
+      "name": "Get SDR",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x25": {
+      "cc": 193,
+      "cmd": 37,
+      "name": "Partial Add SDR",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x28": {
+      "cc": 0,
+      "cmd": 40,
+      "name": "Get SDR Repository Time",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": "c42e675f"
+    },
+    "0x0a,0x2a": {
+      "cc": 193,
+      "cmd": 42,
+      "name": "Enter SDR Repository Update Mode",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x2b": {
+      "cc": 193,
+      "cmd": 43,
+      "name": "Exit SDR Repository Update Mode",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x2c": {
+      "cc": 199,
+      "cmd": 44,
+      "name": "Run Initialization Agent",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x40": {
+      "cc": 0,
+      "cmd": 64,
+      "name": "Get SEL Info",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": "5100000000ffffffffffffffff02"
+    },
+    "0x0a,0x41": {
+      "cc": 193,
+      "cmd": 65,
+      "name": "Get SEL Allocation Info",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x42": {
+      "cc": 0,
+      "cmd": 66,
+      "name": "Reserve SEL",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": "0100"
+    },
+    "0x0a,0x43": {
+      "cc": 199,
+      "cmd": 67,
+      "name": "Get SEL Entry",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x45": {
+      "cc": 193,
+      "cmd": 69,
+      "name": "Partial Add SEL Entry",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x48": {
+      "cc": 0,
+      "cmd": 72,
+      "name": "Get SEL Time",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": "c42e675f"
+    },
+    "0x0a,0x5a": {
+      "cc": 193,
+      "cmd": 90,
+      "name": "Get Auxiliary Log Status",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0a,0x5c": {
+      "cc": 193,
+      "cmd": 92,
+      "name": "Get SEL Time UTC Offset",
+      "netfn": 10,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x02": {
+      "cc": 199,
+      "cmd": 2,
+      "name": "Get LAN Configuration Parameters",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x04": {
+      "cc": 193,
+      "cmd": 4,
+      "name": "Get IP/UDP/RMCP Statistics",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x11": {
+      "cc": 199,
+      "cmd": 17,
+      "name": "Get Serial/Modem Configuration",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x13": {
+      "cc": 193,
+      "cmd": 19,
+      "name": "Get TAP Response Codes",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x15": {
+      "cc": 193,
+      "cmd": 21,
+      "name": "Get PPP UDP Proxy Transmit Data",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x17": {
+      "cc": 193,
+      "cmd": 23,
+      "name": "Get PPP UDP Proxy Receive Data",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x18": {
+      "cc": 193,
+      "cmd": 24,
+      "name": "Serial/Modem Connection Active",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x19": {
+      "cc": 193,
+      "cmd": 25,
+      "name": "Callback",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x1b": {
+      "cc": 193,
+      "cmd": 27,
+      "name": "Get User Callback Options",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x20": {
+      "cc": 193,
+      "cmd": 32,
+      "name": "SOL Activating",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x22": {
+      "cc": 199,
+      "cmd": 34,
+      "name": "Get SOL Configuration Parameters",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x40": {
+      "cc": 193,
+      "cmd": 64,
+      "name": "Forwarded Command",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x42": {
+      "cc": 193,
+      "cmd": 66,
+      "name": "Get Forwarded Commands",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    },
+    "0x0c,0x43": {
+      "cc": 193,
+      "cmd": 67,
+      "name": "Enable Forwarded Commands",
+      "netfn": 12,
+      "request_hex": "",
+      "response_hex": ""
+    }
+  },
+  "summary": {
+    "cc_err": 43,
+    "ok": 18,
+    "skipped_write": 81,
+    "total": 188,
+    "unsupported": 46
+  }
+}
