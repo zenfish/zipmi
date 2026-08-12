@@ -18,7 +18,54 @@ from __future__ import annotations
 
 import importlib
 
-__version__ = "0.1.0"  # single source of truth; pyproject reads this via dynamic version
+__version__ = "0.1.1"  # single source of truth; pyproject reads this via dynamic version
+
+
+def full_version() -> str:
+    """`__version__`, plus the git short-sha and a `.dirty` marker so you can
+    always tell WHICH build is running (and whether it matches your checkout).
+
+    Two ways the sha is recovered, in order:
+      1. Live, from a `.git` next to the package — the editable/source case.
+      2. From `_buildstamp.py`, which `make install` writes into the packaged
+         copy at install time — the non-editable installed case (no `.git`).
+
+    So `zipmi -V` reports e.g. `0.1.1+g73983c6` for both an editable checkout
+    and a `make install`ed copy of that same commit; a bare `0.1.1` means the
+    sha was never stamped (built outside git). Compare against
+    `git rev-parse --short HEAD` to spot a stale install on $PATH.
+    """
+    import os
+
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if os.path.isdir(os.path.join(root, ".git")):
+        live = _git_describe(root)
+        if live:
+            return live
+    try:                                    # installed copy: read the stamp
+        from . import _buildstamp
+        if _buildstamp.GIT_SHA:
+            return (f"{__version__}+g{_buildstamp.GIT_SHA}"
+                    f"{'.dirty' if _buildstamp.GIT_DIRTY else ''}")
+    except Exception:
+        pass
+    return __version__
+
+
+def _git_describe(root: str) -> str:
+    """`<version>+g<sha>[.dirty]` from the git tree at `root`, or '' on failure."""
+    import subprocess
+    try:
+        git = ["git", "-C", root]
+        sha = subprocess.run(git + ["rev-parse", "--short", "HEAD"],
+                             capture_output=True, text=True, timeout=1).stdout.strip()
+        dirty = subprocess.run(git + ["status", "--porcelain"],
+                               capture_output=True, text=True, timeout=1).stdout.strip()
+    except Exception:
+        return ""
+    if not sha:
+        return ""
+    return f"{__version__}+g{sha}{'.dirty' if dirty else ''}"
 
 # Importing scapy_ipmi triggers layer registration via its __init__.py.
 from . import scapy_ipmi  # noqa: F401  (side-effect import)
@@ -54,4 +101,4 @@ def load_vendor(name: str) -> None:
     importlib.import_module(f"zipmi.scapy_ipmi.oem.{module}")
 
 
-__all__ = ["__version__", "load_vendor", "scapy_ipmi"]
+__all__ = ["__version__", "full_version", "load_vendor", "scapy_ipmi"]

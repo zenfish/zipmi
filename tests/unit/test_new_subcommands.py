@@ -530,6 +530,24 @@ def test_version_flag_long_exits_zero(capsys):
     assert __version__ in capsys.readouterr().out
 
 
+def test_full_version_carries_git_sha_from_source():
+    # full_version() prefixes the base version and, when run from this checkout
+    # (a .git is present), appends the live +g<sha> tag. Guards against the tag
+    # being dropped — the whole point is telling an installed copy from source.
+    import os
+    import zipmi
+    v = zipmi.full_version()
+    assert v.startswith(zipmi.__version__)
+    root = os.path.dirname(os.path.dirname(os.path.abspath(zipmi.__file__)))
+    if os.path.isdir(os.path.join(root, ".git")):
+        assert "+g" in v, f"source run should carry a git sha, got {v!r}"
+
+
+def test_git_describe_returns_empty_outside_repo(tmp_path):
+    from zipmi import _git_describe
+    assert _git_describe(str(tmp_path)) == ""
+
+
 # -- i2c / spd parser shape ----------------------------------------------
 
 

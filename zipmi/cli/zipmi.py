@@ -44,7 +44,7 @@ import os
 import socket
 import sys
 
-from .. import __version__
+from .. import __version__, full_version
 from ..consts import COMP_CODE, IANA, guess_bmc_generation
 from ..core import (
     AUTH_MD5,
@@ -175,7 +175,7 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                         help="colour palette (default: auto — detects "
                              "terminal background)")
     parser.add_argument("-V", "--version", action="version",
-                        version=f"zipmi version {__version__}",
+                        version=f"zipmi version {full_version()}",
                         help="show program version and exit")
 
 
