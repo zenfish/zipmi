@@ -98,11 +98,20 @@ def cc_class(cc: int) -> str:
     return "cc_err"
 
 
+def _auth_secret(args):
+    """Password, or a RawKey when -K/--key was given (RAKP with raw Kuid bytes,
+    same as the main zipmi CLI's -K)."""
+    if not args.key:
+        return args.password
+    from zipmi.scapy_ipmi.crypto import RawKey
+    return RawKey(bytes.fromhex(args.key.replace(":", "").replace(" ", "")))
+
+
 def open_session(args) -> Session:
     s = Session(
         host=args.host,
         username=args.user,
-        password=args.password,
+        password=_auth_secret(args),
         lanplus=True,
         cipher_suite=args.cipher,
         timeout=args.timeout,
@@ -219,6 +228,9 @@ def main() -> int:
     ap.add_argument("--port", type=int, default=623)
     ap.add_argument("--user", default="root")
     ap.add_argument("--password", default="")
+    ap.add_argument("-K", "--key", default="", metavar="HEX",
+                    help="RAKP with raw Kuid key bytes (hex) instead of a "
+                         "password — same as zipmi -K")
     ap.add_argument("--cipher", type=int, default=3)
     ap.add_argument("--timeout", type=float, default=3.0)
     ap.add_argument("--out", default="tests/golden/ipmi_responses.json")
