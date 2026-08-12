@@ -573,6 +573,8 @@ discovery — exposed / lockable / disabled).
 
 # License
 
-MIT. No third-party code is included or vendored. `pyghmi` (Apache-2.0) was
-consulted as an algorithmic reference for IPMI packet formats — read, not
-copied; zipmi's wire code is its own.
+MIT. No third-party code is included or vendored. zipmi's wire code is its own,
+built from the IPMI/DCMI/ASF specifications and cross-checked against reference
+tools. See [docs/Bibliography.md](docs/Bibliography.md) for the specs, tools,
+libraries, and research it leaned on (IPMI 2.0/1.5, DCMI, ipmitool, FreeIPMI,
+Scapy, pyghmi, OpenBMC, and more), each with a URL.
