@@ -73,3 +73,103 @@ def test_probe_bridge_rejected_other_cc():
     r = probe_bridge(_FakeSession(0x83), 2)     # some channel-specific reject
     assert r["supported"] is True and r["bridgeable"] is False
     assert r["cc"] == 0x83
+
+
+# === multi-hop nesting, reply parse, round-trip confirm ==================
+
+from zipmi.cli import bridge as _b   # noqa: E402
+
+
+def test_single_hop_equals_send_message():
+    """One-hop path is exactly a plain Send Message — no extra wrapping."""
+    assert _b.build_bridged_request([0x00], 0x06, 0x01) == build_send_message(0x00, 0x06, 0x01)
+
+
+def test_two_hop_wraps_inner_send_message():
+    """[a,b] == SM(a, 0x34, SM(b, real)); outer IPMB command byte is 0x34."""
+    inner = build_send_message(0x02, 0x06, 0x01)
+    expected = build_send_message(0x00, 0x06, 0x34, inner)
+    got = _b.build_bridged_request([0x00, 0x02], 0x06, 0x01)
+    assert got == expected
+    assert got[6] == 0x34            # IPMB payload command == Send Message
+
+
+def test_three_hop_folds_inside_out():
+    """Deepest nested command is still the real 0x01 (Get Device ID)."""
+    l1 = build_send_message(0x06, 0x06, 0x01)
+    l2 = build_send_message(0x02, 0x06, 0x34, l1)
+    l3 = build_send_message(0x00, 0x06, 0x34, l2)
+    assert _b.build_bridged_request([0x00, 0x02, 0x06], 0x06, 0x01) == l3
+
+
+def test_empty_path_rejected():
+    import pytest
+    with pytest.raises(ValueError):
+        _b.build_bridged_request([], 0x06, 0x01)
+
+
+def _ipmb_reply(cmd: int, cc: int, data: bytes = b"") -> bytes:
+    """Minimal IPMB response: rqAddr, netfn/lun, csum1, rsAddr, seq/lun, cmd, cc,
+    data..., csum2 (checksums are not validated by the parser)."""
+    return bytes([0x81, 0x1C, 0x00, 0x20, 0x00, cmd, cc]) + data + bytes([0x00])
+
+
+def test_parse_extracts_cmd_and_cc():
+    assert _b.parse_encapsulated_reply(_ipmb_reply(0x01, 0x00, b"\x11\x22")) == (0x01, 0x00, b"\x11\x22")
+
+
+def test_parse_too_short_is_none():
+    assert _b.parse_encapsulated_reply(b"\x01\x02\x03") is None
+
+
+def test_unwrap_plain_reply_returns_far_cc():
+    assert _b._unwrap_far_cc(_ipmb_reply(0x01, 0x00, b"\xaa" * 11)) == 0x00
+    assert _b._unwrap_far_cc(_ipmb_reply(0x01, 0xC7)) == 0xC7
+
+
+def test_unwrap_peels_nested_send_message():
+    """Nested SM(0x34)=0x00 wrapping a far reply must peel to the INNER cc."""
+    outer = _ipmb_reply(0x34, 0x00, _ipmb_reply(0x01, 0xCC))
+    assert _b._unwrap_far_cc(outer) == 0xCC
+
+
+class _ScriptSession:
+    """Replays scripted (cc, data) keyed by (netfn, cmd); records calls."""
+    def __init__(self, script):
+        self.script = script
+        self.calls = []
+
+    def send_raw(self, netfn, cmd, data=b""):
+        self.calls.append((netfn, cmd, bytes(data)))
+        return self.script[(netfn, cmd)]
+
+
+def test_confirm_inline_reply():
+    inline = _ipmb_reply(0x01, 0x00, b"\x20" + b"\x00" * 10)
+    s = _ScriptSession({(0x06, 0x34): (0x00, inline)})
+    out = _b.confirm_bridge_path(s, [0x00])
+    assert out["accepted"] and out["confirmed"] and out["via"] == "inline"
+    assert out["far_cc"] == 0x00
+    assert (0x06, 0x31) not in [(n, c) for n, c, _ in s.calls]   # no queue poll
+
+
+def test_confirm_via_get_message_queue():
+    far = _ipmb_reply(0x01, 0x00, b"\x20" + b"\x00" * 10)
+    s = _ScriptSession({
+        (0x06, 0x34): (0x00, b""),            # accepted, nothing inline
+        (0x06, 0x31): (0x00, b"\x01"),        # flags: rx message available
+        (0x06, 0x33): (0x00, b"\x00" + far),  # Get Message: channel byte + reply
+    })
+    out = _b.confirm_bridge_path(s, [0x00])
+    assert out["accepted"] and out["confirmed"] and out["via"] == "get-message"
+
+
+def test_confirm_rejected_bridge():
+    s = _ScriptSession({(0x06, 0x34): (0x83, b"")})
+    out = _b.confirm_bridge_path(s, [0x04])
+    assert not out["accepted"] and not out["confirmed"] and out["accept_cc"] == 0x83
+
+
+def test_confirm_unsupported_send_message():
+    out = _b.confirm_bridge_path(_ScriptSession({(0x06, 0x34): (0xC1, b"")}), [0x00])
+    assert not out["accepted"] and "unsupported" in out["detail"]

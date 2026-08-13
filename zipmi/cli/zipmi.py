@@ -1100,14 +1100,12 @@ SESSION_SUPPORT: dict[int, str] = {
 }
 
 
-def cmd_channel_info(args: argparse.Namespace) -> int:
-    """Get Channel Info Command (0x06/0x42)."""
-    chan = args.channel
-    with _open_session(args) as s:
-        cc, data = s.send_raw(0x06, 0x42, bytes([chan & 0x0F]))
-        if cc != 0x00 or len(data) < 9:
-            _msg.error(f"cc=0x{cc:02x}")
-            return 1
+def _print_channel_info(s, chan: int) -> bool:
+    """Get Channel Info (0x06/0x42) for one channel; print a block. Returns True
+    if the channel exists (BMC answered cc 0x00), False otherwise (skipped)."""
+    cc, data = s.send_raw(0x06, 0x42, bytes([chan & 0x0F]))
+    if cc != 0x00 or len(data) < 9:
+        return False
     actual = data[0] & 0x0F
     medium = data[1] & 0x7F
     proto = data[2] & 0x1F
@@ -1121,6 +1119,100 @@ def cmd_channel_info(args: argparse.Namespace) -> int:
     print(f"  Active sessions  : {active}")
     print(f"  Vendor IANA      : 0x{vendor_id:06x}")
     print(f"  Aux info         : 0x{data[7]:02x}{data[8]:02x}")
+    return True
+
+
+def cmd_channel_info(args: argparse.Namespace) -> int:
+    """Get Channel Info Command (0x06/0x42). `all` walks channels 0x00..0x0B —
+    there is no IPMI 'list channels' primitive, so existence is probed: a channel
+    that answers exists, one that errors/times out is skipped."""
+    with _open_session(args) as s:
+        if args.channel == "all":
+            found = 0
+            for ch in range(0x00, 0x0C):
+                if _print_channel_info(s, ch):
+                    found += 1
+            print(f"# {found} channel(s) present (of 0x00..0x0B probed)")
+            return 0
+        if not _print_channel_info(s, args.channel):
+            _msg.error(f"channel 0x{args.channel:x}: no info (unimplemented?)")
+            return 1
+    return 0
+
+
+def _chan_or_all(v: str):
+    """argparse type: literal 'all' or a channel number (0..15)."""
+    if v == "all":
+        return "all"
+    n = int(v, 0)
+    if not 0 <= n <= 0x0F:
+        raise argparse.ArgumentTypeError(f"channel must be 0..15 or 'all', got {v}")
+    return n
+
+
+def _existing_channels(s) -> list[int]:
+    """Channels 0x00..0x0B that answer Get Channel Info (they exist)."""
+    live = []
+    for ch in range(0x00, 0x0C):
+        cc, data = s.send_raw(0x06, 0x42, bytes([ch & 0x0F]))
+        if cc == 0x00 and len(data) >= 9:
+            live.append(ch)
+    return live
+
+
+def cmd_bridging_info(args: argparse.Namespace) -> int:
+    """Map which channels the BMC will bridge to via Send Message (0x06/0x34),
+    and confirm the far end actually answers (Get Device ID round-trip). Recurses
+    to find multi-hop paths (LAN -> IPMB -> satellite ...), guarded so a channel
+    is never revisited within one path (no infinite loop). Unbounded depth: a
+    --max-probes ceiling stops runaway fan-out LOUDLY rather than truncating
+    silently."""
+    from .bridge import confirm_bridge_path
+
+    max_probes = args.max_probes or None      # 0 -> unbounded
+    state = {"n": 0, "capped": False}
+
+    def edge_label(r: dict) -> str:
+        if not r["accepted"]:
+            return f"reject ({r['detail']})"
+        if r["confirmed"]:
+            fc = r["far_cc"]
+            tag = "OK" if fc == 0x00 else f"far cc=0x{fc:02x}"
+            return f"reachable [{tag}, via {r['via']}]"
+        return "bridged (accepted, no reply)"
+
+    def walk(s, path: list[int], candidates: list[int], depth: int):
+        for ch in candidates:
+            if ch in path:                       # loop guard: no revisit
+                continue
+            if max_probes is not None and state["n"] >= max_probes:
+                state["capped"] = True
+                return
+            state["n"] += 1
+            newpath = path + [ch]
+            r = confirm_bridge_path(s, newpath)
+            arrow = " -> ".join(f"0x{c:x}" for c in newpath)
+            print(f"  [{state['n']:>3}] {arrow:<28} {edge_label(r)}")
+            # only recurse deeper through a channel we could actually reach
+            if r["accepted"]:
+                walk(s, newpath, candidates, depth + 1)
+
+    with _open_session(args) as s:
+        cur = s.send_raw(0x06, 0x42, bytes([0x0E]))     # this channel
+        cur_ch = (cur[1][0] & 0x0F) if cur[0] == 0x00 and cur[1] else None
+        live = _existing_channels(s)
+        if args.channel == "all":
+            targets = live
+        else:
+            targets = [args.channel]
+        here = f"0x{cur_ch:x}" if cur_ch is not None else "?"
+        print(f"bridging map — you are on channel {here}; "
+              f"present channels: {', '.join(f'0x{c:x}' for c in live) or 'none'}")
+        print("(accepted = BMC permitted the bridge; reachable = far end replied)")
+        walk(s, [], targets, 1)
+        print(f"# {state['n']} path(s) probed"
+              + (f"; STOPPED at --max-probes={max_probes}, more unexplored"
+                 if state["capped"] else ""))
     return 0
 
 
@@ -3110,15 +3202,28 @@ def build_parser() -> argparse.ArgumentParser:
     # channel
     chn = sub.add_parser("channel", help="channel info + access")
     chn_sub = chn.add_subparsers(dest="action", required=True)
-    chn_info = chn_sub.add_parser("info", help="Get Channel Info")
-    chn_info.add_argument("channel", nargs="?", type=lambda s: int(s, 0),
+    chn_info = chn_sub.add_parser("info", help="Get Channel Info ('all' walks 0x00..0x0B)")
+    chn_info.add_argument("channel", nargs="?", type=_chan_or_all,
                           default=0x0E,
-                          help="channel number (default 0x0E = this channel)")
+                          help="channel number, or 'all' (default 0x0E = this channel)")
     chn_info.set_defaults(func=cmd_channel_info)
     chn_ga = chn_sub.add_parser("getaccess", help="Get User Access on a channel")
     chn_ga.add_argument("channel", type=lambda s: int(s, 0))
     chn_ga.add_argument("user_id", type=int)
     chn_ga.set_defaults(func=cmd_channel_getaccess)
+
+    # bridging — Send Message reach map across channels (multi-hop, guarded)
+    brg = sub.add_parser("bridging", help="map Send Message bridge reachability")
+    brg_sub = brg.add_subparsers(dest="action", required=True)
+    brg_info = brg_sub.add_parser(
+        "info", help="which channels the BMC bridges to ('all' or a channel)")
+    brg_info.add_argument("channel", nargs="?", type=_chan_or_all, default="all",
+                          help="target channel, or 'all' (default) to map every "
+                               "present channel; recurses for multi-hop paths")
+    brg_info.add_argument("--max-probes", type=int, default=512,
+                          help="stop after N bridge probes (loud, not silent); "
+                               "0 = unbounded (default 512)")
+    brg_info.set_defaults(func=cmd_bridging_info)
 
     # session
     sess = sub.add_parser("session", help="session info")
