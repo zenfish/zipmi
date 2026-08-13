@@ -4722,18 +4722,10 @@ def build_parser() -> argparse.ArgumentParser:
                         default=1, help="payload type (default 1 = SOL)")
     chn_pv.set_defaults(func=cmd_channel_payload_version)
 
-    # bridging — Send Message reach map across channels (multi-hop, guarded)
-    maser = sub.add_parser(
-        "maser",
-        help="Dell OEM MASER / LifecycleController access-state (0x30 0xAE/0xAF)")
-    maser_sub = maser.add_subparsers(dest="maser_action", required=True)
-    mzg = maser_sub.add_parser("get", help="get MASER/LC access-state")
-    mzg.set_defaults(func=cmd_maser_get)
-    mzs = maser_sub.add_parser(
-        "set", help="set MASER/LC access-state (disabled arms the Force-Create wipe)")
-    mzs.add_argument("state", choices=["enabled", "disabled"])
-    mzs.set_defaults(func=cmd_maser_set)
+    # maser is a Dell OEM (NetFn 0x30) command — reached via `oem dell maser
+    # {get,set}` (intercepted in cmd_oem_run), not a top-level verb.
 
+    # bridging — Send Message reach map across channels (multi-hop, guarded)
     brg = sub.add_parser("bridging", help="map Send Message bridge reachability")
     brg_sub = brg.add_subparsers(dest="action", required=True)
     brg_info = brg_sub.add_parser(

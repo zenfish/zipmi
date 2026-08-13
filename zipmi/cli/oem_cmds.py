@@ -1055,6 +1055,24 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     if show_help:
         return _cmd_oem_help(vendor, cmd_name)
 
+    # Structured OEM sub-verb intercept: `oem idrac9 maser {get,set [state]}`.
+    # MASER / LifecycleController access-state is iDRAC9/10 custom decode (not a
+    # raw opcode dispatch), so it routes to dedicated handlers instead of the
+    # name->(netfn,cmd) table.
+    if vendor in ("idrac9", "idrac10") and cmd_name.lower() == "maser":
+        from .zipmi import cmd_maser_get, cmd_maser_set
+        action = raw_data[0].lower() if raw_data else "get"
+        if action == "get":
+            return cmd_maser_get(args)
+        if action == "set":
+            if len(raw_data) < 2 or raw_data[1].lower() not in ("enabled", "disabled"):
+                _msg.error("usage: oem dell maser set {enabled|disabled}")
+                return 2
+            args.state = raw_data[1].lower()
+            return cmd_maser_set(args)
+        _msg.error(f"unknown maser action {action!r} — use get | set")
+        return 2
+
     # Resolve name → (netfn, cmd).
     try:
         listing = _vendor_listing(vendor)
