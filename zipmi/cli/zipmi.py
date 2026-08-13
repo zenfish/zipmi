@@ -406,36 +406,54 @@ def cmd_fingerprint(args: argparse.Namespace) -> int:
     probe sweep for when only UDP/623 is reachable.
     """
     host = _require_host(args)
+    to_json = getattr(args, "json", False)
     openbmc = False
     vendor = None
     signals = []
+    redfish: dict | None = None
+    ipmi: dict | None = None
 
     if not args.no_redfish:
         base = f"https://{host}:{args.redfish_port}"
-        print(f"# Redfish ({base})")
+        redfish = {"base": base, "reachable": False}
+        if not to_json:
+            print(f"# Redfish ({base})")
         try:
             st, server, root = _http_get_json(base + "/redfish/v1/", None, None, args.timeout)
-            print(f"  reachable               : yes (HTTP {st})")
+            redfish["reachable"] = True
+            redfish["http_status"] = st
+            if not to_json:
+                print(f"  reachable               : yes (HTTP {st})")
             if server:
-                tag = "   → bmcweb = OpenBMC" if "bmcweb" in server.lower() else ""
-                print(f"  Server header           : {server}{tag}")
-                if "bmcweb" in server.lower():
+                redfish["server_header"] = server
+                is_bmcweb = "bmcweb" in server.lower()
+                if not to_json:
+                    tag = "   → bmcweb = OpenBMC" if is_bmcweb else ""
+                    print(f"  Server header           : {server}{tag}")
+                if is_bmcweb:
                     openbmc = True
                     signals.append("Server: bmcweb")
             if root:
-                print(f"  ServiceRoot @odata.type : {root.get('@odata.type', '?')}")
-                print(f"  RedfishVersion          : {root.get('RedfishVersion', '?')}")
-                if root.get("Oem"):
-                    print(f"  ServiceRoot Oem keys    : {', '.join(root['Oem'])}")
+                redfish["service_root_type"] = root.get("@odata.type")
+                redfish["redfish_version"] = root.get("RedfishVersion")
+                redfish["service_root_oem_keys"] = list(root.get("Oem") or [])
+                if not to_json:
+                    print(f"  ServiceRoot @odata.type : {root.get('@odata.type', '?')}")
+                    print(f"  RedfishVersion          : {root.get('RedfishVersion', '?')}")
+                    if root.get("Oem"):
+                        print(f"  ServiceRoot Oem keys    : {', '.join(root['Oem'])}")
             # Managers/bmc carries the definitive Oem.OpenBmc (needs auth).
             st2, _, mgr = _http_get_json(base + "/redfish/v1/Managers/bmc",
                                          args.user, args.password, args.timeout)
             if mgr:
-                if mgr.get("Model"):
-                    print(f"  Managers/bmc Model      : {mgr['Model']}")
+                redfish["manager_model"] = mgr.get("Model")
                 oem = mgr.get("Oem") or {}
-                if oem:
-                    print(f"  Managers/bmc Oem keys   : {', '.join(oem)}")
+                redfish["manager_oem_keys"] = list(oem)
+                if not to_json:
+                    if mgr.get("Model"):
+                        print(f"  Managers/bmc Model      : {mgr['Model']}")
+                    if oem:
+                        print(f"  Managers/bmc Oem keys   : {', '.join(oem)}")
                 for k in oem:
                     if k.lower() == "openbmc":
                         openbmc = True
@@ -444,31 +462,60 @@ def cmd_fingerprint(args: argparse.Namespace) -> int:
                         vendor = vendor or k.lower()
                         signals.append(f"Oem.{k}")
             elif st2 == 401:
-                print(f"  Managers/bmc            : 401 (give -U/-P for Oem.OpenBmc)")
+                redfish["manager_status"] = 401
+                if not to_json:
+                    print(f"  Managers/bmc            : 401 (give -U/-P for Oem.OpenBmc)")
         except Exception as e:
-            print(f"  reachable               : no ({_short_err(e)})")
+            redfish["error"] = _short_err(e)
+            if not to_json:
+                print(f"  reachable               : no ({_short_err(e)})")
 
     if not args.no_ipmi and args.user and args.password:
-        print(f"# IPMI (udp {host}:{args.port}, {args.interface} cipher {args.cipher if args.cipher is not None else 'auto'})")
+        ipmi = {"attempted": True}
+        if not to_json:
+            print(f"# IPMI (udp {host}:{args.port}, {args.interface} cipher {args.cipher if args.cipher is not None else 'auto'})")
         try:
             with _open_session(args) as s:
                 d = s.get_device_id()
                 iana = d.manufacturer_id_int()
-                print(f"  Get Device ID           : mfr={iana} "
-                      f"({IANA.get(iana, 'unknown')})  product=0x{d.product_id:04x}  "
-                      f"fw={d.fw_revision()}")
-                if iana == 0:
-                    print(f"                            (mfr 0 — OpenBMC commonly reports this; inconclusive)")
-                print(f"  OEM probe sweep         :")
+                ipmi["manufacturer_id"] = iana
+                ipmi["manufacturer_name"] = IANA.get(iana, "unknown")
+                ipmi["product_id"] = d.product_id
+                ipmi["fw_revision"] = d.fw_revision()
+                if not to_json:
+                    print(f"  Get Device ID           : mfr={iana} "
+                          f"({IANA.get(iana, 'unknown')})  product=0x{d.product_id:04x}  "
+                          f"fw={d.fw_revision()}")
+                    if iana == 0:
+                        print(f"                            (mfr 0 — OpenBMC commonly reports this; inconclusive)")
+                    print(f"  OEM probe sweep         :")
+                sweep = []
                 for vk, (present, detail) in _ipmi_vendor_sweep(s).items():
-                    print(f"    {vk:<10s} {'PRESENT' if present else 'absent '}  {detail}")
+                    sweep.append({"vendor": vk, "present": present, "detail": detail})
+                    if not to_json:
+                        print(f"    {vk:<10s} {'PRESENT' if present else 'absent '}  {detail}")
                     if present:
                         vendor = vendor or vk
+                ipmi["oem_probe_sweep"] = sweep
         except Exception as e:
-            print(f"  session                 : failed ({_short_err(e)})")
+            ipmi["error"] = _short_err(e)
+            if not to_json:
+                print(f"  session                 : failed ({_short_err(e)})")
     elif not args.no_ipmi:
-        print(f"# IPMI: skipped — give -U/-P for the OEM probe sweep (OpenBMC needs -C 17)")
+        ipmi = {"attempted": False}
+        if not to_json:
+            print(f"# IPMI: skipped — give -U/-P for the OEM probe sweep (OpenBMC needs -C 17)")
 
+    result = {
+        "host": host,
+        "openbmc": openbmc,
+        "vendor": vendor,
+        "signals": list(dict.fromkeys(signals)),
+        "redfish": redfish,
+        "ipmi": ipmi,
+    }
+    if emit(args, result):
+        return 0
     print("# Verdict")
     if openbmc:
         print(f"  OpenBMC: YES  ({'; '.join(dict.fromkeys(signals))})")
@@ -913,12 +960,19 @@ def cmd_sdr_list(args: argparse.Namespace) -> int:
     Prints record_id and record_type for each record. Full record decode
     is deferred to a future revision (variable layouts per Type 1/2/11/12).
     """
+    to_json = getattr(args, "json", False)
+    records: list[dict] = []
     with _open_session(args) as s:
         info = s.send_cmd(0x0A, 0x20)
-        print(f"SDR Version    : 0x{info.sdr_version:02x}")
-        print(f"Record Count   : {info.record_count}")
-        print(f"Free Space     : {info.free_space} bytes")
+        if not to_json:
+            print(f"SDR Version    : 0x{info.sdr_version:02x}")
+            print(f"Record Count   : {info.record_count}")
+            print(f"Free Space     : {info.free_space} bytes")
         if info.record_count == 0:
+            if emit(args, {"sdr_version": info.sdr_version,
+                           "record_count": 0,
+                           "free_space": info.free_space, "records": []}):
+                return 0
             return 0
         rsv = s.send_cmd(0x0A, 0x22)
         rid = rsv.reservation_id
@@ -941,13 +995,19 @@ def cmd_sdr_list(args: argparse.Namespace) -> int:
                 version = data[2]
                 rec_type = data[3]
                 length = data[4]
-                print(f"  SDR 0x{rec_id:04x}: type=0x{rec_type:02x} "
-                      f"version=0x{version:02x} len={length}")
+                records.append({"record_id": rec_id, "record_type": rec_type,
+                                "version": version, "length": length})
+                if not to_json:
+                    print(f"  SDR 0x{rec_id:04x}: type=0x{rec_type:02x} "
+                          f"version=0x{version:02x} len={length}")
             seen += 1
             next_id = resp.next_record_id
             if next_id == 0xFFFF:
                 break
             record_id = next_id
+    emit(args, {"sdr_version": info.sdr_version,
+                "record_count": info.record_count,
+                "free_space": info.free_space, "records": records})
     return 0
 
 
@@ -1208,6 +1268,9 @@ def cmd_serial_set(args: argparse.Namespace) -> int:
     if cc != 0x00:
         _msg.error(f"cc=0x{cc:02x}")
         return 1
+    if emit(args, {"ok": True, "action": "serial-set", "channel": ch,
+                   "param": param, "data": data.hex()}):
+        return 0
     print(f"serial channel 0x{ch:x} param {param}: set ({data.hex()})")
     return 0
 
@@ -1536,6 +1599,19 @@ def cmd_channel_getaccess(args: argparse.Namespace) -> int:
     priv_name = next((n for n, v in PRIV_LEVELS.items() if v == priv),
                      f"0x{priv:x}")
     enabled = {0: "unspecified", 1: "enabled", 2: "disabled"}.get(enabled_status, "?")
+    if emit(args, {
+        "channel": args.channel & 0x0F,
+        "user_id": args.user_id & 0x3F,
+        "max_user_ids": max_uid,
+        "enabled_user_count": enabled_count,
+        "fixed_name_users": fixed_users,
+        "enable_status": {"code": enabled_status, "name": enabled},
+        "ipmi_messaging": ipmi_msg,
+        "link_authentication": link_auth,
+        "callin_callback": callin,
+        "privilege_level": {"code": priv, "name": priv_name},
+    }):
+        return 0
     print(f"Channel 0x{args.channel:x}, user {args.user_id}:")
     print(f"  Max user IDs       : {max_uid}")
     print(f"  Enabled user count : {enabled_count}")
@@ -1764,6 +1840,17 @@ def cmd_sensor_get(args: argparse.Namespace) -> int:
             return 1
     raw = rdata[0]
     status = rdata[1]
+    cooked = cook_reading(found, raw)
+    if emit(args, {
+        "name": found.name,
+        "sensor_number": found.sensor_number,
+        "sensor_type": found.sensor_type,
+        "unit": unit_name(found.unit_code),
+        "raw_value": raw,
+        "status_byte": status,
+        "cooked_value": cooked,
+    }):
+        return 0
     print(f"Sensor name      : {found.name}")
     print(f"Sensor number    : 0x{found.sensor_number:02x}")
     print(f"Sensor type      : 0x{found.sensor_type:02x}")
@@ -1771,7 +1858,6 @@ def cmd_sensor_get(args: argparse.Namespace) -> int:
     print(f"Raw value        : 0x{raw:02x}")
     print(f"Status byte      : 0x{status:02x}  "
           f"(bit7=unavail bit6=scan-disabled bit5=event-msgs-disabled)")
-    cooked = cook_reading(found, raw)
     if cooked is None:
         print("Cooked value     : (non-analog or unsupported linearization)")
     else:
@@ -2087,9 +2173,13 @@ def cmd_sensor_list(args: argparse.Namespace) -> int:
     For each Type 1 (Full Sensor) and Type 2 (Compact Sensor) SDR, extract
     the sensor number and name, then issue Get Sensor Reading.
     """
+    to_json = getattr(args, "json", False)
+    sensors: list[dict] = []
     with _open_session(args) as s:
         info = s.send_cmd(0x0A, 0x20)
         if info.record_count == 0:
+            if emit(args, {"sensors": []}):
+                return 0
             print("(no SDR records)")
             return 0
         rsv = s.send_cmd(0x0A, 0x22)
@@ -2132,20 +2222,30 @@ def cmd_sensor_list(args: argparse.Namespace) -> int:
                             .decode("utf-8", errors="replace")
                             if len(full) > name_offset + 1
                             else f"sensor_{sensor_num:#x}")
+                    row = {"sensor_number": sensor_num, "name": name,
+                           "record_type": rec_type}
                     try:
                         reading = s.send_cmd(0x04, 0x2D,
                                              GetSensorReadingReq(sensor_number=sensor_num))
                         if reading.status & 0x20:
                             val_str = "n/a"
+                            row["available"] = False
+                            row["raw"] = None
                         else:
                             val_str = f"raw=0x{reading.reading:02x}"
+                            row["available"] = True
+                            row["raw"] = reading.reading
                     except Exception as e:
                         val_str = f"err={e}"
-                    print(f"  0x{sensor_num:02x}  {name:20}  {val_str}")
+                        row["error"] = str(e)
+                    sensors.append(row)
+                    if not to_json:
+                        print(f"  0x{sensor_num:02x}  {name:20}  {val_str}")
             seen += 1
             if next_id == 0xFFFF:
                 break
             record_id = next_id
+    emit(args, {"sensors": sensors})
     return 0
 
 
@@ -2240,6 +2340,9 @@ def cmd_i2c(args: argparse.Namespace) -> int:
         cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
         _msg.error(f"Master Write-Read failed: {cc_name}")
         return 1
+    if emit(args, {"bus_byte": bus_byte, "slave": slave,
+                   "read_count": read_count, "data": resp.hex()}):
+        return 0
     if resp:
         print(" ".join(f"{b:02x}" for b in resp))
     return 0
@@ -2269,16 +2372,24 @@ def cmd_i2cscan(args: argparse.Namespace) -> int:
     except ValueError as e:
         _msg.error(f"{e}")
         return 2
+    to_json = getattr(args, "json", False)
     lo, hi = args.lo, args.hi
     found = 0
+    devices: list[dict] = []
     with _open_session(args) as s:
         for addr in range(lo, hi + 1):
             cc, resp = _master_write_read(s, bus_byte, addr, 1, b"")
             if cc == 0:
                 first = " ".join(f"{b:02x}" for b in resp) if resp else ""
-                print(f"  present  7bit=0x{addr:02x}  8bit=0x{addr << 1:02x}"
-                      f"  read1={first or '-'}")
+                devices.append({"addr_7bit": addr, "addr_8bit": addr << 1,
+                                "read1": resp.hex() or None})
+                if not to_json:
+                    print(f"  present  7bit=0x{addr:02x}  8bit=0x{addr << 1:02x}"
+                          f"  read1={first or '-'}")
                 found += 1
+    if emit(args, {"bus_byte": bus_byte, "range_lo": lo, "range_hi": hi,
+                   "found": found, "devices": devices}):
+        return 0
     _msg.info(f"-- {found} device(s) on bus 0x{bus_byte:02x} "
               f"(range 0x{lo:02x}..0x{hi:02x}) --")
     return 0
@@ -2295,15 +2406,26 @@ def cmd_i2c_id(args: argparse.Namespace) -> int:
         _msg.error("usage: i2c-id [bus=public|#] [chan=#] <i2caddr>")
         return 2
     slave = int(rest[0], 0)
+    to_json = getattr(args, "json", False)
+    regs: list[dict] = []
+    plain_read = None
     with _open_session(args) as s:
         for reg, name in _I2C_ID_REGS:
             cc, resp = _master_write_read(s, bus_byte, slave, 1, bytes([reg]))
+            regs.append({"reg": reg, "name": name, "cc": cc,
+                         "value": resp.hex() if cc == 0 else None})
             val = (" ".join(f"{b:02x}" for b in resp)) if (cc == 0 and resp) else \
                   ("(NAK)" if cc != 0 else "?")
-            print(f"  0x{reg:02x}  {name:<20} = {val}")
+            if not to_json:
+                print(f"  0x{reg:02x}  {name:<20} = {val}")
         cc, resp = _master_write_read(s, bus_byte, slave, 16, b"")
         if cc == 0:
-            print("  plain read 16:\n" + _hex_dump(resp, base=0))
+            plain_read = resp.hex()
+            if not to_json:
+                print("  plain read 16:\n" + _hex_dump(resp, base=0))
+    if emit(args, {"bus_byte": bus_byte, "slave": slave,
+                   "registers": regs, "plain_read_16": plain_read}):
+        return 0
     return 0
 
 
@@ -2342,6 +2464,9 @@ def cmd_spd(args: argparse.Namespace) -> int:
                     print(_hex_dump(bytes(buf)))
                 return 1
             buf.extend(resp)
+    if emit(args, {"bus_byte": bus_byte, "slave": slave,
+                   "size": total, "data": bytes(buf).hex()}):
+        return 0
     print(_hex_dump(bytes(buf)))
     return 0
 
@@ -2740,6 +2865,11 @@ def cmd_fuzz_sweep(args: argparse.Namespace) -> int:
 
 def cmd_sessionless_list(args: argparse.Namespace) -> int:
     """List commands the IPMI 2.0 spec permits outside a session."""
+    if emit(args, {"commands": [
+        {"netfn": netfn, "cmd": cmd, "name": name}
+        for (netfn, cmd), name in sorted(PRE_SESSION_CMDS.items())
+    ]}):
+        return 0
     print("Commands sendable without a session (per IPMI 2.0 spec):")
     print()
     for (netfn, cmd), name in sorted(PRE_SESSION_CMDS.items()):
@@ -2848,6 +2978,9 @@ def cmd_raw(args: argparse.Namespace) -> int:
     if cc != 0:
         _msg.error(f"completion code: {cc_name}")
         return 1
+    if emit(args, {"netfn": netfn, "cmd": cmd, "name": name,
+                   "cc": cc, "data": resp.hex()}):
+        return 0
     if resp:
         print(" ".join(f"{b:02x}" for b in resp))
     return 0

@@ -300,3 +300,102 @@ def test_privesc_no_baseline_when_direct_granted(monkeypatch):
     assert rc == 0
     assert d["direct"]["refused"] is False
     assert d["escalation_found"] is False
+
+
+# === channel getaccess ===================================================
+
+def test_channel_getaccess_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_getaccess
+    # byte0 max_uid=0x10=16; byte1 0x41 -> enabled_status=1(enabled), count=1;
+    # byte2 fixed=2; byte3 0x14 -> priv=4(admin), msg on(0x10), link off, callin on
+    s = _S({(0x06, 0x44, bytes([0x01, 0x02])): (0x00, bytes([0x10, 0x41, 0x02, 0x14]))})
+    rc, d = _run(monkeypatch, cmd_channel_getaccess, s, channel=1, user_id=2)
+    assert rc == 0
+    assert d["channel"] == 1 and d["user_id"] == 2
+    assert d["max_user_ids"] == 16
+    assert d["enabled_user_count"] == 1
+    assert d["fixed_name_users"] == 2
+    assert d["enable_status"] == {"code": 1, "name": "enabled"}
+    assert d["ipmi_messaging"] is True
+    assert d["link_authentication"] is False
+    assert d["callin_callback"] is True
+    assert d["privilege_level"] == {"code": 4, "name": "admin"}
+
+
+# === i2c / spd ===========================================================
+
+def test_i2c_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_i2c
+    # bus=public,chan=0 -> bus_byte 0; slave 0x50 -> (0x50<<1)=0xA0; read 2, no write
+    s = _S({(0x06, 0x52, bytes([0x00, 0xA0, 0x02])): (0x00, bytes([0xDE, 0xAD]))})
+    rc, d = _run(monkeypatch, cmd_i2c, s, tokens=["0x50", "2"])
+    assert rc == 0
+    assert d == {"bus_byte": 0, "slave": 0x50, "read_count": 2, "data": "dead"}
+
+
+def test_i2cscan_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_i2cscan
+    # 0x50 present (cc 0, returns 0xAB), everything else defaults to cc 0xC1
+    s = _S({(0x06, 0x52, bytes([0x00, 0x50 << 1, 0x01])): (0x00, bytes([0xAB]))})
+    rc, d = _run(monkeypatch, cmd_i2cscan, s, tokens=[], lo=0x50, hi=0x52)
+    assert rc == 0
+    assert d["bus_byte"] == 0 and d["found"] == 1
+    assert d["devices"] == [{"addr_7bit": 0x50, "addr_8bit": 0xA0, "read1": "ab"}]
+
+
+def test_i2c_id_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_i2c_id
+    # reg 0xFE (SMBus MfrID) answers 0x1234; all other regs + the plain 16-read
+    # default to cc 0xC1 (NAK), so plain_read_16 stays None.
+    s = _S({(0x06, 0x52, bytes([0x00, 0x50 << 1, 0x01, 0xFE])): (0x00, bytes([0x12, 0x34]))})
+    rc, d = _run(monkeypatch, cmd_i2c_id, s, tokens=["0x50"])
+    assert rc == 0
+    assert d["slave"] == 0x50 and d["plain_read_16"] is None
+    by_reg = {r["reg"]: r for r in d["registers"]}
+    assert by_reg[0xFE]["value"] == "1234" and by_reg[0xFE]["cc"] == 0
+    assert by_reg[0xFF]["value"] is None and by_reg[0xFF]["cc"] == 0xC1
+
+
+def test_spd_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_spd
+    # size=16 -> one 16-byte MWR at offset 0 (write byte = 0x00)
+    payload = bytes(range(16))
+    s = _S({(0x06, 0x52, bytes([0x00, 0x50 << 1, 0x10, 0x00])): (0x00, payload)})
+    rc, d = _run(monkeypatch, cmd_spd, s, tokens=["0x50"], size=16)
+    assert rc == 0
+    assert d == {"bus_byte": 0, "slave": 0x50, "size": 16, "data": payload.hex()}
+
+
+# === serial set (action) =================================================
+
+def test_serial_set_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_serial_set
+    # Set Serial/Modem Config 0x0C/0x10, body = [channel, param] + data
+    s = _S({(0x0C, 0x10, bytes([0x01, 0x03, 0xAA, 0xBB])): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_serial_set, s,
+                 yes=True, channel=1, param="3", hexdata="aabb")
+    assert rc == 0
+    assert d == {"ok": True, "action": "serial-set", "channel": 1,
+                 "param": 3, "data": "aabb"}
+
+
+# === raw =================================================================
+
+def test_raw_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_raw
+    s = _S({(0x06, 0x01): (0x00, bytes([0x20, 0x01, 0x02]))})
+    rc, d = _run(monkeypatch, cmd_raw, s, netfn="0x06", cmd="0x01", data=[])
+    assert rc == 0
+    assert d["netfn"] == 6 and d["cmd"] == 1 and d["cc"] == 0
+    assert d["data"] == "200102"
+
+
+# === sessionless list (static) ===========================================
+
+def test_sessionless_list_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sessionless_list, PRE_SESSION_CMDS
+    rc, d = _run(monkeypatch, cmd_sessionless_list, _S({}))
+    assert rc == 0
+    assert len(d["commands"]) == len(PRE_SESSION_CMDS)
+    # Get System GUID (0x06/0x37) must be in the sessionless set.
+    assert {"netfn": 0x06, "cmd": 0x37, "name": PRE_SESSION_CMDS[(0x06, 0x37)]} in d["commands"]
