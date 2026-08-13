@@ -117,14 +117,17 @@ The probe caps the session with `--max-priv operator`, then:
 | supermicro-x14 | Supermicro | REFUSED `0x81` | none |
 | openbmc | OpenBMC (AST2600) | REFUSED `0x81` | none |
 | megarac-hpe | AMI/HPE MegaRAC | REFUSED `0x81` | none |
-| nvidia-obmc | NVIDIA GB200NVL OpenBMC | _pending_ | _pending_ |
+| nvidia-obmc | NVIDIA GB200NVL OpenBMC | REFUSED `0x81` | none — Send Message unsupported (`0xc1`) |
 
 **Takeaway:** every reachable box correctly caps the operator session *and*
 refuses the bridged admin request — **none vulnerable, zero false positives**
-across 4 vendors. The `--max-priv` cap (RAKP requested-role byte derived from
-the priv nibble) holds cross-vendor: the direct baseline flips
+across 6 BMCs / 5 vendors. The `--max-priv` cap (RAKP requested-role byte
+derived from the priv nibble) holds cross-vendor: the direct baseline flips
 `GRANTED admin → REFUSED` when capped, which is what makes the bridged
-comparison meaningful. A negative result, but it exercises the probe end to end.
+comparison meaningful. nvidia-obmc is a stronger negative still — its GB200NVL
+OpenBMC build does not implement **Send Message (0x34)** at all (every channel
+returns `0xc1`), so the whole bridging class is unreachable there. A negative
+result, but it exercises the probe end to end.
 
 ### Reproduce
 
