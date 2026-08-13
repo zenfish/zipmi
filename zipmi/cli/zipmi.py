@@ -1150,68 +1150,98 @@ def _chan_or_all(v: str):
     return n
 
 
-def _existing_channels(s) -> list[int]:
-    """Channels 0x00..0x0B that answer Get Channel Info (they exist)."""
-    live = []
+def _channel_media(s) -> dict[int, int]:
+    """Channels 0x00..0x0B that answer Get Channel Info -> their medium type."""
+    media = {}
     for ch in range(0x00, 0x0C):
         cc, data = s.send_raw(0x06, 0x42, bytes([ch & 0x0F]))
         if cc == 0x00 and len(data) >= 9:
-            live.append(ch)
-    return live
+            media[ch] = data[1] & 0x7F
+    return media
+
+
+# Heuristic IPMB satellite slave addresses to sweep when a target channel is an
+# IPMB. 0x20 is the BMC itself (loopback sanity); the rest are common satellite
+# controller homes — ME/bridge (0x2c/0x2e), chassis/PSU/HSC/backplane MCs
+# (0x80..0x8e, 0xc0..0xce). Not exhaustive: `--ipmb-scan full` sweeps every even
+# address 0x10..0xee instead.
+_IPMB_SAT_COMMON = [0x20, 0x2C, 0x2E, 0x80, 0x82, 0x84, 0x86, 0x88, 0x8A,
+                    0xC0, 0xC2, 0xC4, 0xC6, 0xC8, 0xCA, 0xCC, 0xCE]
+_IPMB_SAT_FULL = list(range(0x10, 0xF0, 2))
+_MEDIUM_IPMB = 0x01
 
 
 def cmd_bridging_info(args: argparse.Namespace) -> int:
     """Map which channels the BMC will bridge to via Send Message (0x06/0x34),
-    and confirm the far end actually answers (Get Device ID round-trip). Recurses
-    to find multi-hop paths (LAN -> IPMB -> satellite ...), guarded so a channel
-    is never revisited within one path (no infinite loop). Unbounded depth: a
-    --max-probes ceiling stops runaway fan-out LOUDLY rather than truncating
-    silently."""
-    from .bridge import confirm_bridge_path
+    and confirm the far end actually answers (Get Device ID round-trip). Each
+    line carries the completion code AND its reason, bucketed:
+      reachable   far controller replied
+      bridged     BMC accepted but no reply came back
+      unreachable bridge worked, nobody answered at the target (cc 0xd3/0x83)
+      refused     BMC rejected the request (cc 0xcc, 0x80 needs session, ...)
+
+    For IPMB target channels the inner slave address is swept (--ipmb-scan) to
+    hunt satellite controllers behind the bus, since a single 0x20 probe only
+    ever asks the BMC about itself. Recurses to find multi-hop paths, guarded so
+    a channel is never revisited within one path (no infinite loop). Depth is
+    unbounded; --max-probes stops runaway fan-out LOUDLY, never silently."""
+    from .bridge import confirm_bridge_path, cc_reason
 
     max_probes = args.max_probes or None      # 0 -> unbounded
+    sat_addrs = {"off": [0x20], "common": _IPMB_SAT_COMMON,
+                 "full": _IPMB_SAT_FULL}[args.ipmb_scan]
     state = {"n": 0, "capped": False}
 
     def edge_label(r: dict) -> str:
-        if not r["accepted"]:
-            return f"reject ({r['detail']})"
-        if r["confirmed"]:
-            fc = r["far_cc"]
-            tag = "OK" if fc == 0x00 else f"far cc=0x{fc:02x}"
-            return f"reachable [{tag}, via {r['via']}]"
-        return "bridged (accepted, no reply)"
+        cat = r["category"]
+        if r["accepted"]:
+            code = f"far cc=0x{r['far_cc']:02x}" if r["confirmed"] else "accepted"
+            via = f", via {r['via']}" if r["confirmed"] else ""
+            return f"{cat:<11} [{code}{via}] {r['detail']}"
+        cc = r["accept_cc"]
+        code = f"cc=0x{cc:02x}" if cc is not None else "no-cc"
+        return f"{cat:<11} [{code}] {r['detail']}"
 
-    def walk(s, path: list[int], candidates: list[int], depth: int):
-        for ch in candidates:
+    def probe(s, path: list[int], rs_addr: int) -> dict:
+        state["n"] += 1
+        r = confirm_bridge_path(s, path, rs_addr=rs_addr)
+        arrow = " -> ".join(f"0x{c:x}" for c in path)
+        sat = f" sat=0x{rs_addr:02x}" if rs_addr != 0x20 else ""
+        print(f"  [{state['n']:>3}] {arrow}{sat:<10}  {edge_label(r)}")
+        return r
+
+    def walk(s, path: list[int], media: dict[int, int], depth: int):
+        for ch in media:
             if ch in path:                       # loop guard: no revisit
                 continue
-            if max_probes is not None and state["n"] >= max_probes:
-                state["capped"] = True
-                return
-            state["n"] += 1
             newpath = path + [ch]
-            r = confirm_bridge_path(s, newpath)
-            arrow = " -> ".join(f"0x{c:x}" for c in newpath)
-            print(f"  [{state['n']:>3}] {arrow:<28} {edge_label(r)}")
-            # only recurse deeper through a channel we could actually reach
-            if r["accepted"]:
-                walk(s, newpath, candidates, depth + 1)
+            is_ipmb = media[ch] == _MEDIUM_IPMB and args.ipmb_scan != "off"
+            addrs = sat_addrs if is_ipmb else [0x20]
+            accepted_any = False
+            for a in addrs:
+                if max_probes is not None and state["n"] >= max_probes:
+                    state["capped"] = True
+                    return
+                r = probe(s, newpath, a)
+                accepted_any = accepted_any or r["accepted"]
+            # recurse deeper only through a channel the BMC would bridge to
+            if accepted_any:
+                walk(s, newpath, media, depth + 1)
 
     with _open_session(args) as s:
         cur = s.send_raw(0x06, 0x42, bytes([0x0E]))     # this channel
         cur_ch = (cur[1][0] & 0x0F) if cur[0] == 0x00 and cur[1] else None
-        live = _existing_channels(s)
-        if args.channel == "all":
-            targets = live
-        else:
-            targets = [args.channel]
+        media = _channel_media(s)
+        if args.channel != "all":
+            media = {args.channel: media.get(args.channel, 0xFF)}
         here = f"0x{cur_ch:x}" if cur_ch is not None else "?"
-        print(f"bridging map — you are on channel {here}; "
-              f"present channels: {', '.join(f'0x{c:x}' for c in live) or 'none'}")
-        print("(accepted = BMC permitted the bridge; reachable = far end replied)")
-        walk(s, [], targets, 1)
-        print(f"# {state['n']} path(s) probed"
-              + (f"; STOPPED at --max-probes={max_probes}, more unexplored"
+        print(f"bridging map — you are on channel {here}; present channels: "
+              f"{', '.join(f'0x{c:x}' for c in media) or 'none'}")
+        print("categories: reachable=far end replied  bridged=accepted,no reply  "
+              "unreachable=nobody home  refused=BMC rejected")
+        walk(s, [], media, 1)
+        print(f"# {state['n']} probe(s)"
+              + (f"; STOPPED at --max-probes={args.max_probes}, more unexplored"
                  if state["capped"] else ""))
     return 0
 
@@ -3223,6 +3253,12 @@ def build_parser() -> argparse.ArgumentParser:
     brg_info.add_argument("--max-probes", type=int, default=512,
                           help="stop after N bridge probes (loud, not silent); "
                                "0 = unbounded (default 512)")
+    brg_info.add_argument("--ipmb-scan", choices=["off", "common", "full"],
+                          default="common",
+                          help="for IPMB target channels, sweep satellite slave "
+                               "addresses to find controllers behind the bus: "
+                               "off=0x20 only, common=~17 usual homes (default), "
+                               "full=every even addr 0x10..0xee")
     brg_info.set_defaults(func=cmd_bridging_info)
 
     # session

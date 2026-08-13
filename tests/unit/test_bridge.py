@@ -173,3 +173,61 @@ def test_confirm_rejected_bridge():
 def test_confirm_unsupported_send_message():
     out = _b.confirm_bridge_path(_ScriptSession({(0x06, 0x34): (0xC1, b"")}), [0x00])
     assert not out["accepted"] and "unsupported" in out["detail"]
+
+
+# --- rs_addr (satellite) threading ---------------------------------------
+
+def test_rs_addr_changes_only_innermost_target():
+    """Sweeping the inner slave address changes the innermost IPMB target byte,
+    not the outer Send Message envelope. Two different sat addrs -> two different
+    requests; the outer channel/tracking byte stays identical."""
+    a = _b.build_bridged_request([0x00], 0x06, 0x01, rs_addr=0x20)
+    b = _b.build_bridged_request([0x00], 0x06, 0x01, rs_addr=0x2C)
+    assert a != b
+    assert a[0] == b[0]                       # outer channel/tracking byte same
+    assert a[1] == 0x20 and b[1] == 0x2C      # inner IPMB rsSA differs
+
+
+def test_rs_addr_default_matches_plain_build():
+    """rs_addr=0x20 default reproduces the addressing of build_send_message."""
+    assert _b.build_bridged_request([0x00], 0x06, 0x01) == build_send_message(0x00, 0x06, 0x01)
+    got = _b.build_bridged_request([0x00, 0x02], 0x06, 0x01, rs_addr=0xC0)
+    inner = build_send_message(0x02, 0x06, 0x01, rs_addr=0xC0)
+    assert got == build_send_message(0x00, 0x06, 0x34, inner)
+
+
+def test_confirm_passes_rs_addr_through():
+    """confirm_bridge_path(rs_addr=..) actually reaches the wire: the recorded
+    Send Message payload carries that slave address at the inner rsSA."""
+    s = _ScriptSession({(0x06, 0x34): (0x83, b"")})   # NAK, doesn't matter
+    _b.confirm_bridge_path(s, [0x00], rs_addr=0xC0)
+    _, _, sent = s.calls[0]
+    assert sent[1] == 0xC0                    # inner IPMB rsSA == swept sat addr
+
+
+# --- code names + categories ---------------------------------------------
+
+def test_send_message_specific_cc_names_override_generic():
+    """0x80 in a bridging context is 'Invalid Session Handle', not a device code."""
+    assert "Session Handle" in _b.cc_reason(0x80)
+    assert "NAK" in _b.cc_reason(0x83)
+
+
+def test_cc_reason_falls_back_to_generic_then_hex():
+    assert _b.cc_reason(0xCC) == "Invalid data field in request"   # generic table
+    assert "0x4f" in _b.cc_reason(0x4F).lower()                    # unknown -> hex
+
+
+def test_cc_category_buckets():
+    assert _b.cc_category(0x00, True, True) == "reachable"
+    assert _b.cc_category(0x00, True, False) == "bridged"
+    assert _b.cc_category(0xD3, False, False) == "unreachable"    # nobody home
+    assert _b.cc_category(0x83, False, False) == "unreachable"    # bus NAK
+    assert _b.cc_category(0xCC, False, False) == "refused"        # BMC rejected
+
+
+def test_confirm_categorizes_unreachable_vs_refused():
+    unr = _b.confirm_bridge_path(_ScriptSession({(0x06, 0x34): (0xD3, b"")}), [0x00])
+    ref = _b.confirm_bridge_path(_ScriptSession({(0x06, 0x34): (0xCC, b"")}), [0x01])
+    assert unr["category"] == "unreachable" and "destination" in unr["detail"].lower()
+    assert ref["category"] == "refused" and "Invalid data field" in ref["detail"]

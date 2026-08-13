@@ -21,6 +21,35 @@ from __future__ import annotations
 
 from ..consts import COMP_CODE
 
+# Send Message (0x34) defines its OWN completion codes in the 0x80..0x83 range —
+# these override the generic/OEM meaning of those bytes in a bridging context
+# (IPMI 2.0 §22.7). e.g. 0x80 here is "Invalid Session Handle", not a device code.
+SEND_MSG_CC: dict[int, str] = {
+    0x80: "Invalid Session Handle (needs a session on the target channel)",
+    0x81: "Lost Arbitration (IPMB)",
+    0x82: "Bus Error (IPMB)",
+    0x83: "NAK on Write / target did not ACK on the bus",
+}
+
+# Completion codes that mean "the bridge worked, but the far end wasn't reachable"
+# — as opposed to the BMC refusing the request outright.
+_UNREACHABLE_CC = frozenset({0x83, 0xD3})
+
+
+def cc_reason(cc: int) -> str:
+    """Human reason for a completion code in a bridging context: Send-Message
+    specific names first, then the generic table, then raw hex."""
+    if cc in SEND_MSG_CC:
+        return SEND_MSG_CC[cc]
+    return COMP_CODE.get(cc, f"unknown cc=0x{cc:02x}")
+
+
+def cc_category(cc: int, accepted: bool, confirmed: bool) -> str:
+    """Bucket a probe outcome: reachable | bridged | unreachable | refused."""
+    if accepted:
+        return "reachable" if confirmed else "bridged"
+    return "unreachable" if cc in _UNREACHABLE_CC else "refused"
+
 
 def _csum(data: bytes) -> int:
     """2's-complement checksum: (sum + csum) & 0xff == 0."""
@@ -50,25 +79,27 @@ def build_send_message(channel: int, netfn: int, cmd: int, data: bytes = b"",
 
 
 def build_bridged_request(path: list[int], netfn: int, cmd: int,
-                          data: bytes = b"") -> bytes:
+                          data: bytes = b"", rs_addr: int = 0x20) -> bytes:
     """Fold Send Message nesting over a multi-hop `path` and return the request
     data for the OUTER Send Message (0x06/0x34) you send on your current session.
 
     path[0] is the first bridged channel (sent on from your session); path[-1] is
-    the final target that runs (netfn,cmd,data). Each extra hop wraps the prior
-    blob as the payload of another Send Message. One hop == build_send_message().
+    the final target that runs (netfn,cmd,data). `rs_addr` is the IPMB slave
+    address of that final target — default 0x20 is the BMC itself; sweep it to
+    reach satellite controllers on an IPMB. Each extra hop wraps the prior blob
+    as the payload of another Send Message (those wrappers always address 0x20,
+    the BMC that processes them).
 
-        [a]     -> SM(a, real)
-        [a,b]   -> SM(a, 0x34, SM(b, real))
-        [a,b,c] -> SM(a, 0x34, SM(b, 0x34, SM(c, real)))
+        [a]     -> SM(a, real@rs_addr)
+        [a,b]   -> SM(a, 0x34, SM(b, real@rs_addr))
+        [a,b,c] -> SM(a, 0x34, SM(b, 0x34, SM(c, real@rs_addr)))
     """
     if not path:
         raise ValueError("path needs >=1 hop")
-    cur_netfn, cur_cmd, cur_data = netfn, cmd, data
-    for hop in reversed(path[1:]):                     # innermost extra hops out
-        inner = build_send_message(hop, cur_netfn, cur_cmd, cur_data)
-        cur_netfn, cur_cmd, cur_data = 0x06, 0x34, inner
-    return build_send_message(path[0], cur_netfn, cur_cmd, cur_data)
+    cur = build_send_message(path[-1], netfn, cmd, data, rs_addr=rs_addr)
+    for hop in reversed(path[:-1]):                    # wrap remaining hops out
+        cur = build_send_message(hop, 0x06, 0x34, cur)
+    return cur
 
 
 def parse_encapsulated_reply(rsp: bytes) -> tuple[int, int, bytes] | None:
@@ -98,16 +129,20 @@ def _unwrap_far_cc(rsp: bytes) -> int | None:
     return None
 
 
-def confirm_bridge_path(session, path: list[int], get_message: bool = True) -> dict:
-    """Bridge a Get Device ID (App 0x06/0x01) along `path` and confirm the far
-    end actually answered — inline in the Send Message reply, else dequeued via
-    Get Message (0x06/0x33) after Get Message Flags (0x06/0x31).
+def confirm_bridge_path(session, path: list[int], get_message: bool = True,
+                        rs_addr: int = 0x20) -> dict:
+    """Bridge a Get Device ID (App 0x06/0x01) along `path` to IPMB slave
+    `rs_addr` and confirm the far end actually answered — inline in the Send
+    Message reply, else dequeued via Get Message (0x06/0x33) after Get Message
+    Flags (0x06/0x31).
 
-    Returns {path, accept_cc, accepted, confirmed, far_cc, via, detail}.
-    accepted = BMC permitted the bridge; confirmed = far controller replied."""
-    out = {"path": list(path), "accept_cc": None, "accepted": False,
-           "confirmed": False, "far_cc": None, "via": None, "detail": ""}
-    req = build_bridged_request(path, 0x06, 0x01)
+    Returns {path, rs_addr, accept_cc, accepted, confirmed, far_cc, via,
+    category, detail}. accepted = BMC permitted the bridge; confirmed = far
+    controller replied; category = reachable|bridged|unreachable|refused."""
+    out = {"path": list(path), "rs_addr": rs_addr, "accept_cc": None,
+           "accepted": False, "confirmed": False, "far_cc": None, "via": None,
+           "category": "refused", "detail": ""}
+    req = build_bridged_request(path, 0x06, 0x01, rs_addr=rs_addr)
     try:
         cc, rsp = session.send_raw(0x06, 0x34, req)
     except Exception as e:                                    # noqa: BLE001
@@ -115,28 +150,29 @@ def confirm_bridge_path(session, path: list[int], get_message: bool = True) -> d
         return out
     out["accept_cc"] = cc
     if cc == 0xC1:
-        out["detail"] = "Send Message (0x34) unsupported"
+        out.update(category="refused", detail="Send Message (0x34) unsupported")
         return out
     if cc != 0x00:
-        out["detail"] = COMP_CODE.get(cc, f"cc=0x{cc:02x}")
+        out.update(category=cc_category(cc, False, False), detail=cc_reason(cc))
         return out
     out["accepted"] = True
     far = _unwrap_far_cc(rsp)                                 # inline reply?
-    if far is not None:
-        out.update(confirmed=True, far_cc=far, via="inline",
-                   detail="far end replied inline")
-        return out
-    if get_message:                                          # queued reply?
+    if far is None and get_message:                          # queued reply?
         fcc, fdata = session.send_raw(0x06, 0x31, b"")       # Get Message Flags
         if fcc == 0x00 and fdata and (fdata[0] & 0x01):      # rx msg available
             mcc, mdata = session.send_raw(0x06, 0x33, b"")   # Get Message
             if mcc == 0x00 and len(mdata) >= 9:
                 far = _unwrap_far_cc(mdata[1:])              # skip channel byte
-                if far is not None:
-                    out.update(confirmed=True, far_cc=far, via="get-message",
-                               detail="far end reply dequeued")
-                    return out
-    out["detail"] = "bridge accepted; far end sent no retrievable reply"
+                out["via"] = "get-message"
+    if far is not None:
+        out.update(confirmed=True, far_cc=far,
+                   via=out["via"] or "inline",
+                   category="reachable",
+                   detail=("far end OK" if far == 0x00
+                           else f"far end cc=0x{far:02x} {cc_reason(far)}"))
+        return out
+    out.update(category="bridged",
+               detail="bridge accepted; far end sent no retrievable reply")
     return out
 
 
