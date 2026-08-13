@@ -90,3 +90,49 @@ Pre-auth reachable set also differs by vendor: Dell answers System GUID + Auth
 Caps + 0x54; the OpenBMC family answers Auth Caps + Payload status + 0x54;
 MegaRAC additionally answers Get Session Challenge. Everything else times out
 pre-auth (`retries=0` keeps the sweep fast).
+
+## Bridging privilege-escalation probe (`bridging privesc`)
+
+Does Send Message bridging let a **capped-privilege session run an admin
+command it can't run directly**? The BMC checks privilege on the *outer* Send
+Message (0x34) — often only Operator — but may fail to re-apply the session's
+privilege cap to the *bridged inner* command. That is an **incomplete-mediation**
+bug (Saltzer & Schroeder 1975: privilege must be checked on *every* path to the
+object), not anything IPMI-specific in the literature; privilege escalation as a
+class long predates the "confused deputy" naming (Hardy 1988, capability
+systems — analogous, unrelated to BMCs).
+
+The probe caps the session with `--max-priv operator`, then:
+
+1. requests Administrator via **Set Session Privilege Level (0x06/0x3B)**
+   *directly* — a capped session is refused (`0x80` "level not available for
+   this user", `0x81` "exceeds Channel/User privilege limit", or clamped);
+2. **bridges the same request** to each present channel. Direct refused **and**
+   bridged far cc `0x00` = the cap didn't follow the hop → escalation.
+
+| Box | vendor | direct baseline | bridged escalation |
+|-----|--------|-----------------|:------------------:|
+| idrac9  | Dell | REFUSED `0x80` | none |
+| idrac10 | Dell | REFUSED `0x80` | none |
+| supermicro-x14 | Supermicro | REFUSED `0x81` | none |
+| openbmc | OpenBMC (AST2600) | REFUSED `0x81` | none |
+| megarac-hpe | AMI/HPE MegaRAC | REFUSED `0x81` | none |
+| nvidia-obmc | NVIDIA GB200NVL OpenBMC | _pending_ | _pending_ |
+
+**Takeaway:** every reachable box correctly caps the operator session *and*
+refuses the bridged admin request — **none vulnerable, zero false positives**
+across 4 vendors. The `--max-priv` cap (RAKP requested-role byte derived from
+the priv nibble) holds cross-vendor: the direct baseline flips
+`GRANTED admin → REFUSED` when capped, which is what makes the bridged
+comparison meaningful. A negative result, but it exercises the probe end to end.
+
+### Reproduce
+
+```
+# needs an account whose session can be capped below admin; --max-priv does the cap
+zipmi -H idrac10 -U root -K <kuid-hex> --max-priv operator bridging privesc all
+zipmi -H supermicro-x14 -U ADMIN -P ADMIN -C 3 --max-priv operator bridging privesc all --json
+```
+
+`escalation_found: true` in the JSON (or `*** ESCALATED ***` in text) is the
+finding to chase. `--json` emits per-channel edges for the hardware-reach map.
