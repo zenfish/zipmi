@@ -537,3 +537,26 @@ def test_group_run_execution_json(monkeypatch):
     assert d["body"] == "dcmi" and d["verb"] == "discover"
     assert d["netfn"] == 0x2C and d["cmd"] == 0x01 and d["group_code"] == 0xDC
     assert d["cc"] == 0 and d["data"] == "010002"     # 0xDC stripped
+
+
+# === chassis reads (Get Chassis Capabilities, Get POH Counter) ===========
+
+def test_chassis_caps_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_chassis_caps
+    # flags 0x0f = all four caps set; addrs 0x20/0x21/0x22/0x23 (+bridge 0x24)
+    s = _S({(0x00, 0x00): (0x00, bytes([0x0F, 0x20, 0x21, 0x22, 0x23, 0x24]))})
+    rc, d = _run(monkeypatch, cmd_chassis_caps, s)
+    assert rc == 0
+    assert d["intrusion_sensor"] and d["front_panel_lockout"]
+    assert d["diagnostic_interrupt"] and d["power_interlock"]
+    assert d["fru_device_addr"] == 0x20 and d["sel_device_addr"] == 0x22
+    assert d["bridge_device_addr"] == 0x24
+
+
+def test_chassis_poh_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_chassis_poh
+    # 60 min/count, counter=20 (LE) -> 20*60/60 = 20.0 hours
+    s = _S({(0x00, 0x0F): (0x00, bytes([60, 20, 0, 0, 0]))})
+    rc, d = _run(monkeypatch, cmd_chassis_poh, s)
+    assert rc == 0
+    assert d["minutes_per_count"] == 60 and d["counter"] == 20 and d["hours"] == 20.0

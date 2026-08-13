@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 63 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 29 raw-wired (⚡, sent by a verb,
-> response as bytes). 125 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 65 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 31 raw-wired (⚡, sent by a verb,
+> response as bytes). 123 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -137,13 +137,13 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 
 ## Chassis NetFn (0x00)
 
-**13 commands · 7 done by zipmi** — ✓ 4 decoded, ⚡ 3 raw · ✗ 6 not implemented.
-Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System Boot Options, Chassis Identify, Set Power Restore Policy, Get System Restart Cause
+**13 commands · 9 done by zipmi** — ✓ 4 decoded, ⚡ 5 raw · ✗ 4 not implemented.
+Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System Boot Options, Chassis Identify, Set Power Restore Policy, Get System Restart Cause, Get Chassis Capabilities, Get POH Counter
 
 
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
-| 00h  | Get Chassis Capabilities | `get_chassis_capabilities` | 28.1 | U | ✗ | ? | ? |
+| 00h  | Get Chassis Capabilities | `get_chassis_capabilities` | 28.1 | U | ⚡ | ? | ? |
 | 01h  | Get Chassis Status | `get_chassis_status` | 28.2 | U | ✓ | ✓ | ? |
 | 02h  | Chassis Control | `chassis_control` | 28.3 | O | ✓ | ? (untested destructive) | ? |
 | 03h  | Chassis Reset | `chassis_reset` | 28.4 | O | ✗ | ? | ? |
@@ -155,7 +155,7 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 | 09h  | Get System Boot Options | `get_system_boot_options` | 28.13 | U | ✓ | ✓ | ? |
 | 0Ah  | Set Front Panel Button Enables | `set_front_panel_button_enables` | 28.6 | A | ✗ | ? | ? |
 | 0Bh  | Set Power Cycle Interval | `set_power_cycle_interval` | 28.9 | A | ✗ | ? | ? |
-| 0Fh  | Get POH Counter | `get_poh_counter` | 28.14 | U | ✗ | ? | ? |
+| 0Fh  | Get POH Counter | `get_poh_counter` | 28.14 | U | ⚡ | ? | ? |
 
 ---
 

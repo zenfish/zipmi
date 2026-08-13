@@ -630,6 +630,64 @@ def cmd_chassis_restart_cause(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_chassis_caps(args: argparse.Namespace) -> int:
+    """Get Chassis Capabilities (0x00/0x00) — capability flags + the FRU/SDR/SEL/
+    system-management device addresses the chassis exposes."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x00, 0x00, b"")
+        if cc != 0x00 or len(data) < 5:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    flags = data[0]
+    caps = {
+        "capabilities_flags": flags,
+        "intrusion_sensor": bool(flags & 0x01),
+        "front_panel_lockout": bool(flags & 0x02),
+        "diagnostic_interrupt": bool(flags & 0x04),
+        "power_interlock": bool(flags & 0x08),
+        "fru_device_addr": data[1],
+        "sdr_device_addr": data[2],
+        "sel_device_addr": data[3],
+        "system_mgmt_device_addr": data[4],
+    }
+    if len(data) >= 6:
+        caps["bridge_device_addr"] = data[5]
+    if emit(args, caps):
+        return 0
+    print("Chassis capabilities:")
+    print(f"  Intrusion sensor      : {caps['intrusion_sensor']}")
+    print(f"  Front panel lockout   : {caps['front_panel_lockout']}")
+    print(f"  Diagnostic interrupt  : {caps['diagnostic_interrupt']}")
+    print(f"  Power interlock       : {caps['power_interlock']}")
+    print(f"  FRU device addr       : 0x{caps['fru_device_addr']:02x}")
+    print(f"  SDR device addr       : 0x{caps['sdr_device_addr']:02x}")
+    print(f"  SEL device addr       : 0x{caps['sel_device_addr']:02x}")
+    print(f"  System mgmt addr      : 0x{caps['system_mgmt_device_addr']:02x}")
+    if "bridge_device_addr" in caps:
+        print(f"  Bridge device addr    : 0x{caps['bridge_device_addr']:02x}")
+    return 0
+
+
+def cmd_chassis_poh(args: argparse.Namespace) -> int:
+    """Get POH Counter (0x00/0x0F) — power-on hours. Response: byte0 =
+    minutes-per-count, bytes1-4 = counter (LE); hours = counter*mpc/60."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x00, 0x0F, b"")
+        if cc != 0x00 or len(data) < 5:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    mpc = data[0]
+    counter = int.from_bytes(data[1:5], "little")
+    hours = counter * mpc / 60.0
+    poh = {"minutes_per_count": mpc, "counter": counter, "hours": round(hours, 2)}
+    if emit(args, poh):
+        return 0
+    print(f"POH counter          : {counter} counts")
+    print(f"Minutes per count    : {mpc}")
+    print(f"Power-on hours       : {hours:.1f}")
+    return 0
+
+
 def cmd_chassis_policy(args: argparse.Namespace) -> int:
     """Set Power Restore Policy (0x00/0x06).
 
@@ -3619,6 +3677,10 @@ def build_parser() -> argparse.ArgumentParser:
     ch_sub = ch.add_subparsers(dest="action", required=True)
     ch_status = ch_sub.add_parser("status", help="get chassis status")
     ch_status.set_defaults(func=cmd_chassis_status)
+    ch_caps = ch_sub.add_parser("caps", help="get chassis capabilities + device addrs")
+    ch_caps.set_defaults(func=cmd_chassis_caps)
+    ch_poh = ch_sub.add_parser("poh", help="get power-on-hours counter")
+    ch_poh.set_defaults(func=cmd_chassis_poh)
     ch_power = ch_sub.add_parser("power", help="chassis power control")
     ch_power.add_argument("action", choices=list(CHASSIS_CTRL.values()) + ["status"])
     ch_power.add_argument("--yes", action="store_true",
