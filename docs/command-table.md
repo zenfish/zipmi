@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 76 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 42 raw-wired (⚡, sent by a verb,
-> response as bytes). 112 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 88 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 54 raw-wired (⚡, sent by a verb,
+> response as bytes). 100 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -161,8 +161,8 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 
 ## Sensor / Event NetFn (0x04)
 
-**27 commands · 1 done by zipmi** — ✓ 1 decoded, ⚡ 0 raw · ✗ 26 not implemented.
-Done: Get Sensor Reading
+**27 commands · 13 done by zipmi** — ✓ 1 decoded, ⚡ 12 raw · ✗ 14 not implemented.
+Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters, Get Last Processed Event ID, Get Device SDR Info, Get Device SDR, Reserve Device SDR Repository, Get Sensor Reading Factors, Get Sensor Hysteresis, Get Sensor Threshold, Get Sensor Event Enable, Get Sensor Event Status, Get Sensor Type
 
 
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
@@ -170,29 +170,29 @@ Done: Get Sensor Reading
 | 00h  | Set Event Receiver | `set_event_receiver` | 29.1 | A | ✗ | ? | ? |
 | 01h  | Get Event Receiver | `get_event_receiver` | 29.2 | U | ✗ | ? | ? |
 | 02h  | Platform Event Message | `platform_event` | 29.3 | O | ✗ | ? | ? |
-| 10h  | Get PEF Capabilities | `get_pef_capabilities` | 30.1 | U | ✗ | ? | ? |
+| 10h  | Get PEF Capabilities | `get_pef_capabilities` | 30.1 | U | ⚡ | ? | ? |
 | 11h  | Arm PEF Postpone Timer | `arm_pef_postpone_timer` | 30.2 | A | ✗ | ? | ? |
 | 12h  | Set PEF Configuration Parameters | `set_pef_configuration_parameters` | 30.3 | A | ✗ | ? | ? |
-| 13h  | Get PEF Configuration Parameters | `get_pef_configuration_parameters` | 30.4 | U | ✗ | ? | ? |
+| 13h  | Get PEF Configuration Parameters | `get_pef_configuration_parameters` | 30.4 | U | ⚡ | ? | ? |
 | 14h  | Set Last Processed Event ID | `set_last_processed_event_id` | 30.5 | A | ✗ | ? | ? |
-| 15h  | Get Last Processed Event ID | `get_last_processed_event_id` | 30.6 | A | ✗ | ? | ? |
+| 15h  | Get Last Processed Event ID | `get_last_processed_event_id` | 30.6 | A | ⚡ | ? | ? |
 | 16h  | Alert Immediate | `alert_immediate` | 30.7 | O | ✗ | ? | ? |
 | 17h  | PET Acknowledge | `pet_acknowledge` | 30.8 | s | ✗ | ? | ? |
-| 20h  | Get Device SDR Info | `get_device_sdr_info` | 35.2 | U | ✗ | ? | ? |
-| 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ✗ | ? | ? |
-| 22h  | Reserve Device SDR Repository | `reserve_device_sdr_repository` | 35.4 | U | ✗ | ? | ? |
-| 23h  | Get Sensor Reading Factors | `get_sensor_reading_factors` | 35.5 | U | ✗ | ? | ? |
+| 20h  | Get Device SDR Info | `get_device_sdr_info` | 35.2 | U | ⚡ | ? | ? |
+| 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ⚡ | ? | ? |
+| 22h  | Reserve Device SDR Repository | `reserve_device_sdr_repository` | 35.4 | U | ⚡ | ? | ? |
+| 23h  | Get Sensor Reading Factors | `get_sensor_reading_factors` | 35.5 | U | ⚡ | ? | ? |
 | 24h  | Set Sensor Hysteresis | `set_sensor_hysteresis` | 35.6 | O | ✗ | ? | ? |
-| 25h  | Get Sensor Hysteresis | `get_sensor_hysteresis` | 35.7 | U | ✗ | ? | ? |
+| 25h  | Get Sensor Hysteresis | `get_sensor_hysteresis` | 35.7 | U | ⚡ | ? | ? |
 | 26h  | Set Sensor Threshold | `set_sensor_threshold` | 35.8 | O | ✗ | ? | ? |
-| 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ✗ | ? | ? |
+| 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ⚡ | ? | ? |
 | 28h  | Set Sensor Event Enable | `set_sensor_event_enable` | 35.10 | O | ✗ | ? | ? |
-| 29h  | Get Sensor Event Enable | `get_sensor_event_enable` | 35.11 | U | ✗ | ? | ? |
+| 29h  | Get Sensor Event Enable | `get_sensor_event_enable` | 35.11 | U | ⚡ | ? | ? |
 | 2Ah  | Re-arm Sensor Events | `re_arm_sensor_events` | 35.12 | O | ✗ | ? | ? |
-| 2Bh  | Get Sensor Event Status | `get_sensor_event_status` | 35.13 | U | ✗ | ? | ? |
+| 2Bh  | Get Sensor Event Status | `get_sensor_event_status` | 35.13 | U | ⚡ | ? | ? |
 | 2Dh  | Get Sensor Reading | `get_sensor_reading` | 35.14 | U | ✓ | ✓ | ? |
 | 2Eh  | Set Sensor Type | `set_sensor_type` | 35.16 | O | ✗ | ? | ? |
-| 2Fh  | Get Sensor Type | `get_sensor_type` | 35.17 | U | ✗ | ? | ? |
+| 2Fh  | Get Sensor Type | `get_sensor_type` | 35.17 | U | ⚡ | ? | ? |
 | 30h  | Set Sensor Reading And Event Status | `set_sensor_reading_and_event_status` | 35.15 | O | ✗ | ? | ? |
 
 ---

@@ -2020,6 +2020,379 @@ def cmd_sensor_get(args: argparse.Namespace) -> int:
     return 0
 
 
+def _find_sensor_meta(s, sensor_num: int):
+    """Walk the SDR repo for the Type-1 (Full Sensor) record whose sensor
+    number matches, and return its parsed SensorMeta (or None). Mirrors the
+    SDR-lookup loop in cmd_sensor_get so threshold/hysteresis/factors can cook
+    raw values. Returns None if no matching analog SDR is found."""
+    from ..sdr_full import parse_full_sdr
+    try:
+        info = s.send_cmd(0x0A, 0x20)
+        if info.record_count == 0:
+            return None
+        rsv = s.send_cmd(0x0A, 0x22)
+        rid = rsv.reservation_id
+        record_id = 0x0000
+        seen = 0
+        while seen < info.record_count + 4:
+            hdr = s.send_cmd(
+                0x0A, 0x23,
+                GetSDRReq(reservation_id=rid, record_id=record_id,
+                          offset=0, count=5),
+            )
+            d = bytes(hdr.record_data)
+            if len(d) < 5:
+                break
+            rec_type = d[3]
+            length = d[4]
+            total_len = 5 + length
+            next_id = hdr.next_record_id
+            if rec_type == 0x01:
+                next_id, full = _read_sdr_record(s, rid, record_id, total_len)
+                meta = parse_full_sdr(full)
+                if meta is not None and meta.sensor_number == sensor_num:
+                    return meta
+            seen += 1
+            if next_id == 0xFFFF:
+                break
+            record_id = next_id
+    except Exception:
+        return None
+    return None
+
+
+# --- NetFn 0x04 (Sensor/Event) read commands ----------------------------
+
+def cmd_sdr_device_info(args: argparse.Namespace) -> int:
+    """Get Device SDR Info (0x04/0x20). byte0 = sensor count, byte1 = flags
+    (bit0 dynamic population, bits3:1 = LUN sensor presence)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x20, b"")
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    count = data[0]
+    flags = data[1]
+    result = {
+        "sensor_count": count,
+        "flags": flags,
+        "dynamic_population": bool(flags & 0x01),
+        "lun_sensors": [bool(flags & (1 << b)) for b in (1, 2, 3)],
+    }
+    if emit(args, result):
+        return 0
+    print("Device SDR Info:")
+    print(f"  Sensor count       : {count}")
+    print(f"  Dynamic population : {result['dynamic_population']}")
+    print(f"  LUN0/1/3 sensors   : {result['lun_sensors']}")
+    return 0
+
+
+def cmd_sdr_device_reserve(args: argparse.Namespace) -> int:
+    """Reserve Device SDR Repository (0x04/0x22). Resp: u16 LE reservation id."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x22, b"")
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    rid = int.from_bytes(data[:2], "little")
+    if emit(args, {"reservation_id": rid}):
+        return 0
+    print(f"Device SDR reservation id : 0x{rid:04x}")
+    return 0
+
+
+def cmd_sdr_device_get(args: argparse.Namespace) -> int:
+    """Get Device SDR (0x04/0x21). Req: reservation(u16 LE), record id(u16 LE),
+    offset, bytes-to-read (0xFF = entire record). Resp: next-record-id(u16 LE)
+    + record bytes."""
+    record_id = int(getattr(args, "record_id", 0))
+    with _open_session(args) as s:
+        # Reserve first so partial reads are legal on BMCs that require it.
+        cc, rd = s.send_raw(0x04, 0x22, b"")
+        rsv = int.from_bytes(rd[:2], "little") if cc == 0x00 and len(rd) >= 2 else 0
+        req = bytes([rsv & 0xFF, (rsv >> 8) & 0xFF,
+                     record_id & 0xFF, (record_id >> 8) & 0xFF,
+                     0x00, 0xFF])
+        cc, data = s.send_raw(0x04, 0x21, req)
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    next_id = int.from_bytes(data[:2], "little")
+    rec = data[2:]
+    result = {"record_id": record_id, "next_record_id": next_id,
+              "record_bytes": rec.hex()}
+    if emit(args, result):
+        return 0
+    print(f"Record 0x{record_id:04x} (next 0x{next_id:04x}):")
+    print(f"  {rec.hex()}")
+    return 0
+
+
+def cmd_sensor_type(args: argparse.Namespace) -> int:
+    """Get Sensor Type (0x04/0x2F). Req [sensor_num]. Resp: byte0 sensor type
+    code, byte1 event/reading type code."""
+    num = int(args.num, 0)
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x2F, bytes([num]))
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"sensor_number": num, "sensor_type": data[0],
+              "event_reading_type": data[1]}
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x}:")
+    print(f"  Sensor type code     : 0x{data[0]:02x}")
+    print(f"  Event/reading type   : 0x{data[1]:02x}")
+    return 0
+
+
+def cmd_sensor_event_enable(args: argparse.Namespace) -> int:
+    """Get Sensor Event Enable (0x04/0x29). Req [sensor_num]. Resp: byte0 flags,
+    bytes1-2 assertion mask (u16 LE), bytes3-4 deassertion mask (u16 LE)."""
+    num = int(args.num, 0)
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x29, bytes([num]))
+        if cc != 0x00 or len(data) < 1:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    flags = data[0]
+    result = {
+        "sensor_number": num,
+        "flags": flags,
+        "all_event_msgs_enabled": bool(flags & 0x80),
+        "scanning_enabled": bool(flags & 0x40),
+        "assertion_mask": int.from_bytes(data[1:3], "little") if len(data) >= 3 else None,
+        "deassertion_mask": int.from_bytes(data[3:5], "little") if len(data) >= 5 else None,
+    }
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} event enable:")
+    print(f"  Flags               : 0x{flags:02x} "
+          f"(all-msgs={result['all_event_msgs_enabled']} "
+          f"scan={result['scanning_enabled']})")
+    print(f"  Assertion mask      : {result['assertion_mask']}")
+    print(f"  Deassertion mask    : {result['deassertion_mask']}")
+    return 0
+
+
+def cmd_sensor_event_status(args: argparse.Namespace) -> int:
+    """Get Sensor Event Status (0x04/0x2B). Req [sensor_num]. Resp: byte0 flags,
+    bytes1-2 assertion status (u16 LE), bytes3-4 deassertion status (u16 LE)."""
+    num = int(args.num, 0)
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x2B, bytes([num]))
+        if cc != 0x00 or len(data) < 1:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    flags = data[0]
+    result = {
+        "sensor_number": num,
+        "flags": flags,
+        "event_msgs_enabled": bool(flags & 0x80),
+        "scanning_enabled": bool(flags & 0x40),
+        "reading_unavailable": bool(flags & 0x20),
+        "assertion_status": int.from_bytes(data[1:3], "little") if len(data) >= 3 else None,
+        "deassertion_status": int.from_bytes(data[3:5], "little") if len(data) >= 5 else None,
+    }
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} event status:")
+    print(f"  Flags               : 0x{flags:02x}")
+    print(f"  Assertion status    : {result['assertion_status']}")
+    print(f"  Deassertion status  : {result['deassertion_status']}")
+    return 0
+
+
+def cmd_sensor_factors(args: argparse.Namespace) -> int:
+    """Get Sensor Reading Factors (0x04/0x23). Req [sensor_num, reading_byte].
+    Resp (§35.5): byte0 next-reading, byte1 M low, byte2 M-high|tolerance,
+    bytes3-4 B (10-bit)|accuracy, byte5 accuracy-high|accuracy-exp|direction,
+    byte6 R-exp(7:4)|B-exp(3:0). Emits the raw M/B/exp ints."""
+    from ..sdr_full import _twos_complement
+    num = int(args.num, 0)
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x23, bytes([num, 0x00]))
+        if cc != 0x00 or len(data) < 7:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    m = _twos_complement(data[1] | ((data[2] >> 6) & 0x03) << 8, 10)
+    tolerance = data[2] & 0x3F
+    b = _twos_complement(data[3] | ((data[4] >> 6) & 0x03) << 8, 10)
+    accuracy = (data[4] & 0x3F) | ((data[5] >> 6) & 0x03) << 6
+    accuracy_exp = (data[5] >> 2) & 0x03
+    r_exp = _twos_complement((data[6] >> 4) & 0x0F, 4)
+    b_exp = _twos_complement(data[6] & 0x0F, 4)
+    result = {
+        "sensor_number": num,
+        "next_reading": data[0],
+        "m": m, "b": b,
+        "tolerance": tolerance,
+        "accuracy": accuracy,
+        "accuracy_exp": accuracy_exp,
+        "r_exp": r_exp, "b_exp": b_exp,
+    }
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} reading factors:")
+    print(f"  M / B               : {m} / {b}")
+    print(f"  R-exp / B-exp       : {r_exp} / {b_exp}")
+    print(f"  tolerance / accuracy: {tolerance} / {accuracy} (exp {accuracy_exp})")
+    print(f"  next reading        : 0x{data[0]:02x}")
+    return 0
+
+
+def cmd_sensor_threshold(args: argparse.Namespace) -> int:
+    """Get Sensor Threshold (0x04/0x27). Req [sensor_num]. Resp: byte0
+    readable-mask, bytes1-6 = lnc/lc/lnr/unc/uc/unr raw threshold values.
+    Each readable threshold is cooked to engineering units via the sensor's
+    SDR meta (like cmd_sensor_get). Emits raw + cooked per threshold."""
+    from ..sdr_full import cook_reading, unit_name
+    num = int(args.num, 0)
+    names = ["lnc", "lc", "lnr", "unc", "uc", "unr"]
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x27, bytes([num]))
+        if cc != 0x00 or len(data) < 7:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+        meta = _find_sensor_meta(s, num)
+    readable = data[0]
+    unit = unit_name(meta.unit_code) if meta else None
+    thresholds = {}
+    for i, name in enumerate(names):
+        raw = data[1 + i]
+        present = bool(readable & (1 << i))
+        cooked = cook_reading(meta, raw) if (present and meta) else None
+        thresholds[name] = {"readable": present, "raw": raw, "cooked": cooked}
+    result = {"sensor_number": num, "readable_mask": readable,
+              "unit": unit, "thresholds": thresholds}
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} thresholds (readable mask 0x{readable:02x}):")
+    for name in names:
+        t = thresholds[name]
+        if not t["readable"]:
+            continue
+        c = "" if t["cooked"] is None else f" = {t['cooked']:.3f} {unit or ''}"
+        print(f"  {name:4}: raw 0x{t['raw']:02x}{c}")
+    return 0
+
+
+def cmd_sensor_hysteresis(args: argparse.Namespace) -> int:
+    """Get Sensor Hysteresis (0x04/0x25). Req [sensor_num, 0xFF]. Resp: byte0
+    positive-going, byte1 negative-going (raw). Cooked via SDR meta if found.
+
+    Hysteresis is a delta, not an absolute reading, so cooking applies M/Rexp
+    but drops the B offset (a difference cancels B)."""
+    from ..sdr_full import unit_name
+    num = int(args.num, 0)
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x25, bytes([num, 0xFF]))
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+        meta = _find_sensor_meta(s, num)
+    pos_raw, neg_raw = data[0], data[1]
+    unit = unit_name(meta.unit_code) if meta else None
+
+    def cook_delta(raw):
+        if not meta or meta.analog_format == 3:
+            return None
+        return float(meta.m * raw * (10 ** meta.r_exp))
+
+    result = {
+        "sensor_number": num,
+        "unit": unit,
+        "positive_raw": pos_raw, "negative_raw": neg_raw,
+        "positive_cooked": cook_delta(pos_raw),
+        "negative_cooked": cook_delta(neg_raw),
+    }
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} hysteresis:")
+    pc = result["positive_cooked"]
+    nc = result["negative_cooked"]
+    print(f"  Positive-going : raw 0x{pos_raw:02x}"
+          + ("" if pc is None else f" = {pc:.3f} {unit or ''}"))
+    print(f"  Negative-going : raw 0x{neg_raw:02x}"
+          + ("" if nc is None else f" = {nc:.3f} {unit or ''}"))
+    return 0
+
+
+def cmd_pef_caps(args: argparse.Namespace) -> int:
+    """Get PEF Capabilities (0x04/0x10). byte0 version, byte1 action-support
+    bitmask, byte2 = #event-filter-table-entries."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x10, b"")
+        if cc != 0x00 or len(data) < 3:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    actions = data[1]
+    result = {
+        "version": data[0],
+        "action_support": actions,
+        "alert": bool(actions & 0x01),
+        "power_down": bool(actions & 0x02),
+        "reset": bool(actions & 0x04),
+        "power_cycle": bool(actions & 0x08),
+        "oem_action": bool(actions & 0x10),
+        "diagnostic_interrupt": bool(actions & 0x20),
+        "event_filter_entries": data[2],
+    }
+    if emit(args, result):
+        return 0
+    print("PEF capabilities:")
+    print(f"  Version              : 0x{data[0]:02x}")
+    print(f"  Action support       : 0x{actions:02x}")
+    print(f"  Event filter entries : {data[2]}")
+    return 0
+
+
+def cmd_pef_config(args: argparse.Namespace) -> int:
+    """Get PEF Configuration Parameters (0x04/0x13). Req [param_selector,
+    set=0, block=0]. Resp: byte0 param rev, bytes1+ = param data. --param
+    selects the parameter (default 0 = set-in-progress)."""
+    param = int(getattr(args, "param", 0))
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x13, bytes([param & 0x7F, 0x00, 0x00]))
+        if cc != 0x00 or len(data) < 1:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    rev = data[0]
+    param_data = data[1:]
+    result = {"param": param, "revision": rev, "data": param_data.hex()}
+    if emit(args, result):
+        return 0
+    print(f"PEF config param {param}:")
+    print(f"  Revision : 0x{rev:02x}")
+    print(f"  Data     : {param_data.hex()}")
+    return 0
+
+
+def cmd_pef_last_event(args: argparse.Namespace) -> int:
+    """Get Last Processed Event ID (0x04/0x15). bytes0-3 timestamp (u32 LE),
+    bytes4-5 last SW-processed record id (u16 LE), bytes6-7 last BMC-processed
+    record id (u16 LE)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x15, b"")
+        if cc != 0x00 or len(data) < 8:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {
+        "timestamp": int.from_bytes(data[0:4], "little"),
+        "last_sw_processed": int.from_bytes(data[4:6], "little"),
+        "last_bmc_processed": int.from_bytes(data[6:8], "little"),
+    }
+    if emit(args, result):
+        return 0
+    print("Last processed event:")
+    print(f"  Timestamp          : {result['timestamp']}")
+    print(f"  Last SW-processed  : 0x{result['last_sw_processed']:04x}")
+    print(f"  Last BMC-processed : 0x{result['last_bmc_processed']:04x}")
+    return 0
+
+
 def _read_fru_blob(s, device_id: int, total: int, chunk: int = 16) -> bytes:
     """Read Read FRU Data (0x0A/0x11) in chunks until `total` bytes accumulated.
 
@@ -4075,6 +4448,15 @@ def build_parser() -> argparse.ArgumentParser:
     sdr_alloc.set_defaults(func=cmd_sdr_alloc)
     sdr_time = sdr_sub.add_parser("time", help="get SDR repository clock")
     sdr_time.set_defaults(func=cmd_sdr_time)
+    sdr_dinfo = sdr_sub.add_parser("device-info", help="Get Device SDR Info")
+    sdr_dinfo.set_defaults(func=cmd_sdr_device_info)
+    sdr_dres = sdr_sub.add_parser("device-reserve",
+                                  help="Reserve Device SDR Repository")
+    sdr_dres.set_defaults(func=cmd_sdr_device_reserve)
+    sdr_dget = sdr_sub.add_parser("device-get", help="Get Device SDR (raw record)")
+    sdr_dget.add_argument("--record-id", default=0, type=lambda x: int(x, 0),
+                          help="record id (default 0)")
+    sdr_dget.set_defaults(func=cmd_sdr_device_get)
 
     # sensor
     sn = sub.add_parser("sensor", help="sensor readings")
@@ -4085,6 +4467,36 @@ def build_parser() -> argparse.ArgumentParser:
     sn_get.add_argument("name",
                         help="exact sensor name as it appears in `sensor list`")
     sn_get.set_defaults(func=cmd_sensor_get)
+    sn_type = sn_sub.add_parser("type", help="Get Sensor Type")
+    sn_type.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_type.set_defaults(func=cmd_sensor_type)
+    sn_ee = sn_sub.add_parser("event-enable", help="Get Sensor Event Enable")
+    sn_ee.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_ee.set_defaults(func=cmd_sensor_event_enable)
+    sn_es = sn_sub.add_parser("event-status", help="Get Sensor Event Status")
+    sn_es.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_es.set_defaults(func=cmd_sensor_event_status)
+    sn_fac = sn_sub.add_parser("factors", help="Get Sensor Reading Factors")
+    sn_fac.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_fac.set_defaults(func=cmd_sensor_factors)
+    sn_thr = sn_sub.add_parser("threshold", help="Get Sensor Threshold (cooked)")
+    sn_thr.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_thr.set_defaults(func=cmd_sensor_threshold)
+    sn_hys = sn_sub.add_parser("hysteresis", help="Get Sensor Hysteresis")
+    sn_hys.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_hys.set_defaults(func=cmd_sensor_hysteresis)
+
+    # pef
+    pef = sub.add_parser("pef", help="Platform Event Filtering")
+    pef_sub = pef.add_subparsers(dest="action", required=True)
+    pef_caps = pef_sub.add_parser("caps", help="Get PEF Capabilities")
+    pef_caps.set_defaults(func=cmd_pef_caps)
+    pef_cfg = pef_sub.add_parser("config", help="Get PEF Config Parameters")
+    pef_cfg.add_argument("--param", default=0, type=lambda x: int(x, 0),
+                         help="parameter selector (default 0)")
+    pef_cfg.set_defaults(func=cmd_pef_config)
+    pef_le = pef_sub.add_parser("last-event", help="Get Last Processed Event ID")
+    pef_le.set_defaults(func=cmd_pef_last_event)
 
     # lan
     lan = sub.add_parser("lan", help="LAN configuration")

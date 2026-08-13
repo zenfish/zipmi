@@ -715,3 +715,117 @@ def test_lan_stats_json(monkeypatch):
     assert d["fragments_rx"] == 3 and d["ip_pkts_tx"] == 4
     assert d["ip_pkts_rx"] == 256 and d["rx_pkts_dropped"] == 5
     assert d["rmcp_pkts_rx"] == 7
+
+
+# === NetFn 0x04 (Sensor/Event) read commands =============================
+
+def test_sdr_device_info_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_device_info
+    # 42 sensors, flags 0x0B = dynamic(bit0) + LUN1(bit1) + LUN3(bit3);
+    # bits[3:1] map to LUN1/LUN2/LUN3 -> [True, False, True]
+    s = _S({(0x04, 0x20): (0x00, bytes([42, 0x0B]))})
+    rc, d = _run(monkeypatch, cmd_sdr_device_info, s)
+    assert rc == 0
+    assert d["sensor_count"] == 42
+    assert d["dynamic_population"] is True
+    assert d["lun_sensors"] == [True, False, True]
+
+
+def test_sdr_device_reserve_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_device_reserve
+    s = _S({(0x04, 0x22): (0x00, bytes([0x34, 0x12]))})   # 0x1234 LE
+    rc, d = _run(monkeypatch, cmd_sdr_device_reserve, s)
+    assert rc == 0
+    assert d["reservation_id"] == 0x1234
+
+
+def test_sensor_type_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_type
+    # sensor type 0x01 (temperature), event/reading type 0x01 (threshold)
+    s = _S({(0x04, 0x2F, bytes([0x05])): (0x00, bytes([0x01, 0x01]))})
+    rc, d = _run(monkeypatch, cmd_sensor_type, s, num="0x05")
+    assert rc == 0
+    assert d["sensor_number"] == 5
+    assert d["sensor_type"] == 0x01 and d["event_reading_type"] == 0x01
+
+
+def test_sensor_event_enable_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_event_enable
+    # flags 0xC0 = all-msgs + scan enabled; assert mask 0x7A95, deassert 0x0000
+    s = _S({(0x04, 0x29, bytes([0x05])):
+            (0x00, bytes([0xC0, 0x95, 0x7A, 0x00, 0x00]))})
+    rc, d = _run(monkeypatch, cmd_sensor_event_enable, s, num="5")
+    assert rc == 0
+    assert d["all_event_msgs_enabled"] is True and d["scanning_enabled"] is True
+    assert d["assertion_mask"] == 0x7A95
+    assert d["deassertion_mask"] == 0x0000
+
+
+def test_sensor_event_status_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_event_status
+    s = _S({(0x04, 0x2B, bytes([0x05])):
+            (0x00, bytes([0x80, 0x02, 0x00, 0x00, 0x00]))})
+    rc, d = _run(monkeypatch, cmd_sensor_event_status, s, num="5")
+    assert rc == 0
+    assert d["event_msgs_enabled"] is True
+    assert d["assertion_status"] == 0x0002
+    assert d["deassertion_status"] == 0x0000
+
+
+def test_sensor_factors_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_factors
+    # M=1 (low=1, high bits=0), B=0, R-exp=0xF (-1), B-exp=0 -> byte6=0xF0
+    s = _S({(0x04, 0x23, bytes([0x05, 0x00])):
+            (0x00, bytes([0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xF0]))})
+    rc, d = _run(monkeypatch, cmd_sensor_factors, s, num="5")
+    assert rc == 0
+    assert d["m"] == 1 and d["b"] == 0
+    assert d["r_exp"] == -1 and d["b_exp"] == 0
+
+
+def test_sensor_threshold_raw_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_threshold
+    # readable mask 0x30 = uc(bit4)+unr(bit5); no send_cmd on _S -> raw-only.
+    # bytes: lnc lc lnr unc uc unr = 00 00 00 00 5A 64
+    s = _S({(0x04, 0x27, bytes([0x05])):
+            (0x00, bytes([0x30, 0x00, 0x00, 0x00, 0x00, 0x5A, 0x64]))})
+    rc, d = _run(monkeypatch, cmd_sensor_threshold, s, num="5")
+    assert rc == 0
+    assert d["readable_mask"] == 0x30
+    assert d["thresholds"]["uc"]["readable"] is True
+    assert d["thresholds"]["uc"]["raw"] == 0x5A
+    assert d["thresholds"]["uc"]["cooked"] is None    # no SDR meta available
+    assert d["thresholds"]["unr"]["raw"] == 0x64
+    assert d["thresholds"]["lnc"]["readable"] is False
+
+
+def test_sensor_hysteresis_raw_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_hysteresis
+    s = _S({(0x04, 0x25, bytes([0x05, 0xFF])): (0x00, bytes([0x02, 0x02]))})
+    rc, d = _run(monkeypatch, cmd_sensor_hysteresis, s, num="5")
+    assert rc == 0
+    assert d["positive_raw"] == 2 and d["negative_raw"] == 2
+    assert d["positive_cooked"] is None    # no SDR meta available
+
+
+def test_pef_caps_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_pef_caps
+    # version 0x51, actions 0x2F (alert+pd+reset+pcycle+diag), 40 entries
+    s = _S({(0x04, 0x10): (0x00, bytes([0x51, 0x2F, 40]))})
+    rc, d = _run(monkeypatch, cmd_pef_caps, s)
+    assert rc == 0
+    assert d["version"] == 0x51
+    assert d["alert"] is True and d["power_down"] is True
+    assert d["oem_action"] is False and d["diagnostic_interrupt"] is True
+    assert d["event_filter_entries"] == 40
+
+
+def test_pef_last_event_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_pef_last_event
+    # ts=0x00001000, sw=0x0007, bmc=0x0007
+    s = _S({(0x04, 0x15): (0x00,
+            bytes([0x00, 0x10, 0x00, 0x00, 0x07, 0x00, 0x07, 0x00]))})
+    rc, d = _run(monkeypatch, cmd_pef_last_event, s)
+    assert rc == 0
+    assert d["timestamp"] == 0x1000
+    assert d["last_sw_processed"] == 7 and d["last_bmc_processed"] == 7
