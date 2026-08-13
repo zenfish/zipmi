@@ -560,3 +560,90 @@ def test_chassis_poh_json(monkeypatch):
     rc, d = _run(monkeypatch, cmd_chassis_poh, s)
     assert rc == 0
     assert d["minutes_per_count"] == 60 and d["counter"] == 20 and d["hours"] == 20.0
+
+
+# === app (NetFn 0x06) reads =============================================
+
+def test_mc_global_enables_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_global_enables
+    # 0x1A = bit4 (SEL) + bit3 (event msg buffer) + bit1 (recv msg queue int)
+    s = _S({(0x06, 0x2F): (0x00, bytes([0x1A]))})
+    rc, d = _run(monkeypatch, cmd_mc_global_enables, s)
+    assert rc == 0
+    assert d["system_event_logging"] is True
+    assert d["event_message_buffer"] is True
+    assert d["event_message_buffer_full_interrupt"] is False
+    assert d["receive_message_queue_interrupt"] is True
+    assert d["oem_0"] is False and d["oem_1"] is False and d["oem_2"] is False
+
+
+def test_mc_acpi_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_acpi
+    # byte0=0x05 (S5 soft-off), byte1=0x80|0x03 -> low7 = D3, bit7 reserved ignored
+    s = _S({(0x06, 0x07): (0x00, bytes([0x05, 0x83]))})
+    rc, d = _run(monkeypatch, cmd_mc_acpi, s)
+    assert rc == 0
+    assert d["system_power_state"] == 0x05
+    assert d["system_power_state_name"] == "S5/G2 soft-off"
+    assert d["device_power_state"] == 0x03
+    assert d["device_power_state_name"] == "D3"
+
+
+def test_mc_sysinfo_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_sysinfo
+    # set-in-progress read: rev, set-in-progress=0
+    # sysinfo string param blocks: [rev, set-sel, encoding+len, chars...]
+    def strblock(text):
+        b = text.encode()
+        return (0x00, bytes([0x11, 0x00, len(b)]) + b)
+    responses = {
+        (0x06, 0x59, bytes([0x00, 0x00, 0x00, 0x00])): (0x00, bytes([0x11, 0x00])),
+        (0x06, 0x59, bytes([0x00, 1, 0, 0x00])): strblock("2.75"),
+        (0x06, 0x59, bytes([0x00, 2, 0, 0x00])): strblock("bmc-host"),
+        (0x06, 0x59, bytes([0x00, 3, 0, 0x00])): strblock("Linux"),
+        (0x06, 0x59, bytes([0x00, 4, 0, 0x00])): strblock("Ubuntu"),
+    }
+    s = _S(responses)
+    rc, d = _run(monkeypatch, cmd_mc_sysinfo, s)
+    assert rc == 0
+    assert d["set_in_progress"] == 0
+    by = {p["name"]: p["value"] for p in d["parameters"]}
+    assert by["system-fw-version"] == "2.75"
+    assert by["hostname"] == "bmc-host"
+    assert by["primary-os-name"] == "Linux"
+    assert by["os-name"] == "Ubuntu"
+
+
+def test_channel_payload_support_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_payload_support
+    # standard mask 0x0003 (types 0,1 = IPMI, SOL); session-setup 0x0002 (type 1);
+    # oem 0x0000
+    s = _S({(0x06, 0x4E, bytes([0x0E])):
+            (0x00, bytes([0x03, 0x00, 0x02, 0x00, 0x00, 0x00]))})
+    rc, d = _run(monkeypatch, cmd_channel_payload_support, s, channel=0x0E)
+    assert rc == 0
+    assert d["standard_mask"] == 0x0003
+    assert d["standard_types"] == [0, 1]
+    assert d["session_setup_types"] == [1]
+    assert d["oem_types"] == []
+
+
+def test_channel_payload_version_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_payload_version
+    # BCD 0x15 -> MS nibble = major = 1, LS nibble = minor = 5 (spec §24.8)
+    s = _S({(0x06, 0x4F, bytes([0x0E, 0x01])): (0x00, bytes([0x15]))})
+    rc, d = _run(monkeypatch, cmd_channel_payload_version, s,
+                 channel=0x0E, payload_type=1)
+    assert rc == 0
+    assert d["raw"] == 0x15 and d["major"] == 1 and d["minor"] == 5
+
+
+def test_sol_payload_instance_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sol_payload_instance
+    # session id 0xA1B2C3D4 (LE), port info 0x01
+    s = _S({(0x06, 0x4B, bytes([0x01, 0x01])):
+            (0x00, bytes([0xD4, 0xC3, 0xB2, 0xA1, 0x01]))})
+    rc, d = _run(monkeypatch, cmd_sol_payload_instance, s, instance=1)
+    assert rc == 0
+    assert d["session_id"] == 0xA1B2C3D4
+    assert d["port_info"] == 0x01

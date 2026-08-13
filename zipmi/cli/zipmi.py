@@ -2080,6 +2080,203 @@ def cmd_mc_guid(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_mc_global_enables(args: argparse.Namespace) -> int:
+    """Get BMC Global Enables (0x06/0x2F). Resp byte0 is a bitfield of which
+    BMC-wide message/event facilities are on."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x2F, b"")
+        if cc != 0x00 or len(data) < 1:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    b = data[0]
+    result = {
+        "raw": b,
+        "oem_2": bool(b & 0x80),
+        "oem_1": bool(b & 0x40),
+        "oem_0": bool(b & 0x20),
+        "system_event_logging": bool(b & 0x10),
+        "event_message_buffer": bool(b & 0x08),
+        "event_message_buffer_full_interrupt": bool(b & 0x04),
+        "receive_message_queue_interrupt": bool(b & 0x02),
+    }
+    if emit(args, result):
+        return 0
+    print("BMC Global Enables:")
+    print(f"  System Event Logging          : {result['system_event_logging']}")
+    print(f"  Event Message Buffer          : {result['event_message_buffer']}")
+    print(f"  Event Msg Buffer Full Interrupt: {result['event_message_buffer_full_interrupt']}")
+    print(f"  Receive Message Queue Interrupt: {result['receive_message_queue_interrupt']}")
+    print(f"  OEM 0/1/2                      : {result['oem_0']}/{result['oem_1']}/{result['oem_2']}")
+    return 0
+
+
+_ACPI_SYSTEM_STATE = {
+    0x00: "S0/G0 working", 0x01: "S1", 0x02: "S2", 0x03: "S3",
+    0x04: "S4", 0x05: "S5/G2 soft-off", 0x06: "S4/S5 soft-off",
+    0x07: "G3 mechanical off", 0x08: "sleeping (S1-S3)", 0x09: "G1 sleeping (S4)",
+    0x0A: "S5 override", 0x20: "legacy on", 0x21: "legacy soft-off",
+    0x2A: "unknown",
+}
+_ACPI_DEVICE_STATE = {0x00: "D0", 0x01: "D1", 0x02: "D2", 0x03: "D3", 0x2A: "unknown"}
+
+
+def cmd_mc_acpi(args: argparse.Namespace) -> int:
+    """Get ACPI Power State (0x06/0x07). Resp byte0 = system power state,
+    byte1 = device power state (low 7 bits; bit7 reserved)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x07, b"")
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    sys_state = data[0] & 0x7F
+    dev_state = data[1] & 0x7F
+    result = {
+        "system_power_state": sys_state,
+        "system_power_state_name": _ACPI_SYSTEM_STATE.get(sys_state),
+        "device_power_state": dev_state,
+        "device_power_state_name": _ACPI_DEVICE_STATE.get(dev_state),
+    }
+    if emit(args, result):
+        return 0
+    print(f"System power state : {sys_state:#04x} "
+          f"({result['system_power_state_name'] or 'reserved'})")
+    print(f"Device power state : {dev_state:#04x} "
+          f"({result['device_power_state_name'] or 'reserved'})")
+    return 0
+
+
+_SYSINFO_PARAMS = {
+    1: "system-fw-version",
+    2: "hostname",
+    3: "primary-os-name",
+    4: "os-name",
+}
+
+
+def cmd_mc_sysinfo(args: argparse.Namespace) -> int:
+    """Get System Info Parameters (0x06/0x59). Selector 0 = set-in-progress;
+    selectors 1..4 are multi-block ASCII strings whose first block carries an
+    encoding+length byte, then chars. We walk the string params best-effort."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x59, bytes([0x00, 0x00, 0x00, 0x00]))
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+        set_in_progress = data[1] & 0x03
+
+        params = []
+        for sel, name in _SYSINFO_PARAMS.items():
+            # First block: byte0=rev, byte1=set-selector(0), byte2=encoding+len,
+            # remaining bytes are the first chunk of the string. Additional
+            # blocks (set-selector 1..) carry 16 more chars each.
+            value = ""
+            declared_len = None
+            block = 0
+            while True:
+                cc, d = s.send_raw(0x06, 0x59, bytes([0x00, sel, block, 0x00]))
+                if cc != 0x00 or len(d) < 2:
+                    break
+                body = d[2:]
+                if block == 0:
+                    if body:
+                        # low 6 bits of first body byte = length in bytes
+                        declared_len = body[0] & 0x3F
+                        chunk = body[1:]
+                    else:
+                        chunk = b""
+                else:
+                    chunk = body
+                value += chunk.decode("ascii", "replace")
+                block += 1
+                if declared_len is not None and len(value) >= declared_len:
+                    value = value[:declared_len]
+                    break
+                if block > 16:      # ponytail: hard cap, strings are <=255 bytes
+                    break
+            params.append({"selector": sel, "name": name,
+                           "value": value.rstrip("\x00").strip() or None})
+
+    result = {"set_in_progress": set_in_progress, "parameters": params}
+    if emit(args, result):
+        return 0
+    print(f"Set in progress : {set_in_progress}")
+    for p in params:
+        print(f"  {p['name']:<18}: {p['value'] or '(empty)'}")
+    return 0
+
+
+def cmd_channel_payload_support(args: argparse.Namespace) -> int:
+    """Get Channel Payload Support (0x06/0x4E). Resp: bytes0-1 standard payload
+    bitmask (LE), bytes2-3 session-setup, bytes4-5 OEM."""
+    ch = args.channel
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x4E, bytes([ch]))
+        if cc != 0x00 or len(data) < 6:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+
+    def bits(mask):
+        return [i for i in range(16) if mask & (1 << i)]
+
+    std = int.from_bytes(data[0:2], "little")
+    sess = int.from_bytes(data[2:4], "little")
+    oem = int.from_bytes(data[4:6], "little")
+    result = {
+        "channel": ch,
+        "standard_mask": std, "standard_types": bits(std),
+        "session_setup_mask": sess, "session_setup_types": bits(sess),
+        "oem_mask": oem, "oem_types": bits(oem),
+    }
+    if emit(args, result):
+        return 0
+    print(f"Channel {ch:#04x} payload support:")
+    print(f"  Standard      : {std:#06x} types {result['standard_types']}")
+    print(f"  Session-setup : {sess:#06x} types {result['session_setup_types']}")
+    print(f"  OEM           : {oem:#06x} types {result['oem_types']}")
+    return 0
+
+
+def cmd_channel_payload_version(args: argparse.Namespace) -> int:
+    """Get Channel Payload Version (0x06/0x4F). Resp byte0 = BCD version."""
+    ch = args.channel
+    pt = args.payload_type
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x4F, bytes([ch, pt]))
+        if cc != 0x00 or len(data) < 1:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    bcd = data[0]
+    major = (bcd >> 4) & 0x0F     # §24.8: MS nibble = major, LS = minor (10h = 1.0)
+    minor = bcd & 0x0F
+    result = {"channel": ch, "payload_type": pt,
+              "raw": bcd, "major": major, "minor": minor}
+    if emit(args, result):
+        return 0
+    print(f"Channel {ch:#04x} payload {pt} version : {major}.{minor}")
+    return 0
+
+
+def cmd_sol_payload_instance(args: argparse.Namespace) -> int:
+    """Get Payload Activation Status / Instance Info (0x06/0x4B). Req =
+    [payload_type, instance]. Resp bytes0-3 = session id holding it (LE),
+    byte4 = port/instance info."""
+    inst = args.instance
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x4B, bytes([0x01, inst]))
+        if cc != 0x00 or len(data) < 5:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    session_id = int.from_bytes(data[0:4], "little")
+    result = {"instance": inst, "session_id": session_id,
+              "port_info": data[4], "raw": data[:5].hex()}
+    if emit(args, result):
+        return 0
+    print(f"Payload instance {inst}:")
+    print(f"  Session ID : {session_id:#010x}")
+    print(f"  Port info  : {data[4]:#04x}")
+    return 0
+
+
 def cmd_chassis_bootdev(args: argparse.Namespace) -> int:
     """Set boot device override via System Boot Options selector 5."""
     devices = list(BOOT_DEVICE.values())
@@ -3652,6 +3849,14 @@ def build_parser() -> argparse.ArgumentParser:
     mc_st.set_defaults(func=cmd_mc_selftest)
     mc_g = mc_sub.add_parser("guid", help="get device + system GUIDs")
     mc_g.set_defaults(func=cmd_mc_guid)
+    mc_ge = mc_sub.add_parser("global-enables",
+                              help="get BMC global enables (event/msg facilities)")
+    mc_ge.set_defaults(func=cmd_mc_global_enables)
+    mc_acpi = mc_sub.add_parser("acpi", help="get ACPI system/device power state")
+    mc_acpi.set_defaults(func=cmd_mc_acpi)
+    mc_si = mc_sub.add_parser("sysinfo",
+                              help="get System Info params (fw-version/hostname/os)")
+    mc_si.set_defaults(func=cmd_mc_sysinfo)
     mc_wd = mc_sub.add_parser("watchdog", help="watchdog timer get/reset/off")
     mc_wd_sub = mc_wd.add_subparsers(dest="wd_action", required=True)
     mc_wdg = mc_wd_sub.add_parser("get", help="read current watchdog state")
@@ -3776,6 +3981,11 @@ def build_parser() -> argparse.ArgumentParser:
     sol_baud = sol_sub.add_parser("baud", help="print live SOL baud (script-friendly)")
     sol_baud.add_argument("channel", nargs="?", default=None)
     sol_baud.set_defaults(func=cmd_sol_baud)
+    sol_pi = sol_sub.add_parser("payload-instance",
+                                help="Get Payload Instance Info (session holding it)")
+    sol_pi.add_argument("--instance", type=int, default=1,
+                        help="payload instance (default 1)")
+    sol_pi.set_defaults(func=cmd_sol_payload_instance)
     sol_pl = sol_sub.add_parser("payload", help="per-user SOL payload access")
     sol_pl.add_argument("op", choices=["enable", "disable", "status"])
     sol_pl.add_argument("channel", nargs="?", default=None)
@@ -3908,6 +4118,20 @@ def build_parser() -> argparse.ArgumentParser:
     chn_ga.add_argument("channel", type=lambda s: int(s, 0))
     chn_ga.add_argument("user_id", type=int)
     chn_ga.set_defaults(func=cmd_channel_getaccess)
+    chn_ps = chn_sub.add_parser("payload-support",
+                                help="Get Channel Payload Support (which payloads)")
+    chn_ps.add_argument("channel", nargs="?", type=lambda s: int(s, 0),
+                        default=0x0E,
+                        help="channel number (default 0x0E = this channel)")
+    chn_ps.set_defaults(func=cmd_channel_payload_support)
+    chn_pv = chn_sub.add_parser("payload-version",
+                                help="Get Channel Payload Version (BCD)")
+    chn_pv.add_argument("channel", nargs="?", type=lambda s: int(s, 0),
+                        default=0x0E,
+                        help="channel number (default 0x0E = this channel)")
+    chn_pv.add_argument("payload_type", nargs="?", type=lambda s: int(s, 0),
+                        default=1, help="payload type (default 1 = SOL)")
+    chn_pv.set_defaults(func=cmd_channel_payload_version)
 
     # bridging — Send Message reach map across channels (multi-hop, guarded)
     brg = sub.add_parser("bridging", help="map Send Message bridge reachability")
