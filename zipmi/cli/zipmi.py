@@ -1912,8 +1912,13 @@ def _fw_cmd_mask(s, cmd: int, channel: int, netfn: int, lun: int = 0):
 
 
 def _fw_cmd_enables(s, channel: int, netfn: int, lun: int = 0):
-    """0x06/0x62 Get Command Enables -> 16-byte mask, bit=1 => enabled."""
-    cc, d = s.send_raw(0x06, 0x62, bytes([channel, netfn, lun]))
+    """0x06/0x61 Get Command Enables -> 16-byte mask, bit=1 => enabled.
+
+    Was 0x62 (Set Command Sub-function Enables — a WRITE), which a 3-byte body
+    can't satisfy, so it always errored and the walk fell back to all-enabled,
+    never surfacing DISABLED commands. 0x61 is the read; request is exactly
+    [channel, netfn, lun]."""
+    cc, d = s.send_raw(0x06, 0x61, bytes([channel, netfn, lun]))
     return d[:16] if cc == 0 and len(d) >= 16 else None
 
 
@@ -1927,7 +1932,7 @@ def cmd_firewall(args: argparse.Namespace) -> int:
     """Enumerate + interpret the IPMI Firmware Firewall (NetFn App 0x06, §21).
 
     Walks Get NetFn Support (0x09) -> per-NetFn Get Command Support (0x0A) /
-    Configurable (0x0B) / Command Enables (0x62), resolving each command to a
+    Configurable (0x0B) / Command Enables (0x61), resolving each command to a
     human name. --probe cross-checks "implemented" (cc != 0xC1) vs merely
     firewall-tracked; --subfn walks sub-function masks. One session for the whole
     walk (hundreds of queries), so it amortizes the RAKP setup the same way

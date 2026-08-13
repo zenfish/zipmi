@@ -110,7 +110,7 @@ def test_fw_cmd_mask_cc_error_is_none():
 
 
 def test_fw_cmd_enables_ok():
-    s = _S({(0x06, 0x62): (0, b"\x0f" + b"\x00" * 15)})
+    s = _S({(0x06, 0x61): (0, b"\x0f" + b"\x00" * 15)})   # 0x61 Get Command Enables
     assert _fw_bits(_fw_cmd_enables(s, 0x0e, 0x06)) == [0, 1, 2, 3]
 
 
@@ -128,7 +128,7 @@ def _fw_scenario():
         (0x06, 0x09, bytes([ch])): (0, b"\x00" + bytes([0x08])),          # NetFn 0x06 supported
         (0x06, 0x0A, bytes([ch, 0x06, 0])): (0, bytes([0x06]) + b"\x00" * 15),  # cmds 1,2 supported
         (0x06, 0x0B, bytes([ch, 0x06, 0])): (0, bytes([0x02]) + b"\x00" * 15),  # cmd 1 configurable
-        (0x06, 0x62, bytes([ch, 0x06, 0])): (0, bytes([0x02]) + b"\x00" * 15),  # cmd 1 enabled, cmd 2 not
+        (0x06, 0x61, bytes([ch, 0x06, 0])): (0, bytes([0x02]) + b"\x00" * 15),  # cmd 1 enabled, cmd 2 not (0x61 Get Command Enables)
     })
 
 
