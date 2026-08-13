@@ -1012,6 +1012,52 @@ def cmd_sel_time_set(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sel_alloc(args: argparse.Namespace) -> int:
+    """Get SEL Allocation Info (0x0A/0x41). u16 alloc_units, u16 alloc_unit_size,
+    u16 free_units, u16 largest_free_block, u8 max_record_size (all LE)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x41, b"")
+        if cc != 0x00 or len(data) < 9:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {
+        "alloc_units": int.from_bytes(data[0:2], "little"),
+        "alloc_unit_size": int.from_bytes(data[2:4], "little"),
+        "free_units": int.from_bytes(data[4:6], "little"),
+        "largest_free_block": int.from_bytes(data[6:8], "little"),
+        "max_record_size": data[8],
+    }
+    if emit(args, result):
+        return 0
+    print("SEL Allocation Info:")
+    print(f"  Alloc units        : {result['alloc_units']}")
+    print(f"  Alloc unit size    : {result['alloc_unit_size']} bytes")
+    print(f"  Free units         : {result['free_units']}")
+    print(f"  Largest free block : {result['largest_free_block']}")
+    print(f"  Max record size    : {result['max_record_size']}")
+    return 0
+
+
+def cmd_sel_utc_offset(args: argparse.Namespace) -> int:
+    """Get SEL Time UTC Offset (0x0A/0x5C). s16 LE minutes east of UTC;
+    0xFFFF (-1) means 'unspecified/unknown' per spec."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x5C, b"")
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    off = int.from_bytes(data[0:2], "little", signed=True)
+    result = {"offset_minutes": off, "hours": round(off / 60.0, 2),
+              "unspecified": off == -1}
+    if emit(args, result):
+        return 0
+    if off == -1:
+        print("SEL UTC offset : unspecified (0xFFFF)")
+    else:
+        print(f"SEL UTC offset : {off} min ({result['hours']:+.2f} h)")
+    return 0
+
+
 def cmd_sdr_list(args: argparse.Namespace) -> int:
     """Walk the SDR repository.
 
@@ -1066,6 +1112,57 @@ def cmd_sdr_list(args: argparse.Namespace) -> int:
     emit(args, {"sdr_version": info.sdr_version,
                 "record_count": info.record_count,
                 "free_space": info.free_space, "records": records})
+    return 0
+
+
+def cmd_sdr_alloc(args: argparse.Namespace) -> int:
+    """Get SDR Repository Allocation Info (0x0A/0x21). u16 alloc_units,
+    u16 alloc_unit_size, u16 free_units, u16 largest_free_block,
+    u8 max_record_size (all LE)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x21, b"")
+        if cc != 0x00 or len(data) < 9:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {
+        "alloc_units": int.from_bytes(data[0:2], "little"),
+        "alloc_unit_size": int.from_bytes(data[2:4], "little"),
+        "free_units": int.from_bytes(data[4:6], "little"),
+        "largest_free_block": int.from_bytes(data[6:8], "little"),
+        "max_record_size": data[8],
+    }
+    if emit(args, result):
+        return 0
+    print("SDR Repository Allocation Info:")
+    print(f"  Alloc units        : {result['alloc_units']}")
+    print(f"  Alloc unit size    : {result['alloc_unit_size']} bytes")
+    print(f"  Free units         : {result['free_units']}")
+    print(f"  Largest free block : {result['largest_free_block']}")
+    print(f"  Max record size    : {result['max_record_size']}")
+    return 0
+
+
+def cmd_sdr_time(args: argparse.Namespace) -> int:
+    """Get SDR Repository Time (0x0A/0x28). 4-byte LE seconds since
+    1970-01-01 UTC (same IPMI timestamp format as SEL time)."""
+    from datetime import datetime, timezone
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x28, b"")
+        if cc != 0x00 or len(data) < 4:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    ts = int.from_bytes(data[:4], "little")
+    pre_init = ts < 0x20000000
+    if pre_init:
+        if emit(args, {"raw": ts, "pre_init": True, "time": None}):
+            return 0
+        print(f"SDR Time : Pre-Init (raw=0x{ts:08x})")
+    else:
+        dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
+        tstr = dt.strftime('%m/%d/%Y %H:%M:%S %Z')
+        if emit(args, {"raw": ts, "pre_init": False, "time": tstr}):
+            return 0
+        print(f"SDR Time : {tstr} (raw=0x{ts:08x})")
     return 0
 
 
@@ -2393,6 +2490,31 @@ def cmd_lan_print(args: argparse.Namespace) -> int:
               "parameters": params}
     if emit(args, result):
         return 0
+    return 0
+
+
+def cmd_lan_stats(args: argparse.Namespace) -> int:
+    """Get IP/UDP/RMCP Statistics (0x0C/0x04). Seven u16 LE counters. byte2=0
+    on the request means don't clear the counters (read-only)."""
+    channel = int(args.channel, 0)
+    if not 0 <= channel <= 0x0F:
+        _msg.error(f"channel must be 0..15, got {channel}")
+        return 2
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0C, 0x04, bytes([channel, 0x00]))
+        if cc != 0x00 or len(data) < 14:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    names = ["ip_hdr_errors", "ip_addr_errors", "fragments_rx", "ip_pkts_tx",
+             "ip_pkts_rx", "rx_pkts_dropped", "rmcp_pkts_rx"]
+    result = {"channel": channel}
+    for i, name in enumerate(names):
+        result[name] = int.from_bytes(data[2 * i:2 * i + 2], "little")
+    if emit(args, result):
+        return 0
+    print(f"IP/UDP/RMCP statistics, channel {channel}:")
+    for name in names:
+        print(f"  {name:16}: {result[name]}")
     return 0
 
 
@@ -3939,12 +4061,20 @@ def build_parser() -> argparse.ArgumentParser:
     sel_ts.add_argument("timestamp",
                         help="'now' or seconds-since-1970-UTC (decimal or 0x...)")
     sel_ts.set_defaults(func=cmd_sel_time_set)
+    sel_alloc = sel_sub.add_parser("alloc", help="SEL repository allocation info")
+    sel_alloc.set_defaults(func=cmd_sel_alloc)
+    sel_utc = sel_sub.add_parser("utc-offset", help="SEL time UTC offset (minutes)")
+    sel_utc.set_defaults(func=cmd_sel_utc_offset)
 
     # sdr
     sdr = sub.add_parser("sdr", help="sensor data records")
     sdr_sub = sdr.add_subparsers(dest="action", required=True)
     sdr_list = sdr_sub.add_parser("list", help="walk SDR repository")
     sdr_list.set_defaults(func=cmd_sdr_list)
+    sdr_alloc = sdr_sub.add_parser("alloc", help="SDR repository allocation info")
+    sdr_alloc.set_defaults(func=cmd_sdr_alloc)
+    sdr_time = sdr_sub.add_parser("time", help="get SDR repository clock")
+    sdr_time.set_defaults(func=cmd_sdr_time)
 
     # sensor
     sn = sub.add_parser("sensor", help="sensor readings")
@@ -3964,6 +4094,11 @@ def build_parser() -> argparse.ArgumentParser:
                            help="channel number 0..15 (default 0x0E "
                                 "= 'this channel'); accepts decimal or 0x hex")
     lan_print.set_defaults(func=cmd_lan_print)
+    lan_stats = lan_sub.add_parser("stats", help="IP/UDP/RMCP statistics counters")
+    lan_stats.add_argument("channel", nargs="?", default="0x0E",
+                           help="channel number 0..15 (default 0x0E "
+                                "= 'this channel'); accepts decimal or 0x hex")
+    lan_stats.set_defaults(func=cmd_lan_stats)
 
     # sol (Serial Over LAN)
     SOL_SET_PARAMS = [

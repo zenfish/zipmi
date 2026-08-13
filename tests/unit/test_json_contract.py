@@ -647,3 +647,71 @@ def test_sol_payload_instance_json(monkeypatch):
     assert rc == 0
     assert d["session_id"] == 0xA1B2C3D4
     assert d["port_info"] == 0x01
+
+
+# === storage reads (SDR/SEL alloc, SDR time, SEL UTC offset) =============
+
+def test_sdr_alloc_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_alloc
+    # alloc_units=100, unit_size=16, free_units=42, largest_free=40, max_rec=64
+    s = _S({(0x0A, 0x21): (0x00, bytes([100, 0, 16, 0, 42, 0, 40, 0, 64]))})
+    rc, d = _run(monkeypatch, cmd_sdr_alloc, s)
+    assert rc == 0
+    assert d["alloc_units"] == 100 and d["alloc_unit_size"] == 16
+    assert d["free_units"] == 42 and d["largest_free_block"] == 40
+    assert d["max_record_size"] == 64
+
+
+def test_sdr_time_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_time
+    # 0x60000000 = past the pre-init threshold; assert raw + a formatted string
+    s = _S({(0x0A, 0x28): (0x00, bytes([0x00, 0x00, 0x00, 0x60]))})
+    rc, d = _run(monkeypatch, cmd_sdr_time, s)
+    assert rc == 0
+    assert d["raw"] == 0x60000000 and d["pre_init"] is False
+    assert isinstance(d["time"], str) and d["time"]
+
+
+def test_sel_alloc_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_alloc
+    # alloc_units=512, unit_size=16, free_units=500, largest_free=498, max_rec=16
+    s = _S({(0x0A, 0x41): (0x00, bytes([0x00, 0x02, 16, 0, 0xF4, 0x01, 0xF2, 0x01, 16]))})
+    rc, d = _run(monkeypatch, cmd_sel_alloc, s)
+    assert rc == 0
+    assert d["alloc_units"] == 512 and d["alloc_unit_size"] == 16
+    assert d["free_units"] == 500 and d["largest_free_block"] == 498
+    assert d["max_record_size"] == 16
+
+
+def test_sel_utc_offset_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_utc_offset
+    # -480 minutes = 0xFE20 LE (PST, UTC-8); signed decode must yield -480
+    s = _S({(0x0A, 0x5C): (0x00, bytes([0x20, 0xFE]))})
+    rc, d = _run(monkeypatch, cmd_sel_utc_offset, s)
+    assert rc == 0
+    assert d["offset_minutes"] == -480 and d["hours"] == -8.0
+    assert d["unspecified"] is False
+
+
+def test_sel_utc_offset_unspecified_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_utc_offset
+    s = _S({(0x0A, 0x5C): (0x00, bytes([0xFF, 0xFF]))})   # 0xFFFF = -1 = unspecified
+    rc, d = _run(monkeypatch, cmd_sel_utc_offset, s)
+    assert rc == 0
+    assert d["offset_minutes"] == -1 and d["unspecified"] is True
+
+
+# === transport reads (IP/UDP/RMCP statistics) ============================
+
+def test_lan_stats_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_lan_stats
+    # 7 u16 LE counters; ip_pkts_rx = 0x0100 = 256, rmcp_pkts_rx = 7
+    payload = bytes([1, 0, 2, 0, 3, 0, 4, 0, 0x00, 0x01, 5, 0, 7, 0])
+    s = _S({(0x0C, 0x04, bytes([0x0E, 0x00])): (0x00, payload)})
+    rc, d = _run(monkeypatch, cmd_lan_stats, s, channel="0x0E")
+    assert rc == 0
+    assert d["channel"] == 0x0E
+    assert d["ip_hdr_errors"] == 1 and d["ip_addr_errors"] == 2
+    assert d["fragments_rx"] == 3 and d["ip_pkts_tx"] == 4
+    assert d["ip_pkts_rx"] == 256 and d["rx_pkts_dropped"] == 5
+    assert d["rmcp_pkts_rx"] == 7

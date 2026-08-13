@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 71 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 37 raw-wired (⚡, sent by a verb,
-> response as bytes). 117 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 76 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 42 raw-wired (⚡, sent by a verb,
+> response as bytes). 112 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -199,7 +199,7 @@ Done: Get Sensor Reading
 
 ## Storage NetFn (0x0A)
 
-**30 commands · 11 done by zipmi** — ✓ 7 decoded, ⚡ 4 raw · ✗ 19 not implemented.
+**30 commands · 15 done by zipmi** — ✓ 7 decoded, ⚡ 8 raw · ✗ 15 not implemented.
 Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Repository, Get SDR, Get SEL Info, Reserve SEL, Get SEL Entry, Read FRU Data, Clear SEL, Get SEL Time, Set SEL Time
 
 
@@ -216,14 +216,14 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
 | 20h  | Get SDR Repository Info | `get_sdr_repository_info` | 33.9 | U | ✓ | ✓ | ? |
-| 21h  | Get SDR Repository Allocation Info | `get_sdr_repository_allocation_info` | 33.10 | U | ✗ | ? | ? |
+| 21h  | Get SDR Repository Allocation Info | `get_sdr_repository_allocation_info` | 33.10 | U | ⚡ | ? | ? |
 | 22h  | Reserve SDR Repository | `reserve_sdr_repository` | 33.11 | U | ✓ | ✓ | ? |
 | 23h  | Get SDR | `get_sdr` | 33.12 | U | ✓ | ✓ (chunked reads required) | ? |
 | 24h  | Add SDR | `add_sdr` | 33.13 | A | ✗ | ? | ? |
 | 25h  | Partial Add SDR | `partial_add_sdr` | 33.14 | A | ✗ | ? | ? |
 | 26h  | Delete SDR | `delete_sdr` | 33.15 | O | ✗ | ? | ? |
 | 27h  | Clear SDR Repository | `clear_sdr_repository` | 33.16 | O | ✗ | ? | ? |
-| 28h  | Get SDR Repository Time | `get_sdr_repository_time` | 33.17 | U | ✗ | ? | ? |
+| 28h  | Get SDR Repository Time | `get_sdr_repository_time` | 33.17 | U | ⚡ | ? | ? |
 | 29h  | Set SDR Repository Time | `set_sdr_repository_time` | 33.18 | A | ✗ | ? | ? |
 | 2Ah  | Enter SDR Repository Update Mode | `enter_sdr_repository_update_mode` | 33.19 | A | ✗ | ? | ? |
 | 2Bh  | Exit SDR Repository Update Mode | `exit_sdr_repository_update_mode` | 33.20 | A | ✗ | ? | ? |
@@ -234,7 +234,7 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
 | 40h  | Get SEL Info | `get_sel_info` | 31.2 | U | ✓ | ✓ | ? |
-| 41h  | Get SEL Allocation Info | `get_sel_allocation_info` | 31.3 | U | ✗ | ? | ? |
+| 41h  | Get SEL Allocation Info | `get_sel_allocation_info` | 31.3 | U | ⚡ | ? | ? |
 | 42h  | Reserve SEL | `reserve_sel` | 31.4 | U | ✓ | ✓ | ? |
 | 43h  | Get SEL Entry | `get_sel_entry` | 31.5 | U | ✓ | ✓ | ? |
 | 44h  | Add SEL Entry | `add_sel_entry` | 31.6 | O | ✗ | ? | ? |
@@ -243,7 +243,7 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | 47h  | Clear SEL | `clear_sel` | 31.9 | O | ⚡ | ? | ? |
 | 48h  | Get SEL Time | `get_sel_time` | 31.10 | U | ⚡ | ? | ? |
 | 49h  | Set SEL Time | `set_sel_time` | 31.11 | O | ⚡ | ? | ? |
-| 5Ch  | Get SEL Time UTC Offset | `get_sel_time_utc_offset` | 31.11a | U | ✗ | ? | ? |
+| 5Ch  | Get SEL Time UTC Offset | `get_sel_time_utc_offset` | 31.11a | U | ⚡ | ? | ? |
 | 5Dh  | Set SEL Time UTC Offset | `set_sel_time_utc_offset` | 31.11b | O | ✗ | ? | ? |
 | 5Ah  | Get Auxiliary Log Status | `get_auxiliary_log_status` | 31.12 | O | ✗ | ? | ? |
 | 5Bh  | Set Auxiliary Log Status | `set_auxiliary_log_status` | 31.13 | A | ✗ | ? | ? |
@@ -252,7 +252,7 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 
 ## Transport NetFn (0x0C)
 
-**25 commands · 5 done by zipmi** — ✓ 3 decoded, ⚡ 2 raw · ✗ 20 not implemented.
+**25 commands · 6 done by zipmi** — ✓ 3 decoded, ⚡ 3 raw · ✗ 19 not implemented.
 Done: Get LAN Configuration Parameters, Set SOL Configuration Parameters, Get SOL Configuration Parameters, Set Serial/Modem Configuration, Get Serial/Modem Configuration
 
 
@@ -263,7 +263,7 @@ Done: Get LAN Configuration Parameters, Set SOL Configuration Parameters, Get SO
 | 01h  | Set LAN Configuration Parameters | `set_lan_configuration_parameters` | 23.1 | A | ✗ | ? | ? |
 | 02h  | Get LAN Configuration Parameters | `get_lan_configuration_parameters` | 23.2 | A | ✓ | ✓ | ? |
 | 03h  | Suspend BMC ARPs | `suspend_bmc_arps` | 23.3 | A | ✗ | ? | ? |
-| 04h  | Get IP/UDP/RMCP Statistics | `get_ip_udp_rmcp_statistics` | 23.4 | U | ✗ | ? | ? |
+| 04h  | Get IP/UDP/RMCP Statistics | `get_ip_udp_rmcp_statistics` | 23.4 | U | ⚡ | ? | ? |
 
 ### Serial / Modem
 
