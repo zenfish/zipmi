@@ -493,14 +493,26 @@ def cmd_mc_reset(args: argparse.Namespace) -> int:
 def cmd_chassis_status(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         c = s.get_chassis_status()
-    print(f"System Power         : {'on' if c.power_on() else 'off'}")
-    print(f"Power Restore Policy : {(c.current_power_state >> 5) & 0x3}")
-    print(f"Power Control Fault  : {(c.current_power_state >> 4) & 0x1}")
-    print(f"Power Fault          : {(c.current_power_state >> 3) & 0x1}")
-    print(f"Power Interlock      : {(c.current_power_state >> 2) & 0x1}")
-    print(f"Main Power Fault     : {(c.current_power_state >> 1) & 0x1}")
-    print(f"Last Power Event     : 0x{c.last_power_event:02x}")
-    print(f"Misc Chassis State   : 0x{c.misc_chassis_state:02x}")
+    info = {
+        "power_on": c.power_on(),
+        "power_restore_policy": (c.current_power_state >> 5) & 0x3,
+        "power_control_fault": (c.current_power_state >> 4) & 0x1,
+        "power_fault": (c.current_power_state >> 3) & 0x1,
+        "power_interlock": (c.current_power_state >> 2) & 0x1,
+        "main_power_fault": (c.current_power_state >> 1) & 0x1,
+        "last_power_event": c.last_power_event,
+        "misc_chassis_state": c.misc_chassis_state,
+    }
+    if emit(args, info):
+        return 0
+    print(f"System Power         : {'on' if info['power_on'] else 'off'}")
+    print(f"Power Restore Policy : {info['power_restore_policy']}")
+    print(f"Power Control Fault  : {info['power_control_fault']}")
+    print(f"Power Fault          : {info['power_fault']}")
+    print(f"Power Interlock      : {info['power_interlock']}")
+    print(f"Main Power Fault     : {info['main_power_fault']}")
+    print(f"Last Power Event     : 0x{info['last_power_event']:02x}")
+    print(f"Misc Chassis State   : 0x{info['misc_chassis_state']:02x}")
     return 0
 
 
@@ -514,6 +526,9 @@ def cmd_chassis_power(args: argparse.Namespace) -> int:
         return 2
     with _open_session(args) as s:
         s.send_cmd(0x00, 0x02, ChassisControlReq(action=code_by_name[args.action]))
+    if emit(args, {"ok": True, "action": f"chassis-power-{args.action}",
+                   "host": args.host}):
+        return 0
     print(f"chassis power {args.action} sent to {args.host}")
     return 0
 
@@ -553,6 +568,8 @@ def cmd_chassis_restart_cause(args: argparse.Namespace) -> int:
     cause = data[0] & 0x0F
     chan = data[1] & 0x0F
     name = RESTART_CAUSE.get(cause, f"0x{cause:02x}")
+    if emit(args, {"cause": {"code": cause, "name": name}, "channel": chan}):
+        return 0
     print(f"System restart cause : {name}")
     print(f"Channel              : 0x{chan:x}")
     return 0
@@ -574,6 +591,8 @@ def cmd_chassis_policy(args: argparse.Namespace) -> int:
         bits = data[0]
         supported = [name for name, code in POWER_POLICY.items()
                      if bits & (1 << code)]
+        if emit(args, {"supported_policies": supported}):
+            return 0
         print(f"Supported policies: {', '.join(supported) or '(none reported)'}")
         return 0
     code = POWER_POLICY[args.policy]
@@ -582,6 +601,9 @@ def cmd_chassis_policy(args: argparse.Namespace) -> int:
         if cc != 0x00:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
+    if emit(args, {"ok": True, "action": "set-power-policy",
+                   "policy": args.policy}):
+        return 0
     print(f"Power restore policy set: {args.policy}")
     return 0
 
@@ -589,46 +611,73 @@ def cmd_chassis_policy(args: argparse.Namespace) -> int:
 def cmd_sel_info(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         si = s.send_cmd(0x0A, 0x40)
-    print(f"SEL Version          : 0x{si.version:02x}")
-    print(f"Entries              : {si.entries}")
-    print(f"Free Space (bytes)   : {si.free_space}")
-    print(f"Last Add Timestamp   : {si.last_add_ts}")
-    print(f"Last Erase Timestamp : {si.last_del_ts}")
-    print(f"Operation Support    : 0x{si.op_support:02x}")
+    info = {
+        "version": si.version,
+        "entries": si.entries,
+        "free_space": si.free_space,
+        "last_add_ts": si.last_add_ts,
+        "last_del_ts": si.last_del_ts,
+        "op_support": si.op_support,
+    }
+    if emit(args, info):
+        return 0
+    print(f"SEL Version          : 0x{info['version']:02x}")
+    print(f"Entries              : {info['entries']}")
+    print(f"Free Space (bytes)   : {info['free_space']}")
+    print(f"Last Add Timestamp   : {info['last_add_ts']}")
+    print(f"Last Erase Timestamp : {info['last_del_ts']}")
+    print(f"Operation Support    : 0x{info['op_support']:02x}")
     return 0
+
+
+def _sel_record_fields(rec: bytes) -> dict | None:
+    """Decode a 16-byte standard SEL record into structured fields, or None
+    if too short."""
+    if len(rec) < 16:
+        return None
+    ev_byte = rec[12]
+    return {
+        "record_id": int.from_bytes(rec[0:2], "little"),
+        "record_type": rec[2],
+        "timestamp": int.from_bytes(rec[3:7], "little"),
+        "generator_id": int.from_bytes(rec[7:9], "little"),
+        "sensor_type": rec[10],
+        "sensor_num": rec[11],
+        "event_byte": ev_byte,
+        "asserted": not (ev_byte & 0x80),
+        "event_data": rec[13:16].hex(),
+    }
 
 
 def _decode_sel_record(rec: bytes) -> str:
     """Decode a 16-byte standard SEL record into a one-line summary."""
-    if len(rec) < 16:
+    f = _sel_record_fields(rec)
+    if f is None:
         return f"  short record ({len(rec)} bytes)"
-    record_id = int.from_bytes(rec[0:2], "little")
-    rec_type = rec[2]
-    ts = int.from_bytes(rec[3:7], "little")
-    gen_id = int.from_bytes(rec[7:9], "little")
-    sensor_type = rec[10]
-    sensor_num = rec[11]
-    ev_byte = rec[12]
-    ev_data = rec[13:16]
-    direction = "asserted" if not (ev_byte & 0x80) else "deasserted"
+    direction = "asserted" if f["asserted"] else "deasserted"
     return (
-        f"{record_id:5d} | type=0x{rec_type:02x} ts={ts} "
-        f"gen=0x{gen_id:04x} sensor=0x{sensor_type:02x}/{sensor_num} "
-        f"ev=0x{ev_byte:02x} ({direction}) data={ev_data.hex()}"
+        f"{f['record_id']:5d} | type=0x{f['record_type']:02x} ts={f['timestamp']} "
+        f"gen=0x{f['generator_id']:04x} sensor=0x{f['sensor_type']:02x}/{f['sensor_num']} "
+        f"ev=0x{f['event_byte']:02x} ({direction}) data={f['event_data']}"
     )
 
 
 def cmd_sel_list(args: argparse.Namespace) -> int:
     """Walk the SEL via Reserve + Get Entry sequence."""
+    to_json = getattr(args, "json", False)
+    records: list[dict] = []
     with _open_session(args) as s:
         info = s.send_cmd(0x0A, 0x40)
         if info.entries == 0:
+            if emit(args, {"entries": 0, "records": []}):
+                return 0
             print("(SEL is empty)")
             return 0
         # Reserve SEL.
         rsv = s.send_cmd(0x0A, 0x42)
         rid = rsv.reservation_id
-        print(f"SEL: {info.entries} entries (reservation 0x{rid:04x})")
+        if not to_json:
+            print(f"SEL: {info.entries} entries (reservation 0x{rid:04x})")
         record_id = 0x0000
         seen = 0
         max_iter = info.entries + 4   # safety stop for circular nextids
@@ -642,12 +691,18 @@ def cmd_sel_list(args: argparse.Namespace) -> int:
             except Exception as e:
                 _msg.error(f"abort at record 0x{record_id:04x}: {e}")
                 return 1
-            print(_decode_sel_record(bytes(resp.record)))
+            rec = bytes(resp.record)
+            records.append(_sel_record_fields(rec) or {"short": len(rec)})
+            if not to_json:
+                print(_decode_sel_record(rec))
             seen += 1
             next_id = resp.next_record_id
             if next_id == 0xFFFF:
                 break
             record_id = next_id
+    if emit(args, {"entries": info.entries, "reservation_id": rid,
+                   "records": records}):
+        return 0
     return 0
 
 
@@ -712,16 +767,22 @@ def cmd_sel_elist(args: argparse.Namespace) -> int:
       - Prints Asserted/Deasserted from event direction bit.
     """
     from ..sel_decode import format_sel_record_extended
+    to_json = getattr(args, "json", False)
+    records: list[dict] = []
     with _open_session(args) as s:
         sdr_map = _build_sdr_sensor_map(s)
         info = s.send_cmd(0x0A, 0x40)
         if info.entries == 0:
+            if emit(args, {"entries": 0, "sensors_named": len(sdr_map),
+                           "records": []}):
+                return 0
             print("(SEL is empty)")
             return 0
         rsv = s.send_cmd(0x0A, 0x42)
         rid = rsv.reservation_id
-        print(f"SEL: {info.entries} entries "
-              f"({len(sdr_map)} sensors named via SDR)")
+        if not to_json:
+            print(f"SEL: {info.entries} entries "
+                  f"({len(sdr_map)} sensors named via SDR)")
         record_id = 0x0000
         seen = 0
         max_iter = info.entries + 4
@@ -735,12 +796,22 @@ def cmd_sel_elist(args: argparse.Namespace) -> int:
             except Exception as e:
                 _msg.error(f"abort at record 0x{record_id:04x}: {e}")
                 return 1
-            print(format_sel_record_extended(bytes(resp.record), sdr_map))
+            rec = bytes(resp.record)
+            fields = _sel_record_fields(rec) or {"short": len(rec)}
+            if fields.get("sensor_num") in sdr_map:
+                fields["sensor_name"] = sdr_map[fields["sensor_num"]].name
+            fields["text"] = format_sel_record_extended(rec, sdr_map)
+            records.append(fields)
+            if not to_json:
+                print(fields["text"])
             seen += 1
             next_id = resp.next_record_id
             if next_id == 0xFFFF:
                 break
             record_id = next_id
+    if emit(args, {"entries": info.entries, "sensors_named": len(sdr_map),
+                   "reservation_id": rid, "records": records}):
+        return 0
     return 0
 
 
@@ -769,6 +840,8 @@ def cmd_sel_clear(args: argparse.Namespace) -> int:
                 return 1
             status = data[0] & 0x0F if data else 0
             if status == 1:
+                if emit(args, {"ok": True, "action": "sel-clear"}):
+                    return 0
                 print("SEL cleared")
                 return 0
             time.sleep(0.25)
@@ -785,11 +858,17 @@ def cmd_sel_time_get(args: argparse.Namespace) -> int:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
     ts = int.from_bytes(data[:4], "little")
-    if ts < 0x20000000:
+    pre_init = ts < 0x20000000
+    if pre_init:
+        if emit(args, {"raw": ts, "pre_init": True, "time": None}):
+            return 0
         print(f"SEL Time : Pre-Init (raw=0x{ts:08x})")
     else:
         dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
-        print(f"SEL Time : {dt.strftime('%m/%d/%Y %H:%M:%S %Z')} (raw=0x{ts:08x})")
+        tstr = dt.strftime('%m/%d/%Y %H:%M:%S %Z')
+        if emit(args, {"raw": ts, "pre_init": False, "time": tstr}):
+            return 0
+        print(f"SEL Time : {tstr} (raw=0x{ts:08x})")
     return 0
 
 
@@ -812,7 +891,11 @@ def cmd_sel_time_set(args: argparse.Namespace) -> int:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
     dt = datetime.fromtimestamp(ts, tz=timezone.utc).astimezone()
-    print(f"SEL Time set: {dt.strftime('%m/%d/%Y %H:%M:%S %Z')}")
+    tstr = dt.strftime('%m/%d/%Y %H:%M:%S %Z')
+    if emit(args, {"ok": True, "action": "set-sel-time", "raw": ts,
+                   "time": tstr}):
+        return 0
+    print(f"SEL Time set: {tstr}")
     return 0
 
 
@@ -1409,18 +1492,29 @@ def cmd_session_info(args: argparse.Namespace) -> int:
     chan = data[5] & 0x0F
     priv_name = next((n for n, v in PRIV_LEVELS.items() if v == op_priv),
                      f"0x{op_priv:x}")
+    info = {
+        "session_handle": handle,
+        "possible_sessions": possible,
+        "active_sessions": active,
+        "user_id": uid,
+        "operating_privilege": {"code": op_priv, "name": priv_name},
+        "channel": chan,
+    }
+    if len(data) >= 18:
+        info["remote_ip"] = ".".join(str(b) for b in data[6:10])
+        info["remote_mac"] = ":".join(f"{b:02x}" for b in data[10:16])
+        info["remote_port"] = data[16] | (data[17] << 8)
+    if emit(args, info):
+        return 0
     print(f"Session handle        : 0x{handle:02x}")
     print(f"Slot total / active   : {possible} / {active}")
     print(f"User ID               : {uid}")
     print(f"Operating privilege   : {priv_name}")
     print(f"Channel               : 0x{chan:x}")
     if len(data) >= 18:
-        ip = ".".join(str(b) for b in data[6:10])
-        mac = ":".join(f"{b:02x}" for b in data[10:16])
-        port = data[16] | (data[17] << 8)
-        print(f"Remote IP             : {ip}")
-        print(f"Remote MAC            : {mac}")
-        print(f"Remote port           : {port}")
+        print(f"Remote IP             : {info['remote_ip']}")
+        print(f"Remote MAC            : {info['remote_mac']}")
+        print(f"Remote port           : {info['remote_port']}")
     return 0
 
 
@@ -1633,6 +1727,7 @@ def cmd_fru_print(args: argparse.Namespace) -> int:
     from ..fru import (
         parse_common_header, parse_board_info, parse_product_info,
     )
+    to_json = getattr(args, "json", False)
     dev_id = args.device_id
     with _open_session(args) as s:
         cc, data = s.send_raw(0x0A, 0x10, bytes([dev_id]))
@@ -1641,8 +1736,9 @@ def cmd_fru_print(args: argparse.Namespace) -> int:
             return 1
         size = data[0] | (data[1] << 8)
         access_word = bool(data[2] & 0x01)
-        print(f"FRU Device {dev_id}: {size} bytes "
-              f"({'word' if access_word else 'byte'} access)")
+        if not to_json:
+            print(f"FRU Device {dev_id}: {size} bytes "
+                  f"({'word' if access_word else 'byte'} access)")
         blob = _read_fru_blob(s, dev_id, size)
     if len(blob) < 8:
         _msg.error(f"short FRU blob ({len(blob)} bytes)")
@@ -1651,40 +1747,84 @@ def cmd_fru_print(args: argparse.Namespace) -> int:
     if hdr is None:
         _msg.error("invalid Common Header")
         return 1
-    print(f"Common Header        : v{hdr.format_version}"
-          f"  checksum {'OK' if hdr.checksum_ok else 'BAD'}")
-    print(f"  internal_use offset: {hdr.internal_off}")
-    print(f"  chassis_info offset: {hdr.chassis_off}")
-    print(f"  board_info offset  : {hdr.board_off}")
-    print(f"  product_info offset: {hdr.product_off}")
-    print(f"  multirecord offset : {hdr.multirec_off}")
+    result = {
+        "device_id": dev_id,
+        "size": size,
+        "word_access": access_word,
+        "common_header": {
+            "format_version": hdr.format_version,
+            "checksum_ok": hdr.checksum_ok,
+            "internal_use_offset": hdr.internal_off,
+            "chassis_info_offset": hdr.chassis_off,
+            "board_info_offset": hdr.board_off,
+            "product_info_offset": hdr.product_off,
+            "multirecord_offset": hdr.multirec_off,
+        },
+        "board_info": None,
+        "product_info": None,
+    }
     if hdr.board_off:
         b = parse_board_info(blob, hdr.board_off)
         if b is not None:
-            print(f"Board Info           : checksum {'OK' if b.checksum_ok else 'BAD'}")
             mfg = b.mfg_date.astimezone().strftime("%Y-%m-%d %H:%M:%S %Z") \
                   if b.mfg_date else "Unspecified"
-            print(f"  Mfg date           : {mfg}")
-            print(f"  Manufacturer       : {b.manufacturer}")
-            print(f"  Product            : {b.product}")
-            print(f"  Serial             : {b.serial}")
-            print(f"  Part number        : {b.part_number}")
-            print(f"  FRU file ID        : {b.fru_file_id}")
-            for i, c in enumerate(s for s in b.custom_fields if s):
-                print(f"  Custom {i:2}          : {c}")
+            result["board_info"] = {
+                "checksum_ok": b.checksum_ok,
+                "mfg_date": mfg,
+                "manufacturer": b.manufacturer,
+                "product": b.product,
+                "serial": b.serial,
+                "part_number": b.part_number,
+                "fru_file_id": b.fru_file_id,
+                "custom_fields": [c for c in b.custom_fields if c],
+            }
     if hdr.product_off:
         p = parse_product_info(blob, hdr.product_off)
         if p is not None:
-            print(f"Product Info         : checksum {'OK' if p.checksum_ok else 'BAD'}")
-            print(f"  Manufacturer       : {p.manufacturer}")
-            print(f"  Product Name       : {p.name}")
-            print(f"  Part/Model         : {p.part_model}")
-            print(f"  Version            : {p.version}")
-            print(f"  Serial             : {p.serial}")
-            print(f"  Asset Tag          : {p.asset_tag}")
-            print(f"  FRU file ID        : {p.fru_file_id}")
-            for i, c in enumerate(s for s in p.custom_fields if s):
-                print(f"  Custom {i:2}          : {c}")
+            result["product_info"] = {
+                "checksum_ok": p.checksum_ok,
+                "manufacturer": p.manufacturer,
+                "name": p.name,
+                "part_model": p.part_model,
+                "version": p.version,
+                "serial": p.serial,
+                "asset_tag": p.asset_tag,
+                "fru_file_id": p.fru_file_id,
+                "custom_fields": [c for c in p.custom_fields if c],
+            }
+    if emit(args, result):
+        return 0
+    h = result["common_header"]
+    print(f"Common Header        : v{h['format_version']}"
+          f"  checksum {'OK' if h['checksum_ok'] else 'BAD'}")
+    print(f"  internal_use offset: {h['internal_use_offset']}")
+    print(f"  chassis_info offset: {h['chassis_info_offset']}")
+    print(f"  board_info offset  : {h['board_info_offset']}")
+    print(f"  product_info offset: {h['product_info_offset']}")
+    print(f"  multirecord offset : {h['multirecord_offset']}")
+    bi = result["board_info"]
+    if bi is not None:
+        print(f"Board Info           : checksum {'OK' if bi['checksum_ok'] else 'BAD'}")
+        print(f"  Mfg date           : {bi['mfg_date']}")
+        print(f"  Manufacturer       : {bi['manufacturer']}")
+        print(f"  Product            : {bi['product']}")
+        print(f"  Serial             : {bi['serial']}")
+        print(f"  Part number        : {bi['part_number']}")
+        print(f"  FRU file ID        : {bi['fru_file_id']}")
+        for i, c in enumerate(bi["custom_fields"]):
+            print(f"  Custom {i:2}          : {c}")
+    pi = result["product_info"]
+    if pi is not None:
+        print(f"Product Info         : checksum {'OK' if pi['checksum_ok'] else 'BAD'}")
+        print(f"  Manufacturer       : {pi['manufacturer']}")
+        print(f"  Product Name       : {pi['name']}")
+        print(f"  Part/Model         : {pi['part_model']}")
+        print(f"  Version            : {pi['version']}")
+        print(f"  Serial             : {pi['serial']}")
+        print(f"  Asset Tag          : {pi['asset_tag']}")
+        print(f"  FRU file ID        : {pi['fru_file_id']}")
+        for i, c in enumerate(pi["custom_fields"]):
+            print(f"  Custom {i:2}          : {c}")
     return 0
 
 
@@ -1716,6 +1856,8 @@ def cmd_chassis_bootdev(args: argparse.Namespace) -> int:
     """Set boot device override via System Boot Options selector 5."""
     devices = list(BOOT_DEVICE.values())
     if args.device == "list":
+        if emit(args, {"supported_devices": sorted(set(devices))}):
+            return 0
         print("supported devices:", " ".join(sorted(set(devices))))
         return 0
     if args.device not in devices:
@@ -1733,6 +1875,9 @@ def cmd_chassis_bootdev(args: argparse.Namespace) -> int:
             mark_valid=1, parameter_selector=5,
             parameter_data=payload,
         ))
+    if emit(args, {"ok": True, "action": "set-bootdev", "device": args.device,
+                   "persistent": bool(args.persistent), "uefi": bool(args.uefi)}):
+        return 0
     print(f"boot device override set to {args.device}"
           f"{' (persistent)' if args.persistent else ''}"
           f"{' (UEFI)' if args.uefi else ''}")
@@ -1754,6 +1899,9 @@ def cmd_chassis_bootflags(args: argparse.Namespace) -> int:
     uefi = bool(data[0] & 0x20)
     dev_code = (data[1] >> 2) & 0x0F
     dev = BOOT_DEVICE.get(dev_code, f"unknown_0x{dev_code:x}")
+    if emit(args, {"valid": valid, "persistent": persistent, "uefi": uefi,
+                   "device": {"code": dev_code, "name": dev}}):
+        return 0
     print(f"valid={valid}  persistent={persistent}  uefi={uefi}  device={dev}")
     return 0
 
@@ -1767,9 +1915,14 @@ def cmd_chassis_identify(args: argparse.Namespace) -> int:
         _msg.error(f"identify: cc=0x{cc:02x}")
         return 1
     if args.duration == 0:
+        if emit(args, {"ok": True, "action": "identify", "on": False}):
+            return 0
         print("identify off")
     else:
         d = args.duration if args.duration is not None else 15
+        if emit(args, {"ok": True, "action": "identify", "on": True,
+                       "duration_s": d}):
+            return 0
         print(f"identify on for {d}s")
     return 0
 
@@ -1791,19 +1944,30 @@ def cmd_lan_print(args: argparse.Namespace) -> int:
     if not 0 <= channel <= 0x0F:
         _msg.error(f"channel must be 0..15, got {channel}")
         return 2
-    print(f"channel {channel}" + (" (this channel)" if channel == 0x0E else ""))
+    to_json = getattr(args, "json", False)
+    if not to_json:
+        print(f"channel {channel}" + (" (this channel)" if channel == 0x0E else ""))
+    params: list[dict] = []
     with _open_session(args) as s:
         for sel, (label, fmt) in PARAMS.items():
             cc, data = s.send_raw(0x0C, 0x02, bytes([channel, sel, 0, 0]))
             if cc != 0 or len(data) < 2:
-                print(f"  {label:14}: cc=0x{cc:02x}")
+                params.append({"selector": sel, "label": label, "cc": cc})
+                if not to_json:
+                    print(f"  {label:14}: cc=0x{cc:02x}")
                 continue
             # data[0] = parameter revision, data[1:] = parameter data
             try:
                 val = fmt(data[1:])
             except Exception:
                 val = data[1:].hex()
-            print(f"  {label:14}: {val}")
+            params.append({"selector": sel, "label": label, "value": val})
+            if not to_json:
+                print(f"  {label:14}: {val}")
+    result = {"channel": channel, "channel_is_present": channel == 0x0E,
+              "parameters": params}
+    if emit(args, result):
+        return 0
     return 0
 
 
