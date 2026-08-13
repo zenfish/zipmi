@@ -836,17 +836,18 @@ def cmd_user_list(args: argparse.Namespace) -> int:
     """
     from .user_matrix import decode_user_access
     EN = {0: "?", 1: "yes", 2: "no", 3: "?"}
+    ch = int(getattr(args, "channel", "0xE"), 0) & 0xFF
     with _open_session(args) as s:
-        ua1 = s.send_cmd(0x06, 0x44, GetUserAccessReq(channel=0xE, user_id=1))
+        ua1 = s.send_cmd(0x06, 0x44, GetUserAccessReq(channel=ch, user_id=1))
         max_users = ua1.max_user_count & 0x3F
         print(f"max_user_count={max_users}  enabled(count)={ua1.enabled_user_count & 0x3F}"
-              f"  (access shown for present channel 0xE)")
+              f"  (access shown for channel {ch:#04x})")
         print(f"{'ID':>3}  {'Name':16}  {'Priv':13}  {'IPMIMsg':7}  {'LinkAuth':8}  "
               f"{'CbkRestr':8}  {'Enabled':7}")
         for uid in range(1, max_users + 1):
             try:
                 ua = s.send_cmd(0x06, 0x44,
-                                GetUserAccessReq(channel=0xE, user_id=uid))
+                                GetUserAccessReq(channel=ch, user_id=uid))
                 un = s.send_cmd(0x06, 0x46, GetUserNameReq(user_id=uid))
             except Exception as e:
                 _msg.warn(f"user {uid}: {e}")
@@ -3062,6 +3063,9 @@ def build_parser() -> argparse.ArgumentParser:
     user = sub.add_parser("user", help="user accounts")
     user_sub = user.add_subparsers(dest="action", required=True)
     user_list = user_sub.add_parser("list", help="list users via Get User Access/Name")
+    user_list.add_argument("channel", nargs="?", default="0xE",
+                           help="channel to read access for (default 0xE = present); "
+                                "like ipmitool 'user list [channel]'")
     user_list.set_defaults(func=cmd_user_list)
     user_set = user_sub.add_parser("set", help="set username or password")
     user_set_sub = user_set.add_subparsers(dest="set_action", required=True)

@@ -169,7 +169,8 @@ zipmi -I lanplus -C 3 mc info        # IPMI 2.0 RMCP+
 zipmi chassis status
 zipmi sel list
 zipmi sensor list
-zipmi user list
+zipmi user list                      # access for present channel (0xE)
+zipmi user list 1                    # access as seen on channel 1 (like ipmitool 'user list [channel]')
 zipmi raw 0x06 0x01
 
 # Security probes
