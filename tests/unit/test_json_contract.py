@@ -829,3 +829,118 @@ def test_pef_last_event_json(monkeypatch):
     assert rc == 0
     assert d["timestamp"] == 0x1000
     assert d["last_sw_processed"] == 7 and d["last_bmc_processed"] == 7
+
+
+# === write (Set*) commands — assert the REQUEST BYTES sent ================
+# For a write, the wire request is the thing that matters. _S records every
+# send as (netfn, cmd, data); each test pins that tuple.
+
+def test_mc_set_global_enables_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_set_global_enables
+    s = _S({(0x06, 0x2E): (0x00, b"")})
+    # sel on (0x10), evt-buf on (0x08), others off -> byte0 = 0x18
+    rc, d = _run(monkeypatch, cmd_mc_set_global_enables, s,
+                 sel="on", evt_buf="on", buf_full_int="off", recv_queue_int="off")
+    assert rc == 0
+    assert s.sent == [(0x06, 0x2E, b"\x18")]
+    assert d["raw"] == 0x18 and d["system_event_logging"] is True
+
+
+def test_mc_set_global_enables_requires_all_flags(monkeypatch):
+    import zipmi.cli.zipmi as Z
+    s = _S({(0x06, 0x2E): (0x00, b"")})
+    monkeypatch.setattr(Z, "_open_session", lambda a: s)
+    rc = Z.cmd_mc_set_global_enables(argparse.Namespace(
+        sel="on", evt_buf=None, buf_full_int=None, recv_queue_int=None,
+        json=True, host="test"))
+    assert rc == 2
+    assert s.sent == []   # nothing written when a flag is missing
+
+
+def test_mc_set_sysinfo_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_set_sysinfo
+    s = _S({(0x06, 0x58): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_mc_set_sysinfo, s, param=2, value="host1")
+    assert rc == 0
+    # selector=2, block=0, len=5, then ASCII "host1"
+    assert s.sent == [(0x06, 0x58, b"\x02\x00\x05host1")]
+    assert d["selector"] == 2 and d["value"] == "host1"
+
+
+def test_mc_set_sysinfo_truncates_to_block(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_set_sysinfo
+    s = _S({(0x06, 0x58): (0x00, b"")})
+    val = "0123456789ABCDEF"   # 16 chars, only first 14 fit the block
+    rc, _ = _run(monkeypatch, cmd_mc_set_sysinfo, s, param=3, value=val)
+    assert rc == 0
+    netfn, cmd, data = s.sent[0]
+    assert data[:3] == bytes([0x03, 0x00, 16 & 0x3F])   # declared len = full 16
+    assert data[3:] == b"0123456789ABCD"                # payload truncated to 14
+
+
+def test_mc_set_acpi_req_change_flags(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_set_acpi
+    s = _S({(0x06, 0x06): (0x00, b"")})
+    # only --system given: byte0 = 0x80|0x05, byte1 = 0x00 (no change)
+    rc, d = _run(monkeypatch, cmd_mc_set_acpi, s, system=0x05, device=None)
+    assert rc == 0
+    assert s.sent == [(0x06, 0x06, bytes([0x85, 0x00]))]
+    assert d["system_power_state"] == 5 and d["device_power_state"] is None
+
+
+def test_mc_set_acpi_both(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_set_acpi
+    s = _S({(0x06, 0x06): (0x00, b"")})
+    rc, _ = _run(monkeypatch, cmd_mc_set_acpi, s, system=0x00, device=0x03)
+    assert rc == 0
+    assert s.sent == [(0x06, 0x06, bytes([0x80, 0x83]))]
+
+
+def test_mc_set_acpi_requires_a_state(monkeypatch):
+    import zipmi.cli.zipmi as Z
+    s = _S({(0x06, 0x06): (0x00, b"")})
+    monkeypatch.setattr(Z, "_open_session", lambda a: s)
+    rc = Z.cmd_mc_set_acpi(argparse.Namespace(
+        system=None, device=None, json=True, host="test"))
+    assert rc == 2 and s.sent == []
+
+
+def test_sdr_set_time_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_set_time
+    s = _S({(0x0A, 0x29): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_sdr_set_time, s, time=0x60000000)
+    assert rc == 0
+    # u32 LE
+    assert s.sent == [(0x0A, 0x29, b"\x00\x00\x00\x60")]
+    assert d["raw"] == 0x60000000
+
+
+def test_sel_set_utc_offset_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_set_utc_offset
+    s = _S({(0x0A, 0x5D): (0x00, b"")})
+    # -480 minutes (UTC-8) as s16 LE = 0xFE20 -> b"\x20\xfe"
+    rc, d = _run(monkeypatch, cmd_sel_set_utc_offset, s, minutes=-480)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x5D, b"\x20\xfe")]
+    assert d["offset_minutes"] == -480
+
+
+def test_chassis_set_front_panel_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_chassis_set_front_panel
+    s = _S({(0x00, 0x0A): (0x00, b"")})
+    # disable power-off (bit0) + disable reset (bit1) = 0x03
+    rc, d = _run(monkeypatch, cmd_chassis_set_front_panel, s,
+                 disable_poweroff=True, disable_reset=True,
+                 disable_diag_int=False, disable_standby=False)
+    assert rc == 0
+    assert s.sent == [(0x00, 0x0A, b"\x03")]
+    assert d["disable_poweroff"] is True and d["disable_standby"] is False
+
+
+def test_chassis_set_power_cycle_interval_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_chassis_set_power_cycle_interval
+    s = _S({(0x00, 0x0B): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_chassis_set_power_cycle_interval, s, seconds=30)
+    assert rc == 0
+    assert s.sent == [(0x00, 0x0B, b"\x1e")]
+    assert d["seconds"] == 30

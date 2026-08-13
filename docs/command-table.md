@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 88 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 54 raw-wired (⚡, sent by a verb,
-> response as bytes). 100 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 95 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 61 raw-wired (⚡, sent by a verb,
+> response as bytes). 93 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -45,7 +45,7 @@ and per-platform live test results.
 
 ## App NetFn (0x06)
 
-**68 commands · 45 done by zipmi** — ✓ 19 decoded, ⚡ 26 raw · ✗ 23 not implemented.
+**68 commands · 48 done by zipmi** — ✓ 19 decoded, ⚡ 29 raw · ✗ 20 not implemented.
 Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device GUID, Get System GUID, Get Channel Authentication Capabilities, Get Session Challenge, Activate Session, Set Session Privilege Level, Close Session, Get Channel Access, Get Channel Info Command, Get User Access Command, Get User Name Command, Activate Payload, Deactivate Payload, Get Payload Activation Status, Get Channel Cipher Suites, Get NetFn Support, Get Command Support, Get Command Sub-function Support, Get Configurable Commands, Get Command Enables, Get Command Sub-function Enables, Reset Watchdog Timer, Set Watchdog Timer, Get Watchdog Timer, Get Message Flags, Get Message, Send Message, Get Session Info, Set User Access Command, Set User Name, Set User Password Command, Set User Payload Access, Get User Payload Access, Master Read-Write, Get System Interface Capabilities, Get BMC Global Enables, Get ACPI Power State, Get System Info Parameters, Get Channel Payload Support, Get Channel Payload Version, Get Payload Instance Info
 
 
@@ -60,7 +60,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 03h  | Warm Reset | `warm_reset` | 20.3 | A | ✓ | ? | ? |
 | 04h  | Get Self Test Results | `get_self_test_results` | 20.4 | U | ✓ | ✓ | ? |
 | 05h  | Manufacturing Test On | `manufacturing_test_on` | 20.5 | A | ✗ | ? | ? |
-| 06h  | Set ACPI Power State | `set_acpi_power_state` | 20.6 | A | ✗ | ? | ? |
+| 06h  | Set ACPI Power State | `set_acpi_power_state` | 20.6 | A | ⚡ | ? | ? |
 | 07h  | Get ACPI Power State | `get_acpi_power_state` | 20.7 | U | ⚡ | ? | ? |
 | 08h  | Get Device GUID | `get_device_guid` | 20.8 | U | ✓ | ✓ | ? |
 | 09h  | Get NetFn Support | `get_net_fn_support` | 21.2 | A | ⚡ | ? | ? |
@@ -86,7 +86,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
-| 2Eh  | Set BMC Global Enables | `set_bmc_global_enables` | 22.1 | A | ✗ | ? | ? |
+| 2Eh  | Set BMC Global Enables | `set_bmc_global_enables` | 22.1 | A | ⚡ | ? | ? |
 | 2Fh  | Get BMC Global Enables | `get_bmc_global_enables` | 22.2 | U | ⚡ | ? | ? |
 | 30h  | Clear Message Flags | `clear_message_flags` | 22.3 | A | ✗ | ? | ? |
 | 31h  | Get Message Flags | `get_message_flags` | 22.4 | A | ⚡ | ? | ? |
@@ -96,7 +96,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 35h  | Read Event Message Buffer | `read_event_message_buffer` | 22.8 | A | ✗ | ? | ? |
 | 36h  | Get BT Interface Capabilities | `get_bt_interface_capabilities` | 22.10 | U | ✗ | ? | ? |
 | 37h  | Get System GUID | `get_system_guid` | 22.14 | U | ✓ | ✓ | ? |
-| 58h  | Set System Info Parameters | `set_system_info_parameters` | 22.14a | A | ✗ | ? | ? |
+| 58h  | Set System Info Parameters | `set_system_info_parameters` | 22.14a | A | ⚡ | ? | ? |
 | 59h  | Get System Info Parameters | `get_system_info_parameters` | 22.14b | U | ⚡ | ? | ? |
 | 38h  | Get Channel Authentication Capabilities | `get_channel_authentication_capabilities` | 22.13 | s | ✓ | ✓ | ? |
 | 39h  | Get Session Challenge | `get_session_challenge` | 22.15 | s | ✓ | ✓ | ? |
@@ -137,7 +137,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 
 ## Chassis NetFn (0x00)
 
-**13 commands · 9 done by zipmi** — ✓ 4 decoded, ⚡ 5 raw · ✗ 4 not implemented.
+**13 commands · 11 done by zipmi** — ✓ 4 decoded, ⚡ 7 raw · ✗ 2 not implemented.
 Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System Boot Options, Chassis Identify, Set Power Restore Policy, Get System Restart Cause, Get Chassis Capabilities, Get POH Counter
 
 
@@ -153,8 +153,8 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 | 07h  | Get System Restart Cause | `get_system_restart_cause` | 28.11 | U | ⚡ | ? | ? |
 | 08h  | Set System Boot Options | `set_system_boot_options` | 28.12 | A | ✓ | ? (untested writeable) | ? |
 | 09h  | Get System Boot Options | `get_system_boot_options` | 28.13 | U | ✓ | ✓ | ? |
-| 0Ah  | Set Front Panel Button Enables | `set_front_panel_button_enables` | 28.6 | A | ✗ | ? | ? |
-| 0Bh  | Set Power Cycle Interval | `set_power_cycle_interval` | 28.9 | A | ✗ | ? | ? |
+| 0Ah  | Set Front Panel Button Enables | `set_front_panel_button_enables` | 28.6 | A | ⚡ | ? | ? |
+| 0Bh  | Set Power Cycle Interval | `set_power_cycle_interval` | 28.9 | A | ⚡ | ? | ? |
 | 0Fh  | Get POH Counter | `get_poh_counter` | 28.14 | U | ⚡ | ? | ? |
 
 ---
@@ -199,7 +199,7 @@ Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters
 
 ## Storage NetFn (0x0A)
 
-**30 commands · 15 done by zipmi** — ✓ 7 decoded, ⚡ 8 raw · ✗ 15 not implemented.
+**30 commands · 17 done by zipmi** — ✓ 7 decoded, ⚡ 10 raw · ✗ 13 not implemented.
 Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Repository, Get SDR, Get SEL Info, Reserve SEL, Get SEL Entry, Read FRU Data, Clear SEL, Get SEL Time, Set SEL Time
 
 
@@ -224,7 +224,7 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | 26h  | Delete SDR | `delete_sdr` | 33.15 | O | ✗ | ? | ? |
 | 27h  | Clear SDR Repository | `clear_sdr_repository` | 33.16 | O | ✗ | ? | ? |
 | 28h  | Get SDR Repository Time | `get_sdr_repository_time` | 33.17 | U | ⚡ | ? | ? |
-| 29h  | Set SDR Repository Time | `set_sdr_repository_time` | 33.18 | A | ✗ | ? | ? |
+| 29h  | Set SDR Repository Time | `set_sdr_repository_time` | 33.18 | A | ⚡ | ? | ? |
 | 2Ah  | Enter SDR Repository Update Mode | `enter_sdr_repository_update_mode` | 33.19 | A | ✗ | ? | ? |
 | 2Bh  | Exit SDR Repository Update Mode | `exit_sdr_repository_update_mode` | 33.20 | A | ✗ | ? | ? |
 | 2Ch  | Run Initialization Agent | `run_initialization_agent` | 33.21 | A | ✗ | ? | ? |
@@ -244,7 +244,7 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | 48h  | Get SEL Time | `get_sel_time` | 31.10 | U | ⚡ | ? | ? |
 | 49h  | Set SEL Time | `set_sel_time` | 31.11 | O | ⚡ | ? | ? |
 | 5Ch  | Get SEL Time UTC Offset | `get_sel_time_utc_offset` | 31.11a | U | ⚡ | ? | ? |
-| 5Dh  | Set SEL Time UTC Offset | `set_sel_time_utc_offset` | 31.11b | O | ✗ | ? | ? |
+| 5Dh  | Set SEL Time UTC Offset | `set_sel_time_utc_offset` | 31.11b | O | ⚡ | ? | ? |
 | 5Ah  | Get Auxiliary Log Status | `get_auxiliary_log_status` | 31.12 | O | ✗ | ? | ? |
 | 5Bh  | Set Auxiliary Log Status | `set_auxiliary_log_status` | 31.13 | A | ✗ | ? | ? |
 

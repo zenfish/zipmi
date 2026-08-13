@@ -206,7 +206,10 @@ def emit(args: argparse.Namespace, data) -> bool:
 def parse_cli(argv: list[str] | None = None) -> argparse.Namespace:
     """Two-pass parse: strip globals from anywhere, then parse the
     verb/action remainder into the same namespace."""
-    pre = argparse.ArgumentParser(add_help=False)
+    # allow_abbrev=False so the globals pre-pass strips only EXACT global flags.
+    # Otherwise argparse prefix-matching eats a subcommand arg that is a prefix
+    # of a global — e.g. `--time` (sdr set-time) was swallowed as `--timeout`.
+    pre = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     add_globals(pre, suppress=False)
     ns, rest = pre.parse_known_args(argv)
     parser = build_parser()
@@ -2717,6 +2720,179 @@ def cmd_mc_sysinfo(args: argparse.Namespace) -> int:
     return 0
 
 
+# -- write (Set*) handlers ------------------------------------------------
+# The verb name (set-*) IS the intent; per project convention these do not
+# gate on --yes.
+
+
+def cmd_mc_set_global_enables(args: argparse.Namespace) -> int:
+    """Set BMC Global Enables (0x06/0x2E). Same byte0 bit layout as the Get
+    (0x06/0x2F): bit4 SEL logging, bit3 event-msg-buffer, bit2 buffer-full
+    interrupt, bit1 recv-message-queue interrupt. There's no read-modify-write
+    here, so every flag must be given explicitly (an omitted flag would write a
+    0 and silently disable that facility)."""
+    flags = {
+        "sel": (0x10, args.sel),
+        "evt_buf": (0x08, args.evt_buf),
+        "buf_full_int": (0x04, args.buf_full_int),
+        "recv_queue_int": (0x02, args.recv_queue_int),
+    }
+    missing = [n for n, (_, v) in flags.items() if v is None]
+    if missing:
+        _msg.error("all flags required (no read-modify-write): "
+                   "--sel --evt-buf --buf-full-int --recv-queue-int on|off")
+        return 2
+    byte0 = 0
+    for _, (bit, v) in flags.items():
+        if v == "on":
+            byte0 |= bit
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x2E, bytes([byte0]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {
+        "ok": True, "action": "set-global-enables", "raw": byte0,
+        "system_event_logging": args.sel == "on",
+        "event_message_buffer": args.evt_buf == "on",
+        "event_message_buffer_full_interrupt": args.buf_full_int == "on",
+        "receive_message_queue_interrupt": args.recv_queue_int == "on",
+    }
+    if emit(args, result):
+        return 0
+    print(f"BMC Global Enables set: 0x{byte0:02x}")
+    return 0
+
+
+def cmd_mc_set_sysinfo(args: argparse.Namespace) -> int:
+    """Set System Info Parameter (0x06/0x58), first block only.
+
+    Request: [selector, set-selector(block)=0, encoding+len, ascii...]. byte2
+    low 6 bits = string length, high 2 bits = encoding (0=ASCII). A single
+    16-byte block holds up to 14 ASCII chars after the two header-ish bytes;
+    we truncate to that. Multi-block writes are a follow-up.
+    ponytail: single block, add block-loop when >14-char values are needed."""
+    sel = args.param
+    raw = args.value.encode("ascii", "replace")
+    # byte0=selector, byte1=set-selector(block 0), byte2=encoding(0)+length.
+    # First block carries the encoding/length byte then up to 14 chars.
+    chunk = raw[:14]
+    length = len(raw) & 0x3F
+    payload = bytes([sel, 0x00, length]) + chunk
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x58, payload)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-sysinfo", "selector": sel,
+              "value": args.value}
+    if emit(args, result):
+        return 0
+    print(f"System Info param {sel} set: {args.value!r}")
+    return 0
+
+
+def cmd_mc_set_acpi(args: argparse.Namespace) -> int:
+    """Set ACPI Power State (0x06/0x06). byte0 = system power state, byte1 =
+    device power state; bit7 of each is the 'change this state' flag — set only
+    for a state that was actually given, so an omitted one is left untouched."""
+    if args.system is None and args.device is None:
+        _msg.error("give --system and/or --device (a state code)")
+        return 2
+    byte0 = (0x80 | (args.system & 0x7F)) if args.system is not None else 0x00
+    byte1 = (0x80 | (args.device & 0x7F)) if args.device is not None else 0x00
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x06, bytes([byte0, byte1]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-acpi",
+              "system_power_state": args.system,
+              "device_power_state": args.device}
+    if emit(args, result):
+        return 0
+    print(f"ACPI power state set (system={args.system}, device={args.device})")
+    return 0
+
+
+def cmd_sdr_set_time(args: argparse.Namespace) -> int:
+    """Set SDR Repository Time (0x0A/0x29). u32 LE seconds since 1970 UTC."""
+    ts = args.time
+    payload = ts.to_bytes(4, "little")
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x0A, 0x29, payload)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-sdr-time", "raw": ts}
+    if emit(args, result):
+        return 0
+    print(f"SDR Repository Time set: {ts}")
+    return 0
+
+
+def cmd_sel_set_utc_offset(args: argparse.Namespace) -> int:
+    """Set SEL Time UTC Offset (0x0A/0x5D). s16 LE minutes east of UTC."""
+    off = args.minutes
+    payload = off.to_bytes(2, "little", signed=True)
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x0A, 0x5D, payload)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-sel-utc-offset", "offset_minutes": off}
+    if emit(args, result):
+        return 0
+    print(f"SEL UTC offset set: {off} min")
+    return 0
+
+
+def cmd_chassis_set_front_panel(args: argparse.Namespace) -> int:
+    """Set Front Panel Button Enables (0x00/0x0A). byte0: bit0 disable power-off,
+    bit1 disable reset, bit2 disable diagnostic interrupt, bit3 disable standby.
+    A set bit DISABLES that button."""
+    byte0 = 0
+    if args.disable_poweroff:
+        byte0 |= 0x01
+    if args.disable_reset:
+        byte0 |= 0x02
+    if args.disable_diag_int:
+        byte0 |= 0x04
+    if args.disable_standby:
+        byte0 |= 0x08
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x00, 0x0A, bytes([byte0]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {
+        "ok": True, "action": "set-front-panel", "raw": byte0,
+        "disable_poweroff": bool(args.disable_poweroff),
+        "disable_reset": bool(args.disable_reset),
+        "disable_diag_int": bool(args.disable_diag_int),
+        "disable_standby": bool(args.disable_standby),
+    }
+    if emit(args, result):
+        return 0
+    print(f"Front panel button enables set: 0x{byte0:02x}")
+    return 0
+
+
+def cmd_chassis_set_power_cycle_interval(args: argparse.Namespace) -> int:
+    """Set Power Cycle Interval (0x00/0x0B). byte0 = interval in seconds (u8)."""
+    secs = args.seconds & 0xFF
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x00, 0x0B, bytes([secs]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-power-cycle-interval", "seconds": secs}
+    if emit(args, result):
+        return 0
+    print(f"Power cycle interval set: {secs}s")
+    return 0
+
+
 def cmd_channel_payload_support(args: argparse.Namespace) -> int:
     """Get Channel Payload Support (0x06/0x4E). Resp: bytes0-1 standard payload
     bitmask (LE), bytes2-3 session-setup, bytes4-5 OEM."""
@@ -4389,11 +4565,32 @@ def build_parser() -> argparse.ArgumentParser:
     mc_ge = mc_sub.add_parser("global-enables",
                               help="get BMC global enables (event/msg facilities)")
     mc_ge.set_defaults(func=cmd_mc_global_enables)
+    mc_sge = mc_sub.add_parser("set-global-enables",
+                               help="set BMC global enables (all flags required)")
+    for opt, dest in (("--sel", "sel"), ("--evt-buf", "evt_buf"),
+                      ("--buf-full-int", "buf_full_int"),
+                      ("--recv-queue-int", "recv_queue_int")):
+        mc_sge.add_argument(opt, choices=["on", "off"], dest=dest,
+                            help=f"{dest} logging/facility on|off (required)")
+    mc_sge.set_defaults(func=cmd_mc_set_global_enables)
     mc_acpi = mc_sub.add_parser("acpi", help="get ACPI system/device power state")
     mc_acpi.set_defaults(func=cmd_mc_acpi)
+    mc_sacpi = mc_sub.add_parser("set-acpi",
+                                 help="set ACPI system/device power state")
+    mc_sacpi.add_argument("--system", type=lambda x: int(x, 0),
+                          help="system power state code (bit7 change-flag set)")
+    mc_sacpi.add_argument("--device", type=lambda x: int(x, 0),
+                          help="device power state code (bit7 change-flag set)")
+    mc_sacpi.set_defaults(func=cmd_mc_set_acpi)
     mc_si = mc_sub.add_parser("sysinfo",
                               help="get System Info params (fw-version/hostname/os)")
     mc_si.set_defaults(func=cmd_mc_sysinfo)
+    mc_ssi = mc_sub.add_parser("set-sysinfo",
+                               help="set a System Info param (first 16-byte block)")
+    mc_ssi.add_argument("--param", type=lambda x: int(x, 0), required=True,
+                        help="parameter selector (e.g. 2 = hostname)")
+    mc_ssi.add_argument("--value", required=True, help="ASCII string value")
+    mc_ssi.set_defaults(func=cmd_mc_set_sysinfo)
     mc_wd = mc_sub.add_parser("watchdog", help="watchdog timer get/reset/off")
     mc_wd_sub = mc_wd.add_subparsers(dest="wd_action", required=True)
     mc_wdg = mc_wd_sub.add_parser("get", help="read current watchdog state")
@@ -4453,6 +4650,22 @@ def build_parser() -> argparse.ArgumentParser:
                        choices=["list", "always-off", "previous", "always-on"],
                        help="'list' queries supported; others set the policy")
     ch_pp.set_defaults(func=cmd_chassis_policy)
+    ch_fp = ch_sub.add_parser("set-front-panel",
+                              help="set front-panel button enables (disable buttons)")
+    ch_fp.add_argument("--disable-poweroff", action="store_true",
+                       help="disable the power-off button")
+    ch_fp.add_argument("--disable-reset", action="store_true",
+                       help="disable the reset button")
+    ch_fp.add_argument("--disable-diag-int", action="store_true",
+                       help="disable the diagnostic-interrupt button")
+    ch_fp.add_argument("--disable-standby", action="store_true",
+                       help="disable the standby button")
+    ch_fp.set_defaults(func=cmd_chassis_set_front_panel)
+    ch_pci = ch_sub.add_parser("set-power-cycle-interval",
+                               help="set power-cycle interval (seconds)")
+    ch_pci.add_argument("--seconds", type=lambda x: int(x, 0), required=True,
+                        help="off-to-on interval in seconds (u8)")
+    ch_pci.set_defaults(func=cmd_chassis_set_power_cycle_interval)
 
     # sel
     sel = sub.add_parser("sel", help="system event log")
@@ -4480,6 +4693,11 @@ def build_parser() -> argparse.ArgumentParser:
     sel_alloc.set_defaults(func=cmd_sel_alloc)
     sel_utc = sel_sub.add_parser("utc-offset", help="SEL time UTC offset (minutes)")
     sel_utc.set_defaults(func=cmd_sel_utc_offset)
+    sel_sutc = sel_sub.add_parser("set-utc-offset",
+                                  help="set SEL time UTC offset (signed minutes)")
+    sel_sutc.add_argument("--minutes", type=lambda x: int(x, 0), required=True,
+                          help="signed minutes east of UTC (s16)")
+    sel_sutc.set_defaults(func=cmd_sel_set_utc_offset)
 
     # sdr
     sdr = sub.add_parser("sdr", help="sensor data records")
@@ -4490,6 +4708,11 @@ def build_parser() -> argparse.ArgumentParser:
     sdr_alloc.set_defaults(func=cmd_sdr_alloc)
     sdr_time = sdr_sub.add_parser("time", help="get SDR repository clock")
     sdr_time.set_defaults(func=cmd_sdr_time)
+    sdr_stime = sdr_sub.add_parser("set-time",
+                                   help="set SDR repository clock (unix epoch)")
+    sdr_stime.add_argument("--time", type=lambda x: int(x, 0), required=True,
+                           help="seconds since 1970-UTC (decimal or 0x...)")
+    sdr_stime.set_defaults(func=cmd_sdr_set_time)
     sdr_dinfo = sdr_sub.add_parser("device-info", help="Get Device SDR Info")
     sdr_dinfo.set_defaults(func=cmd_sdr_device_info)
     sdr_dres = sdr_sub.add_parser("device-reserve",
