@@ -130,11 +130,14 @@ def _unwrap_far_cc(rsp: bytes) -> int | None:
 
 
 def confirm_bridge_path(session, path: list[int], get_message: bool = True,
-                        rs_addr: int = 0x20) -> dict:
-    """Bridge a Get Device ID (App 0x06/0x01) along `path` to IPMB slave
-    `rs_addr` and confirm the far end actually answered — inline in the Send
-    Message reply, else dequeued via Get Message (0x06/0x33) after Get Message
-    Flags (0x06/0x31).
+                        rs_addr: int = 0x20,
+                        probe: tuple[int, int, bytes] = (0x06, 0x01, b"")) -> dict:
+    """Bridge an inner command `probe` = (netfn, cmd, data) along `path` to IPMB
+    slave `rs_addr` and confirm the far end answered — inline in the Send Message
+    reply, else dequeued via Get Message (0x06/0x33) after Get Message Flags
+    (0x06/0x31). Default probe is a benign Get Device ID (App 0x06/0x01); pass a
+    different command (e.g. Set Session Privilege) to test what a bridge lets a
+    low-privilege session actually execute.
 
     Returns {path, rs_addr, accept_cc, accepted, confirmed, far_cc, via,
     category, detail}. accepted = BMC permitted the bridge; confirmed = far
@@ -142,7 +145,7 @@ def confirm_bridge_path(session, path: list[int], get_message: bool = True,
     out = {"path": list(path), "rs_addr": rs_addr, "accept_cc": None,
            "accepted": False, "confirmed": False, "far_cc": None, "via": None,
            "category": "refused", "detail": ""}
-    req = build_bridged_request(path, 0x06, 0x01, rs_addr=rs_addr)
+    req = build_bridged_request(path, probe[0], probe[1], probe[2], rs_addr=rs_addr)
     try:
         cc, rsp = session.send_raw(0x06, 0x34, req)
     except Exception as e:                                    # noqa: BLE001

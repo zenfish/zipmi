@@ -716,7 +716,7 @@ class Session:
         uname = self.username.encode("utf-8")
         if getattr(self, "rakp_pad_username", False):
             uname = uname.ljust(16, b"\x00")
-        role = 0x14  # name-only-lookup + admin priv
+        role = 0x10 | (self.priv & 0x0F)  # name-only-lookup + requested max priv
         rakp1 = RAKP1(
             managed_session_id=managed_sid,
             remote_random=rc,

@@ -179,6 +179,13 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                         help="emit this command's result as JSON to stdout "
                              "instead of text (redirect to a file if you want "
                              "one). Position-independent global flag.")
+    parser.add_argument("--max-priv",
+                        choices=["callback", "user", "operator", "admin"],
+                        default=d("admin"),
+                        help="cap the session's requested privilege (RAKP role / "
+                             "IPMI 1.5 max priv). Default admin. Lower it to run "
+                             "any command at reduced privilege — e.g. to test "
+                             "whether bridging escalates an operator session.")
     parser.add_argument("-V", "--version", action="version",
                         version=f"zipmi version {full_version()}",
                         help="show program version and exit")
@@ -281,6 +288,7 @@ def _open_session(args: argparse.Namespace) -> Session:
         lanplus=lanplus,
         cipher_suite=args.cipher,
     )
+    s.priv = PRIV_LEVELS.get(getattr(args, "max_priv", "admin") or "admin", 0x04)
     s.transport.port = args.port
     _apply_trace(s.transport, args)
     return s
@@ -1416,6 +1424,82 @@ def cmd_bridging_info(args: argparse.Namespace) -> int:
         print(f"# {state['n']} probe(s)"
               + (f"; STOPPED at --max-probes={args.max_probes}, more unexplored"
                  if state["capped"] else ""))
+    return 0
+
+
+def cmd_bridging_privesc(args: argparse.Namespace) -> int:
+    """Confused-deputy probe: does Send Message bridging let a capped-privilege
+    session run an admin command it can't run directly?
+
+    Baseline: request Administrator via Set Session Privilege Level (0x06/0x3B)
+    DIRECTLY on the session — a session capped below admin (see --max-priv) gets
+    refused (cc 0x81 / granted level clamped). Then bridge the SAME request to
+    each present channel: if the bridged path returns success where the direct
+    one refused, the BMC failed to propagate your privilege cap across the hop —
+    privilege escalation. Only meaningful with --max-priv operator (or lower) and
+    a matching non-admin account."""
+    from .bridge import confirm_bridge_path, cc_reason
+    PRIV_NAME = {v: k for k, v in PRIV_LEVELS.items()}
+    SET_SESS_PRIV_ADMIN = (0x06, 0x3B, bytes([0x04]))     # request Administrator
+    # Set Session Privilege Level (0x3B) has its OWN completion codes — 0x80 here
+    # is "level not available for this user", NOT the bridge-context meaning.
+    SSP_CC = {0x80: "requested level not available for this user",
+              0x81: "requested level exceeds Channel/User privilege limit",
+              0x82: "cannot disable User Level Authentication"}
+
+    def _ssp_reason(cc: int) -> str:
+        return SSP_CC.get(cc) or cc_reason(cc)
+
+    with _open_session(args) as s:
+        granted = getattr(s, "granted_priv", 0) or 0
+        dcc, ddata = s.send_raw(0x06, 0x3B, bytes([0x04]))     # direct baseline
+        direct_granted = (ddata[0] & 0x0F) if (dcc == 0x00 and ddata) else None
+        direct_refused = (dcc != 0x00) or (direct_granted is not None and direct_granted < 0x04)
+        media = _channel_media(s)
+        if args.channel != "all":
+            media = {args.channel: media.get(args.channel, 0xFF)}
+        targets = []
+        for ch in media:
+            r = confirm_bridge_path(s, [ch], probe=SET_SESS_PRIV_ADMIN)
+            far = r["far_cc"]
+            escalated = direct_refused and r["confirmed"] and far == 0x00
+            targets.append({"channel": ch, "accept_cc": r["accept_cc"],
+                            "far_cc": far, "confirmed": r["confirmed"],
+                            "escalated": escalated, "detail": r["detail"]})
+
+    result = {
+        "requested_priv": "admin",
+        "session_granted_priv": {"code": granted,
+                                 "name": PRIV_NAME.get(granted, f"0x{granted:x}")},
+        "direct": {"cc": dcc, "granted_level": direct_granted,
+                   "refused": direct_refused,
+                   "reason": _ssp_reason(dcc) if dcc else "accepted"},
+        "targets": targets,
+        "escalation_found": any(t["escalated"] for t in targets),
+    }
+    if emit(args, result):
+        return 0
+    print(f"privesc probe — requested max priv: {getattr(args, 'max_priv', 'admin')}"
+          f", RAKP ceiling: {result['session_granted_priv']['name']}")
+    if not direct_refused:
+        _msg.warn("direct Set Session Priv(admin) SUCCEEDED — session is not "
+                  "capped below admin, so there is no baseline to escalate from. "
+                  "Re-run with --max-priv operator and a non-admin account.")
+    dtag = (f"REFUSED cc=0x{dcc:02x} ({_ssp_reason(dcc)})" if dcc
+            else (f"clamped to 0x{direct_granted:x}" if direct_refused
+                  else "GRANTED admin"))
+    print(f"direct Set Session Priv(admin): {dtag}")
+    for t in targets:
+        if t["escalated"]:
+            tag = "*** ESCALATED (admin via bridge) ***"
+        elif t["confirmed"]:
+            tag = f"far cc=0x{t['far_cc']:02x}"
+        else:
+            tag = f"accept cc=0x{t['accept_cc']:02x}"
+        print(f"  bridge -> 0x{t['channel']:x}: {tag}  {t['detail']}")
+    if result["escalation_found"]:
+        _msg.warn("PRIVILEGE ESCALATION: bridging ran an admin command the direct "
+                  "path refused. The BMC did not propagate the session priv cap.")
     return 0
 
 
@@ -3540,6 +3624,12 @@ def build_parser() -> argparse.ArgumentParser:
                                "off=0x20 only, common=~17 usual homes (default), "
                                "full=every even addr 0x10..0xee")
     brg_info.set_defaults(func=cmd_bridging_info)
+    brg_pe = brg_sub.add_parser(
+        "privesc", help="test whether bridging escalates a capped-priv session")
+    brg_pe.add_argument("channel", nargs="?", type=_chan_or_all, default="all",
+                        help="target channel, or 'all' (default). Pair with "
+                             "--max-priv operator + a non-admin account.")
+    brg_pe.set_defaults(func=cmd_bridging_privesc)
 
     # session
     sess = sub.add_parser("session", help="session info")

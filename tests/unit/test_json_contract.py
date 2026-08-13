@@ -241,3 +241,62 @@ def test_fru_print_common_header_json(monkeypatch):
     assert d["common_header"]["format_version"] == 1
     assert d["common_header"]["checksum_ok"] is True
     assert d["board_info"] is None and d["product_info"] is None
+
+
+# === bridging privesc (confused-deputy probe) ============================
+
+def _ipmb_reply(cmd, cc, data=b""):
+    """IPMB-format bridged response the parser reads (checksums not validated)."""
+    return bytes([0x81, 0x1C, 0x00, 0x20, 0x00, cmd, cc]) + data + bytes([0x00])
+
+
+# one present channel (0x00, medium IPMB) discovered by _channel_media
+_CH0_INFO = (0x00, bytes([0x00, 0x01, 0x01, 0x00, 0, 0, 0, 0, 0]))
+
+
+def test_privesc_detects_escalation(monkeypatch):
+    """Direct Set Session Priv(admin) REFUSED (0x80) but the bridged copy comes
+    back with far cc 0x00 => the BMC ran an admin command the direct path
+    refused. escalation_found must be True."""
+    from zipmi.cli.zipmi import cmd_bridging_privesc
+    s = _S({
+        (0x06, 0x42, bytes([0x00])): _CH0_INFO,
+        (0x06, 0x3B, bytes([0x04])): (0x80, b""),                     # direct refused
+        (0x06, 0x34): (0x00, _ipmb_reply(0x3B, 0x00, bytes([0x04]))),  # bridged OK
+    })
+    rc, d = _run(monkeypatch, cmd_bridging_privesc, s, channel="all", max_priv="operator")
+    assert rc == 0
+    assert d["direct"]["refused"] is True and d["direct"]["cc"] == 0x80
+    assert d["escalation_found"] is True
+    t = next(t for t in d["targets"] if t["channel"] == 0)
+    assert t["escalated"] is True and t["far_cc"] == 0x00
+
+
+def test_privesc_negative_when_bridge_also_refused(monkeypatch):
+    """Direct refused AND bridged returns a priv error (0xD4) => no escalation."""
+    from zipmi.cli.zipmi import cmd_bridging_privesc
+    s = _S({
+        (0x06, 0x42, bytes([0x00])): _CH0_INFO,
+        (0x06, 0x3B, bytes([0x04])): (0x80, b""),
+        (0x06, 0x34): (0x00, _ipmb_reply(0x3B, 0xD4)),   # far end: insufficient priv
+    })
+    rc, d = _run(monkeypatch, cmd_bridging_privesc, s, channel="all", max_priv="operator")
+    assert rc == 0
+    assert d["escalation_found"] is False
+    assert d["targets"][0]["escalated"] is False and d["targets"][0]["far_cc"] == 0xD4
+
+
+def test_privesc_no_baseline_when_direct_granted(monkeypatch):
+    """If the direct admin request SUCCEEDS (session not capped), there is no
+    baseline: refused is False and nothing counts as escalation even if bridged
+    also succeeds."""
+    from zipmi.cli.zipmi import cmd_bridging_privesc
+    s = _S({
+        (0x06, 0x42, bytes([0x00])): _CH0_INFO,
+        (0x06, 0x3B, bytes([0x04])): (0x00, bytes([0x04])),   # direct GRANTED admin
+        (0x06, 0x34): (0x00, _ipmb_reply(0x3B, 0x00, bytes([0x04]))),
+    })
+    rc, d = _run(monkeypatch, cmd_bridging_privesc, s, channel="all", max_priv="admin")
+    assert rc == 0
+    assert d["direct"]["refused"] is False
+    assert d["escalation_found"] is False
