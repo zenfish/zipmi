@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 95 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 61 raw-wired (⚡, sent by a verb,
-> response as bytes). 93 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 101 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 67 raw-wired (⚡, sent by a verb,
+> response as bytes). 87 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -45,7 +45,7 @@ and per-platform live test results.
 
 ## App NetFn (0x06)
 
-**68 commands · 48 done by zipmi** — ✓ 19 decoded, ⚡ 29 raw · ✗ 20 not implemented.
+**68 commands · 49 done by zipmi** — ✓ 19 decoded, ⚡ 30 raw · ✗ 19 not implemented.
 Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device GUID, Get System GUID, Get Channel Authentication Capabilities, Get Session Challenge, Activate Session, Set Session Privilege Level, Close Session, Get Channel Access, Get Channel Info Command, Get User Access Command, Get User Name Command, Activate Payload, Deactivate Payload, Get Payload Activation Status, Get Channel Cipher Suites, Get NetFn Support, Get Command Support, Get Command Sub-function Support, Get Configurable Commands, Get Command Enables, Get Command Sub-function Enables, Reset Watchdog Timer, Set Watchdog Timer, Get Watchdog Timer, Get Message Flags, Get Message, Send Message, Get Session Info, Set User Access Command, Set User Name, Set User Password Command, Set User Payload Access, Get User Payload Access, Master Read-Write, Get System Interface Capabilities, Get BMC Global Enables, Get ACPI Power State, Get System Info Parameters, Get Channel Payload Support, Get Channel Payload Version, Get Payload Instance Info
 
 
@@ -105,7 +105,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 3Ch  | Close Session | `close_session` | 22.19 | C | ✓ | ✓ | ? |
 | 3Dh  | Get Session Info | `get_session_info` | 22.20 | U | ⚡ | ? | ? |
 | 3Fh  | Get AuthCode | `get_auth_code` | 22.21 | U | ✗ | ? | ? |
-| 40h  | Set Channel Access | `set_channel_access` | 22.22 | A | ✗ | ? | ? |
+| 40h  | Set Channel Access | `set_channel_access` | 22.22 | A | ⚡ | ? | ? |
 | 41h  | Get Channel Access | `get_channel_access` | 22.23 | U | ✓ | ? | ? |
 | 42h  | Get Channel Info Command | `get_channel_info` | 22.24 | U | ✓ | ? | ? |
 | 43h  | Set User Access Command | `set_user_access` | 22.26 | A | ⚡ | ? | ? |
@@ -137,7 +137,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 
 ## Chassis NetFn (0x00)
 
-**13 commands · 11 done by zipmi** — ✓ 4 decoded, ⚡ 7 raw · ✗ 2 not implemented.
+**13 commands · 12 done by zipmi** — ✓ 4 decoded, ⚡ 8 raw · ✗ 1 not implemented.
 Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System Boot Options, Chassis Identify, Set Power Restore Policy, Get System Restart Cause, Get Chassis Capabilities, Get POH Counter
 
 
@@ -148,7 +148,7 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 | 02h  | Chassis Control | `chassis_control` | 28.3 | O | ✓ | ? (untested destructive) | ? |
 | 03h  | Chassis Reset | `chassis_reset` | 28.4 | O | ✗ | ? | ? |
 | 04h  | Chassis Identify | `chassis_identify` | 28.5 | O | ⚡ | ? | ? |
-| 05h  | Set Chassis Capabilities | `set_chassis_capabilities` | 28.7 | A | ✗ | ? | ? |
+| 05h  | Set Chassis Capabilities | `set_chassis_capabilities` | 28.7 | A | ⚡ | ? | ? |
 | 06h  | Set Power Restore Policy | `set_power_restore_policy` | 28.8 | A | ⚡ | ? | ? |
 | 07h  | Get System Restart Cause | `get_system_restart_cause` | 28.11 | U | ⚡ | ? | ? |
 | 08h  | Set System Boot Options | `set_system_boot_options` | 28.12 | A | ✓ | ? (untested writeable) | ? |
@@ -161,7 +161,7 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 
 ## Sensor / Event NetFn (0x04)
 
-**27 commands · 13 done by zipmi** — ✓ 1 decoded, ⚡ 12 raw · ✗ 14 not implemented.
+**27 commands · 17 done by zipmi** — ✓ 1 decoded, ⚡ 16 raw · ✗ 10 not implemented.
 Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters, Get Last Processed Event ID, Get Device SDR Info, Get Device SDR, Reserve Device SDR Repository, Get Sensor Reading Factors, Get Sensor Hysteresis, Get Sensor Threshold, Get Sensor Event Enable, Get Sensor Event Status, Get Sensor Type
 
 
@@ -172,7 +172,7 @@ Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters
 | 02h  | Platform Event Message | `platform_event` | 29.3 | O | ✗ | ? | ? |
 | 10h  | Get PEF Capabilities | `get_pef_capabilities` | 30.1 | U | ⚡ | ? | ? |
 | 11h  | Arm PEF Postpone Timer | `arm_pef_postpone_timer` | 30.2 | A | ✗ | ? | ? |
-| 12h  | Set PEF Configuration Parameters | `set_pef_configuration_parameters` | 30.3 | A | ✗ | ? | ? |
+| 12h  | Set PEF Configuration Parameters | `set_pef_configuration_parameters` | 30.3 | A | ⚡ | ? | ? |
 | 13h  | Get PEF Configuration Parameters | `get_pef_configuration_parameters` | 30.4 | U | ⚡ | ? | ? |
 | 14h  | Set Last Processed Event ID | `set_last_processed_event_id` | 30.5 | A | ✗ | ? | ? |
 | 15h  | Get Last Processed Event ID | `get_last_processed_event_id` | 30.6 | A | ⚡ | ? | ? |
@@ -182,11 +182,11 @@ Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters
 | 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ⚡ | ? | ? |
 | 22h  | Reserve Device SDR Repository | `reserve_device_sdr_repository` | 35.4 | U | ⚡ | ? | ? |
 | 23h  | Get Sensor Reading Factors | `get_sensor_reading_factors` | 35.5 | U | ⚡ | ? | ? |
-| 24h  | Set Sensor Hysteresis | `set_sensor_hysteresis` | 35.6 | O | ✗ | ? | ? |
+| 24h  | Set Sensor Hysteresis | `set_sensor_hysteresis` | 35.6 | O | ⚡ | ? | ? |
 | 25h  | Get Sensor Hysteresis | `get_sensor_hysteresis` | 35.7 | U | ⚡ | ? | ? |
-| 26h  | Set Sensor Threshold | `set_sensor_threshold` | 35.8 | O | ✗ | ? | ? |
+| 26h  | Set Sensor Threshold | `set_sensor_threshold` | 35.8 | O | ⚡ | ? | ? |
 | 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ⚡ | ? | ? |
-| 28h  | Set Sensor Event Enable | `set_sensor_event_enable` | 35.10 | O | ✗ | ? | ? |
+| 28h  | Set Sensor Event Enable | `set_sensor_event_enable` | 35.10 | O | ⚡ | ? | ? |
 | 29h  | Get Sensor Event Enable | `get_sensor_event_enable` | 35.11 | U | ⚡ | ? | ? |
 | 2Ah  | Re-arm Sensor Events | `re_arm_sensor_events` | 35.12 | O | ✗ | ? | ? |
 | 2Bh  | Get Sensor Event Status | `get_sensor_event_status` | 35.13 | U | ⚡ | ? | ? |

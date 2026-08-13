@@ -944,3 +944,109 @@ def test_chassis_set_power_cycle_interval_req(monkeypatch):
     assert rc == 0
     assert s.sent == [(0x00, 0x0B, b"\x1e")]
     assert d["seconds"] == 30
+
+
+# === second write batch — assert REQUEST BYTES ===========================
+
+def test_channel_set_access_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_set_access
+    s = _S({(0x06, 0x40): (0x00, b"")})
+    # ch 0x01, access=always(0x02), priv=operator(0x03), volatile(sel=01b<<6=0x40)
+    # byte1 = 0x40|0x02 = 0x42 ; byte2 = 0x40|0x03 = 0x43
+    rc, d = _run(monkeypatch, cmd_channel_set_access, s,
+                 channel="0x01", access="always", priv_limit="operator",
+                 set_mode="volatile")
+    assert rc == 0
+    assert s.sent == [(0x06, 0x40, bytes([0x01, 0x42, 0x43]))]
+    assert d["access_mode"] == "always" and d["privilege_limit"] == "operator"
+
+
+def test_channel_set_access_nvram_disabled(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_set_access
+    s = _S({(0x06, 0x40): (0x00, b"")})
+    # nvram sel=10b<<6=0x80; access=disabled(0x00); priv=admin(0x04)
+    rc, _ = _run(monkeypatch, cmd_channel_set_access, s,
+                 channel="0x0E", access="disabled", priv_limit="admin",
+                 set_mode="nvram")
+    assert s.sent == [(0x06, 0x40, bytes([0x0E, 0x80, 0x84]))]
+
+
+def test_pef_set_config_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_pef_set_config
+    s = _S({(0x04, 0x12): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_pef_set_config, s, param="0x0A", data="01 02 aa")
+    assert rc == 0
+    assert s.sent == [(0x04, 0x12, bytes([0x0A, 0x01, 0x02, 0xAA]))]
+    assert d["param"] == 0x0A and d["data"] == "0102aa"
+
+
+def test_pef_set_config_comma_separated(monkeypatch):
+    from zipmi.cli.zipmi import cmd_pef_set_config
+    s = _S({(0x04, 0x12): (0x00, b"")})
+    rc, _ = _run(monkeypatch, cmd_pef_set_config, s, param="1", data="0xff,0x00")
+    assert s.sent == [(0x04, 0x12, bytes([0x01, 0xFF, 0x00]))]
+
+
+def test_sensor_set_hysteresis_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_set_hysteresis
+    s = _S({(0x04, 0x24): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_sensor_set_hysteresis, s,
+                 num="5", positive=3, negative=4)
+    assert rc == 0
+    # [sensor_num, 0xFF reserved mask, positive, negative]
+    assert s.sent == [(0x04, 0x24, b"\x05\xff\x03\x04")]
+    assert d["positive_raw"] == 3 and d["negative_raw"] == 4
+
+
+def test_sensor_set_threshold_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_set_threshold
+    s = _S({(0x04, 0x26): (0x00, b"")})
+    # only --uc given: uc is bit4 -> mask 0x10; uc value in bytes[2:8] slot 4
+    rc, d = _run(monkeypatch, cmd_sensor_set_threshold, s,
+                 num="5", lnc=None, lc=None, lnr=None, unc=None, uc=0xD0, unr=None)
+    assert rc == 0
+    # byte0 num=5, byte1 mask=0x10, bytes2-7 = 00 00 00 00 d0 00
+    assert s.sent == [(0x04, 0x26, bytes([0x05, 0x10, 0, 0, 0, 0, 0xD0, 0]))]
+    assert d["set_mask"] == 0x10 and d["thresholds"]["uc"] == 0xD0
+
+
+def test_sensor_set_threshold_multi(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_set_threshold
+    s = _S({(0x04, 0x26): (0x00, b"")})
+    # lnc(bit0) + unr(bit5) -> mask 0x21; lnc=0x10 in slot0, unr=0xF0 in slot5
+    rc, _ = _run(monkeypatch, cmd_sensor_set_threshold, s,
+                 num="0x07", lnc=0x10, lc=None, lnr=None, unc=None, uc=None, unr=0xF0)
+    assert s.sent == [(0x04, 0x26, bytes([0x07, 0x21, 0x10, 0, 0, 0, 0, 0xF0]))]
+
+
+def test_sensor_set_event_enable_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_set_event_enable
+    s = _S({(0x04, 0x28): (0x00, b"")})
+    # enable 0xC0 (all-msg+scan); assert 0x7A95 -> lo 0x95 hi 0x7A; deassert 0
+    rc, d = _run(monkeypatch, cmd_sensor_set_event_enable, s,
+                 num="5", enable=0xC0, assert_mask=0x7A95, deassert_mask=0x0000)
+    assert rc == 0
+    assert s.sent == [(0x04, 0x28, bytes([0x05, 0xC0, 0x95, 0x7A, 0x00, 0x00]))]
+    assert d["assertion_mask"] == 0x7A95
+
+
+def test_chassis_set_caps_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_chassis_set_caps
+    s = _S({(0x00, 0x05): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_chassis_set_caps, s,
+                 caps_flags=0x0F, fru_addr=0x20, sdr_addr=0x21,
+                 sel_addr=0x22, sysmgmt_addr=0x23, bridge_addr=None)
+    assert rc == 0
+    assert s.sent == [(0x00, 0x05, bytes([0x0F, 0x20, 0x21, 0x22, 0x23]))]
+    assert d["capabilities_flags"] == 0x0F and "bridge_device_addr" not in d
+
+
+def test_chassis_set_caps_with_bridge(monkeypatch):
+    from zipmi.cli.zipmi import cmd_chassis_set_caps
+    s = _S({(0x00, 0x05): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_chassis_set_caps, s,
+                 caps_flags=0x01, fru_addr=0x20, sdr_addr=0x21,
+                 sel_addr=0x22, sysmgmt_addr=0x23, bridge_addr=0x24)
+    assert rc == 0
+    assert s.sent == [(0x00, 0x05, bytes([0x01, 0x20, 0x21, 0x22, 0x23, 0x24]))]
+    assert d["bridge_device_addr"] == 0x24

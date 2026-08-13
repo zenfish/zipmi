@@ -2893,6 +2893,175 @@ def cmd_chassis_set_power_cycle_interval(args: argparse.Namespace) -> int:
     return 0
 
 
+# --- second write batch (§22.22, §30.3, §35.x, §28.5) --------------------
+
+_ACCESS_MODES = {"disabled": 0x00, "pre-boot": 0x01, "always": 0x02, "shared": 0x03}
+
+
+def cmd_channel_set_access(args: argparse.Namespace) -> int:
+    """Set Channel Access (0x06/0x40), IPMI §22.22.
+
+    byte0 = channel number (bits 3:0).
+    byte1 = [7:6] set-access-mode selector for the access byte
+                  (01b=volatile, 10b=non-volatile),
+            [5] user-level-auth-disabled, [4] per-message-auth-disabled,
+            [3] PEF alerting-disabled, [2:0] channel access mode.
+    byte2 = [7:6] set-mode selector for the priv byte (same 01/10 encoding),
+            [3:0] channel privilege-level limit.
+
+    The two 7:6 selectors say "set volatile" (01b) or "set & save to
+    non-volatile" (10b). We drive both bytes with the same --set-mode.
+    Alerting/per-msg-auth/user-auth default to enabled (their disable bits 0)."""
+    ch = int(args.channel, 0) & 0x0F
+    access = _ACCESS_MODES[args.access]
+    priv = PRIV_LEVELS[args.priv_limit]
+    sel = 0b01 if args.set_mode == "volatile" else 0b10   # bits 7:6
+    byte1 = (sel << 6) | (access & 0x07)
+    byte2 = (sel << 6) | (priv & 0x0F)
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x40, bytes([ch, byte1, byte2]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-channel-access", "channel": ch,
+              "access_mode": args.access, "privilege_limit": args.priv_limit,
+              "set_mode": args.set_mode, "byte1": byte1, "byte2": byte2}
+    if emit(args, result):
+        return 0
+    print(f"Channel 0x{ch:x} access set: access={args.access} "
+          f"priv={args.priv_limit} ({args.set_mode})")
+    return 0
+
+
+def _hex_bytes(text: str) -> bytes:
+    """Parse a space/comma separated hex-byte list -> bytes (each token & 0xFF).
+    Bare tokens (no 0x prefix) are hex: 'aa' and '01' both mean the byte, not
+    decimal — a hex-byte list is the natural reading for wire data."""
+    toks = text.replace(",", " ").split()
+    return bytes((int(t, 0) if t.lower().startswith("0x") else int(t, 16)) & 0xFF
+                 for t in toks)
+
+
+def cmd_pef_set_config(args: argparse.Namespace) -> int:
+    """Set PEF Configuration Parameters (0x04/0x12). Req = [selector] + data."""
+    sel = int(args.param, 0) & 0xFF
+    data = _hex_bytes(args.data) if args.data else b""
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x12, bytes([sel]) + data)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-pef-config", "param": sel,
+              "data": data.hex()}
+    if emit(args, result):
+        return 0
+    print(f"PEF config param {sel} set: {data.hex()}")
+    return 0
+
+
+def cmd_sensor_set_hysteresis(args: argparse.Namespace) -> int:
+    """Set Sensor Hysteresis (0x04/0x24). Req = [sensor_num, 0xFF (reserved
+    hysteresis mask), positive-going raw, negative-going raw]."""
+    num = int(args.num, 0) & 0xFF
+    pos = args.positive & 0xFF
+    neg = args.negative & 0xFF
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x24, bytes([num, 0xFF, pos, neg]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-sensor-hysteresis", "sensor_number": num,
+              "positive_raw": pos, "negative_raw": neg}
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} hysteresis set: +{pos} -{neg} (raw)")
+    return 0
+
+
+def cmd_sensor_set_threshold(args: argparse.Namespace) -> int:
+    """Set Sensor Threshold (0x04/0x26). Req: byte0=sensor_num, byte1=set-mask
+    (one bit per threshold given), bytes2-7 = lnc/lc/lnr/unc/uc/unr raw values
+    (0 for thresholds not being set)."""
+    num = int(args.num, 0) & 0xFF
+    # bit order matches the readable-mask of Get Sensor Threshold (§35.9):
+    #   bit0 lnc, bit1 lc, bit2 lnr, bit3 unc, bit4 uc, bit5 unr
+    order = [("lnc", args.lnc), ("lc", args.lc), ("lnr", args.lnr),
+             ("unc", args.unc), ("uc", args.uc), ("unr", args.unr)]
+    mask = 0
+    values = []
+    for i, (_, v) in enumerate(order):
+        if v is not None:
+            mask |= (1 << i)
+            values.append(v & 0xFF)
+        else:
+            values.append(0x00)
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x26, bytes([num, mask] + values))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-sensor-threshold", "sensor_number": num,
+              "set_mask": mask,
+              "thresholds": {name: values[i] for i, (name, _) in enumerate(order)}}
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} thresholds set (mask 0x{mask:02x})")
+    return 0
+
+
+def cmd_sensor_set_event_enable(args: argparse.Namespace) -> int:
+    """Set Sensor Event Enable (0x04/0x28). Req = [sensor_num, enable-config,
+    assert-lo, assert-hi, deassert-lo, deassert-hi]. enable-config: bit7
+    all-event-msg enable, bit6 sensor-scanning enable, bit5 reading/state
+    unavailable. Masks are u16 LE."""
+    num = int(args.num, 0) & 0xFF
+    enable = args.enable & 0xFF
+    assert_mask = args.assert_mask & 0xFFFF
+    deassert_mask = args.deassert_mask & 0xFFFF
+    payload = bytes([num, enable,
+                     assert_mask & 0xFF, (assert_mask >> 8) & 0xFF,
+                     deassert_mask & 0xFF, (deassert_mask >> 8) & 0xFF])
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x28, payload)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-sensor-event-enable",
+              "sensor_number": num, "enable": enable,
+              "assertion_mask": assert_mask, "deassertion_mask": deassert_mask}
+    if emit(args, result):
+        return 0
+    print(f"Sensor 0x{num:02x} event enable set: 0x{enable:02x} "
+          f"assert 0x{assert_mask:04x} deassert 0x{deassert_mask:04x}")
+    return 0
+
+
+def cmd_chassis_set_caps(args: argparse.Namespace) -> int:
+    """Set Chassis Capabilities (0x00/0x05). Req = [caps-flags, fru-addr,
+    sdr-addr, sel-addr, sysmgmt-addr(, bridge-addr)]. Bridge address is
+    optional (present on some implementations only)."""
+    flags = args.caps_flags & 0xFF
+    payload = [flags, args.fru_addr & 0xFF, args.sdr_addr & 0xFF,
+               args.sel_addr & 0xFF, args.sysmgmt_addr & 0xFF]
+    if args.bridge_addr is not None:
+        payload.append(args.bridge_addr & 0xFF)
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x00, 0x05, bytes(payload))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-chassis-caps",
+              "capabilities_flags": flags,
+              "fru_device_addr": payload[1], "sdr_device_addr": payload[2],
+              "sel_device_addr": payload[3], "system_mgmt_device_addr": payload[4]}
+    if args.bridge_addr is not None:
+        result["bridge_device_addr"] = payload[5]
+    if emit(args, result):
+        return 0
+    print(f"Chassis capabilities set: flags 0x{flags:02x}")
+    return 0
+
+
 def cmd_channel_payload_support(args: argparse.Namespace) -> int:
     """Get Channel Payload Support (0x06/0x4E). Resp: bytes0-1 standard payload
     bitmask (LE), bytes2-3 session-setup, bytes4-5 OEM."""
@@ -4618,6 +4787,21 @@ def build_parser() -> argparse.ArgumentParser:
     ch_status.set_defaults(func=cmd_chassis_status)
     ch_caps = ch_sub.add_parser("caps", help="get chassis capabilities + device addrs")
     ch_caps.set_defaults(func=cmd_chassis_caps)
+    ch_scaps = ch_sub.add_parser("set-caps",
+                                 help="set chassis capabilities flags + device addrs")
+    ch_scaps.add_argument("--caps-flags", type=lambda x: int(x, 0), required=True,
+                          help="capabilities flags (u8)")
+    ch_scaps.add_argument("--fru-addr", type=lambda x: int(x, 0), required=True,
+                          help="FRU device address (u8)")
+    ch_scaps.add_argument("--sdr-addr", type=lambda x: int(x, 0), required=True,
+                          help="SDR device address (u8)")
+    ch_scaps.add_argument("--sel-addr", type=lambda x: int(x, 0), required=True,
+                          help="SEL device address (u8)")
+    ch_scaps.add_argument("--sysmgmt-addr", type=lambda x: int(x, 0), required=True,
+                          help="system-management device address (u8)")
+    ch_scaps.add_argument("--bridge-addr", type=lambda x: int(x, 0), default=None,
+                          help="bridge device address (u8, optional)")
+    ch_scaps.set_defaults(func=cmd_chassis_set_caps)
     ch_poh = ch_sub.add_parser("poh", help="get power-on-hours counter")
     ch_poh.set_defaults(func=cmd_chassis_poh)
     ch_power = ch_sub.add_parser("power", help="chassis power control")
@@ -4750,6 +4934,28 @@ def build_parser() -> argparse.ArgumentParser:
     sn_hys = sn_sub.add_parser("hysteresis", help="Get Sensor Hysteresis")
     sn_hys.add_argument("num", help="sensor number (decimal or 0x hex)")
     sn_hys.set_defaults(func=cmd_sensor_hysteresis)
+    sn_shys = sn_sub.add_parser("set-hysteresis", help="Set Sensor Hysteresis (raw)")
+    sn_shys.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_shys.add_argument("--positive", type=lambda x: int(x, 0), required=True,
+                         help="positive-going hysteresis (u8 raw)")
+    sn_shys.add_argument("--negative", type=lambda x: int(x, 0), required=True,
+                         help="negative-going hysteresis (u8 raw)")
+    sn_shys.set_defaults(func=cmd_sensor_set_hysteresis)
+    sn_sthr = sn_sub.add_parser("set-threshold", help="Set Sensor Threshold (raw)")
+    sn_sthr.add_argument("num", help="sensor number (decimal or 0x hex)")
+    for opt in ("lnc", "lc", "lnr", "unc", "uc", "unr"):
+        sn_sthr.add_argument(f"--{opt}", type=lambda x: int(x, 0), default=None,
+                             help=f"{opt} threshold (u8 raw)")
+    sn_sthr.set_defaults(func=cmd_sensor_set_threshold)
+    sn_see = sn_sub.add_parser("set-event-enable", help="Set Sensor Event Enable")
+    sn_see.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_see.add_argument("--enable", type=lambda x: int(x, 0), default=0,
+                        help="config byte: bit7 all-msg, bit6 scan, bit5 read (u8)")
+    sn_see.add_argument("--assert-mask", type=lambda x: int(x, 0), default=0,
+                        help="assertion event mask (u16 hex)")
+    sn_see.add_argument("--deassert-mask", type=lambda x: int(x, 0), default=0,
+                        help="deassertion event mask (u16 hex)")
+    sn_see.set_defaults(func=cmd_sensor_set_event_enable)
 
     # pef
     pef = sub.add_parser("pef", help="Platform Event Filtering")
@@ -4762,6 +4968,12 @@ def build_parser() -> argparse.ArgumentParser:
     pef_cfg.set_defaults(func=cmd_pef_config)
     pef_le = pef_sub.add_parser("last-event", help="Get Last Processed Event ID")
     pef_le.set_defaults(func=cmd_pef_last_event)
+    pef_scfg = pef_sub.add_parser("set-config", help="Set PEF Config Parameters")
+    pef_scfg.add_argument("--param", required=True,
+                          help="parameter selector (decimal or 0x hex)")
+    pef_scfg.add_argument("--data", default="",
+                          help="hex bytes (space/comma separated), e.g. '01 02 aa'")
+    pef_scfg.set_defaults(func=cmd_pef_set_config)
 
     # lan
     lan = sub.add_parser("lan", help="LAN configuration")
@@ -4930,6 +5142,18 @@ def build_parser() -> argparse.ArgumentParser:
     chn_ga.add_argument("channel", type=lambda s: int(s, 0))
     chn_ga.add_argument("user_id", type=int)
     chn_ga.set_defaults(func=cmd_channel_getaccess)
+    chn_sa = chn_sub.add_parser("set-access", help="Set Channel Access (§22.22)")
+    chn_sa.add_argument("channel", nargs="?", default="0x0E",
+                        help="channel number (default 0x0E = this channel)")
+    chn_sa.add_argument("--priv-limit", choices=list(PRIV_LEVELS.keys()),
+                        default="admin", help="channel privilege-level limit")
+    chn_sa.add_argument("--access", choices=list(_ACCESS_MODES.keys()),
+                        default="always",
+                        help="channel access mode (default always-available)")
+    chn_sa.add_argument("--set-mode", choices=["volatile", "nvram"],
+                        default="volatile",
+                        help="apply to volatile or non-volatile settings")
+    chn_sa.set_defaults(func=cmd_channel_set_access)
     chn_ps = chn_sub.add_parser("payload-support",
                                 help="Get Channel Payload Support (which payloads)")
     chn_ps.add_argument("channel", nargs="?", type=lambda s: int(s, 0),
