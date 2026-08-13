@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 120 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 86 raw-wired (⚡, sent by a verb,
-> response as bytes). 68 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 131 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 97 raw-wired (⚡, sent by a verb,
+> response as bytes). 57 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -45,7 +45,7 @@ and per-platform live test results.
 
 ## App NetFn (0x06)
 
-**68 commands · 49 done by zipmi** — ✓ 19 decoded, ⚡ 30 raw · ✗ 19 not implemented.
+**68 commands · 60 done by zipmi** — ✓ 19 decoded, ⚡ 41 raw · ✗ 8 not implemented.
 Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device GUID, Get System GUID, Get Channel Authentication Capabilities, Get Session Challenge, Activate Session, Set Session Privilege Level, Close Session, Get Channel Access, Get Channel Info Command, Get User Access Command, Get User Name Command, Activate Payload, Deactivate Payload, Get Payload Activation Status, Get Channel Cipher Suites, Get NetFn Support, Get Command Support, Get Command Sub-function Support, Get Configurable Commands, Get Command Enables, Get Command Sub-function Enables, Reset Watchdog Timer, Set Watchdog Timer, Get Watchdog Timer, Get Message Flags, Get Message, Send Message, Get Session Info, Set User Access Command, Set User Name, Set User Password Command, Set User Payload Access, Get User Payload Access, Master Read-Write, Get System Interface Capabilities, Get BMC Global Enables, Get ACPI Power State, Get System Info Parameters, Get Channel Payload Support, Get Channel Payload Version, Get Payload Instance Info
 
 
@@ -59,7 +59,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 02h  | Cold Reset | `cold_reset` | 20.2 | A | ✓ | ? | ? |
 | 03h  | Warm Reset | `warm_reset` | 20.3 | A | ✓ | ? | ? |
 | 04h  | Get Self Test Results | `get_self_test_results` | 20.4 | U | ✓ | ✓ | ? |
-| 05h  | Manufacturing Test On | `manufacturing_test_on` | 20.5 | A | ✗ | ? | ? |
+| 05h  | Manufacturing Test On | `manufacturing_test_on` | 20.5 | A | ⚡ | ? | ? |
 | 06h  | Set ACPI Power State | `set_acpi_power_state` | 20.6 | A | ⚡ | ? | ? |
 | 07h  | Get ACPI Power State | `get_acpi_power_state` | 20.7 | U | ⚡ | ? | ? |
 | 08h  | Get Device GUID | `get_device_guid` | 20.8 | U | ✓ | ✓ | ? |
@@ -67,12 +67,12 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 0Ah  | Get Command Support | `get_command_support` | 21.3 | A | ⚡ | ? | ? |
 | 0Bh  | Get Command Sub-function Support | `get_command_sub_function_support` | 21.4 | A | ⚡ | ? | ? |
 | 0Ch  | Get Configurable Commands | `get_configurable_commands` | 21.5 | A | ⚡ | ? | ? |
-| 0Dh  | Get Configurable Command Sub-functions | `get_configurable_command_sub_functions` | 21.6 | A | ✗ | ? | ? |
-| 60h  | Set Command Enables | `set_command_enables` | 21.7 | A | ✗ | ? | ? |
+| 0Dh  | Get Configurable Command Sub-functions | `get_configurable_command_sub_functions` | 21.6 | A | ⚡ | ? | ? |
+| 60h  | Set Command Enables | `set_command_enables` | 21.7 | A | ⚡ | ? | ? |
 | 61h  | Get Command Enables | `get_command_enables` | 21.8 | A | ⚡ | ? | ? |
-| 62h  | Set Command Sub-function Enables | `set_command_sub_function_enables` | 21.9 | A | ✗ | ? | ? |
+| 62h  | Set Command Sub-function Enables | `set_command_sub_function_enables` | 21.9 | A | ⚡ | ? | ? |
 | 63h  | Get Command Sub-function Enables | `get_command_sub_function_enables` | 21.10 | A | ⚡ | ? | ? |
-| 64h  | Get OEM NetFn IANA Support | `get_oem_net_fn_iana_support` | 21.11 | A | ✗ | ? | ? |
+| 64h  | Get OEM NetFn IANA Support | `get_oem_net_fn_iana_support` | 21.11 | A | ⚡ | ? | ? |
 
 ### BMC Watchdog Timer Commands
 
@@ -88,13 +88,13 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 |------|------|--------|--------|------|-------|------|--------|
 | 2Eh  | Set BMC Global Enables | `set_bmc_global_enables` | 22.1 | A | ⚡ | ? | ? |
 | 2Fh  | Get BMC Global Enables | `get_bmc_global_enables` | 22.2 | U | ⚡ | ? | ? |
-| 30h  | Clear Message Flags | `clear_message_flags` | 22.3 | A | ✗ | ? | ? |
+| 30h  | Clear Message Flags | `clear_message_flags` | 22.3 | A | ⚡ | ? | ? |
 | 31h  | Get Message Flags | `get_message_flags` | 22.4 | A | ⚡ | ? | ? |
-| 32h  | Enable Message Channel Receive | `enable_message_channel_receive` | 22.5 | A | ✗ | ? | ? |
+| 32h  | Enable Message Channel Receive | `enable_message_channel_receive` | 22.5 | A | ⚡ | ? | ? |
 | 33h  | Get Message | `get_message` | 22.6 | A | ⚡ | ? | ? |
 | 34h  | Send Message | `send_message` | 22.7 | A* | ⚡ | ? | ? |
-| 35h  | Read Event Message Buffer | `read_event_message_buffer` | 22.8 | A | ✗ | ? | ? |
-| 36h  | Get BT Interface Capabilities | `get_bt_interface_capabilities` | 22.10 | U | ✗ | ? | ? |
+| 35h  | Read Event Message Buffer | `read_event_message_buffer` | 22.8 | A | ⚡ | ? | ? |
+| 36h  | Get BT Interface Capabilities | `get_bt_interface_capabilities` | 22.10 | U | ⚡ | ? | ? |
 | 37h  | Get System GUID | `get_system_guid` | 22.14 | U | ✓ | ✓ | ? |
 | 58h  | Set System Info Parameters | `set_system_info_parameters` | 22.14a | A | ⚡ | ? | ? |
 | 59h  | Get System Info Parameters | `get_system_info_parameters` | 22.14b | U | ⚡ | ? | ? |
@@ -104,7 +104,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 3Bh  | Set Session Privilege Level | `set_session_privilege_level` | 22.18 | U | ✓ | ✓ | ? |
 | 3Ch  | Close Session | `close_session` | 22.19 | C | ✓ | ✓ | ? |
 | 3Dh  | Get Session Info | `get_session_info` | 22.20 | U | ⚡ | ? | ? |
-| 3Fh  | Get AuthCode | `get_auth_code` | 22.21 | U | ✗ | ? | ? |
+| 3Fh  | Get AuthCode | `get_auth_code` | 22.21 | U | ⚡ | ? | ? |
 | 40h  | Set Channel Access | `set_channel_access` | 22.22 | A | ⚡ | ? | ? |
 | 41h  | Get Channel Access | `get_channel_access` | 22.23 | U | ✓ | ? | ? |
 | 42h  | Get Channel Info Command | `get_channel_info` | 22.24 | U | ✓ | ? | ? |
@@ -125,7 +125,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 52h  | Master Read-Write | `master_write_read` | 22.11 | A* | ⚡ | ? | ? |
 | 54h  | Get Channel Cipher Suites | `get_channel_cipher_suites` | 22.15 | s | ✓ | ? | ? |
 | 55h  | Suspend/Resume Payload Encryption | `suspend_resume_payload_encryption` | 24.10 | U | ✗ | ? | ? |
-| 56h  | Set Channel Security Keys | `set_channel_security_keys` | 22.25 | A | ✗ | ? | ? |
+| 56h  | Set Channel Security Keys | `set_channel_security_keys` | 22.25 | A | ⚡ | ? | ? |
 | 57h  | Get System Interface Capabilities | `get_system_interface_capabilities` | 22.9 | U | ⚡ | ? | ? |
 | 5Ah  | Get Authorization Privilege Level | `get_authorization_privilege_level` | 22.x | s | ✗ | ? | ? |
 | 5Bh  | Get Authentication Capabilities (v2) | `get_authentication_capabilities_v2` | 22.x | s | ✗ | ? | ? |

@@ -1279,3 +1279,135 @@ def test_chassis_reset_req(monkeypatch):
     assert rc == 0
     assert s.sent == [(0x00, 0x03, b"")]
     assert d == {"ok": True, "action": "chassis-reset"}
+
+
+# === remaining App (NetFn 0x06) commands =================================
+
+def test_mc_read_event_buffer_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_read_event_buffer
+    rec = bytes(range(16))
+    s = _S({(0x06, 0x35, b""): (0x00, rec)})
+    rc, d = _run(monkeypatch, cmd_mc_read_event_buffer, s)
+    assert rc == 0
+    assert s.sent == [(0x06, 0x35, b"")]
+    assert d["record"] == rec.hex() and d["length"] == 16
+
+
+def test_mc_bt_caps_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_bt_caps
+    # outstanding=1, in_buf=64, out_buf=64, req_to_resp=5s, retries=3
+    s = _S({(0x06, 0x36): (0x00, bytes([1, 64, 64, 5, 3]))})
+    rc, d = _run(monkeypatch, cmd_mc_bt_caps, s)
+    assert rc == 0
+    assert d["outstanding_requests"] == 1
+    assert d["input_buffer_size"] == 64 and d["output_buffer_size"] == 64
+    assert d["request_to_response_time_s"] == 5
+    assert d["recommended_retries"] == 3
+
+
+def test_mc_get_authcode_default_block_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_get_authcode
+    ac = bytes(range(16))
+    s = _S({(0x06, 0x3F): (0x00, ac)})
+    rc, d = _run(monkeypatch, cmd_mc_get_authcode, s,
+                 channel=0x0E, auth_type=0, data=None)
+    assert rc == 0
+    # [channel, auth_type] + 16 zero bytes
+    assert s.sent == [(0x06, 0x3F, bytes([0x0E, 0x00]) + b"\x00" * 16)]
+    assert d["authcode"] == ac.hex()
+
+
+def test_mc_oem_netfn_iana_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_oem_netfn_iana
+    # next_index=0xff, one triple: netfn 0x30, IANA 674 (Dell) = 0xA2 0x02 0x00 LE
+    s = _S({(0x06, 0x64, b"\x00"): (0x00, bytes([0xFF, 0x30, 0xA2, 0x02, 0x00]))})
+    rc, d = _run(monkeypatch, cmd_mc_oem_netfn_iana, s, list_index=0)
+    assert rc == 0
+    assert d["next_index"] == 0xFF
+    assert d["entries"] == [{"oem_netfn": 0x30, "iana": 674}]
+
+
+def test_mc_clear_message_flags_default_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_clear_message_flags
+    s = _S({(0x06, 0x30): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_mc_clear_message_flags, s, flags=0xFF)
+    assert rc == 0
+    assert s.sent == [(0x06, 0x30, b"\xff")]
+    assert d["flags"] == 0xFF
+
+
+def test_mc_enable_channel_receive_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_enable_channel_receive
+    # ch1 enable -> req b"\x01\x01"; resp echoes channel + state
+    s = _S({(0x06, 0x32, b"\x01\x01"): (0x00, bytes([0x01, 0x01]))})
+    rc, d = _run(monkeypatch, cmd_mc_enable_channel_receive, s,
+                 channel=1, state="enable")
+    assert rc == 0
+    assert s.sent == [(0x06, 0x32, b"\x01\x01")]
+    assert d["channel"] == 1 and d["state"] == 1
+
+
+def test_mc_mfg_test_on_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_mc_mfg_test_on
+    s = _S({(0x06, 0x05): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_mc_mfg_test_on, s, data="de ad")
+    assert rc == 0
+    assert s.sent == [(0x06, 0x05, b"\xde\xad")]
+    assert d == {"ok": True, "action": "mfg-test-on", "sent": "dead",
+                 "response": ""}
+
+
+def test_channel_set_security_keys_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_set_security_keys
+    # ch1, set(1), Kg(key-id 1), key aabb -> [1, 1, 1, 0xaa, 0xbb]; resp status 0
+    s = _S({(0x06, 0x56): (0x00, bytes([0x00]))})
+    rc, d = _run(monkeypatch, cmd_channel_set_security_keys, s,
+                 channel=1, operation="set", key_id="kg", key="aa bb")
+    assert rc == 0
+    assert s.sent == [(0x06, 0x56, bytes([0x01, 0x01, 0x01, 0xAA, 0xBB]))]
+    assert d["status"] == 0 and d["key_id"] == "kg"
+
+
+def test_channel_set_security_keys_read_kr(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_set_security_keys
+    # ch1, read(0), Kr(key-id 0), no key -> [1, 0, 0]; resp status + key data
+    s = _S({(0x06, 0x56, b"\x01\x00\x00"): (0x00, bytes([0x00, 0xDE, 0xAD]))})
+    rc, d = _run(monkeypatch, cmd_channel_set_security_keys, s,
+                 channel=1, operation="read", key_id="kr", key=None)
+    assert rc == 0
+    assert s.sent == [(0x06, 0x56, b"\x01\x00\x00")]
+    assert d["status"] == 0 and d["key_data"] == "dead"
+
+
+def test_firewall_sub_config_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_firewall_sub_config
+    # channel 0x0e, netfn 0x06, cmd 0x01, lun 0 -> mask 0x03 (subfns 0,1)
+    s = _S({(0x06, 0x0D, bytes([0x0E, 0x06, 0x01, 0x00])):
+            (0x00, bytes([0x03]))})
+    rc, d = _run(monkeypatch, cmd_firewall_sub_config, s,
+                 channel="0x0e", netfn="0x06", cmd="0x01", lun=0)
+    assert rc == 0
+    assert s.sent == [(0x06, 0x0D, bytes([0x0E, 0x06, 0x01, 0x00]))]
+    assert d["mask"] == "03" and d["subfunctions"] == [0, 1]
+
+
+def test_firewall_set_enables_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_firewall_set_enables
+    s = _S({(0x06, 0x60): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_firewall_set_enables, s,
+                 channel="0x0e", netfn="0x06", lun=0, mask="ff")
+    assert rc == 0
+    # [channel, netfn, lun] + mask padded to 16 bytes
+    expect = bytes([0x0E, 0x06, 0x00, 0xFF]) + b"\x00" * 15
+    assert s.sent == [(0x06, 0x60, expect)]
+    assert d["mask"] == expect[3:].hex()
+
+
+def test_firewall_set_sub_enables_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_firewall_set_sub_enables
+    s = _S({(0x06, 0x62): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_firewall_set_sub_enables, s,
+                 channel="0x0e", netfn="0x06", cmd="0x01", lun=0, mask="03")
+    assert rc == 0
+    assert s.sent == [(0x06, 0x62, bytes([0x0E, 0x06, 0x01, 0x00, 0x03]))]
+    assert d["mask"] == "03"

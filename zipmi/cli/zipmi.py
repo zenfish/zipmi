@@ -5098,6 +5098,250 @@ def cmd_sol_autobaud(args: argparse.Namespace) -> int:
     return 1
 
 
+# -- remaining App (NetFn 0x06) commands ----------------------------------
+# Reads and writes filling out the App NetFn surface. The verb IS the intent;
+# per project convention the destructive ones do not gate on --yes (the zoo is
+# disposable).
+
+
+def cmd_mc_read_event_buffer(args: argparse.Namespace) -> int:
+    """Read Event Message Buffer (0x06/0x35). Resp = 16-byte event record."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x35, b"")
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"record": data.hex(), "length": len(data)}
+    if emit(args, result):
+        return 0
+    print(f"Event message buffer ({len(data)} bytes): {data.hex()}")
+    return 0
+
+
+def cmd_mc_bt_caps(args: argparse.Namespace) -> int:
+    """Get BT Interface Capabilities (0x06/0x36). byte0 #outstanding requests,
+    byte1 input buffer size, byte2 output buffer size, byte3 BMC
+    request-to-response time (s), byte4 recommended retries."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x36, b"")
+        if cc != 0x00 or len(data) < 5:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {
+        "outstanding_requests": data[0],
+        "input_buffer_size": data[1],
+        "output_buffer_size": data[2],
+        "request_to_response_time_s": data[3],
+        "recommended_retries": data[4],
+    }
+    if emit(args, result):
+        return 0
+    print(f"Outstanding requests      : {result['outstanding_requests']}")
+    print(f"Input buffer size         : {result['input_buffer_size']}")
+    print(f"Output buffer size        : {result['output_buffer_size']}")
+    print(f"Request-to-response time  : {result['request_to_response_time_s']}s")
+    print(f"Recommended retries       : {result['recommended_retries']}")
+    return 0
+
+
+def cmd_mc_get_authcode(args: argparse.Namespace) -> int:
+    """Get AuthCode (0x06/0x3F). Req = [channel, auth-type] + 16-byte password/
+    key block (default 16 zeros). Resp = 16-byte AuthCode. Many BMCs return
+    0xC1/0xCC (unimplemented) — expected on the zoo."""
+    ch = args.channel & 0xFF
+    at = args.auth_type & 0xFF
+    block = _hex_bytes(args.data) if args.data else b"\x00" * 16
+    block = (block + b"\x00" * 16)[:16]
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x3F, bytes([ch, at]) + block)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"channel": ch, "auth_type": at, "authcode": data.hex()}
+    if emit(args, result):
+        return 0
+    print(f"AuthCode: {data.hex()}")
+    return 0
+
+
+def cmd_mc_oem_netfn_iana(args: argparse.Namespace) -> int:
+    """Get OEM NetFn IANA Support (0x06/0x64). Req = [list-index]. Resp: byte0
+    = next list index (0xFF = last), then triples of [OEM NetFn, IANA(3 LE)]."""
+    idx = args.list_index & 0xFF
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x64, bytes([idx]))
+        if cc != 0x00 or len(data) < 1:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    next_index = data[0]
+    entries = []
+    body = data[1:]
+    for i in range(0, len(body) - 3, 4):
+        netfn = body[i]
+        iana = int.from_bytes(body[i + 1:i + 4], "little")
+        entries.append({"oem_netfn": netfn, "iana": iana})
+    result = {"list_index": idx, "next_index": next_index,
+              "raw": data.hex(), "entries": entries}
+    if emit(args, result):
+        return 0
+    print(f"Next index: 0x{next_index:02x}")
+    for e in entries:
+        print(f"  OEM NetFn 0x{e['oem_netfn']:02x} -> IANA {e['iana']}")
+    if not entries:
+        print(f"  (raw: {data.hex()})")
+    return 0
+
+
+def cmd_mc_clear_message_flags(args: argparse.Namespace) -> int:
+    """Clear Message Flags (0x06/0x30). Req = [flags]; a set bit clears that
+    flag. Default 0xFF clears all."""
+    flags = args.flags & 0xFF
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x30, bytes([flags]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "clear-message-flags", "flags": flags}
+    if emit(args, result):
+        return 0
+    print(f"Message flags cleared: 0x{flags:02x}")
+    return 0
+
+
+_MSG_CHANNEL_STATE = {0: "disable", 1: "enable", 2: "get"}
+
+
+def cmd_mc_enable_channel_receive(args: argparse.Namespace) -> int:
+    """Enable Message Channel Receive (0x06/0x32). Req = [channel, state] where
+    state 0=disable, 1=enable, 2=get-current. Resp byte0=channel, byte1=state."""
+    ch = args.channel & 0xFF
+    state_code = {"disable": 0, "enable": 1, "get": 2}[args.state]
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x32, bytes([ch, state_code]))
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"channel": data[0], "state": data[1],
+              "state_name": _MSG_CHANNEL_STATE.get(data[1] & 0x01,
+                                                   "enabled" if data[1] & 1 else "disabled")}
+    if emit(args, result):
+        return 0
+    print(f"Channel 0x{data[0]:02x} receive: {'enabled' if data[1] & 1 else 'disabled'}")
+    return 0
+
+
+def cmd_mc_mfg_test_on(args: argparse.Namespace) -> int:
+    """Manufacturing Test On (0x06/0x05). Req = vendor-specific data (often
+    empty or a magic string). Destructive-ish; many BMCs return 0xC1."""
+    data = _hex_bytes(args.data) if args.data else b""
+    with _open_session(args) as s:
+        cc, resp = s.send_raw(0x06, 0x05, data)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "mfg-test-on", "sent": data.hex(),
+              "response": resp.hex()}
+    if emit(args, result):
+        return 0
+    print(f"Manufacturing test mode on (sent {data.hex() or '(empty)'})")
+    return 0
+
+
+def cmd_channel_set_security_keys(args: argparse.Namespace) -> int:
+    """Set Channel Security Keys (0x06/0x56). Req = [channel, operation, key-id]
+    + key bytes. operation 0=read, 1=set, 2=lock. key-id per spec §22.25:
+    0 = Kr, 1 = Kg (the RMCP+ key-generating key). Resp byte0 = status; for a
+    read, bytes 1..N are the key data.
+
+    WARNING: setting Kg (key-id 1) to the wrong value bricks RMCP+ auth on that
+    channel — you'll no longer be able to open a lanplus session there."""
+    ch = args.channel & 0xFF
+    op = {"read": 0, "set": 1, "lock": 2}[args.operation]
+    key_id = {"kr": 0, "kg": 1}[args.key_id]
+    key = _hex_bytes(args.key) if args.key else b""
+    key = key[:20]
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x56, bytes([ch, op, key_id]) + key)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    status = data[0] if data else None
+    result = {"ok": True, "action": "set-channel-security-keys",
+              "channel": ch, "operation": args.operation, "key_id": args.key_id,
+              "status": status, "key_data": data[1:].hex() if len(data) > 1 else ""}
+    if emit(args, result):
+        return 0
+    print(f"Channel 0x{ch:02x} {args.key_id} {args.operation}: status="
+          f"{status if status is None else f'0x{status:02x}'}"
+          + (f" key={result['key_data']}" if result["key_data"] else ""))
+    return 0
+
+
+def cmd_firewall_sub_config(args: argparse.Namespace) -> int:
+    """Get Configurable Command Sub-functions (0x06/0x0D). Req = [channel,
+    netfn, cmd, lun]. Resp = sub-function support bitmask (bit=1 configurable)."""
+    ch = int(args.channel, 0) & 0xFF
+    netfn = int(args.netfn, 0) & 0xFF
+    cmd = int(args.cmd, 0) & 0xFF
+    lun = args.lun & 0x03
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x0D, bytes([ch, netfn, cmd, lun]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"channel": ch, "netfn": netfn, "cmd": cmd, "lun": lun,
+              "mask": data.hex(), "subfunctions": _fw_bits(data)}
+    if emit(args, result):
+        return 0
+    print(f"Configurable sub-functions (mask {data.hex()}): "
+          f"{result['subfunctions']}")
+    return 0
+
+
+def cmd_firewall_set_enables(args: argparse.Namespace) -> int:
+    """Set Command Enables (0x06/0x60). Req = [channel, netfn, lun] + 16-byte
+    enable bitmask (bit=1 enables that command). WRITE — reshapes the firmware
+    firewall command surface for the channel."""
+    ch = int(args.channel, 0) & 0xFF
+    netfn = int(args.netfn, 0) & 0xFF
+    lun = args.lun & 0x03
+    mask = _hex_bytes(args.mask)
+    mask = (mask + b"\x00" * 16)[:16]
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x60, bytes([ch, netfn, lun]) + mask)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-command-enables", "channel": ch,
+              "netfn": netfn, "lun": lun, "mask": mask.hex()}
+    if emit(args, result):
+        return 0
+    print(f"Command enables set (ch 0x{ch:02x} netfn 0x{netfn:02x}): {mask.hex()}")
+    return 0
+
+
+def cmd_firewall_set_sub_enables(args: argparse.Namespace) -> int:
+    """Set Command Sub-function Enables (0x06/0x62). Req = [channel, netfn, cmd,
+    lun] + sub-function enable bitmask. WRITE."""
+    ch = int(args.channel, 0) & 0xFF
+    netfn = int(args.netfn, 0) & 0xFF
+    cmd = int(args.cmd, 0) & 0xFF
+    lun = args.lun & 0x03
+    mask = _hex_bytes(args.mask)
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x06, 0x62, bytes([ch, netfn, cmd, lun]) + mask)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "set-command-sub-enables", "channel": ch,
+              "netfn": netfn, "cmd": cmd, "lun": lun, "mask": mask.hex()}
+    if emit(args, result):
+        return 0
+    print(f"Sub-function enables set (ch 0x{ch:02x} netfn 0x{netfn:02x} "
+          f"cmd 0x{cmd:02x}): {mask.hex()}")
+    return 0
+
+
 # -- argparse wiring ------------------------------------------------------
 
 
@@ -5161,6 +5405,41 @@ def build_parser() -> argparse.ArgumentParser:
     mc_wdo.add_argument("--yes", action="store_true",
                         help="confirm — disabling the watchdog changes BMC state")
     mc_wdo.set_defaults(func=cmd_mc_watchdog_off)
+    mc_reb = mc_sub.add_parser("read-event-buffer",
+                               help="Read Event Message Buffer (16-byte record)")
+    mc_reb.set_defaults(func=cmd_mc_read_event_buffer)
+    mc_bt = mc_sub.add_parser("bt-caps", help="Get BT Interface Capabilities")
+    mc_bt.set_defaults(func=cmd_mc_bt_caps)
+    mc_ac = mc_sub.add_parser("get-authcode", help="Get AuthCode (0x06/0x3F)")
+    mc_ac.add_argument("--channel", type=lambda x: int(x, 0), default=0x0E,
+                       help="channel (default 0x0E = this channel)")
+    mc_ac.add_argument("--auth-type", type=lambda x: int(x, 0), default=0,
+                       dest="auth_type", help="authentication type (default 0)")
+    mc_ac.add_argument("--data", default=None,
+                       help="16-byte password/key block as hex (default 16 zeros)")
+    mc_ac.set_defaults(func=cmd_mc_get_authcode)
+    mc_oi = mc_sub.add_parser("oem-netfn-iana",
+                              help="Get OEM NetFn IANA Support (0x06/0x64)")
+    mc_oi.add_argument("--list-index", type=lambda x: int(x, 0), default=0,
+                       dest="list_index", help="list index (default 0)")
+    mc_oi.set_defaults(func=cmd_mc_oem_netfn_iana)
+    mc_cmf = mc_sub.add_parser("clear-message-flags",
+                               help="Clear Message Flags (default 0xFF = all)")
+    mc_cmf.add_argument("--flags", type=lambda x: int(x, 0), default=0xFF,
+                        help="flags byte; a set bit clears that flag (default 0xFF)")
+    mc_cmf.set_defaults(func=cmd_mc_clear_message_flags)
+    mc_ecr = mc_sub.add_parser("enable-channel-receive",
+                               help="Enable Message Channel Receive (0x06/0x32)")
+    mc_ecr.add_argument("--channel", type=lambda x: int(x, 0), required=True,
+                        help="channel number")
+    mc_ecr.add_argument("--state", choices=["enable", "disable", "get"],
+                        default="get", help="enable/disable/get current state")
+    mc_ecr.set_defaults(func=cmd_mc_enable_channel_receive)
+    mc_mto = mc_sub.add_parser("mfg-test-on",
+                               help="Manufacturing Test On (0x06/0x05; destructive-ish)")
+    mc_mto.add_argument("--data", default=None,
+                        help="vendor-specific data as hex (default empty)")
+    mc_mto.set_defaults(func=cmd_mc_mfg_test_on)
 
     # fingerprint — identify BMC stack + OpenBMC vendor flavor
     fp = sub.add_parser("fingerprint", aliases=["fp"],
@@ -5672,6 +5951,19 @@ def build_parser() -> argparse.ArgumentParser:
     chn_pv.add_argument("payload_type", nargs="?", type=lambda s: int(s, 0),
                         default=1, help="payload type (default 1 = SOL)")
     chn_pv.set_defaults(func=cmd_channel_payload_version)
+    chn_sk = chn_sub.add_parser("set-security-keys",
+                                help="Set Channel Security Keys (0x06/0x56; Kr/Kg)")
+    chn_sk.add_argument("--channel", type=lambda x: int(x, 0), required=True,
+                        help="channel number")
+    chn_sk.add_argument("--operation", choices=["read", "set", "lock"],
+                        default="read", help="read/set/lock the key")
+    chn_sk.add_argument("--key-id", choices=["kr", "kg"], default="kg",
+                        dest="key_id",
+                        help="which key: kr (0) or kg (1, RMCP+ key). "
+                             "WARNING: a wrong Kg bricks lanplus auth on this channel")
+    chn_sk.add_argument("--key", default=None,
+                        help="key bytes as hex (up to 20; omit for read/lock)")
+    chn_sk.set_defaults(func=cmd_channel_set_security_keys)
 
     # maser is a Dell OEM (NetFn 0x30) command — reached via `oem dell maser
     # {get,set}` (intercepted in cmd_oem_run), not a top-level verb.
@@ -5787,6 +6079,31 @@ def build_parser() -> argparse.ArgumentParser:
                     help="walk Get Command Sub-function Support for every named command "
                          "(default: only group-extension NetFns 0x2c/0x2e)")
     fw.set_defaults(func=cmd_firewall)
+    fw_sub = fw.add_subparsers(dest="fw_action")
+    fw_sc = fw_sub.add_parser("sub-config",
+                              help="Get Configurable Command Sub-functions (0x0D)")
+    fw_sc.add_argument("--channel", default="0x0e", help="channel (default 0x0e)")
+    fw_sc.add_argument("--netfn", required=True, help="NetFn (hex)")
+    fw_sc.add_argument("--cmd", required=True, help="command (hex)")
+    fw_sc.add_argument("--lun", type=lambda x: int(x, 0), default=0, help="LUN (default 0)")
+    fw_sc.set_defaults(func=cmd_firewall_sub_config)
+    fw_se = fw_sub.add_parser("set-enables",
+                              help="Set Command Enables (0x60; WRITE)")
+    fw_se.add_argument("--channel", default="0x0e", help="channel (default 0x0e)")
+    fw_se.add_argument("--netfn", required=True, help="NetFn (hex)")
+    fw_se.add_argument("--lun", type=lambda x: int(x, 0), default=0, help="LUN (default 0)")
+    fw_se.add_argument("--mask", required=True,
+                       help="16-byte enable bitmask as hex bytes")
+    fw_se.set_defaults(func=cmd_firewall_set_enables)
+    fw_sse = fw_sub.add_parser("set-sub-enables",
+                               help="Set Command Sub-function Enables (0x62; WRITE)")
+    fw_sse.add_argument("--channel", default="0x0e", help="channel (default 0x0e)")
+    fw_sse.add_argument("--netfn", required=True, help="NetFn (hex)")
+    fw_sse.add_argument("--cmd", required=True, help="command (hex)")
+    fw_sse.add_argument("--lun", type=lambda x: int(x, 0), default=0, help="LUN (default 0)")
+    fw_sse.add_argument("--mask", required=True,
+                        help="sub-function enable bitmask as hex bytes")
+    fw_sse.set_defaults(func=cmd_firewall_set_sub_enables)
 
     # OEM verbs: `zipmi oem` + per-vendor shortcuts (dell, supermicro, ...).
     from .oem_cmds import add_oem_subparsers
