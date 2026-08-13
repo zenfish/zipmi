@@ -2667,6 +2667,12 @@ def cmd_firewall(args: argparse.Namespace) -> int:
     return 0
 
 
+# ponytail: the four streaming fuzzers below (rakp/length/cipher/sweep) are
+# deliberately NOT wired to --json — their value is the LIVE per-probe stream
+# during a long run; buffering every result to emit one JSON blob at the end
+# defeats that and they aren't reach-map/posture inputs. `fuzz list` (static
+# inventory) is JSON-enabled. Upgrade path if needed: collect rows + emit a
+# {results:[...], summary:{...}} envelope, gating the streaming prints.
 def cmd_fuzz_rakp(args: argparse.Namespace) -> int:
     """Run the RAKP1 mutation suite against a target.
 
@@ -2774,8 +2780,6 @@ def cmd_fuzz_cipher(args: argparse.Namespace) -> int:
 
 def cmd_fuzz_list(args: argparse.Namespace) -> int:
     """List the fuzz harnesses zipmi ships."""
-    print("zipmi fuzz inventory:")
-    print()
     rows = [
         ("sweep",  "wired", "NetFn × Cmd surface enumeration",
          "zipmi.fuzz.sweep"),
@@ -2786,6 +2790,11 @@ def cmd_fuzz_list(args: argparse.Namespace) -> int:
         ("cipher", "wired", "RMCP+ cipher-suite negotiation (pre-auth)",
          "zipmi.fuzz.cipher_confuse"),
     ]
+    if emit(args, {"harnesses": [{"verb": v, "state": st, "module": m,
+                                  "description": d} for v, st, d, m in rows]}):
+        return 0
+    print("zipmi fuzz inventory:")
+    print()
     print(f"  {'verb':<8}  {'state':<6}  {'module':<28}  description")
     for verb, state, desc, mod in rows:
         print(f"  {verb:<8}  {state:<6}  {mod:<28}  {desc}")
@@ -2938,12 +2947,16 @@ def cmd_scan_cipher_zero(args: argparse.Namespace) -> int:
         s.transport.close()
         return 2
     if vulnerable:
-        print(f"cipher-zero {host}: VULNERABLE — {detail}")
         s.close()
-        return 0
-    print(f"cipher-zero {host}: not vulnerable — {detail}")
-    s.transport.close()
-    return 1
+        rc = 0
+    else:
+        s.transport.close()
+        rc = 1
+    if emit(args, {"host": host, "vulnerable": vulnerable, "detail": detail}):
+        return rc
+    label = "VULNERABLE" if vulnerable else "not vulnerable"
+    print(f"cipher-zero {host}: {label} — {detail}")
+    return rc
 
 
 def _cmd_name(netfn: int, cmd: int) -> str:
@@ -3007,9 +3020,13 @@ def cmd_scan_asf_ping(args: argparse.Namespace) -> int:
         _msg.error(f"asf-ping {host}: reply was not a Pong")
         return 1
     iana = pong.oem_iana
+    ipmi = bool(pong.supported_entities & 0x80)
+    if emit(args, {"host": host, "oem_iana": iana,
+                   "oem_name": IANA.get(iana, "unknown"), "ipmi_supported": ipmi}):
+        return 0
     print(
         f"asf-ping {host}: oem_iana={iana} ({IANA.get(iana, 'unknown')})  "
-        f"ipmi={'yes' if pong.supported_entities & 0x80 else 'no'}"
+        f"ipmi={'yes' if ipmi else 'no'}"
     )
     return 0
 
@@ -3031,6 +3048,13 @@ def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
         _msg.error(f"auth-caps {host}: no decoded reply")
         return 1
     iana = resp.oem_iana_int()
+    none_auth = bool(resp.auth_type_support & 0x01)
+    if emit(args, {"host": host, "channel": resp.channel,
+                   "auth_types": resp.auth_types(), "status": resp.status,
+                   "ext_caps": resp.ext_caps, "oem_iana": iana,
+                   "oem_name": (IANA.get(iana, "unknown") if iana else None),
+                   "none_auth_advertised": none_auth}):
+        return 0
     print(
         f"auth-caps {host}: ch=0x{resp.channel:02x}  "
         f"auth=[{', '.join(resp.auth_types()) or '—'}]  "
@@ -3038,7 +3062,7 @@ def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
         f"ext=0x{resp.ext_caps:02x}  "
         f"oem_iana={iana} ({IANA.get(iana, 'unknown') if iana else '—'})"
     )
-    if resp.auth_type_support & 0x01:
+    if none_auth:
         _msg.warn(f"auth-caps {host}: 'None' auth advertised — cipher-zero / null-auth risk")
     return 0
 
@@ -3059,6 +3083,10 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
         _msg.error(f"cipher-suites {host}: {detail}")
         return 1
     suites = result["cipher_list"]
+    if emit(args, {"host": host, "suites": suites,
+                   "cipher0": bool(result.get("cipher0")),
+                   "cipher_details": result.get("cipher_details", [])}):
+        return 0
     print(f"cipher-suites {host}: [{', '.join(str(s) for s in suites) or '—'}]")
     for rec in result.get("cipher_details", []):
         oem = f"  (OEM IANA {rec['oem_iana']})" if rec.get("oem_iana") else ""
@@ -3075,34 +3103,28 @@ def cmd_scan_all(args: argparse.Namespace) -> int:
 
     The grid (user-matrix) is the deep view: per-channel access ceiling, auth
     caps, ciphers, and every user's privilege — with findings forced on (a scan
-    is a posture probe). With --json only the grid JSON hits stdout (clean for
-    tooling); without it, the quick text probes run first, then the grid table.
-    It degrades gracefully: sessionless data still populates, user rows show
+    is a posture probe). Text runs the quick probes first, then the grid table;
+    it degrades gracefully: sessionless data still populates, user rows show
     err:* when no session/privilege.
 
-    ponytail: scan is a COMPOSITE — under --json it emits only the grid, not an
-    aggregate of every sub-step (asf-ping/auth-caps/cipher-suites). Full
-    compositional JSON needs each scan sub-command to return a dict; deferred to
-    the emit() sweep of the scan subsystem. Upgrade path: collect sub-results
-    into one {steps:[...]} envelope and emit that.
+    Under --json every sub-step runs and its JSON is captured into a single
+    {steps:[{step, result}, ...]} envelope by _run_scan_steps — the full
+    composite, no longer grid-only.
     """
     args.findings = True
     for attr, default in (("json", False), ("all", False), ("per_priv", False)):
         if not hasattr(args, attr):
             setattr(args, attr, default)
-    # Unauthenticated (sessionless) recon — text probes, skipped under --json
-    # (the grid emits the JSON).
-    steps = [] if args.json else [
+    # All steps run in both modes; under --json _run_scan_steps captures each
+    # step's JSON and aggregates into one {steps:[...]} envelope (no longer
+    # grid-only). cipher-0 opens a null-auth session — "all" means all.
+    return _run_scan_steps(args, [
         ("asf-ping", cmd_scan_asf_ping),
         ("auth-caps", cmd_scan_auth_caps),
         ("cipher-suites", cmd_scan_cipher_suites),
-    ]
-    steps.append(("user-matrix", cmd_user_matrix_list))
-    # cipher-0 opens a null-auth session (accepts any password) — authenticated,
-    # not sessionless. `all` means all, so it runs; --json skips it (text output).
-    if not args.json:
-        steps.append(("cipher-zero", cmd_scan_cipher_zero))
-    return _run_scan_steps(args, steps)
+        ("user-matrix", cmd_user_matrix_list),
+        ("cipher-zero", cmd_scan_cipher_zero),
+    ])
 
 
 def cmd_scan_unauth(args: argparse.Namespace) -> int:
@@ -3117,16 +3139,46 @@ def cmd_scan_unauth(args: argparse.Namespace) -> int:
     ])
 
 
+def _capture_json_step(args: argparse.Namespace, fn) -> tuple[int, object]:
+    """Run one scan leaf with --json and capture the single JSON object it emits
+    to stdout, so a composite scan can aggregate steps into one envelope instead
+    of spraying multiple JSON blobs. Returns (rc, parsed_or_None)."""
+    import contextlib
+    import io
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = fn(args)
+    out = buf.getvalue().strip()
+    if not out:
+        return rc, None
+    try:
+        return rc, json.loads(out)
+    except json.JSONDecodeError:
+        return rc, {"raw": out}
+
+
 def _run_scan_steps(args: argparse.Namespace, steps) -> int:
     """Run (name, fn) scan steps, each isolated: one failure (bad session,
-    decode error, WalkAborted handled downstream) still runs the rest."""
+    decode error, WalkAborted handled downstream) still runs the rest. Under
+    --json the per-step JSON is captured and aggregated into one {steps:[...]}
+    envelope (a composite scan emits a single object, never fragmented JSON)."""
+    to_json = getattr(args, "json", False)
     rc = 0
+    collected = []
     for name, fn in steps:
         try:
-            rc |= fn(args)
+            if to_json:
+                src, res = _capture_json_step(args, fn)
+                rc |= src
+                collected.append({"step": name, "result": res})
+            else:
+                rc |= fn(args)
         except Exception as e:
             _msg.error(f"scan {name}: failed — {e}")
             rc |= 1
+            collected.append({"step": name, "error": str(e)})
+    if to_json:
+        emit(args, {"steps": collected})
     return rc
 
 
@@ -3181,6 +3233,36 @@ def cmd_sol_info(args: argparse.Namespace) -> int:
         chan = _sol_get_param(s, channel, 7)
         port = _sol_get_param(s, channel, 8)
 
+    pc = chan[0] if chan is not None else channel
+    cfg: dict = {"payload_channel": pc}
+    if sip is not None:
+        cfg["set_in_progress"] = {
+            "code": sip[0] & 0x03,
+            "name": {0: "set-complete", 1: "set-in-progress",
+                     2: "commit-write"}.get(sip[0] & 0x03, f"0x{sip[0]:02x}")}
+    if en is not None:
+        cfg["enabled"] = bool(en[0] & 0x01)
+    if auth is not None:
+        priv = auth[0] & 0x0F
+        cfg["force_encryption"] = bool(auth[0] & 0x80)
+        cfg["force_authentication"] = bool(auth[0] & 0x40)
+        cfg["privilege_level"] = {"code": priv,
+                                  "name": SOL_PRIV.get(priv, f"0x{priv:02x}")}
+    if accum is not None and len(accum) >= 2:
+        cfg["char_accumulate_ms"] = accum[0] * 5
+        cfg["char_send_threshold"] = accum[1]
+    if retry is not None and len(retry) >= 2:
+        cfg["retry_count"] = retry[0] & 0x07
+        cfg["retry_interval_ms"] = retry[1] * 10
+    if vol is not None:
+        cfg["volatile_bitrate_baud"] = decode_sol_bitrate(vol[0]) or None
+    if nv is not None:
+        cfg["nonvolatile_bitrate_baud"] = decode_sol_bitrate(nv[0]) or None
+    if port is not None and len(port) >= 2:
+        cfg["payload_port"] = port[0] | (port[1] << 8)
+    if emit(args, cfg):
+        return 0
+
     def line(label: str, val) -> None:
         print(f"{label:32}: {val}")
 
@@ -3228,6 +3310,8 @@ def cmd_sol_baud(args: argparse.Namespace) -> int:
             if d:
                 baud = decode_sol_bitrate(d[0])
                 if baud:
+                    if emit(args, {"baud": baud}):
+                        return 0
                     print(baud)
                     return 0
     _msg.error("could not read SOL bit rate")
@@ -3248,6 +3332,9 @@ def cmd_sol_payload(args: argparse.Namespace) -> int:
                 _msg.error(f"Get User Payload Access: cc=0x{cc:02x}")
                 return 1
             enabled = bool(data[0] & 0x02)        # std payload 1 = SOL
+            if emit(args, {"user": userid, "channel": channel,
+                           "sol_enabled": enabled}):
+                return 0
             print(f"User {userid} on channel {channel}: "
                   f"SOL payload {'enabled' if enabled else 'disabled'}")
             return 0
@@ -3266,6 +3353,9 @@ def cmd_sol_payload(args: argparse.Namespace) -> int:
     if cc != 0:
         _msg.error(f"Set User Payload Access: cc=0x{cc:02x}")
         return 1
+    if emit(args, {"ok": True, "action": f"sol-payload-{args.op}",
+                   "user": userid, "channel": channel}):
+        return 0
     print(f"SOL payload {args.op}d for user {userid} on channel {channel}")
     return 0
 
@@ -3369,6 +3459,9 @@ def cmd_sol_set(args: argparse.Namespace) -> int:
     if cc != 0:
         _msg.error(f"sol set {param}: cc=0x{cc:02x}")
         return 1
+    if emit(args, {"ok": True, "action": "sol-set", "param": param,
+                   "value": value, "channel": channel}):
+        return 0
     print(f"sol set {param} = {value} (channel {channel})")
     return 0
 
@@ -3387,7 +3480,12 @@ def _require_lanplus_creds(args: argparse.Namespace, verb: str) -> int | None:
 
 
 def cmd_sol_activate(args: argparse.Namespace) -> int:
-    """Open an interactive SOL console (ipmitool `sol activate`)."""
+    """Open an interactive SOL console (ipmitool `sol activate`).
+
+    ponytail: no --json — this hands the terminal to a live serial stream
+    (SOLConsole.run), there is no structured result to emit. Deliberately
+    skipped by the emit() sweep.
+    """
     rc = _require_lanplus_creds(args, "activate")
     if rc is not None:
         return rc
@@ -3406,11 +3504,15 @@ def cmd_sol_deactivate(args: argparse.Namespace) -> int:
         cc, _ = s.send_raw(0x06, 0x49, bytes(DeactivatePayloadReq(
             payload_type=1, payload_instance=args.instance)))
     if cc == 0x80:
+        if emit(args, {"ok": True, "action": "sol-deactivate", "already": True}):
+            return 0
         print("SOL payload already deactivated")
         return 0
     if cc != 0:
         _msg.error(f"Deactivate Payload: cc=0x{cc:02x}")
         return 1
+    if emit(args, {"ok": True, "action": "sol-deactivate", "already": False}):
+        return 0
     print("SOL payload deactivated")
     return 0
 
@@ -3424,7 +3526,8 @@ def cmd_sol_looptest(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         acked, total = looptest(s, iterations=args.iterations,
                                 interval=args.interval)
-    print(f"SOL looptest: {acked}/{total} packets acknowledged")
+    if not emit(args, {"acked": acked, "total": total, "ok": bool(acked)}):
+        print(f"SOL looptest: {acked}/{total} packets acknowledged")
     return 0 if acked else 1
 
 
@@ -3449,6 +3552,11 @@ def cmd_sol_autobaud(args: argparse.Namespace) -> int:
         elif orig:                                  # nothing clean — restore
             s.send_raw(0x0C, 0x21, bytes([channel & 0x0F, 6, orig[0] & 0x0F]))
 
+    if emit(args, {"channel": channel, "applied": applied,
+                   "best_baud": best_baud, "best_score": round(best_score, 4),
+                   "results": [{"baud": b, "score": round(sc, 4)}
+                               for b, sc, _ in results]}):
+        return 0 if applied is not None else 1
     for baud, score, sample in results:
         bar = "#" * int(score * 20)
         print(f"  {baud:>6} baud : {score * 100:5.1f}% printable  {bar}")

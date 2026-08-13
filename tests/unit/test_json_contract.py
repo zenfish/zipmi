@@ -399,3 +399,18 @@ def test_sessionless_list_json(monkeypatch):
     assert len(d["commands"]) == len(PRE_SESSION_CMDS)
     # Get System GUID (0x06/0x37) must be in the sessionless set.
     assert {"netfn": 0x06, "cmd": 0x37, "name": PRE_SESSION_CMDS[(0x06, 0x37)]} in d["commands"]
+
+
+# === fuzz / scan leaves ==================================================
+
+def test_fuzz_list_json():
+    """fuzz list --json -> {harnesses:[{verb,state,module,description}]}."""
+    import io, contextlib
+    from zipmi.cli.zipmi import cmd_fuzz_list
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = cmd_fuzz_list(argparse.Namespace(json=True))
+    d = json.loads(buf.getvalue())
+    assert rc == 0
+    assert [h["verb"] for h in d["harnesses"]] == ["sweep", "rakp", "length", "cipher"]
+    assert d["harnesses"][0]["module"] == "zipmi.fuzz.sweep"

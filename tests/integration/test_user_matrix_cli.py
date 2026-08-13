@@ -65,8 +65,12 @@ def test_scan_all_json_runs_full_grid():
              "scan", "all", "--json"],
             capture_output=True, text=True, timeout=30)
         data = json.loads(out.stdout)                 # clean JSON, no text noise
-        assert "channels" in data and "findings" in data
-        assert isinstance(data["findings"], list)
+        # scan all --json now emits one {steps:[...]} envelope; the grid lives
+        # under the user-matrix step's result.
+        grid = next(s["result"] for s in data["steps"]
+                    if s["step"] == "user-matrix")
+        assert "channels" in grid and "findings" in grid
+        assert isinstance(grid["findings"], list)
     finally:
         srv.terminate()
         srv.wait(timeout=5)

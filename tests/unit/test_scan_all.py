@@ -27,10 +27,16 @@ def test_all_means_all_includes_cipher_zero(monkeypatch):
     assert rc == 0
 
 
-def test_all_json_skips_text_probes_and_cipher_zero(monkeypatch):
+def test_all_json_runs_every_step_and_aggregates(monkeypatch, capsys):
+    # Under --json scan now runs ALL steps (no longer grid-only) and aggregates
+    # each step's JSON into one {steps:[...]} envelope.
+    import json
     z, ran = _patch_probes(monkeypatch)
     z.cmd_scan_all(types.SimpleNamespace(json=True))
-    assert ran == ["um"]                        # only the grid emits JSON
+    assert ran == ["asf", "auth", "cs", "um", "c0"]     # every step runs
+    d = json.loads(capsys.readouterr().out)             # single envelope, parses
+    assert [s["step"] for s in d["steps"]] == [
+        "asf-ping", "auth-caps", "cipher-suites", "user-matrix", "cipher-zero"]
 
 
 def test_run_scan_steps_isolates_failures(capsys):
