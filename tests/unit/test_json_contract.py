@@ -1184,3 +1184,98 @@ def test_fru_write_req(monkeypatch):
     # device 0, offset 0x0010 LE (10 00), then data aa bb
     assert s.sent == [(0x0A, 0x12, b"\x00\x10\x00\xaa\xbb")]
     assert d["count_written"] == 2
+
+
+# === event / pef / chassis-reset destructive commands ====================
+
+def test_event_get_receiver_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_event_get_receiver
+    s = _S({(0x04, 0x01): (0x00, bytes([0x20, 0x01]))})
+    rc, d = _run(monkeypatch, cmd_event_get_receiver, s)
+    assert rc == 0
+    assert s.sent == [(0x04, 0x01, b"")]
+    assert d["receiver_address"] == 0x20
+    assert d["receiver_lun"] == 1
+
+
+def test_event_set_receiver_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_event_set_receiver
+    s = _S({(0x04, 0x00): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_event_set_receiver, s, addr=0x20, lun=0)
+    assert rc == 0
+    assert s.sent == [(0x04, 0x00, b"\x20\x00")]
+    assert d["ok"] is True and d["receiver_address"] == 0x20
+
+
+def test_event_platform_msg_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_event_platform_msg
+    s = _S({(0x04, 0x02): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_event_platform_msg, s, generator=0x20,
+                 sensor_type=0x01, sensor_num=0x30, event_dir_type=0x6f,
+                 data="01 ff ff")
+    assert rc == 0
+    # gen 0x20, EvMRev 0x04, type 0x01, num 0x30, dir 0x6f, data 01 ff ff
+    assert s.sent == [(0x04, 0x02, b"\x20\x04\x01\x30\x6f\x01\xff\xff")]
+    assert d["event_data"] == "01ffff"
+
+
+def test_event_platform_msg_lan_form_omits_generator(monkeypatch):
+    from zipmi.cli.zipmi import cmd_event_platform_msg
+    # default (generator=None) -> LAN/IPMB form: no generator byte, 7 bytes.
+    s = _S({(0x04, 0x02): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_event_platform_msg, s, generator=None,
+                 sensor_type=0x01, sensor_num=0x30, event_dir_type=0x6f,
+                 data="01 ff ff")
+    assert rc == 0
+    assert s.sent == [(0x04, 0x02, b"\x04\x01\x30\x6f\x01\xff\xff")]   # no gen
+    assert d["generator"] is None
+
+
+def test_pef_arm_postpone_json(monkeypatch):
+    from zipmi.cli.zipmi import cmd_pef_arm_postpone
+    s = _S({(0x04, 0x11): (0x00, bytes([0x1E]))})
+    rc, d = _run(monkeypatch, cmd_pef_arm_postpone, s, seconds=0xFF)
+    assert rc == 0
+    assert s.sent == [(0x04, 0x11, b"\xff")]
+    assert d["present_countdown"] == 0x1E
+
+
+def test_pef_set_last_event_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_pef_set_last_event
+    s = _S({(0x04, 0x14): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_pef_set_last_event, s, record_id=0x1234,
+                 which="sw")
+    assert rc == 0
+    # byte0=0x00 (SW), record id 0x1234 LE = 34 12
+    assert s.sent == [(0x04, 0x14, b"\x00\x34\x12")]
+    assert d["record_id"] == 0x1234
+
+
+def test_sensor_rearm_all_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_rearm
+    s = _S({(0x04, 0x2A): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_sensor_rearm, s, num="0x05",
+                 assert_mask=None, deassert_mask=None)
+    assert rc == 0
+    assert s.sent == [(0x04, 0x2A, b"\x05\x00")]
+    assert d["assert_mask"] is None
+
+
+def test_sensor_rearm_masks_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sensor_rearm
+    s = _S({(0x04, 0x2A): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_sensor_rearm, s, num="0x05",
+                 assert_mask=0x00FF, deassert_mask=0x0100)
+    assert rc == 0
+    # num, use-masks=1, assert 00ff LE = ff 00, deassert 0100 LE = 00 01
+    assert s.sent == [(0x04, 0x2A, b"\x05\x01\xff\x00\x00\x01")]
+    assert d["assert_mask"] == 0x00FF and d["deassert_mask"] == 0x0100
+
+
+def test_chassis_reset_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_chassis_reset
+    s = _S({(0x00, 0x03): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_chassis_reset, s)
+    assert rc == 0
+    assert s.sent == [(0x00, 0x03, b"")]
+    assert d == {"ok": True, "action": "chassis-reset"}

@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 111 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 77 raw-wired (⚡, sent by a verb,
-> response as bytes). 77 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 120 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 86 raw-wired (⚡, sent by a verb,
+> response as bytes). 68 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -137,7 +137,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 
 ## Chassis NetFn (0x00)
 
-**13 commands · 12 done by zipmi** — ✓ 4 decoded, ⚡ 8 raw · ✗ 1 not implemented.
+**13 commands · 13 done by zipmi** — ✓ 4 decoded, ⚡ 9 raw · ✗ 0 not implemented. (complete)
 Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System Boot Options, Chassis Identify, Set Power Restore Policy, Get System Restart Cause, Get Chassis Capabilities, Get POH Counter
 
 
@@ -146,7 +146,7 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 | 00h  | Get Chassis Capabilities | `get_chassis_capabilities` | 28.1 | U | ⚡ | ? | ? |
 | 01h  | Get Chassis Status | `get_chassis_status` | 28.2 | U | ✓ | ✓ | ? |
 | 02h  | Chassis Control | `chassis_control` | 28.3 | O | ✓ | ? (untested destructive) | ? |
-| 03h  | Chassis Reset | `chassis_reset` | 28.4 | O | ✗ | ? | ? |
+| 03h  | Chassis Reset | `chassis_reset` | 28.4 | O | ⚡ | ? | ? |
 | 04h  | Chassis Identify | `chassis_identify` | 28.5 | O | ⚡ | ? | ? |
 | 05h  | Set Chassis Capabilities | `set_chassis_capabilities` | 28.7 | A | ⚡ | ? | ? |
 | 06h  | Set Power Restore Policy | `set_power_restore_policy` | 28.8 | A | ⚡ | ? | ? |
@@ -161,23 +161,23 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 
 ## Sensor / Event NetFn (0x04)
 
-**27 commands · 17 done by zipmi** — ✓ 1 decoded, ⚡ 16 raw · ✗ 10 not implemented.
+**27 commands · 25 done by zipmi** — ✓ 1 decoded, ⚡ 24 raw · ✗ 2 not implemented.
 Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters, Get Last Processed Event ID, Get Device SDR Info, Get Device SDR, Reserve Device SDR Repository, Get Sensor Reading Factors, Get Sensor Hysteresis, Get Sensor Threshold, Get Sensor Event Enable, Get Sensor Event Status, Get Sensor Type
 
 
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
-| 00h  | Set Event Receiver | `set_event_receiver` | 29.1 | A | ✗ | ? | ? |
-| 01h  | Get Event Receiver | `get_event_receiver` | 29.2 | U | ✗ | ? | ? |
-| 02h  | Platform Event Message | `platform_event` | 29.3 | O | ✗ | ? | ? |
+| 00h  | Set Event Receiver | `set_event_receiver` | 29.1 | A | ⚡ | ? | ? |
+| 01h  | Get Event Receiver | `get_event_receiver` | 29.2 | U | ⚡ | ? | ? |
+| 02h  | Platform Event Message | `platform_event` | 29.3 | O | ⚡ | ? | ? |
 | 10h  | Get PEF Capabilities | `get_pef_capabilities` | 30.1 | U | ⚡ | ? | ? |
-| 11h  | Arm PEF Postpone Timer | `arm_pef_postpone_timer` | 30.2 | A | ✗ | ? | ? |
+| 11h  | Arm PEF Postpone Timer | `arm_pef_postpone_timer` | 30.2 | A | ⚡ | ? | ? |
 | 12h  | Set PEF Configuration Parameters | `set_pef_configuration_parameters` | 30.3 | A | ⚡ | ? | ? |
 | 13h  | Get PEF Configuration Parameters | `get_pef_configuration_parameters` | 30.4 | U | ⚡ | ? | ? |
-| 14h  | Set Last Processed Event ID | `set_last_processed_event_id` | 30.5 | A | ✗ | ? | ? |
+| 14h  | Set Last Processed Event ID | `set_last_processed_event_id` | 30.5 | A | ⚡ | ? | ? |
 | 15h  | Get Last Processed Event ID | `get_last_processed_event_id` | 30.6 | A | ⚡ | ? | ? |
-| 16h  | Alert Immediate | `alert_immediate` | 30.7 | O | ✗ | ? | ? |
-| 17h  | PET Acknowledge | `pet_acknowledge` | 30.8 | s | ✗ | ? | ? |
+| 16h  | Alert Immediate | `alert_immediate` | 30.7 | O | ⚡ | ? | ? |
+| 17h  | PET Acknowledge | `pet_acknowledge` | 30.8 | s | ⚡ | ? | ? |
 | 20h  | Get Device SDR Info | `get_device_sdr_info` | 35.2 | U | ⚡ | ? | ? |
 | 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ⚡ | ? | ? |
 | 22h  | Reserve Device SDR Repository | `reserve_device_sdr_repository` | 35.4 | U | ⚡ | ? | ? |
@@ -188,7 +188,7 @@ Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters
 | 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ⚡ | ? | ? |
 | 28h  | Set Sensor Event Enable | `set_sensor_event_enable` | 35.10 | O | ⚡ | ? | ? |
 | 29h  | Get Sensor Event Enable | `get_sensor_event_enable` | 35.11 | U | ⚡ | ? | ? |
-| 2Ah  | Re-arm Sensor Events | `re_arm_sensor_events` | 35.12 | O | ✗ | ? | ? |
+| 2Ah  | Re-arm Sensor Events | `re_arm_sensor_events` | 35.12 | O | ⚡ | ? | ? |
 | 2Bh  | Get Sensor Event Status | `get_sensor_event_status` | 35.13 | U | ⚡ | ? | ? |
 | 2Dh  | Get Sensor Reading | `get_sensor_reading` | 35.14 | U | ✓ | ✓ | ? |
 | 2Eh  | Set Sensor Type | `set_sensor_type` | 35.16 | O | ✗ | ? | ? |

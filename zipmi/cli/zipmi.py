@@ -3009,6 +3009,194 @@ def cmd_sensor_set_threshold(args: argparse.Namespace) -> int:
     return 0
 
 
+# --- Event (NetFn 0x04) receiver + Platform Event Message ------------------
+
+
+def cmd_event_get_receiver(args: argparse.Namespace) -> int:
+    """Get Event Receiver (0x04/0x01). Resp: byte0 = event receiver slave
+    address, byte1 = event receiver LUN (low 2 bits)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x01, b"")
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    addr, lun = data[0], data[1] & 0x03
+    if emit(args, {"receiver_address": addr, "receiver_lun": lun}):
+        return 0
+    print(f"Event receiver address : 0x{addr:02x}")
+    print(f"Event receiver LUN     : {lun}")
+    return 0
+
+
+def cmd_event_set_receiver(args: argparse.Namespace) -> int:
+    """Set Event Receiver (0x04/0x00). Req = [slave addr, LUN & 0x03]."""
+    addr = args.addr & 0xFF
+    lun = args.lun & 0x03
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x00, bytes([addr, lun]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    if emit(args, {"ok": True, "action": "set-event-receiver",
+                   "receiver_address": addr, "receiver_lun": lun}):
+        return 0
+    print(f"Event receiver set: addr=0x{addr:02x} lun={lun}")
+    return 0
+
+
+def cmd_event_platform_msg(args: argparse.Namespace) -> int:
+    """Platform Event Message (0x04/0x02) — inject a SEL/PEF event. Req =
+    [generator id, 0x04 (EvMRev), sensor type, sensor num, event dir|type]
+    + 0..3 event data bytes. The generator-id byte0 exists only in the
+    system-interface form; over LAN/IPMB the BMC infers the generator, so
+    including it makes the request one byte too long (0xc7). Default: OMIT it
+    (LAN form). Pass --generator N to prepend it (system-interface form)."""
+    gen = None if args.generator is None else (args.generator & 0xFF)
+    data = _hex_bytes(args.data) if args.data else b""
+    if len(data) > 3:
+        _msg.error(f"event data must be 0..3 bytes, got {len(data)}")
+        return 1
+    req = (bytes([gen]) if gen is not None else b"") + \
+        bytes([0x04, args.sensor_type & 0xFF, args.sensor_num & 0xFF,
+               args.event_dir_type & 0xFF]) + data
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x02, req)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    result = {"ok": True, "action": "platform-event",
+              "generator": gen, "sensor_type": args.sensor_type & 0xFF,
+              "sensor_number": args.sensor_num & 0xFF,
+              "event_dir_type": args.event_dir_type & 0xFF,
+              "event_data": data.hex()}
+    if emit(args, result):
+        return 0
+    print(f"Platform event injected: gen=0x{gen:02x} "
+          f"type=0x{args.sensor_type & 0xFF:02x} num=0x{args.sensor_num & 0xFF:02x} "
+          f"dir/type=0x{args.event_dir_type & 0xFF:02x} data={data.hex()}")
+    return 0
+
+
+def cmd_pef_arm_postpone(args: argparse.Namespace) -> int:
+    """Arm PEF Postpone Timer (0x04/0x11). Req = [countdown seconds]
+    (0x00 disable, 0xFE temporary disable, 0xFF get current). Resp byte0 =
+    present countdown value."""
+    secs = args.seconds & 0xFF
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x04, 0x11, bytes([secs]))
+        if cc != 0x00 or len(data) < 1:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    present = data[0]
+    if emit(args, {"ok": True, "action": "arm-pef-postpone",
+                   "requested": secs, "present_countdown": present}):
+        return 0
+    print(f"PEF postpone timer: requested={secs} present={present}")
+    return 0
+
+
+def cmd_pef_set_last_event(args: argparse.Namespace) -> int:
+    """Set Last Processed Event ID (0x04/0x14). Req = [byte0, record id LE].
+    byte0 bit0 selects which id to set: 0 = SW (software) record id, 1 = BMC.
+    We keep it to the SW/BMC selector bit only."""
+    rid = args.record_id & 0xFFFF
+    which = 0x01 if args.which == "bmc" else 0x00
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x14, bytes([which, rid & 0xFF, rid >> 8]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    if emit(args, {"ok": True, "action": "set-last-event",
+                   "which": args.which, "record_id": rid}):
+        return 0
+    print(f"Last processed event id set: {args.which} record 0x{rid:04x}")
+    return 0
+
+
+def cmd_pef_alert(args: argparse.Namespace) -> int:
+    """Alert Immediate (0x04/0x16). Req = [channel & 0x0F, destination,
+    string selector]."""
+    chan = args.channel & 0x0F
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x16,
+                           bytes([chan, args.destination & 0xFF,
+                                  args.string_select & 0xFF]))
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    if emit(args, {"ok": True, "action": "alert-immediate",
+                   "channel": chan, "destination": args.destination & 0xFF,
+                   "string_select": args.string_select & 0xFF}):
+        return 0
+    print(f"Alert sent: chan={chan} dest={args.destination & 0xFF} "
+          f"string={args.string_select & 0xFF}")
+    return 0
+
+
+def cmd_pef_pet_ack(args: argparse.Namespace) -> int:
+    """PET Acknowledge (0x04/0x17). Req = seq(u16 LE), timestamp(u32 LE),
+    source type, sensor device, sensor num, event data(3)."""
+    seq = args.seq & 0xFFFF
+    ts = args.timestamp & 0xFFFFFFFF
+    ed = _hex_bytes(args.event_data) if args.event_data else b""
+    if len(ed) != 3:
+        _msg.error(f"event-data must be 3 bytes, got {len(ed)}")
+        return 1
+    req = (bytes([seq & 0xFF, seq >> 8,
+                  ts & 0xFF, (ts >> 8) & 0xFF, (ts >> 16) & 0xFF, (ts >> 24) & 0xFF,
+                  args.source_type & 0xFF, args.sensor_device & 0xFF,
+                  args.sensor_num & 0xFF]) + ed)
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x17, req)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    if emit(args, {"ok": True, "action": "pet-ack", "seq": seq,
+                   "timestamp": ts, "event_data": ed.hex()}):
+        return 0
+    print(f"PET acknowledged: seq={seq} ts={ts} data={ed.hex()}")
+    return 0
+
+
+def cmd_sensor_rearm(args: argparse.Namespace) -> int:
+    """Re-arm Sensor Events (0x04/0x2A). Req byte0 = sensor num, byte1 = 0
+    (re-arm all events) or 1 (use the given assert/deassert masks); when 1,
+    assertion mask LE + deassertion mask LE follow."""
+    num = int(args.num, 0) & 0xFF
+    use_masks = args.assert_mask is not None or args.deassert_mask is not None
+    if use_masks:
+        am = (args.assert_mask or 0) & 0xFFFF
+        dm = (args.deassert_mask or 0) & 0xFFFF
+        req = bytes([num, 0x01, am & 0xFF, am >> 8, dm & 0xFF, dm >> 8])
+    else:
+        am = dm = None
+        req = bytes([num, 0x00])
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x04, 0x2A, req)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    if emit(args, {"ok": True, "action": "rearm-sensor", "sensor_number": num,
+                   "assert_mask": am, "deassert_mask": dm}):
+        return 0
+    print(f"Sensor 0x{num:02x} events re-armed "
+          f"({'masks' if use_masks else 'all'})")
+    return 0
+
+
+def cmd_chassis_reset(args: argparse.Namespace) -> int:
+    """Chassis Reset (0x00/0x03). No data. Hard-resets the target."""
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x00, 0x03, b"")
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    if emit(args, {"ok": True, "action": "chassis-reset"}):
+        return 0
+    print("Chassis reset issued")
+    return 0
+
+
 # --- Storage (NetFn 0x0A) mutating commands: SEL / SDR / FRU writes -------
 
 
@@ -5007,6 +5195,8 @@ def build_parser() -> argparse.ArgumentParser:
     ch_scaps.set_defaults(func=cmd_chassis_set_caps)
     ch_poh = ch_sub.add_parser("poh", help="get power-on-hours counter")
     ch_poh.set_defaults(func=cmd_chassis_poh)
+    ch_reset = ch_sub.add_parser("reset", help="hard-reset the target (Chassis Reset)")
+    ch_reset.set_defaults(func=cmd_chassis_reset)
     ch_power = ch_sub.add_parser("power", help="chassis power control")
     ch_power.add_argument("action", choices=list(CHASSIS_CTRL.values()) + ["status"])
     ch_power.add_argument("--yes", action="store_true",
@@ -5204,6 +5394,13 @@ def build_parser() -> argparse.ArgumentParser:
     sn_see.add_argument("--deassert-mask", type=lambda x: int(x, 0), default=0,
                         help="deassertion event mask (u16 hex)")
     sn_see.set_defaults(func=cmd_sensor_set_event_enable)
+    sn_ra = sn_sub.add_parser("rearm", help="Re-arm Sensor Events")
+    sn_ra.add_argument("num", help="sensor number (decimal or 0x hex)")
+    sn_ra.add_argument("--assert-mask", type=lambda x: int(x, 0), default=None,
+                       help="assertion event mask (u16 hex); triggers masked re-arm")
+    sn_ra.add_argument("--deassert-mask", type=lambda x: int(x, 0), default=None,
+                       help="deassertion event mask (u16 hex); triggers masked re-arm")
+    sn_ra.set_defaults(func=cmd_sensor_rearm)
 
     # pef
     pef = sub.add_parser("pef", help="Platform Event Filtering")
@@ -5222,6 +5419,65 @@ def build_parser() -> argparse.ArgumentParser:
     pef_scfg.add_argument("--data", default="",
                           help="hex bytes (space/comma separated), e.g. '01 02 aa'")
     pef_scfg.set_defaults(func=cmd_pef_set_config)
+    pef_arm = pef_sub.add_parser("arm-postpone", help="Arm PEF Postpone Timer")
+    pef_arm.add_argument("--seconds", required=True, type=lambda x: int(x, 0),
+                         help="countdown seconds (0x00 disable, 0xFE temp-disable, "
+                              "0xFF get current)")
+    pef_arm.set_defaults(func=cmd_pef_arm_postpone)
+    pef_sle = pef_sub.add_parser("set-last-event", help="Set Last Processed Event ID")
+    pef_sle.add_argument("--record-id", required=True, type=lambda x: int(x, 0),
+                         help="record id (u16)")
+    pef_sle.add_argument("--which", choices=["sw", "bmc"], default="sw",
+                         help="which id to set (default sw)")
+    pef_sle.set_defaults(func=cmd_pef_set_last_event)
+    pef_al = pef_sub.add_parser("alert", help="Alert Immediate (send an alert now)")
+    pef_al.add_argument("channel", nargs="?", default="0x0E",
+                        help="channel (default 0x0E = this channel)")
+    pef_al.add_argument("--destination", required=True, type=lambda x: int(x, 0),
+                        help="alert destination selector (u8)")
+    pef_al.add_argument("--string-select", default=0, type=lambda x: int(x, 0),
+                        help="alert string selector (u8, default 0)")
+    pef_al.set_defaults(func=cmd_pef_alert)
+    pef_pa = pef_sub.add_parser("pet-ack", help="PET Acknowledge")
+    pef_pa.add_argument("--seq", required=True, type=lambda x: int(x, 0),
+                        help="sequence number (u16)")
+    pef_pa.add_argument("--timestamp", required=True, type=lambda x: int(x, 0),
+                        help="timestamp (u32)")
+    pef_pa.add_argument("--source-type", required=True, type=lambda x: int(x, 0),
+                        help="event source type (u8)")
+    pef_pa.add_argument("--sensor-device", required=True, type=lambda x: int(x, 0),
+                        help="sensor device (u8)")
+    pef_pa.add_argument("--sensor-num", required=True, type=lambda x: int(x, 0),
+                        help="sensor number (u8)")
+    pef_pa.add_argument("--event-data", required=True,
+                        help="3 event data bytes (hex, space/comma separated)")
+    pef_pa.set_defaults(func=cmd_pef_pet_ack)
+
+    # event (NetFn 0x04 receiver + platform event injection)
+    ev = sub.add_parser("event", help="event receiver + platform event injection")
+    ev_sub = ev.add_subparsers(dest="action", required=True)
+    ev_gr = ev_sub.add_parser("get-receiver", help="Get Event Receiver")
+    ev_gr.set_defaults(func=cmd_event_get_receiver)
+    ev_sr = ev_sub.add_parser("set-receiver", help="Set Event Receiver")
+    ev_sr.add_argument("--addr", required=True, type=lambda x: int(x, 0),
+                       help="event receiver slave address (u8)")
+    ev_sr.add_argument("--lun", default=0, type=lambda x: int(x, 0),
+                       help="event receiver LUN (u8, default 0)")
+    ev_sr.set_defaults(func=cmd_event_set_receiver)
+    ev_pm = ev_sub.add_parser("platform-msg",
+                              help="Platform Event Message (inject a SEL/PEF event)")
+    ev_pm.add_argument("--generator", default=None, type=lambda x: int(x, 0),
+                       help="generator id byte (system-interface form); omit for "
+                            "the LAN/IPMB form where the BMC infers it")
+    ev_pm.add_argument("--sensor-type", required=True, type=lambda x: int(x, 0),
+                       help="sensor type code (u8)")
+    ev_pm.add_argument("--sensor-num", required=True, type=lambda x: int(x, 0),
+                       help="sensor number (u8)")
+    ev_pm.add_argument("--event-dir-type", required=True, type=lambda x: int(x, 0),
+                       help="event dir|type byte (u8, e.g. 0x6f)")
+    ev_pm.add_argument("--data", default="",
+                       help="up to 3 event data bytes (hex, space/comma separated)")
+    ev_pm.set_defaults(func=cmd_event_platform_msg)
 
     # lan
     lan = sub.add_parser("lan", help="LAN configuration")
