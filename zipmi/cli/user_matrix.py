@@ -354,7 +354,10 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
     # Discover the user count on a channel that actually answers Get User Access.
     # 0xE = the present/connected channel (our session) is tried first; sessionless
     # channels like IPMB (0) and KCS reject the query, so never lead with populated[0].
-    max_users, enabled = 0, 0
+    # enabled_count = the channel's enabled-user COUNT (distinct from each user's
+    # per-user enable bit below; keep separate names — collapsing them clobbered
+    # the count to the last user's bit, so a populated table read as "0/16").
+    max_users, enabled_count = 0, 0
     for dch in [0x0E, *populated]:
         try:
             u1 = sender.send_cmd(0x06, 0x44, GetUserAccessReq(channel=dch, user_id=1))
@@ -362,7 +365,7 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
             continue
         if int(u1.comp_code) == 0x00 and (int(u1.max_user_count) & 0x3F):
             max_users = int(u1.max_user_count) & 0x3F
-            enabled = int(u1.enabled_user_count) & 0x3F
+            enabled_count = int(u1.enabled_user_count) & 0x3F
             break
 
     # Classify each populated channel by how it ANSWERS Get User Access (0x44) —
@@ -418,7 +421,7 @@ def build_matrix(sender, target: str, *, include_empty=False, per_priv=False,
     return {
         "target": target,
         "max_user_count": max_users,
-        "enabled_user_count": enabled,
+        "enabled_user_count": enabled_count,
         "channels": channels,
         "users": users,
         "findings": [],
