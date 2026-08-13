@@ -4,6 +4,12 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
+> **Coverage: zipmi implements 63 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 29 raw-wired (⚡, sent by a verb,
+> response as bytes). 125 are not implemented (✗) — though any command is still
+> reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
+> sits at the top of each section below.
+
 ## Legend
 
 **zipmi column:**
@@ -38,6 +44,10 @@ and per-platform live test results.
 ---
 
 ## App NetFn (0x06)
+
+**68 commands · 39 done by zipmi** — ✓ 19 decoded, ⚡ 20 raw · ✗ 29 not implemented.
+Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device GUID, Get System GUID, Get Channel Authentication Capabilities, Get Session Challenge, Activate Session, Set Session Privilege Level, Close Session, Get Channel Access, Get Channel Info Command, Get User Access Command, Get User Name Command, Activate Payload, Deactivate Payload, Get Payload Activation Status, Get Channel Cipher Suites, Get NetFn Support, Get Command Support, Get Command Sub-function Support, Get Configurable Commands, Get Command Enables, Get Command Sub-function Enables, Reset Watchdog Timer, Set Watchdog Timer, Get Watchdog Timer, Get Message Flags, Get Message, Send Message, Get Session Info, Set User Access Command, Set User Name, Set User Password Command, Set User Payload Access, Get User Payload Access, Master Read-Write, Get System Interface Capabilities
+
 
 ### IPM Device "Global" Commands
 
@@ -117,10 +127,19 @@ and per-platform live test results.
 | 55h  | Suspend/Resume Payload Encryption | 24.10 | U | ✗ | ? | ? |
 | 56h  | Set Channel Security Keys | 22.25 | A | ✗ | ? | ? |
 | 57h  | Get System Interface Capabilities | 22.9 | U | ⚡ | ? | ? |
+| 5Ah  | Get Authorization Privilege Level | 22.x | s | ✗ | ? | ? |
+| 5Bh  | Get Authentication Capabilities (v2) | 22.x | s | ✗ | ? | ? |
+| 5Ch  | Get Session-Less Channel Privilege Level | 22.x | s | ✗ | ? | ? |
+| 5Dh  | Set Session-Less Channel Privilege Level | 22.x | s | ✗ | ? | ? |
+| 5Eh  | Get Session-Less Channel Auth Caps | 22.x | s | ✗ | ? | ? |
 
 ---
 
 ## Chassis NetFn (0x00)
+
+**13 commands · 7 done by zipmi** — ✓ 4 decoded, ⚡ 3 raw · ✗ 6 not implemented.
+Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System Boot Options, Chassis Identify, Set Power Restore Policy, Get System Restart Cause
+
 
 | CMD  | Name | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|------|-------|------|--------|
@@ -141,6 +160,10 @@ and per-platform live test results.
 ---
 
 ## Sensor / Event NetFn (0x04)
+
+**27 commands · 1 done by zipmi** — ✓ 1 decoded, ⚡ 0 raw · ✗ 26 not implemented.
+Done: Get Sensor Reading
+
 
 | CMD  | Name | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|------|-------|------|--------|
@@ -175,6 +198,10 @@ and per-platform live test results.
 ---
 
 ## Storage NetFn (0x0A)
+
+**30 commands · 11 done by zipmi** — ✓ 7 decoded, ⚡ 4 raw · ✗ 19 not implemented.
+Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Repository, Get SDR, Get SEL Info, Reserve SEL, Get SEL Entry, Read FRU Data, Clear SEL, Get SEL Time, Set SEL Time
+
 
 ### FRU Inventory
 
@@ -225,6 +252,10 @@ and per-platform live test results.
 
 ## Transport NetFn (0x0C)
 
+**25 commands · 5 done by zipmi** — ✓ 3 decoded, ⚡ 2 raw · ✗ 20 not implemented.
+Done: Get LAN Configuration Parameters, Set SOL Configuration Parameters, Get SOL Configuration Parameters, Set Serial/Modem Configuration, Get Serial/Modem Configuration
+
+
 ### LAN Device Commands
 
 | CMD  | Name | Spec § | Priv | zipmi | R710 | X11SSZ |
@@ -268,7 +299,16 @@ and per-platform live test results.
 
 ---
 
+| 40h  | Forwarded Command | (fwd) | A | ✗ | ? | ? |
+| 41h  | Set Forwarded Commands | (fwd) | A | ✗ | ? | ? |
+| 42h  | Get Forwarded Commands | (fwd) | A | ✗ | ? | ? |
+| 43h  | Enable Forwarded Commands | (fwd) | A | ✗ | ? | ? |
+
 ## Bridge NetFn (0x02) — ICMB
+
+**26 commands · 0 done by zipmi** — ✓ 0 decoded, ⚡ 0 raw · ✗ 26 not implemented.
+Done: _none_
+
 
 Most bridge commands implemented as `⚡ raw` only; we don't model ICMB
 specifically. Listed here for completeness.
@@ -280,7 +320,36 @@ specifically. Listed here for completeness.
 
 ---
 
+| 01h  | Set Bridge State | (ICMB) | — | ✗ | — | — |
+| 02h  | Get ICMB Address | (ICMB) | — | ✗ | — | — |
+| 03h  | Set ICMB Address | (ICMB) | — | ✗ | — | — |
+| 04h  | Set Bridge ProxyAddress | (ICMB) | — | ✗ | — | — |
+| 05h  | Get Bridge Statistics | (ICMB) | — | ✗ | — | — |
+| 06h  | Get ICMB Capabilities | (ICMB) | — | ✗ | — | — |
+| 08h  | Clear Bridge Statistics | (ICMB) | — | ✗ | — | — |
+| 09h  | Get Bridge Proxy Address | (ICMB) | — | ✗ | — | — |
+| 0Ah  | Get ICMB Connector Info | (ICMB) | — | ✗ | — | — |
+| 0Bh  | Get ICMB Connection ID | (ICMB) | — | ✗ | — | — |
+| 0Ch  | Send ICMB Connection ID | (ICMB) | — | ✗ | — | — |
+| 10h  | Prepare For Discovery | (ICMB) | — | ✗ | — | — |
+| 11h  | Get Addresses | (ICMB) | — | ✗ | — | — |
+| 12h  | Set Discovered | (ICMB) | — | ✗ | — | — |
+| 13h  | Get Chassis Device ID | (ICMB) | — | ✗ | — | — |
+| 14h  | Set Chassis Device ID | (ICMB) | — | ✗ | — | — |
+| 20h  | Bridge Request | (ICMB) | — | ✗ | — | — |
+| 21h  | Bridge Message | (ICMB) | — | ✗ | — | — |
+| 31h  | Set Event Destination | (ICMB) | — | ✗ | — | — |
+| 32h  | Set Event Reception State | (ICMB) | — | ✗ | — | — |
+| 33h  | Send ICMB Event Message | (ICMB) | — | ✗ | — | — |
+| 34h  | Get Event Destination | (ICMB) | — | ✗ | — | — |
+| 35h  | Get Event Reception State | (ICMB) | — | ✗ | — | — |
+| C0h  | Error Report | (ICMB) | — | ✗ | — | — |
+
 ## OEM NetFn (0x30) and Group OEM (0x2E)
+
+**0 commands · 0 done by zipmi** — ✓ 0 decoded, ⚡ 0 raw · ✗ 0 not implemented.
+Done: _none_
+
 
 OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
