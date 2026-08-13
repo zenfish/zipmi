@@ -40,6 +40,7 @@ RELATED  zipmi/core.py, zipmi/scapy_ipmi/commands.py
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import socket
 import sys
@@ -174,9 +175,25 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                         metavar="{auto/a,pastel/p,set/s,dark/d}",
                         help="colour palette (default: auto — detects "
                              "terminal background)")
+    parser.add_argument("--json", action="store_true", default=d(False),
+                        help="emit this command's result as JSON to stdout "
+                             "instead of text (redirect to a file if you want "
+                             "one). Position-independent global flag.")
     parser.add_argument("-V", "--version", action="version",
                         version=f"zipmi version {full_version()}",
                         help="show program version and exit")
+
+
+def emit(args: argparse.Namespace, data) -> bool:
+    """The single JSON output contract for every command. If --json is set, dump
+    `data` to stdout and return True so the caller skips its text rendering;
+    otherwise return False and the caller renders text as usual. `data` is the
+    command's structured result — text output should be a VIEW of this same
+    dict, never a superset (no JSON-only or text-only facts)."""
+    if getattr(args, "json", False):
+        print(json.dumps(data, indent=2, default=str))
+        return True
+    return False
 
 
 def parse_cli(argv: list[str] | None = None) -> argparse.Namespace:
@@ -1014,27 +1031,24 @@ def cmd_user_matrix_list(args: argparse.Namespace) -> int:
         return 1
     if getattr(args, "findings", False):
         matrix["findings"] = _user_matrix.evaluate_findings(matrix)
-    if getattr(args, "json", False):
-        print(json.dumps(matrix, indent=2))
-    else:
-        print(_user_matrix.render_table(matrix))
-        for f in matrix["findings"]:
-            # high/med posture findings warrant a warn tag; low is informational.
-            line = f"ch{f['channel']}: {f['issue']}"
-            (_msg.info if f["severity"] == "low" else _msg.warn)(line)
+    if emit(args, matrix):
+        return 0
+    print(_user_matrix.render_table(matrix))
+    for f in matrix["findings"]:
+        # high/med posture findings warrant a warn tag; low is informational.
+        line = f"ch{f['channel']}: {f['issue']}"
+        (_msg.info if f["severity"] == "low" else _msg.warn)(line)
     return 0
 
 
 def cmd_serial_config(args: argparse.Namespace) -> int:
     """Enumerate serial/modem config params (read-only recon) — connection mode,
     modem init/dial strings, callback + alert-destination config."""
-    import json
     from . import serial_modem
     ch = getattr(args, "channel", 0x0E)
     with _open_session(args) as s:
         rows = serial_modem.serial_config_sweep(s, ch)
-    if getattr(args, "json", False):
-        print(json.dumps({"channel": ch, "params": rows}, indent=2))
+    if emit(args, {"channel": ch, "params": rows}):
         return 0
     print(f"serial/modem config, channel 0x{ch:x}:")
     for r in rows:
@@ -1100,26 +1114,34 @@ SESSION_SUPPORT: dict[int, str] = {
 }
 
 
-def _print_channel_info(s, chan: int) -> bool:
-    """Get Channel Info (0x06/0x42) for one channel; print a block. Returns True
-    if the channel exists (BMC answered cc 0x00), False otherwise (skipped)."""
+def _channel_info(s, chan: int) -> dict | None:
+    """Get Channel Info (0x06/0x42) for one channel as a structured dict, or None
+    if the channel doesn't exist (BMC didn't answer cc 0x00)."""
     cc, data = s.send_raw(0x06, 0x42, bytes([chan & 0x0F]))
     if cc != 0x00 or len(data) < 9:
-        return False
-    actual = data[0] & 0x0F
+        return None
     medium = data[1] & 0x7F
     proto = data[2] & 0x1F
-    sess_support = (data[3] >> 6) & 0x03
-    active = data[3] & 0x3F
-    vendor_id = data[4] | (data[5] << 8) | (data[6] << 16)
-    print(f"Channel 0x{actual:x} info:")
-    print(f"  Medium type      : {CHANNEL_MEDIUM.get(medium, f'0x{medium:02x}')}")
-    print(f"  Protocol type    : {CHANNEL_PROTOCOL.get(proto, f'0x{proto:02x}')}")
-    print(f"  Session support  : {SESSION_SUPPORT[sess_support]}")
-    print(f"  Active sessions  : {active}")
-    print(f"  Vendor IANA      : 0x{vendor_id:06x}")
-    print(f"  Aux info         : 0x{data[7]:02x}{data[8]:02x}")
-    return True
+    sess = (data[3] >> 6) & 0x03
+    return {
+        "channel": data[0] & 0x0F,
+        "medium": {"code": medium, "name": CHANNEL_MEDIUM.get(medium, f"0x{medium:02x}")},
+        "protocol": {"code": proto, "name": CHANNEL_PROTOCOL.get(proto, f"0x{proto:02x}")},
+        "session_support": {"code": sess, "name": SESSION_SUPPORT[sess]},
+        "active_sessions": data[3] & 0x3F,
+        "vendor_iana": data[4] | (data[5] << 8) | (data[6] << 16),
+        "aux": f"0x{data[7]:02x}{data[8]:02x}",
+    }
+
+
+def _render_channel_info(i: dict) -> None:
+    print(f"Channel 0x{i['channel']:x} info:")
+    print(f"  Medium type      : {i['medium']['name']}")
+    print(f"  Protocol type    : {i['protocol']['name']}")
+    print(f"  Session support  : {i['session_support']['name']}")
+    print(f"  Active sessions  : {i['active_sessions']}")
+    print(f"  Vendor IANA      : 0x{i['vendor_iana']:06x}")
+    print(f"  Aux info         : {i['aux']}")
 
 
 def cmd_channel_info(args: argparse.Namespace) -> int:
@@ -1128,15 +1150,23 @@ def cmd_channel_info(args: argparse.Namespace) -> int:
     that answers exists, one that errors/times out is skipped."""
     with _open_session(args) as s:
         if args.channel == "all":
-            found = 0
-            for ch in range(0x00, 0x0C):
-                if _print_channel_info(s, ch):
-                    found += 1
-            print(f"# {found} channel(s) present (of 0x00..0x0B probed)")
+            infos = [i for ch in range(0x00, 0x0C)
+                     if (i := _channel_info(s, ch)) is not None]
+            if emit(args, {"channels": infos, "present": len(infos)}):
+                return 0
+            for i in infos:
+                _render_channel_info(i)
+            print(f"# {len(infos)} channel(s) present (of 0x00..0x0B probed)")
             return 0
-        if not _print_channel_info(s, args.channel):
+        info = _channel_info(s, args.channel)
+        if info is None:
+            if emit(args, {"channel": args.channel, "present": False}):
+                return 1
             _msg.error(f"channel 0x{args.channel:x}: no info (unimplemented?)")
             return 1
+        if emit(args, info):
+            return 0
+        _render_channel_info(info)
     return 0
 
 
@@ -1185,12 +1215,14 @@ def cmd_bridging_info(args: argparse.Namespace) -> int:
     ever asks the BMC about itself. Recurses to find multi-hop paths, guarded so
     a channel is never revisited within one path (no infinite loop). Depth is
     unbounded; --max-probes stops runaway fan-out LOUDLY, never silently."""
-    from .bridge import confirm_bridge_path, cc_reason
+    from .bridge import confirm_bridge_path
 
+    to_json = getattr(args, "json", False)
     max_probes = args.max_probes or None      # 0 -> unbounded
     sat_addrs = {"off": [0x20], "common": _IPMB_SAT_COMMON,
                  "full": _IPMB_SAT_FULL}[args.ipmb_scan]
     state = {"n": 0, "capped": False}
+    edges: list[dict] = []
 
     def edge_label(r: dict) -> str:
         cat = r["category"]
@@ -1205,9 +1237,11 @@ def cmd_bridging_info(args: argparse.Namespace) -> int:
     def probe(s, path: list[int], rs_addr: int) -> dict:
         state["n"] += 1
         r = confirm_bridge_path(s, path, rs_addr=rs_addr)
-        arrow = " -> ".join(f"0x{c:x}" for c in path)
-        sat = f" sat=0x{rs_addr:02x}" if rs_addr != 0x20 else ""
-        print(f"  [{state['n']:>3}] {arrow}{sat:<10}  {edge_label(r)}")
+        edges.append(r)
+        if not to_json:
+            arrow = " -> ".join(f"0x{c:x}" for c in path)
+            sat = f" sat=0x{rs_addr:02x}" if rs_addr != 0x20 else ""
+            print(f"  [{state['n']:>3}] {arrow}{sat:<10}  {edge_label(r)}")
         return r
 
     def walk(s, path: list[int], media: dict[int, int], depth: int):
@@ -1234,12 +1268,24 @@ def cmd_bridging_info(args: argparse.Namespace) -> int:
         media = _channel_media(s)
         if args.channel != "all":
             media = {args.channel: media.get(args.channel, 0xFF)}
-        here = f"0x{cur_ch:x}" if cur_ch is not None else "?"
-        print(f"bridging map — you are on channel {here}; present channels: "
-              f"{', '.join(f'0x{c:x}' for c in media) or 'none'}")
-        print("categories: reachable=far end replied  bridged=accepted,no reply  "
-              "unreachable=nobody home  refused=BMC rejected")
+        if not to_json:
+            here = f"0x{cur_ch:x}" if cur_ch is not None else "?"
+            print(f"bridging map — you are on channel {here}; present channels: "
+                  f"{', '.join(f'0x{c:x}' for c in media) or 'none'}")
+            print("categories: reachable=far end replied  bridged=accepted,no reply"
+                  "  unreachable=nobody home  refused=BMC rejected")
         walk(s, [], media, 1)
+        result = {
+            "current_channel": cur_ch,
+            "present_channels": list(media),
+            "ipmb_scan": args.ipmb_scan,
+            "probes": state["n"],
+            "capped": state["capped"],
+            "max_probes": args.max_probes,
+            "edges": edges,
+        }
+        if emit(args, result):
+            return 0
         print(f"# {state['n']} probe(s)"
               + (f"; STOPPED at --max-probes={args.max_probes}, more unexplored"
                  if state["capped"] else ""))
@@ -2068,12 +2114,18 @@ def cmd_firewall(args: argparse.Namespace) -> int:
     if unsafe and host not in ("127.0.0.1", "localhost", "::1"):
         _msg.warn(f"--unsafe sends state-changing + unknown commands to {host} "
                   f"(may reset/mutate the BMC). Use a disposable target.")
-    result = {"host": host or None, "channel": channel, "netfns": {}}
+    result = {"host": host or None, "channel": channel, "netfns": []}
+    to_json = getattr(args, "json", False)
+
+    def pr(*a, **k):                       # streaming narration; silent under --json
+        if not to_json:
+            print(*a, **k)
+
     with _open_session(args) as s:
         netfns = _fw_netfn_support(s, channel)
-        print(f"# IPMI Firmware Firewall — channel {channel:#04x}")
-        print("# Supported NetFns (0x09): "
-              + ", ".join(f"{n:#04x}({_FW_NETFN_NAMES.get(n, '?')})" for n in netfns) + "\n")
+        pr(f"# IPMI Firmware Firewall — channel {channel:#04x}")
+        pr("# Supported NetFns (0x09): "
+           + ", ".join(f"{n:#04x}({_FW_NETFN_NAMES.get(n, '?')})" for n in netfns) + "\n")
         for nf in netfns:
             support = _fw_cmd_mask(s, 0x0A, channel, nf)
             if support is None:
@@ -2086,8 +2138,8 @@ def cmd_firewall(args: argparse.Namespace) -> int:
             unnamed = [c for c in sorted(sup) if not lookup_cmd_name(nf, c)]
             disabled = sorted(sup - en)
             coarse = " [mask coarse: firewall defaults reserved codes to supported]" if len(sup) > 40 else ""
-            print(f"NetFn {nf:#04x}  {nfname}  — {len(sup)} in firewall table, "
-                  f"{len(named)} named, {len(disabled)} DISABLED{coarse}")
+            pr(f"NetFn {nf:#04x}  {nfname}  — {len(sup)} in firewall table, "
+               f"{len(named)} named, {len(disabled)} DISABLED{coarse}")
             rows = []
             if nf >= 0x2E and not named:
                 # OEM range with no name catalog. The mask is coarse, but this is the
@@ -2104,21 +2156,22 @@ def cmd_firewall(args: argparse.Namespace) -> int:
                         if impld:
                             real.append((c, cc))
                     if real:
-                        print(f"    {len(sup)} OEM slots probed → {len(real)} REAL OEM commands: "
-                              + " ".join(f"0x{c:02x}(cc={cc:#04x})" for c, cc in real[:32])
-                              + (" …" if len(real) > 32 else ""))
+                        pr(f"    {len(sup)} OEM slots probed → {len(real)} REAL OEM commands: "
+                           + " ".join(f"0x{c:02x}(cc={cc:#04x})" for c, cc in real[:32])
+                           + (" …" if len(real) > 32 else ""))
                     else:
-                        print(f"    {len(sup)} OEM slots probed → none respond (all 0xC1) — firewall padding")
+                        pr(f"    {len(sup)} OEM slots probed → none respond (all 0xC1) — firewall padding")
                 else:
-                    print(f"    {len(sup)} OEM command slots (no name catalog; map opcodes to the "
-                          f"vendor handler tables). {len(disabled)} disabled. --probe --unsafe to find real ones.")
+                    pr(f"    {len(sup)} OEM command slots (no name catalog; map opcodes to the "
+                       f"vendor handler tables). {len(disabled)} disabled. --probe --unsafe to find real ones.")
                     for c in sorted(sup):
                         rows.append({"cmd": c, "name": "<OEM>", "configurable": c in cfg, "enabled": c in en})
-                result["netfns"][f"0x{nf:02x}"] = {"name": nfname, "named": 0,
-                                                   "total_in_table": len(sup), "disabled": disabled,
-                                                   "undocumented": [c for c, _ in real],
-                                                   "commands": rows}
-                print()
+                result["netfns"].append({"netfn": nf, "netfn_hex": f"0x{nf:02x}",
+                                         "name": nfname, "named": 0,
+                                         "total_in_table": len(sup), "disabled": disabled,
+                                         "undocumented": [c for c, _ in real],
+                                         "commands": rows})
+                pr()
                 continue
             discoveries = []            # unnamed codes that probe REAL = undocumented
             for c in named:
@@ -2133,7 +2186,7 @@ def cmd_firewall(args: argparse.Namespace) -> int:
                     else:
                         impl = " [not sent: state-changing — use --unsafe]"
                 mark = "  <-- blocked" if c not in en else ""
-                print(f"    0x{c:02x}  {name:<34s} [{', '.join(flags)}]{impl}{mark}")
+                pr(f"    0x{c:02x}  {name:<34s} [{', '.join(flags)}]{impl}{mark}")
                 row = {"cmd": c, "name": name, "configurable": c in cfg,
                        "enabled": c in en, **({"implemented": impl.strip()} if args.probe else {})}
                 if args.subfn or nf in (0x2C, 0x2E):
@@ -2143,9 +2196,9 @@ def cmd_firewall(args: argparse.Namespace) -> int:
                         sfs = _fw_bits(sf_sup); sf_off = sorted(set(_fw_bits(sf_sup)) - set(_fw_bits(sf_en)))
                         if sfs:
                             off = f", {len(sf_off)} DISABLED" if sf_off else ""
-                            print(f"        sub-fns: {len(sfs)} supported{off} "
-                                  + " ".join(f"{x:#04x}" + ("!" if x in sf_off else "") for x in sfs[:24])
-                                  + (" …" if len(sfs) > 24 else ""))
+                            pr(f"        sub-fns: {len(sfs)} supported{off} "
+                               + " ".join(f"{x:#04x}" + ("!" if x in sf_off else "") for x in sfs[:24])
+                               + (" …" if len(sfs) > 24 else ""))
                             row["subfns"] = {"supported": sfs, "disabled": sf_off}
                 rows.append(row)
             # unnamed set-bits: mostly firewall padding (the coarse mask defaults
@@ -2159,26 +2212,25 @@ def cmd_firewall(args: argparse.Namespace) -> int:
                         if cc != _FW_CC_INVALID_CMD:
                             discoveries.append((c, cc))
                     if discoveries:
-                        print(f"    + {len(unnamed)} unnamed probed → {len(discoveries)} REAL / UNDOCUMENTED: "
-                              + " ".join(f"0x{c:02x}(cc={cc:#04x})" for c, cc in discoveries)
-                              + f"  ({len(unnamed)-len(discoveries)} not-impl 0xC1)")
+                        pr(f"    + {len(unnamed)} unnamed probed → {len(discoveries)} REAL / UNDOCUMENTED: "
+                           + " ".join(f"0x{c:02x}(cc={cc:#04x})" for c, cc in discoveries)
+                           + f"  ({len(unnamed)-len(discoveries)} not-impl 0xC1)")
                     else:
-                        print(f"    + {len(unnamed)} unnamed probed → all not-impl (0xC1): pure firewall padding")
+                        pr(f"    + {len(unnamed)} unnamed probed → all not-impl (0xC1): pure firewall padding")
                 elif args.probe:
-                    print(f"    + {len(unnamed)} unnamed set-bits — NOT sent (unknown commands). "
-                          f"Add --unsafe to probe them for undocumented commands.")
+                    pr(f"    + {len(unnamed)} unnamed set-bits — NOT sent (unknown commands). "
+                       f"Add --unsafe to probe them for undocumented commands.")
                 else:
-                    print(f"    + {len(unnamed)} unnamed set-bits — likely firewall padding (reserved "
-                          f"codes defaulted to supported). --probe --unsafe to hunt real ones.")
-            result["netfns"][f"0x{nf:02x}"] = {"name": nfname, "named": len(named),
-                                               "total_in_table": len(sup), "disabled": disabled,
-                                               "undocumented": [c for c, _ in discoveries],
-                                               "commands": rows}
-            print()
-    if getattr(args, "json", None):
-        import json as _json
-        _json.dump(result, open(args.json, "w"), indent=2)
-        print(f"# wrote {args.json}")
+                    pr(f"    + {len(unnamed)} unnamed set-bits — likely firewall padding (reserved "
+                       f"codes defaulted to supported). --probe --unsafe to hunt real ones.")
+            result["netfns"].append({"netfn": nf, "netfn_hex": f"0x{nf:02x}",
+                                     "name": nfname, "named": len(named),
+                                     "total_in_table": len(sup), "disabled": disabled,
+                                     "undocumented": [c for c, _ in discoveries],
+                                     "commands": rows})
+            pr()
+    if emit(args, result):
+        return 0
     return 0
 
 
@@ -2586,6 +2638,12 @@ def cmd_scan_all(args: argparse.Namespace) -> int:
     tooling); without it, the quick text probes run first, then the grid table.
     It degrades gracefully: sessionless data still populates, user rows show
     err:* when no session/privilege.
+
+    ponytail: scan is a COMPOSITE — under --json it emits only the grid, not an
+    aggregate of every sub-step (asf-ping/auth-caps/cipher-suites). Full
+    compositional JSON needs each scan sub-command to return a dict; deferred to
+    the emit() sweep of the scan subsystem. Upgrade path: collect sub-results
+    into one {steps:[...]} envelope and emit that.
     """
     args.findings = True
     for attr, default in (("json", False), ("all", False), ("per_priv", False)):
@@ -3147,7 +3205,6 @@ def build_parser() -> argparse.ArgumentParser:
     umx_sub = umx.add_subparsers(dest="action", required=True)
     umx_list = umx_sub.add_parser("list", help="enumerate the whole grid (one session; "
                                   "raises own session priv by default, no persistent change)")
-    umx_list.add_argument("--json", action="store_true", help="emit JSON to stdout")
     umx_list.add_argument("--all", action="store_true",
                           help="include empty/unimplemented channels")
     umx_list.add_argument("--per-priv", dest="per_priv", action="store_true",
@@ -3172,7 +3229,6 @@ def build_parser() -> argparse.ArgumentParser:
     ser_cfg = ser_sub.add_parser("config", help="enumerate serial/modem params (read)")
     ser_cfg.add_argument("channel", nargs="?", type=lambda x: int(x, 0), default=0x0E,
                          help="channel number (default 0xE = present)")
-    ser_cfg.add_argument("--json", action="store_true")
     ser_cfg.set_defaults(func=cmd_serial_config)
     ser_set = ser_sub.add_parser("set", help="set a serial/modem param (WRITE, admin)")
     ser_set.add_argument("channel", type=lambda x: int(x, 0))
@@ -3339,7 +3395,6 @@ def build_parser() -> argparse.ArgumentParser:
     fw.add_argument("--subfn", action="store_true",
                     help="walk Get Command Sub-function Support for every named command "
                          "(default: only group-extension NetFns 0x2c/0x2e)")
-    fw.add_argument("--json", metavar="FILE", help="write structured result to FILE")
     fw.set_defaults(func=cmd_firewall)
 
     # OEM verbs: `zipmi oem` + per-vendor shortcuts (dell, supermicro, ...).
@@ -3410,9 +3465,6 @@ def build_parser() -> argparse.ArgumentParser:
             "unauth": "unauthenticated (sessionless) probes only",
             "all": "every probe (unauth + cipher-zero + user-matrix)",
         }.get(name))
-        if name == "all":
-            s.add_argument("--json", action="store_true",
-                           help="emit the full-grid matrix as JSON (grid only)")
         s.set_defaults(func=fn)
 
     return p

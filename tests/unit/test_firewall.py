@@ -10,8 +10,26 @@ import pytest
 
 from zipmi.cli.zipmi import (
     _fw_bits, _fw_netfn_support, _fw_cmd_mask, _fw_cmd_enables, _fw_subfn_mask,
-    cmd_firewall, build_parser,
+    cmd_firewall, build_parser, emit,
 )
+
+
+# -- emit(): the single --json output contract ----------------------------
+
+def test_emit_json_dumps_and_signals_handled(capsys):
+    """emit returns True and prints parseable JSON when --json is set, so the
+    caller knows to skip its text rendering."""
+    ns = argparse.Namespace(json=True)
+    assert emit(ns, {"a": 1, "b": [2, 3]}) is True
+    assert json.loads(capsys.readouterr().out) == {"a": 1, "b": [2, 3]}
+
+
+def test_emit_noop_without_json(capsys):
+    """Without --json, emit returns False and prints nothing (caller renders text)."""
+    assert emit(argparse.Namespace(json=False), {"a": 1}) is False
+    assert capsys.readouterr().out == ""
+    # missing attr entirely also treated as off (getattr default)
+    assert emit(argparse.Namespace(), {"a": 1}) is False
 
 
 @pytest.fixture(autouse=True)
@@ -135,7 +153,7 @@ def _fw_scenario():
 def _run_firewall(monkeypatch, s, **overrides):
     import zipmi.cli.zipmi as Z
     monkeypatch.setattr(Z, "_open_session", lambda args: s)
-    kw = dict(channel="0x0e", probe=False, subfn=False, json=None, host="test")
+    kw = dict(channel="0x0e", probe=False, subfn=False, json=False, host="test")
     kw.update(overrides)
     return cmd_firewall(argparse.Namespace(**kw))
 
@@ -149,11 +167,15 @@ def test_cmd_firewall_runs_and_prints(monkeypatch, capsys):
     assert "DISABLED" in out          # cmd 2 is blocked
 
 
-def test_cmd_firewall_json_structure(monkeypatch, tmp_path):
-    out = tmp_path / "fw.json"
-    _run_firewall(monkeypatch, _fw_scenario(), json=str(out))
-    data = json.loads(out.read_text())
-    nf = data["netfns"]["0x06"]
+def test_cmd_firewall_json_structure(monkeypatch, capsys):
+    """--json emits to stdout as shape B: netfns is an ARRAY of records, each
+    with integer `netfn` + `netfn_hex` + name, and the streaming text is
+    suppressed (the JSON must parse clean, no narration prefix)."""
+    _run_firewall(monkeypatch, _fw_scenario(), json=True)
+    data = json.loads(capsys.readouterr().out)     # parses => no text leaked
+    assert isinstance(data["netfns"], list)
+    nf = next(n for n in data["netfns"] if n["netfn"] == 0x06)
+    assert nf["netfn_hex"] == "0x06"
     assert nf["total_in_table"] == 2          # cmds 1 and 2
     assert nf["disabled"] == [2]              # cmd 2 in support but not enabled
     assert data["channel"] == 0x0e
