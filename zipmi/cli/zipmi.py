@@ -870,27 +870,49 @@ def cmd_user_list(args: argparse.Namespace) -> int:
     """
     from .user_matrix import decode_user_access
     EN = {0: "?", 1: "yes", 2: "no", 3: "?"}
-    ch = int(getattr(args, "channel", "0xE"), 0) & 0xFF
+    req_ch = int(getattr(args, "channel", "0xE"), 0) & 0xFF
+    users = []
     with _open_session(args) as s:
-        ua1 = s.send_cmd(0x06, 0x44, GetUserAccessReq(channel=ch, user_id=1))
+        # 0x0E is the "present channel" placeholder, not a literal channel.
+        # Resolve it to the real channel number (Get Channel Info echoes it in
+        # byte0) so the report names the actual channel the access applies to.
+        actual_ch = req_ch
+        if req_ch == 0x0E:
+            cc, cd = s.send_raw(0x06, 0x42, bytes([0x0E]))
+            if cc == 0x00 and cd:
+                actual_ch = cd[0] & 0x0F
+        ua1 = s.send_cmd(0x06, 0x44, GetUserAccessReq(channel=req_ch, user_id=1))
         max_users = ua1.max_user_count & 0x3F
-        print(f"max_user_count={max_users}  enabled(count)={ua1.enabled_user_count & 0x3F}"
-              f"  (access shown for channel {ch:#04x})")
-        print(f"{'ID':>3}  {'Name':16}  {'Priv':13}  {'IPMIMsg':7}  {'LinkAuth':8}  "
-              f"{'CbkRestr':8}  {'Enabled':7}")
+        enabled_count = ua1.enabled_user_count & 0x3F
         for uid in range(1, max_users + 1):
             try:
                 ua = s.send_cmd(0x06, 0x44,
-                                GetUserAccessReq(channel=ch, user_id=uid))
+                                GetUserAccessReq(channel=req_ch, user_id=uid))
                 un = s.send_cmd(0x06, 0x46, GetUserNameReq(user_id=uid))
             except Exception as e:
                 _msg.warn(f"user {uid}: {e}")
                 continue
             name = bytes(un.user_name).rstrip(b"\x00").decode("utf-8", errors="replace") or "<null>"
             d = decode_user_access(int(ua.user_access))
-            en = EN[(int(ua.fixed_name_users) >> 6) & 0x3]
-            print(f"{uid:3}  {name:16}  {d['priv']:13}  {str(d['ipmi_msg']):7}  "
-                  f"{str(d['link_auth']):8}  {str(d['callback_restricted']):8}  {en:7}")
+            users.append({
+                "id": uid, "name": name, "priv": d["priv"],
+                "ipmi_msg": d["ipmi_msg"], "link_auth": d["link_auth"],
+                "callback_restricted": d["callback_restricted"],
+                "enabled": EN[(int(ua.fixed_name_users) >> 6) & 0x3],
+            })
+    result = {"channel": actual_ch, "channel_is_present": req_ch == 0x0E,
+              "max_user_count": max_users, "enabled_user_count": enabled_count,
+              "users": users}
+    if emit(args, result):
+        return 0
+    tag = " (this channel)" if req_ch == 0x0E else ""
+    print(f"max_user_count={max_users}  enabled(count)={enabled_count}"
+          f"  (access shown for channel {actual_ch}{tag})")
+    print(f"{'ID':>3}  {'Name':16}  {'Priv':13}  {'IPMIMsg':7}  {'LinkAuth':8}  "
+          f"{'CbkRestr':8}  {'Enabled':7}")
+    for u in users:
+        print(f"{u['id']:3}  {u['name']:16}  {u['priv']:13}  {str(u['ipmi_msg']):7}  "
+              f"{str(u['link_auth']):8}  {str(u['callback_restricted']):8}  {u['enabled']:7}")
     return 0
 
 
@@ -930,6 +952,8 @@ def cmd_user_set_name(args: argparse.Namespace) -> int:
         if cc != 0x00:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
+    if emit(args, {"ok": True, "user_id": uid, "name": args.name}):
+        return 0
     print(f"user {uid}: name set to {args.name!r}")
     return 0
 
@@ -960,7 +984,8 @@ def _user_password_op(args: argparse.Namespace, op: int, password: bytes = b"") 
         if cc != 0x00:
             # CC 0x80 = password test failed.
             if op == 0x03 and cc == 0x80:
-                print("password test: MISMATCH")
+                if not emit(args, {"ok": False, "match": False}):
+                    print("password test: MISMATCH")
                 return 1
             _msg.error(f"cc=0x{cc:02x}")
             return 1
@@ -971,7 +996,7 @@ def cmd_user_enable(args: argparse.Namespace) -> int:
     if not _guard_write_user(args, "user enable"):
         return 2
     rc = _user_password_op(args, op=0x01)
-    if rc == 0:
+    if rc == 0 and not emit(args, {"ok": True, "user_id": args.user_id, "action": "enable"}):
         print(f"user {args.user_id}: enabled")
     return rc
 
@@ -980,7 +1005,7 @@ def cmd_user_disable(args: argparse.Namespace) -> int:
     if not _guard_write_user(args, "user disable"):
         return 2
     rc = _user_password_op(args, op=0x00)
-    if rc == 0:
+    if rc == 0 and not emit(args, {"ok": True, "user_id": args.user_id, "action": "disable"}):
         print(f"user {args.user_id}: disabled")
     return rc
 
@@ -990,7 +1015,7 @@ def cmd_user_set_password(args: argparse.Namespace) -> int:
         return 2
     pw = args.new_password.encode("utf-8")
     rc = _user_password_op(args, op=0x02, password=pw)
-    if rc == 0:
+    if rc == 0 and not emit(args, {"ok": True, "user_id": args.user_id, "size": args.size}):
         print(f"user {args.user_id}: password set ({args.size}-byte slot)")
     return rc
 
@@ -999,7 +1024,7 @@ def cmd_user_test_password(args: argparse.Namespace) -> int:
     """Test User Password (0x06/0x47 op 0x03). Read-only — no --yes guard."""
     pw = args.test_password.encode("utf-8")
     rc = _user_password_op(args, op=0x03, password=pw)
-    if rc == 0:
+    if rc == 0 and not emit(args, {"ok": True, "match": True}):
         print("password test: OK")
     return rc
 
@@ -1023,6 +1048,8 @@ def cmd_user_priv(args: argparse.Namespace) -> int:
         if cc != 0x00:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
+    if emit(args, {"ok": True, "user_id": uid, "channel": chan, "level": args.level}):
+        return 0
     print(f"user {uid} channel 0x{chan:x}: privilege set to {args.level}")
     return 0
 
