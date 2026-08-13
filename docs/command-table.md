@@ -53,24 +53,24 @@ and per-platform live test results.
 | 06h  | Set ACPI Power State | 20.6 | A | ✗ | ? | ? |
 | 07h  | Get ACPI Power State | 20.7 | U | ✗ | ? | ? |
 | 08h  | Get Device GUID | 20.8 | U | ✓ | ✓ | ? |
-| 09h  | Get NetFn Support | 21.2 | A | ✗ | ? | ? |
-| 0Ah  | Get Command Support | 21.3 | A | ✗ | ? | ? |
-| 0Bh  | Get Command Sub-function Support | 21.4 | A | ✗ | ? | ? |
-| 0Ch  | Get Configurable Commands | 21.5 | A | ✗ | ? | ? |
+| 09h  | Get NetFn Support | 21.2 | A | ⚡ | ? | ? |
+| 0Ah  | Get Command Support | 21.3 | A | ⚡ | ? | ? |
+| 0Bh  | Get Command Sub-function Support | 21.4 | A | ⚡ | ? | ? |
+| 0Ch  | Get Configurable Commands | 21.5 | A | ⚡ | ? | ? |
 | 0Dh  | Get Configurable Command Sub-functions | 21.6 | A | ✗ | ? | ? |
 | 60h  | Set Command Enables | 21.7 | A | ✗ | ? | ? |
-| 61h  | Get Command Enables | 21.8 | A | ✗ | ? | ? |
+| 61h  | Get Command Enables | 21.8 | A | ⚡ | ? | ? |
 | 62h  | Set Command Sub-function Enables | 21.9 | A | ✗ | ? | ? |
-| 63h  | Get Command Sub-function Enables | 21.10 | A | ✗ | ? | ? |
+| 63h  | Get Command Sub-function Enables | 21.10 | A | ⚡ | ? | ? |
 | 64h  | Get OEM NetFn IANA Support | 21.11 | A | ✗ | ? | ? |
 
 ### BMC Watchdog Timer Commands
 
 | CMD  | Name | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|------|-------|------|--------|
-| 22h  | Reset Watchdog Timer | 27.5 | O | ✗ | ? | ? |
-| 24h  | Set Watchdog Timer   | 27.6 | O | ✗ | ? | ? |
-| 25h  | Get Watchdog Timer   | 27.7 | U | ✗ | ? | ? |
+| 22h  | Reset Watchdog Timer | 27.5 | O | ⚡ | ? | ? |
+| 24h  | Set Watchdog Timer   | 27.6 | O | ⚡ | ? | ? |
+| 25h  | Get Watchdog Timer   | 27.7 | U | ⚡ | ? | ? |
 
 ### BMC Device and Messaging Commands
 
@@ -79,10 +79,10 @@ and per-platform live test results.
 | 2Eh  | Set BMC Global Enables | 22.1 | A | ✗ | ? | ? |
 | 2Fh  | Get BMC Global Enables | 22.2 | U | ✗ | ? | ? |
 | 30h  | Clear Message Flags | 22.3 | A | ✗ | ? | ? |
-| 31h  | Get Message Flags | 22.4 | A | ✗ | ? | ? |
+| 31h  | Get Message Flags | 22.4 | A | ⚡ | ? | ? |
 | 32h  | Enable Message Channel Receive | 22.5 | A | ✗ | ? | ? |
-| 33h  | Get Message | 22.6 | A | ✗ | ? | ? |
-| 34h  | Send Message | 22.7 | A* | ✗ | ? | ? |
+| 33h  | Get Message | 22.6 | A | ⚡ | ? | ? |
+| 34h  | Send Message | 22.7 | A* | ⚡ | ? | ? |
 | 35h  | Read Event Message Buffer | 22.8 | A | ✗ | ? | ? |
 | 36h  | Get BT Interface Capabilities | 22.10 | U | ✗ | ? | ? |
 | 37h  | Get System GUID | 22.14 | U | ✓ | ✓ | ? |
@@ -93,16 +93,16 @@ and per-platform live test results.
 | 3Ah  | Activate Session | 22.17 | s | ✓ | ✓ | ? |
 | 3Bh  | Set Session Privilege Level | 22.18 | U | ✓ | ✓ | ? |
 | 3Ch  | Close Session | 22.19 | C | ✓ | ✓ | ? |
-| 3Dh  | Get Session Info | 22.20 | U | ✗ | ? | ? |
+| 3Dh  | Get Session Info | 22.20 | U | ⚡ | ? | ? |
 | 3Fh  | Get AuthCode | 22.21 | U | ✗ | ? | ? |
 | 40h  | Set Channel Access | 22.22 | A | ✗ | ? | ? |
 | 41h  | Get Channel Access | 22.23 | U | ✓ | ? | ? |
 | 42h  | Get Channel Info Command | 22.24 | U | ✓ | ? | ? |
-| 43h  | Set User Access Command | 22.26 | A | ✗ | ? | ? |
+| 43h  | Set User Access Command | 22.26 | A | ⚡ | ? | ? |
 | 44h  | Get User Access Command | 22.27 | O | ✓ | ✓ | ? |
-| 45h  | Set User Name | 22.28 | A | ✗ | ? | ? |
+| 45h  | Set User Name | 22.28 | A | ⚡ | ? | ? |
 | 46h  | Get User Name Command | 22.29 | O | ✓ | ✓ | ? |
-| 47h  | Set User Password Command | 22.30 | A | ✗ | ? | ? |
+| 47h  | Set User Password Command | 22.30 | A | ⚡ | ? | ? |
 | 48h  | Activate Payload | 24.1 | U/O | ✗ | ? | ? |
 | 49h  | Deactivate Payload | 24.2 | U/O | ✗ | ? | ? |
 | 4Ah  | Get Payload Activation Status | 24.3 | U | ✗ | ? | ? |
