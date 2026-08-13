@@ -180,8 +180,16 @@ zipmi scan cipher-suites             # enumerate advertised RMCP+ ciphers (0x54)
 zipmi scan cipher-zero
 zipmi user-matrix list               # full user × channel privilege grid (audit)
 zipmi user-matrix list --json | jq '.channels'   # machine-readable
-zipmi scan all --json                # asf-ping + the full grid, findings on
+zipmi scan all --json                # one {steps:[...]} envelope, findings on
 zipmi fuzz sweep --netfn 0x30 -v     # Dell OEM cmd surface, named
+
+# Channels + bridging
+zipmi channel info all               # walk channels 0x00..0x0B (medium/protocol)
+zipmi bridging info --json | jq '.edges'         # Send Message reach map
+zipmi --max-priv operator bridging privesc all   # does bridging escalate priv?
+
+# --json is global — any command, straight into jq
+zipmi lan print --json | jq -r '.parameters[] | select(.label=="MAC Address").value'
 
 # Sessionless mode — omit -U/-P (and unset ZIPMI_USER/ZIPMI_PASS) and
 # every send goes out auth_type=0, session_id=0. The BMC decides what
@@ -202,31 +210,53 @@ zipmi -H 127.0.0.1 -p 6231 mc info
 
 Full list of things zipmi understands
 
+**Global flags** (position-independent, work with any verb):
+`-H/-U/-P` host/user/pass, `-K` raw RAKP key, `-C` cipher, `-A` auth, `-I lan|lanplus`,
+`-t` timeout, `-v`/`-d` wire trace, `--palette`, **`--json`** (emit any command's
+result as JSON to stdout — text stays the default), **`--max-priv`**
+`{callback,user,operator,admin}` (cap the session's requested privilege).
+
 ```
-mc       {info, reset cold|warm, selftest, guid}
-chassis  {status, power on|off|cycle|reset|soft --yes,
-          identify [secs], bootdev <dev> --yes, bootflags}
-sel      {info, list}
+mc       {info, reset cold|warm, selftest, guid, watchdog {get,reset,off}}
+chassis  {status, power on|off|cycle|reset|soft --yes, identify [secs],
+          bootdev <dev> --yes, bootflags, restart_cause, policy}
+sel      {info, list, elist, clear --yes, time {get,set}}
 sdr      list
-sensor   list
-lan      print
-user     list
-user-matrix list [--json] [--all] [--per-priv] [--findings]
+sensor   {list, get <name>}
+lan      print [channel]
+fru      print [id]
+session  info [selector]
+user     {list [channel], set-name, enable, disable, set-password,
+          test-password, priv}   # writes gated by --yes
+user-matrix list [--all] [--per-priv] [--findings]
                  # full user × channel privilege/auth/cipher grid (read-only)
+channel  {info [chan|all], getaccess <chan> <uid>}
+bridging {info [chan|all], privesc [chan|all]}
+                 # info = Send Message reach map (medium, bridgeable, IPMB
+                 #   satellite sweep); privesc = does bridging escalate a
+                 #   --max-priv operator session? (confused-deputy probe)
+serial   {config [chan], set <chan> <param> ...}   # SOL/modem config
+sol      {info, baud, payload, set, activate, deactivate, looptest, autobaud}
+firewall [--channel N] [--probe] [--unsafe] [--subfn]   # IPMI firmware firewall (§21)
 raw      <netfn> <cmd> [byte ...]
 ipmi     [cmd-name [byte ...]]           # standard IPMI cmd by name; no args = list Table G-1
 oem      [vendor [cmd-name [byte ...]]]   # OEM cmd dispatcher; no args = list vendors
-idrac6      [cmd-name [byte ...]]          # shortcut for `oem idrac6 ...`
-idrac9      [cmd-name [byte ...]]          # shortcut for `oem idrac9 ...`
-supermicro  [cmd-name [byte ...]]          # shortcut for `oem supermicro ...`
+idrac6/idrac9/supermicro  [cmd-name [byte ...]]   # shortcuts for `oem <vendor> ...`
 groups   [body [cmd-name [byte ...]]]    # IPMI Group Extension dispatcher (NetFn 0x2C)
 dcmi        [cmd-name [byte ...]]          # shortcut for `groups dcmi ...`
-scan         {asf-ping, auth-caps, cipher-suites, cipher-zero, all}
+i2c/i2cscan/i2c-id  # Master Write-Read bus ops; spd <addr>  # decode a DIMM SPD
+fingerprint  (fp)                          # identify BMC stack + vendor flavor
+scan         {asf-ping, auth-caps, cipher-suites, cipher-zero, unauth, all}
 sessionless                                # list spec-permitted pre-session cmds
-fuzz         {sweep --netfn 0xNN, rakp}
+fuzz         {sweep --netfn 0xNN, rakp, length, cipher, list}
 vbmc         serve [--vpersona dell_idrac6|generic] [--vport N]
                                                 # see VIRTUAL-BMC.md
 ```
+
+Nearly every verb honors `--json` (arrays of records, integer codes + names).
+The exceptions are the interactive/streaming ones — `sol activate` (hands you a
+live console) and the streaming fuzzers — where a single JSON blob would defeat
+the live output.
 
 </details>
 
