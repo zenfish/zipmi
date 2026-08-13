@@ -2615,6 +2615,48 @@ def cmd_mc_acpi(args: argparse.Namespace) -> int:
     return 0
 
 
+_MASER_STATE = {0x00: "enabled", 0x01: "disabled", 0x02: "recovery"}
+
+
+def cmd_maser_get(args: argparse.Namespace) -> int:
+    """Dell OEM Get MASER / LifecycleController access-state (NetFn 0x30 cmd
+    0xAE). 2-byte selector -> 3-byte state; byte0 = state (0=enabled,
+    1=disabled, 2=recovery). Dell iDRAC only (0xC1 elsewhere)."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x30, 0xAE, bytes([0x00, 0x00]))
+    if cc != 0x00 or not data:
+        _msg.error(f"cc=0x{cc:02x}")
+        return 1
+    state = data[0]
+    result = {"state": state, "state_name": _MASER_STATE.get(state, "unknown")}
+    if emit(args, result):
+        return 0
+    print(f"MASER/LC access-state : {state:#04x} ({result['state_name']})")
+    return 0
+
+
+def cmd_maser_set(args: argparse.Namespace) -> int:
+    """Dell OEM Set MASER / LifecycleController access-state (NetFn 0x30 cmd
+    0xAF). 3-byte request: byte0 = 0 (enabled) / non-zero (disabled); bytes
+    1-2 are ignored flags. 'recovery' is NOT settable here (UEFI/POST path).
+
+    WARNING: 'disabled' is the precondition for the RecreateMASER 'Force
+    Create' path that bypasses the mfg-test-mode gate and wipes the Lifecycle
+    Controller Log, hardware inventory, and factory data. It also stops
+    further LCL (audit) writes."""
+    state = 0x00 if args.state == "enabled" else 0x01
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x30, 0xAF, bytes([state, 0x00, 0x00]))
+    if cc != 0x00:
+        _msg.error(f"cc=0x{cc:02x}")
+        return 1
+    if args.state == "disabled":
+        _msg.warn("MASER disabled — LCL audit writes stopped; RecreateMASER "
+                  "'Force Create' wipe path now reachable")
+    _msg.ok(f"MASER/LC access-state set to {args.state}")
+    return 0
+
+
 _SYSINFO_PARAMS = {
     1: "system-fw-version",
     2: "hostname",
@@ -4681,6 +4723,17 @@ def build_parser() -> argparse.ArgumentParser:
     chn_pv.set_defaults(func=cmd_channel_payload_version)
 
     # bridging — Send Message reach map across channels (multi-hop, guarded)
+    maser = sub.add_parser(
+        "maser",
+        help="Dell OEM MASER / LifecycleController access-state (0x30 0xAE/0xAF)")
+    maser_sub = maser.add_subparsers(dest="maser_action", required=True)
+    mzg = maser_sub.add_parser("get", help="get MASER/LC access-state")
+    mzg.set_defaults(func=cmd_maser_get)
+    mzs = maser_sub.add_parser(
+        "set", help="set MASER/LC access-state (disabled arms the Force-Create wipe)")
+    mzs.add_argument("state", choices=["enabled", "disabled"])
+    mzs.set_defaults(func=cmd_maser_set)
+
     brg = sub.add_parser("bridging", help="map Send Message bridge reachability")
     brg_sub = brg.add_subparsers(dest="action", required=True)
     brg_info = brg_sub.add_parser(
