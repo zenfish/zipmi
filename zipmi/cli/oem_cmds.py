@@ -33,6 +33,13 @@ from .. import _msg
 from ..scapy_ipmi.commands import COMP_CODE
 
 
+def emit(args, data):
+    # Lazy import: pulling zipmi.cli.zipmi at module load eagerly loads extra
+    # OEM vendor tables, polluting the shared registry (breaks test_oem).
+    from .zipmi import emit as _emit
+    return _emit(args, data)
+
+
 # Vendor manifest. Add a key here to surface a new vendor on the CLI.
 # `blurb` is a one-line description; cmd counts come from _vendor_stats()
 # at print time so listing and catalogue can never drift apart.
@@ -792,6 +799,29 @@ def _find_cmd(
     return [(k, v) for k, v in listing.items() if qn in _normalize(v["name"])]
 
 
+def _vendor_listing_data(vendor: str) -> dict:
+    """Structured mirror of _print_vendor_listing: one self-describing record
+    per (netfn, cmd[, prefix]) entry with the same fields the table shows."""
+    listing = _vendor_listing(vendor)
+    total, named = _vendor_stats(vendor)
+    commands = []
+    for key, info in sorted(listing.items()):
+        netfn, cmd = key[0], key[1]
+        prefix = key[2:]
+        commands.append({
+            "netfn": netfn, "cmd": cmd,
+            "prefix": [b for b in prefix] if prefix else [],
+            "name": info["name"],
+            "priv": info.get("priv"),
+            "desc": info.get("desc") or "",
+            "args": info.get("args") or "",
+            "src": info.get("src") or "",
+            "missing": bool(info.get("missing")),
+        })
+    return {"vendor": vendor, "verb": _display_verb(vendor),
+            "named": named, "total": total, "commands": commands}
+
+
 def _print_vendor_listing(vendor: str) -> None:
     listing = _vendor_listing(vendor)
     if not listing:
@@ -956,11 +986,42 @@ def cmd_openbmc_index(args: argparse.Namespace) -> int:
               file=sys.stderr)
         print("# Flavors: " + ", ".join(_openbmc_vendor_keys()), file=sys.stderr)
         return 2
+    if emit(args, _openbmc_flavors_data()):
+        return 0
     _print_openbmc_flavors()
     return 0
 
 
+def _openbmc_flavors_data() -> dict:
+    """Structured mirror of _print_openbmc_flavors (one record per flavor row)."""
+    flavors = []
+    for vkey in _openbmc_vendor_keys():
+        info = VENDORS[vkey]
+        total, named = _vendor_stats(vkey)
+        flavors.append({"vendor": vkey, "verb": f"openbmc-{vkey}",
+                        "iana": info["iana"], "named": named, "total": total,
+                        "blurb": info["blurb"]})
+    return {"flavors": flavors}
+
+
 # --- entry points called by the CLI ---------------------------------------
+
+
+def _vendor_catalog_data() -> dict:
+    """Structured mirror of _print_vendor_catalog: one record per vendor row,
+    plus the collapsed OpenBMC group row (same columns the table shows)."""
+    obmc = set(_openbmc_vendor_keys())
+    vendors = []
+    for key, info in VENDORS.items():
+        if key in obmc:
+            continue
+        total, named = _vendor_stats(key)
+        vendors.append({"vendor": key, "iana": info["iana"],
+                        "named": named, "total": total,
+                        "blurb": info["blurb"]})
+    vendors.append({"vendor": "openbmc", "iana": None,
+                    "flavors": len(obmc), "blurb": "OpenBMC OEM (per-vendor)"})
+    return {"vendors": vendors}
 
 
 def cmd_oem_list_vendors(args: argparse.Namespace) -> int:
@@ -969,6 +1030,8 @@ def cmd_oem_list_vendors(args: argparse.Namespace) -> int:
     vendor = getattr(args, "vendor", None)
     if vendor:
         return cmd_oem_run(args, vendor)
+    if emit(args, _vendor_catalog_data()):
+        return 0
     _print_vendor_catalog()
     return 0
 
@@ -982,6 +1045,8 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     """
     cmd_name = getattr(args, "cmd_name", None)
     if not cmd_name:
+        if emit(args, _vendor_listing_data(vendor)):
+            return 0
         _print_vendor_listing(vendor)
         return 0
     # Help intercept: `zipmi <vendor> <name> help` or `... ?`
@@ -1050,6 +1115,9 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
         _msg.error(f"completion code: {cc_name}")
         _suggest_for_cc(cc, netfn, cmd, info, vendor)
         return 1
+    if emit(args, {"vendor": vendor, "netfn": netfn, "cmd": cmd,
+                   "name": info["name"], "cc": cc, "data": resp.hex()}):
+        return 0
     if resp:
         print(" ".join(f"{b:02x}" for b in resp))
     return 0

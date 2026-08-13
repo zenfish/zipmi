@@ -414,3 +414,126 @@ def test_fuzz_list_json():
     assert rc == 0
     assert [h["verb"] for h in d["harnesses"]] == ["sweep", "rakp", "length", "cipher"]
     assert d["harnesses"][0]["module"] == "zipmi.fuzz.sweep"
+
+
+# === oem dispatcher (oem_cmds.py) ========================================
+# Two output modes per dispatcher: catalog/listing (pure, no session) and
+# execution (scripted send_raw). Both must honor --json.
+
+@pytest.fixture
+def _clean_oem_registry():
+    """Building a vendor catalog/listing re-runs every vendor's register() into
+    the process-wide OEM_CMD_NAMES dict (same side effect the text path has). One
+    shared wire key, (0x30,0x70), is claimed by BOTH supermicro (as
+    OEMCommandSet_70) and supermicro-x14 (as "SMC OEM pre-auth"); whichever
+    registers last wins. The catalog builds x14 too, so it leaves x14 as the
+    winner — which flips test_oem's OEMCommandSet_70 assertion. The registry is a
+    process-global with no clean baseline (obs 24970: test_oem is already
+    order-dependent), so on teardown we re-register supermicro last, restoring the
+    (0x30,0x70) name a normal `load_vendor("supermicro")` session yields, without
+    clearing keys other vendor tests rely on having loaded."""
+    import importlib
+    import zipmi.scapy_ipmi.oem.supermicro as _sm
+    import zipmi.scapy_ipmi.oem.dell as _dell
+    yield
+    # dell/megarac also collide on NetFn 0x30 (e.g. (0x30,0xC0)); reload both
+    # canonical modules so their register() runs last and reclaims their keys.
+    importlib.reload(_sm)     # reclaims (0x30,0x70) -> OEMCommandSet_70
+    importlib.reload(_dell)   # reclaims (0x30,0xC0) -> Dell PROCHOTThrottle
+
+
+def _cap(fn, **kw):
+    """Run a cmd_ func with json=True, no session; return (rc, parsed-json)."""
+    import io, contextlib
+    kw.setdefault("json", True)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = fn(argparse.Namespace(**kw))
+    return rc, json.loads(buf.getvalue())
+
+
+def test_oem_vendor_catalog_json(_clean_oem_registry):
+    """`zipmi oem` --json -> {vendors:[...]} with real per-vendor rows."""
+    from zipmi.cli.oem_cmds import cmd_oem_list_vendors
+    rc, d = _cap(cmd_oem_list_vendors, vendor=None)
+    assert rc == 0
+    by = {v["vendor"]: v for v in d["vendors"]}
+    assert by["idrac6"]["iana"] == 674            # Dell PEN
+    assert by["idrac6"]["named"] > 0
+    assert by["openbmc"]["flavors"] == 9          # nine OpenBMC flavors collapse
+
+
+def test_oem_vendor_listing_json(_clean_oem_registry):
+    """`zipmi oem idrac6` --json -> {commands:[...]} — a self-describing array,
+    not a hex-keyed dict. A known cmd must be present with its wire bytes."""
+    from zipmi.cli.oem_cmds import cmd_oem_run
+    rc, d = _cap(lambda a: cmd_oem_run(a, "idrac6"), cmd_name=None, data=[])
+    assert rc == 0
+    assert d["vendor"] == "idrac6" and d["named"] > 0
+    names = {c["name"] for c in d["commands"]}
+    assert "GetSystemRestartCause" in names
+    src = next(c for c in d["commands"] if c["name"] == "GetSystemRestartCause")
+    assert src["netfn"] == 0x00 and src["cmd"] == 0x07
+
+
+def test_openbmc_flavors_json(_clean_oem_registry):
+    """`zipmi oem openbmc` --json -> {flavors:[...]} with the openbmc-<v> verb."""
+    from zipmi.cli.oem_cmds import cmd_openbmc_index
+    rc, d = _cap(cmd_openbmc_index, cmd_name=None)
+    assert rc == 0
+    by = {f["vendor"]: f for f in d["flavors"]}
+    assert by["intel"]["verb"] == "openbmc-intel" and by["intel"]["iana"] == 343
+
+
+def test_oem_run_execution_json(monkeypatch, _clean_oem_registry):
+    """`zipmi oem idrac6 GetSystemRestartCause` --json -> raw-shaped record
+    (netfn/cmd/cc/data) mirroring cmd_raw. GetSystemRestartCause resolves to
+    NetFn 0x00 cmd 0x07 with no data prefix."""
+    import zipmi.cli.zipmi as Z
+    from zipmi.cli.oem_cmds import cmd_oem_run
+    s = _S({(0x00, 0x07, b""): (0x00, bytes([0xDE, 0xAD]))})
+    monkeypatch.setattr(Z, "_open_session", lambda a: s)
+    rc, d = _cap(lambda a: cmd_oem_run(a, "idrac6"),
+                 host="t", cmd_name="GetSystemRestartCause", data=[])
+    assert rc == 0
+    assert d["vendor"] == "idrac6" and d["name"] == "GetSystemRestartCause"
+    assert d["netfn"] == 0x00 and d["cmd"] == 0x07
+    assert d["cc"] == 0 and d["data"] == "dead"
+
+
+# === groups dispatcher (groups_cmds.py) ==================================
+
+def test_groups_catalog_json():
+    """`zipmi groups` --json -> {bodies:[...]} — dcmi carries group code 0xDC."""
+    from zipmi.cli.groups_cmds import cmd_groups_list
+    rc, d = _cap(cmd_groups_list, body=None)
+    assert rc == 0
+    dcmi = next(b for b in d["bodies"] if b["body"] == "dcmi")
+    assert dcmi["code"] == 0xDC and dcmi["commands"] > 0
+
+
+def test_group_body_listing_json():
+    """`zipmi groups dcmi` --json -> {body,code,commands:[...]} with the
+    `discover` verb resolving to NetFn 0x2C cmd 0x01, group 0xDC."""
+    from zipmi.cli.groups_cmds import cmd_group_run
+    rc, d = _cap(lambda a: cmd_group_run(a, "dcmi"), cmd_name=None, data=[])
+    assert rc == 0
+    assert d["body"] == "dcmi" and d["code"] == 0xDC
+    disc = next(c for c in d["commands"] if c["verb"] == "discover")
+    assert disc["netfn"] == 0x2C and disc["cmd"] == 0x01 and disc["group_code"] == 0xDC
+
+
+def test_group_run_execution_json(monkeypatch):
+    """`zipmi dcmi discover` --json -> raw-shaped record; the echoed group-code
+    byte (0xDC) is stripped from data, matching the text view."""
+    import zipmi.cli.zipmi as Z
+    from zipmi.cli.groups_cmds import cmd_group_run
+    # discover = cmd 0x01, no verb prefix; payload = [0xDC]; reply echoes 0xDC.
+    s = _S({(0x2C, 0x01, bytes([0xDC])): (0x00, bytes([0xDC, 0x01, 0x00, 0x02]))})
+    monkeypatch.setattr(Z, "_open_session", lambda a: s)
+    rc, d = _cap(lambda a: cmd_group_run(a, "dcmi"),
+                 host="t", cmd_name="discover", data=[])
+    assert rc == 0
+    assert d["body"] == "dcmi" and d["verb"] == "discover"
+    assert d["netfn"] == 0x2C and d["cmd"] == 0x01 and d["group_code"] == 0xDC
+    assert d["cc"] == 0 and d["data"] == "010002"     # 0xDC stripped

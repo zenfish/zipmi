@@ -32,6 +32,13 @@ from .. import _msg
 from ..scapy_ipmi.commands import COMP_CODE
 
 
+def emit(args, data):
+    # Lazy import: pulling zipmi.cli.zipmi at module load eagerly loads extra
+    # OEM vendor tables, polluting the shared registry (breaks test_oem).
+    from .zipmi import emit as _emit
+    return _emit(args, data)
+
+
 # Body manifest. Add a key here to surface a new group body on the CLI.
 GROUPS: dict[str, dict] = {
     "dcmi": {
@@ -128,6 +135,24 @@ def _find_row(rows: list[dict], cmd_name: str,
     return None, list(data_args)
 
 
+def _body_listing_data(body: str) -> dict:
+    """Structured mirror of _print_body_listing (one record per verb row)."""
+    rows = _body_listing(body)
+    code = GROUPS[body]["code"]
+    commands = []
+    for r in rows:
+        group_code, cmd = r["key"]
+        prefix = r.get("prefix") or b""
+        commands.append({
+            "verb": r["verb"], "name": r["name"],
+            "netfn": 0x2C, "cmd": cmd, "group_code": group_code,
+            "prefix": [b for b in prefix],
+            "priv": r.get("priv"), "mo": r.get("mo"),
+            "desc": r.get("desc") or "",
+        })
+    return {"body": body, "code": code, "commands": commands}
+
+
 def _print_body_listing(body: str) -> None:
     rows = _body_listing(body)
     if not rows:
@@ -194,11 +219,23 @@ def _print_groups_catalog() -> None:
 # --- entry points -------------------------------------------------------
 
 
+def _groups_catalog_data() -> dict:
+    """Structured mirror of _print_groups_catalog (one record per body row)."""
+    bodies = []
+    for body, info in GROUPS.items():
+        listing = _body_listing(body) if body == "dcmi" else []
+        bodies.append({"body": body, "code": info["code"],
+                       "commands": len(listing), "blurb": info["blurb"]})
+    return {"bodies": bodies}
+
+
 def cmd_groups_list(args: argparse.Namespace) -> int:
     """`zipmi groups` — list bodies, or dispatch if a body is given."""
     body = getattr(args, "body", None)
     if body:
         return cmd_group_run(args, body)
+    if emit(args, _groups_catalog_data()):
+        return 0
     _print_groups_catalog()
     return 0
 
@@ -207,6 +244,8 @@ def cmd_group_run(args: argparse.Namespace, body: str) -> int:
     """`zipmi <body> [verb [data ...]]`."""
     cmd_name = getattr(args, "cmd_name", None)
     if not cmd_name:
+        if emit(args, _body_listing_data(body)):
+            return 0
         _print_body_listing(body)
         return 0
 
@@ -257,9 +296,13 @@ def cmd_group_run(args: argparse.Namespace, body: str) -> int:
         _suggest_for_cc(cc, 0x2C, cmd,
                         {"desc": row.get("desc")}, body)
         return 1
+    if resp[:1] == bytes([group_code]):
+        resp = resp[1:]
+    if emit(args, {"body": body, "verb": row["verb"], "netfn": 0x2C,
+                   "cmd": cmd, "group_code": group_code,
+                   "cc": cc, "data": resp.hex()}):
+        return 0
     if resp:
-        if resp[:1] == bytes([group_code]):
-            resp = resp[1:]
         print(" ".join(f"{b:02x}" for b in resp))
     return 0
 
