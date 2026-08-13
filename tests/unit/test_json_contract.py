@@ -1050,3 +1050,137 @@ def test_chassis_set_caps_with_bridge(monkeypatch):
     assert rc == 0
     assert s.sent == [(0x00, 0x05, bytes([0x01, 0x20, 0x21, 0x22, 0x23, 0x24]))]
     assert d["bridge_device_addr"] == 0x24
+
+
+# === Storage (NetFn 0x0A) mutating commands: SEL / SDR / FRU =============
+
+
+def test_sel_add_req_and_record_id(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_add
+    rec = "01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10"
+    s = _S({(0x0A, 0x44): (0x00, bytes([0x34, 0x12]))})
+    rc, d = _run(monkeypatch, cmd_sel_add, s, record=rec)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x44, bytes(range(1, 17)))]
+    assert d["record_id"] == 0x1234
+
+
+def test_sel_add_rejects_wrong_length(monkeypatch):
+    import zipmi.cli.zipmi as Z
+    s = _S({(0x0A, 0x44): (0x00, bytes([0x00, 0x00]))})
+    monkeypatch.setattr(Z, "_open_session", lambda args: s)
+    rc = Z.cmd_sel_add(argparse.Namespace(json=False, host="test",
+                                          record="01 02 03"))
+    assert rc == 1
+    assert s.sent == []   # bad length -> never hits the wire
+
+
+def test_sel_partial_add_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_partial_add
+    s = _S({(0x0A, 0x45): (0x00, bytes([0x02, 0x01]))})
+    rc, d = _run(monkeypatch, cmd_sel_partial_add, s,
+                 reservation=0x0201, record_id=0x0403, offset=0x08, progress=1,
+                 data="aa bb")
+    assert rc == 0
+    # rsv LE 01 02, rid LE 03 04, offset 08, progress 01, then data
+    assert s.sent == [(0x0A, 0x45,
+                       bytes([0x01, 0x02, 0x03, 0x04, 0x08, 0x01, 0xAA, 0xBB]))]
+    assert d["record_id"] == 0x0102
+
+
+def test_sel_delete_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_delete
+    # reservation=0 -> auto Reserve SEL (0x42) first, then delete with that id.
+    s = _S({(0x0A, 0x42): (0x00, bytes([0xCD, 0xAB])),      # Reserve SEL -> 0xABCD
+            (0x0A, 0x46): (0x00, bytes([0x02, 0x01]))})
+    rc, d = _run(monkeypatch, cmd_sel_delete, s, reservation=0, record_id=0x0102)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x42, b""),
+                      (0x0A, 0x46, b"\xcd\xab\x02\x01")]     # acquired rsv in req
+    assert d["record_id"] == 0x0102
+
+
+def test_sel_delete_explicit_reservation_skips_reserve(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sel_delete
+    s = _S({(0x0A, 0x46): (0x00, bytes([0x02, 0x01]))})
+    rc, d = _run(monkeypatch, cmd_sel_delete, s, reservation=0x1234, record_id=0x0102)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x46, b"\x34\x12\x02\x01")]     # no reserve issued
+
+
+def test_sdr_reserve_req_and_id(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_reserve
+    s = _S({(0x0A, 0x22): (0x00, bytes([0xCD, 0xAB]))})
+    rc, d = _run(monkeypatch, cmd_sdr_reserve, s)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x22, b"")]
+    assert d["reservation_id"] == 0xABCD
+
+
+def test_sdr_add_req_and_id(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_add
+    s = _S({(0x0A, 0x24): (0x00, bytes([0x10, 0x00]))})
+    rc, d = _run(monkeypatch, cmd_sdr_add, s, record="de ad be ef")
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x24, bytes([0xDE, 0xAD, 0xBE, 0xEF]))]
+    assert d["record_id"] == 0x0010
+
+
+def test_sdr_delete_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_delete
+    # reservation=0 -> auto Reserve SDR (0x22) first, then delete with that id.
+    s = _S({(0x0A, 0x22): (0x00, bytes([0xCD, 0xAB])),
+            (0x0A, 0x26): (0x00, bytes([0x0A, 0x00]))})
+    rc, d = _run(monkeypatch, cmd_sdr_delete, s, reservation=0, record_id=0x000A)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x22, b""), (0x0A, 0x26, b"\xcd\xab\x0a\x00")]
+    assert d["record_id"] == 0x000A
+
+
+def test_sdr_clear_default_sequence(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_clear
+    # reservation=0 -> auto Reserve SDR (0x22), then 'CLR'+0xAA with that id.
+    s = _S({(0x0A, 0x22): (0x00, bytes([0xCD, 0xAB])),
+            (0x0A, 0x27): (0x00, bytes([0x01]))})
+    rc, d = _run(monkeypatch, cmd_sdr_clear, s, reservation=0)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x22, b""), (0x0A, 0x27, b"\xcd\xabCLR\xaa")]
+    assert d["erase_progress"] == 0x01
+
+
+def test_sdr_enter_update_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_enter_update
+    s = _S({(0x0A, 0x2A): (0x00, b"")})
+    rc, d = _run(monkeypatch, cmd_sdr_enter_update, s)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x2A, b"")]
+    assert d["ok"] is True
+
+
+def test_sdr_exit_update_reinit(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_exit_update
+    s = _S({(0x0A, 0x2B): (0x00, bytes([0x01]))})
+    rc, d = _run(monkeypatch, cmd_sdr_exit_update, s)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x2B, b"")]
+    assert d["reinit"] is True
+
+
+def test_sdr_run_init_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_sdr_run_init
+    s = _S({(0x0A, 0x2C): (0x00, bytes([0x01]))})
+    rc, d = _run(monkeypatch, cmd_sdr_run_init, s)
+    assert rc == 0
+    assert s.sent == [(0x0A, 0x2C, b"\x01")]
+    assert d["in_progress"] is True
+
+
+def test_fru_write_req(monkeypatch):
+    from zipmi.cli.zipmi import cmd_fru_write
+    s = _S({(0x0A, 0x12): (0x00, bytes([0x02]))})
+    rc, d = _run(monkeypatch, cmd_fru_write, s, device_id=0, offset=0x10,
+                 data="aa bb")
+    assert rc == 0
+    # device 0, offset 0x0010 LE (10 00), then data aa bb
+    assert s.sent == [(0x0A, 0x12, b"\x00\x10\x00\xaa\xbb")]
+    assert d["count_written"] == 2

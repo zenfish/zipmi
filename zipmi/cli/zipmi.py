@@ -3009,6 +3009,209 @@ def cmd_sensor_set_threshold(args: argparse.Namespace) -> int:
     return 0
 
 
+# --- Storage (NetFn 0x0A) mutating commands: SEL / SDR / FRU writes -------
+
+
+def cmd_sel_add(args: argparse.Namespace) -> int:
+    """Add SEL Entry (0x0A/0x44). Req = the full 16-byte SEL event record.
+    Resp = u16 LE record id added."""
+    rec = _hex_bytes(args.record)
+    if len(rec) != 16:
+        _msg.error(f"record must be 16 bytes, got {len(rec)}")
+        return 1
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x44, rec)
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    rid = int.from_bytes(data[:2], "little")
+    if emit(args, {"ok": True, "action": "sel-add", "record_id": rid}):
+        return 0
+    print(f"SEL entry added: record_id=0x{rid:04x}")
+    return 0
+
+
+def cmd_sel_partial_add(args: argparse.Namespace) -> int:
+    """Partial Add SEL Entry (0x0A/0x45). Req = [reservation LE, record_id LE,
+    offset, progress] + data. progress: 0=partial, 1=last chunk."""
+    rsv, rid = args.reservation & 0xFFFF, args.record_id & 0xFFFF
+    data = _hex_bytes(args.data) if args.data else b""
+    req = (bytes([rsv & 0xFF, rsv >> 8, rid & 0xFF, rid >> 8,
+                  args.offset & 0xFF, args.progress & 0xFF]) + data)
+    with _open_session(args) as s:
+        cc, resp = s.send_raw(0x0A, 0x45, req)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    out_rid = int.from_bytes(resp[:2], "little") if len(resp) >= 2 else None
+    if emit(args, {"ok": True, "action": "sel-partial-add", "record_id": out_rid}):
+        return 0
+    print(f"SEL partial add ok (record_id={out_rid})")
+    return 0
+
+
+def _auto_reserve(s, reserve_cmd: int, current: int) -> int:
+    """Return a live reservation id for a SEL/SDR mutation. Use the caller's
+    --reservation if given; else issue Reserve SEL (0x42) / Reserve SDR (0x22) in
+    THIS session and use that. delete/clear reject rsv=0 with 0xc5, and a
+    reservation lives only until the next reserving command — so acquire it here,
+    immediately before the mutation."""
+    if current:
+        return current
+    rc, d = s.send_raw(0x0A, reserve_cmd, b"")
+    return int.from_bytes(d[:2], "little") if rc == 0 and len(d) >= 2 else 0
+
+
+def cmd_sel_delete(args: argparse.Namespace) -> int:
+    """Delete SEL Entry (0x0A/0x46). Req = [reservation LE, record_id LE].
+    Resp = u16 LE record id deleted. Auto-reserves (Reserve SEL) unless
+    --reservation is supplied."""
+    rid = args.record_id & 0xFFFF
+    with _open_session(args) as s:
+        rsv = _auto_reserve(s, 0x42, args.reservation & 0xFFFF)
+        req = bytes([rsv & 0xFF, rsv >> 8, rid & 0xFF, rid >> 8])
+        cc, data = s.send_raw(0x0A, 0x46, req)
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    deleted = int.from_bytes(data[:2], "little")
+    if emit(args, {"ok": True, "action": "sel-delete", "record_id": deleted}):
+        return 0
+    print(f"SEL entry deleted: record_id=0x{deleted:04x}")
+    return 0
+
+
+def cmd_sdr_reserve(args: argparse.Namespace) -> int:
+    """Reserve SDR Repository (0x0A/0x22). Resp = u16 LE reservation id."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x22, b"")
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    rid = int.from_bytes(data[:2], "little")
+    if emit(args, {"ok": True, "action": "sdr-reserve", "reservation_id": rid}):
+        return 0
+    print(f"SDR reservation: 0x{rid:04x}")
+    return 0
+
+
+def cmd_sdr_add(args: argparse.Namespace) -> int:
+    """Add SDR (0x0A/0x24). Req = the full SDR record. Resp = u16 LE record id."""
+    rec = _hex_bytes(args.record)
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x24, rec)
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    rid = int.from_bytes(data[:2], "little")
+    if emit(args, {"ok": True, "action": "sdr-add", "record_id": rid}):
+        return 0
+    print(f"SDR added: record_id=0x{rid:04x}")
+    return 0
+
+
+def cmd_sdr_delete(args: argparse.Namespace) -> int:
+    """Delete SDR (0x0A/0x26). Req = [reservation LE, record_id LE].
+    Resp = u16 LE record id deleted. Auto-reserves (Reserve SDR) unless
+    --reservation is supplied."""
+    rid = args.record_id & 0xFFFF
+    with _open_session(args) as s:
+        rsv = _auto_reserve(s, 0x22, args.reservation & 0xFFFF)
+        req = bytes([rsv & 0xFF, rsv >> 8, rid & 0xFF, rid >> 8])
+        cc, data = s.send_raw(0x0A, 0x26, req)
+        if cc != 0x00 or len(data) < 2:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    deleted = int.from_bytes(data[:2], "little")
+    if emit(args, {"ok": True, "action": "sdr-delete", "record_id": deleted}):
+        return 0
+    print(f"SDR deleted: record_id=0x{deleted:04x}")
+    return 0
+
+
+def cmd_sdr_clear(args: argparse.Namespace) -> int:
+    """Clear SDR Repository (0x0A/0x27). Req = [reservation LE, 'C','L','R',
+    0xAA]. 0xAA=initiate erase, 0x00=get status. Resp byte0 = erase progress
+    (bits 3:0: 0=in-progress, 1=complete). Auto-reserves (Reserve SDR) unless
+    --reservation is supplied."""
+    with _open_session(args) as s:
+        rsv = _auto_reserve(s, 0x22, args.reservation & 0xFFFF)
+        req = bytes([rsv & 0xFF, rsv >> 8]) + b"CLR" + b"\xAA"
+        cc, data = s.send_raw(0x0A, 0x27, req)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    progress = data[0] if data else None
+    if emit(args, {"ok": True, "action": "sdr-clear", "erase_progress": progress}):
+        return 0
+    print(f"SDR clear initiated (erase_progress={progress})")
+    return 0
+
+
+def cmd_sdr_enter_update(args: argparse.Namespace) -> int:
+    """Enter SDR Repository Update (0x0A/0x2A). No request data."""
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x0A, 0x2A, b"")
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    if emit(args, {"ok": True, "action": "sdr-enter-update"}):
+        return 0
+    print("SDR repository update mode entered")
+    return 0
+
+
+def cmd_sdr_exit_update(args: argparse.Namespace) -> int:
+    """Exit SDR Repository Update (0x0A/0x2B). Resp byte0 bit0 = re-init in
+    progress."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x2B, b"")
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    reinit = bool(data[0] & 0x01) if data else False
+    if emit(args, {"ok": True, "action": "sdr-exit-update", "reinit": reinit}):
+        return 0
+    print(f"SDR repository update mode exited (reinit={reinit})")
+    return 0
+
+
+def cmd_sdr_run_init(args: argparse.Namespace) -> int:
+    """Run Initialization Agent (0x0A/0x2C). Req byte0 = 0x01 (start).
+    Resp byte0 bit0 = initialization in progress."""
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x0A, 0x2C, b"\x01")
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    in_progress = bool(data[0] & 0x01) if data else False
+    if emit(args, {"ok": True, "action": "sdr-run-init",
+                   "in_progress": in_progress}):
+        return 0
+    print(f"SDR init agent started (in_progress={in_progress})")
+    return 0
+
+
+def cmd_fru_write(args: argparse.Namespace) -> int:
+    """Write FRU Data (0x0A/0x12). Req = [device_id, offset LE, data...].
+    Resp byte0 = count of bytes written."""
+    dev = args.device_id & 0xFF
+    off = args.offset & 0xFFFF
+    data = _hex_bytes(args.data) if args.data else b""
+    req = bytes([dev, off & 0xFF, off >> 8]) + data
+    with _open_session(args) as s:
+        cc, resp = s.send_raw(0x0A, 0x12, req)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+    count = resp[0] if resp else None
+    if emit(args, {"ok": True, "action": "fru-write", "device_id": dev,
+                   "offset": off, "count_written": count}):
+        return 0
+    print(f"FRU write: {count} bytes at offset {off} (device 0x{dev:02x})")
+    return 0
+
+
 def cmd_sensor_set_event_enable(args: argparse.Namespace) -> int:
     """Set Sensor Event Enable (0x04/0x28). Req = [sensor_num, enable-config,
     assert-lo, assert-hi, deassert-lo, deassert-hi]. enable-config: bit7
@@ -4882,6 +5085,27 @@ def build_parser() -> argparse.ArgumentParser:
     sel_sutc.add_argument("--minutes", type=lambda x: int(x, 0), required=True,
                           help="signed minutes east of UTC (s16)")
     sel_sutc.set_defaults(func=cmd_sel_set_utc_offset)
+    sel_add = sel_sub.add_parser("add", help="Add SEL Entry (16-byte record)")
+    sel_add.add_argument("--record", required=True,
+                         help="16 hex bytes: the full SEL event record")
+    sel_add.set_defaults(func=cmd_sel_add)
+    sel_padd = sel_sub.add_parser("partial-add", help="Partial Add SEL Entry")
+    sel_padd.add_argument("--reservation", type=lambda x: int(x, 0), default=0,
+                          help="reservation id (u16, default 0)")
+    sel_padd.add_argument("--record-id", type=lambda x: int(x, 0), default=0,
+                          help="record id (u16, default 0)")
+    sel_padd.add_argument("--offset", type=lambda x: int(x, 0), required=True,
+                          help="byte offset into record (u8)")
+    sel_padd.add_argument("--progress", type=int, choices=[0, 1], required=True,
+                          help="0=partial, 1=last chunk")
+    sel_padd.add_argument("--data", default="", help="record chunk (hex bytes)")
+    sel_padd.set_defaults(func=cmd_sel_partial_add)
+    sel_del = sel_sub.add_parser("delete", help="Delete SEL Entry")
+    sel_del.add_argument("--reservation", type=lambda x: int(x, 0), default=0,
+                         help="reservation id (u16, default 0)")
+    sel_del.add_argument("--record-id", type=lambda x: int(x, 0), required=True,
+                         help="record id to delete (u16)")
+    sel_del.set_defaults(func=cmd_sel_delete)
 
     # sdr
     sdr = sub.add_parser("sdr", help="sensor data records")
@@ -4906,6 +5130,30 @@ def build_parser() -> argparse.ArgumentParser:
     sdr_dget.add_argument("--record-id", default=0, type=lambda x: int(x, 0),
                           help="record id (default 0)")
     sdr_dget.set_defaults(func=cmd_sdr_device_get)
+    sdr_res = sdr_sub.add_parser("reserve", help="Reserve SDR Repository")
+    sdr_res.set_defaults(func=cmd_sdr_reserve)
+    sdr_add = sdr_sub.add_parser("add", help="Add SDR (full record)")
+    sdr_add.add_argument("--record", required=True,
+                         help="full SDR record (hex bytes)")
+    sdr_add.set_defaults(func=cmd_sdr_add)
+    sdr_del = sdr_sub.add_parser("delete", help="Delete SDR")
+    sdr_del.add_argument("--reservation", type=lambda x: int(x, 0), default=0,
+                         help="reservation id (u16, default 0)")
+    sdr_del.add_argument("--record-id", type=lambda x: int(x, 0), required=True,
+                         help="record id to delete (u16)")
+    sdr_del.set_defaults(func=cmd_sdr_delete)
+    sdr_clr = sdr_sub.add_parser("clear", help="Clear SDR Repository")
+    sdr_clr.add_argument("--reservation", type=lambda x: int(x, 0), default=0,
+                         help="reservation id (u16, default 0)")
+    sdr_clr.set_defaults(func=cmd_sdr_clear)
+    sdr_eu = sdr_sub.add_parser("enter-update",
+                                help="Enter SDR Repository Update mode")
+    sdr_eu.set_defaults(func=cmd_sdr_enter_update)
+    sdr_xu = sdr_sub.add_parser("exit-update",
+                                help="Exit SDR Repository Update mode")
+    sdr_xu.set_defaults(func=cmd_sdr_exit_update)
+    sdr_ri = sdr_sub.add_parser("run-init", help="Run Initialization Agent")
+    sdr_ri.set_defaults(func=cmd_sdr_run_init)
 
     # sensor
     sn = sub.add_parser("sensor", help="sensor readings")
@@ -5213,6 +5461,13 @@ def build_parser() -> argparse.ArgumentParser:
     fru_p.add_argument("device_id", nargs="?", type=lambda s: int(s, 0),
                        default=0, help="FRU device ID (default 0)")
     fru_p.set_defaults(func=cmd_fru_print)
+    fru_w = fru_sub.add_parser("write", help="Write FRU Data (raw bytes)")
+    fru_w.add_argument("--device-id", type=lambda x: int(x, 0), default=0,
+                       help="FRU device ID (u8, default 0)")
+    fru_w.add_argument("--offset", type=lambda x: int(x, 0), required=True,
+                       help="byte offset into FRU (u16 LE)")
+    fru_w.add_argument("--data", default="", help="bytes to write (hex)")
+    fru_w.set_defaults(func=cmd_fru_write)
 
     # raw
     raw = sub.add_parser("raw", help="send arbitrary NetFn/Cmd/Data")

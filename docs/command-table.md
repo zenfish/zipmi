@@ -4,9 +4,9 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 101 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 67 raw-wired (⚡, sent by a verb,
-> response as bytes). 87 are not implemented (✗) — though any command is still
+> **Coverage: zipmi implements 111 of 188 standard IPMI commands** — 34 fully
+> decoded (✓, field-level encode/decode) + 77 raw-wired (⚡, sent by a verb,
+> response as bytes). 77 are not implemented (✗) — though any command is still
 > reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -199,7 +199,7 @@ Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters
 
 ## Storage NetFn (0x0A)
 
-**30 commands · 17 done by zipmi** — ✓ 7 decoded, ⚡ 10 raw · ✗ 13 not implemented.
+**30 commands · 27 done by zipmi** — ✓ 7 decoded, ⚡ 20 raw · ✗ 3 not implemented.
 Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Repository, Get SDR, Get SEL Info, Reserve SEL, Get SEL Entry, Read FRU Data, Clear SEL, Get SEL Time, Set SEL Time
 
 
@@ -209,7 +209,7 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 |------|------|--------|--------|------|-------|------|--------|
 | 10h  | Get FRU Inventory Area Info | `get_fru_inventory_area_info` | 34.1 | U | ✓ | ? | ? |
 | 11h  | Read FRU Data | `read_fru_data` | 34.2 | O | ⚡ | ? | ? |
-| 12h  | Write FRU Data | `write_fru_data` | 34.3 | O | ✗ | ? | ? |
+| 12h  | Write FRU Data | `write_fru_data` | 34.3 | O | ⚡ | ? | ? |
 
 ### SDR Repository
 
@@ -219,15 +219,15 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | 21h  | Get SDR Repository Allocation Info | `get_sdr_repository_allocation_info` | 33.10 | U | ⚡ | ? | ? |
 | 22h  | Reserve SDR Repository | `reserve_sdr_repository` | 33.11 | U | ✓ | ✓ | ? |
 | 23h  | Get SDR | `get_sdr` | 33.12 | U | ✓ | ✓ (chunked reads required) | ? |
-| 24h  | Add SDR | `add_sdr` | 33.13 | A | ✗ | ? | ? |
+| 24h  | Add SDR | `add_sdr` | 33.13 | A | ⚡ | ? | ? |
 | 25h  | Partial Add SDR | `partial_add_sdr` | 33.14 | A | ✗ | ? | ? |
-| 26h  | Delete SDR | `delete_sdr` | 33.15 | O | ✗ | ? | ? |
-| 27h  | Clear SDR Repository | `clear_sdr_repository` | 33.16 | O | ✗ | ? | ? |
+| 26h  | Delete SDR | `delete_sdr` | 33.15 | O | ⚡ | ? | ? |
+| 27h  | Clear SDR Repository | `clear_sdr_repository` | 33.16 | O | ⚡ | ? | ? |
 | 28h  | Get SDR Repository Time | `get_sdr_repository_time` | 33.17 | U | ⚡ | ? | ? |
 | 29h  | Set SDR Repository Time | `set_sdr_repository_time` | 33.18 | A | ⚡ | ? | ? |
-| 2Ah  | Enter SDR Repository Update Mode | `enter_sdr_repository_update_mode` | 33.19 | A | ✗ | ? | ? |
-| 2Bh  | Exit SDR Repository Update Mode | `exit_sdr_repository_update_mode` | 33.20 | A | ✗ | ? | ? |
-| 2Ch  | Run Initialization Agent | `run_initialization_agent` | 33.21 | A | ✗ | ? | ? |
+| 2Ah  | Enter SDR Repository Update Mode | `enter_sdr_repository_update_mode` | 33.19 | A | ⚡ | ? | ? |
+| 2Bh  | Exit SDR Repository Update Mode | `exit_sdr_repository_update_mode` | 33.20 | A | ⚡ | ? | ? |
+| 2Ch  | Run Initialization Agent | `run_initialization_agent` | 33.21 | A | ⚡ | ? | ? |
 
 ### SEL
 
@@ -237,9 +237,9 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | 41h  | Get SEL Allocation Info | `get_sel_allocation_info` | 31.3 | U | ⚡ | ? | ? |
 | 42h  | Reserve SEL | `reserve_sel` | 31.4 | U | ✓ | ✓ | ? |
 | 43h  | Get SEL Entry | `get_sel_entry` | 31.5 | U | ✓ | ✓ | ? |
-| 44h  | Add SEL Entry | `add_sel_entry` | 31.6 | O | ✗ | ? | ? |
-| 45h  | Partial Add SEL Entry | `partial_add_sel_entry` | 31.7 | O | ✗ | ? | ? |
-| 46h  | Delete SEL Entry | `delete_sel_entry` | 31.8 | O | ✗ | ? | ? |
+| 44h  | Add SEL Entry | `add_sel_entry` | 31.6 | O | ⚡ | ? | ? |
+| 45h  | Partial Add SEL Entry | `partial_add_sel_entry` | 31.7 | O | ⚡ | ? | ? |
+| 46h  | Delete SEL Entry | `delete_sel_entry` | 31.8 | O | ⚡ | ? | ? |
 | 47h  | Clear SEL | `clear_sel` | 31.9 | O | ⚡ | ? | ? |
 | 48h  | Get SEL Time | `get_sel_time` | 31.10 | U | ⚡ | ? | ? |
 | 49h  | Set SEL Time | `set_sel_time` | 31.11 | O | ⚡ | ? | ? |
