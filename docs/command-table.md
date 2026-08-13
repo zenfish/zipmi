@@ -4,10 +4,11 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 131 of 188 standard IPMI commands** — 34 fully
-> decoded (✓, field-level encode/decode) + 97 raw-wired (⚡, sent by a verb,
-> response as bytes). 57 are not implemented (✗) — though any command is still
-> reachable by name via `zipmi ipmi <name>` / `zipmi raw`. Per-NetFn breakdown
+> **Coverage: zipmi implements 131 of 188 standard IPMI commands** — 34 as Scapy
+> packet classes (✓, field-level encode/decode, usable programmatically) + 97 as
+> dedicated CLI verbs that decode in the handler (⚡, structured text/JSON output,
+> just not a packet class). Both are real, decoded commands. 57 are not
+> implemented (✗) — still reachable by opcode via `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
 ## Legend
@@ -16,9 +17,9 @@ and per-platform live test results.
 
 | Symbol | Meaning |
 |--------|---------|
-| ✓ | Full Packet class registered in `CMD_PAYLOADS`; field-level encode + decode |
-| ⚡ | Works via `zipmi raw` (NetFn/cmd accepted, response returned as raw bytes) |
-| ✗ | Not implemented |
+| ✓ | Scapy **packet class** in `CMD_PAYLOADS` — field-level encode/decode at the packet layer; usable programmatically (`send_cmd`) as well as from the CLI |
+| ⚡ | Dedicated **CLI verb** using `send_raw` + decode in the handler — structured (text/JSON) output, just no Scapy packet class. NOT the bare `zipmi raw` fallback; these are real decoded commands |
+| ✗ | Not implemented as a verb (still reachable by opcode via `zipmi raw` / `zipmi ipmi <name>`) |
 
 **Per-platform columns (R710, X11SSZ, …):**
 
