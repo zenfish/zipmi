@@ -293,17 +293,32 @@ def cmd_mc_info(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         d = s.get_device_id()
     iana = d.manufacturer_id_int()
-    print(f"Device ID                 : {d.device_id}")
-    print(f"Device Revision           : {d.device_revision & 0x0F}")
-    print(f"Firmware Revision         : {d.fw_revision()}")
-    print(f"IPMI Version              : 0x{d.ipmi_version:02x}")
+    info = {
+        "device_id": d.device_id,
+        "device_revision": d.device_revision & 0x0F,
+        "firmware_revision": d.fw_revision(),
+        "ipmi_version": d.ipmi_version,
+        "manufacturer_iana": iana,
+        "manufacturer_name": IANA.get(iana, "unknown"),
+        "manufacturer_generation": guess_bmc_generation(iana, d.product_id),
+        "product_id": d.product_id,
+        "device_available": not (d.fw_revision_1 & 0x80),
+        "provides_device_sdrs": bool(d.device_revision & 0x80),
+        "additional_device_support": d.additional_dev_support,
+    }
+    if emit(args, info):
+        return 0
+    print(f"Device ID                 : {info['device_id']}")
+    print(f"Device Revision           : {info['device_revision']}")
+    print(f"Firmware Revision         : {info['firmware_revision']}")
+    print(f"IPMI Version              : 0x{info['ipmi_version']:02x}")
     print(f"Manufacturer ID           : {iana}")
-    print(f"Manufacturer Name         : {IANA.get(iana, 'unknown')}")
-    print(f"Manufacturer Generation   : {guess_bmc_generation(iana, d.product_id)}")
+    print(f"Manufacturer Name         : {info['manufacturer_name']}")
+    print(f"Manufacturer Generation   : {info['manufacturer_generation']}")
     print(f"Product ID                : {d.product_id} (0x{d.product_id:04x})")
-    print(f"Device Available          : {'yes' if not (d.fw_revision_1 & 0x80) else 'no (init)'}")
-    print(f"Provides Device SDRs      : {'yes' if (d.device_revision & 0x80) else 'no'}")
-    print(f"Additional Device Support : 0x{d.additional_dev_support:02x}")
+    print(f"Device Available          : {'yes' if info['device_available'] else 'no (init)'}")
+    print(f"Provides Device SDRs      : {'yes' if info['provides_device_sdrs'] else 'no'}")
+    print(f"Additional Device Support : 0x{info['additional_device_support']:02x}")
     return 0
 
 
@@ -469,6 +484,8 @@ def cmd_mc_reset(args: argparse.Namespace) -> int:
             s.send_cmd(0x06, cmd)
         except (OSError, socket.timeout):
             pass
+    if emit(args, {"ok": True, "action": f"{args.kind}-reset", "host": args.host}):
+        return 0
     print(f"Sent {args.kind} reset to {args.host}")
     return 0
 
@@ -1413,24 +1430,31 @@ def cmd_mc_watchdog_get(args: argparse.Namespace) -> int:
             return 1
     use_byte = data[0]
     use = use_byte & 0x07
-    running = bool(use_byte & 0x40)
-    dont_log = bool(use_byte & 0x80)
     actions_byte = data[1]
     action = actions_byte & 0x07
     pre_int = (actions_byte >> 4) & 0x07
-    pre_to = data[2]
-    expir_flags = data[3]
-    initial = int.from_bytes(data[4:6], "little") / 10.0
-    present = int.from_bytes(data[6:8], "little") / 10.0
-    print(f"Watchdog Timer       : {'running' if running else 'stopped'}")
-    print(f"Timer use            : {WDT_USE.get(use, f'0x{use:x}')}")
-    print(f"Don't log            : {'on' if dont_log else 'off'}")
-    print(f"Timer action         : {WDT_ACTION.get(action, f'0x{action:x}')}")
-    print(f"Pre-timeout interrupt: {WDT_PRE_INT.get(pre_int, f'0x{pre_int:x}')}")
-    print(f"Pre-timeout interval : {pre_to} s")
-    print(f"Initial countdown    : {initial:.1f} s")
-    print(f"Present countdown    : {present:.1f} s")
-    print(f"Expiration flags     : 0x{expir_flags:02x}")
+    wd = {
+        "running": bool(use_byte & 0x40),
+        "dont_log": bool(use_byte & 0x80),
+        "timer_use": {"code": use, "name": WDT_USE.get(use, f"0x{use:x}")},
+        "timer_action": {"code": action, "name": WDT_ACTION.get(action, f"0x{action:x}")},
+        "pre_timeout_interrupt": {"code": pre_int, "name": WDT_PRE_INT.get(pre_int, f"0x{pre_int:x}")},
+        "pre_timeout_interval_s": data[2],
+        "expiration_flags": data[3],
+        "initial_countdown_s": int.from_bytes(data[4:6], "little") / 10.0,
+        "present_countdown_s": int.from_bytes(data[6:8], "little") / 10.0,
+    }
+    if emit(args, wd):
+        return 0
+    print(f"Watchdog Timer       : {'running' if wd['running'] else 'stopped'}")
+    print(f"Timer use            : {wd['timer_use']['name']}")
+    print(f"Don't log            : {'on' if wd['dont_log'] else 'off'}")
+    print(f"Timer action         : {wd['timer_action']['name']}")
+    print(f"Pre-timeout interrupt: {wd['pre_timeout_interrupt']['name']}")
+    print(f"Pre-timeout interval : {wd['pre_timeout_interval_s']} s")
+    print(f"Initial countdown    : {wd['initial_countdown_s']:.1f} s")
+    print(f"Present countdown    : {wd['present_countdown_s']:.1f} s")
+    print(f"Expiration flags     : 0x{wd['expiration_flags']:02x}")
     return 0
 
 
@@ -1441,6 +1465,8 @@ def cmd_mc_watchdog_reset(args: argparse.Namespace) -> int:
         if cc != 0x00:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
+    if emit(args, {"ok": True, "action": "watchdog-reset"}):
+        return 0
     print("Watchdog timer reset (kicked)")
     return 0
 
@@ -1465,6 +1491,8 @@ def cmd_mc_watchdog_off(args: argparse.Namespace) -> int:
         if cc != 0x00:
             _msg.error(f"set cc=0x{cc:02x}")
             return 1
+    if emit(args, {"ok": True, "action": "watchdog-off"}):
+        return 0
     print("Watchdog timer disabled")
     return 0
 
@@ -1638,6 +1666,8 @@ def cmd_mc_selftest(args: argparse.Namespace) -> int:
         r = s.send_cmd(0x06, 0x04)
     from ..scapy_ipmi.commands import GET_SELF_TEST
     name = GET_SELF_TEST.get(r.result, f"0x{r.result:02x}")
+    if emit(args, {"result": r.result, "name": name, "info": r.info}):
+        return 0
     print(f"Self Test Result : {name}")
     print(f"Info             : 0x{r.info:02x}")
     return 0
@@ -1647,8 +1677,11 @@ def cmd_mc_guid(args: argparse.Namespace) -> int:
     with _open_session(args) as s:
         d = s.send_cmd(0x06, 0x08)
         sy = s.send_cmd(0x06, 0x37)
-    print(f"Device GUID : {bytes(d.guid).hex()}")
-    print(f"System GUID : {bytes(sy.guid).hex()}")
+    guids = {"device_guid": bytes(d.guid).hex(), "system_guid": bytes(sy.guid).hex()}
+    if emit(args, guids):
+        return 0
+    print(f"Device GUID : {guids['device_guid']}")
+    print(f"System GUID : {guids['system_guid']}")
     return 0
 
 
