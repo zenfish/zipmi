@@ -46,8 +46,8 @@ and per-platform live test results.
 | 00h  | Reserved | — | — | — | — | — |
 | 01h  | Get Device ID | 20.1 | s | ✓ | ✓ | ? |
 | 01h  | Broadcast Get Device ID | 20.9 | s | ✗ | ? | ? |
-| 02h  | Cold Reset | 20.2 | A | ⚡ | ? | ? |
-| 03h  | Warm Reset | 20.3 | A | ⚡ | ? | ? |
+| 02h  | Cold Reset | 20.2 | A | ✓ | ? | ? |
+| 03h  | Warm Reset | 20.3 | A | ✓ | ? | ? |
 | 04h  | Get Self Test Results | 20.4 | U | ✓ | ✓ | ? |
 | 05h  | Manufacturing Test On | 20.5 | A | ✗ | ? | ? |
 | 06h  | Set ACPI Power State | 20.6 | A | ✗ | ? | ? |
@@ -103,12 +103,12 @@ and per-platform live test results.
 | 45h  | Set User Name | 22.28 | A | ⚡ | ? | ? |
 | 46h  | Get User Name Command | 22.29 | O | ✓ | ✓ | ? |
 | 47h  | Set User Password Command | 22.30 | A | ⚡ | ? | ? |
-| 48h  | Activate Payload | 24.1 | U/O | ✗ | ? | ? |
-| 49h  | Deactivate Payload | 24.2 | U/O | ✗ | ? | ? |
-| 4Ah  | Get Payload Activation Status | 24.3 | U | ✗ | ? | ? |
+| 48h  | Activate Payload | 24.1 | U/O | ✓ | ? | ? |
+| 49h  | Deactivate Payload | 24.2 | U/O | ✓ | ? | ? |
+| 4Ah  | Get Payload Activation Status | 24.3 | U | ✓ | ? | ? |
 | 4Bh  | Get Payload Instance Info | 24.4 | U | ✗ | ? | ? |
-| 4Ch  | Set User Payload Access | 24.5 | A | ✗ | ? | ? |
-| 4Dh  | Get User Payload Access | 24.6 | O | ✗ | ? | ? |
+| 4Ch  | Set User Payload Access | 24.5 | A | ⚡ | ? | ? |
+| 4Dh  | Get User Payload Access | 24.6 | O | ⚡ | ? | ? |
 | 4Eh  | Get Channel Payload Support | 24.7 | U | ✗ | ? | ? |
 | 4Fh  | Get Channel Payload Version | 24.8 | U | ✗ | ? | ? |
 | 50h  | Get Channel OEM Payload Info | 24.9 | U | ✗ | ? | ? |
@@ -116,7 +116,7 @@ and per-platform live test results.
 | 54h  | Get Channel Cipher Suites | 22.15 | s | ✓ | ? | ? |
 | 55h  | Suspend/Resume Payload Encryption | 24.10 | U | ✗ | ? | ? |
 | 56h  | Set Channel Security Keys | 22.25 | A | ✗ | ? | ? |
-| 57h  | Get System Interface Capabilities | 22.9 | U | ✗ | ? | ? |
+| 57h  | Get System Interface Capabilities | 22.9 | U | ⚡ | ? | ? |
 
 ---
 
@@ -128,10 +128,10 @@ and per-platform live test results.
 | 01h  | Get Chassis Status | 28.2 | U | ✓ | ✓ | ? |
 | 02h  | Chassis Control | 28.3 | O | ✓ | ? (untested destructive) | ? |
 | 03h  | Chassis Reset | 28.4 | O | ✗ | ? | ? |
-| 04h  | Chassis Identify | 28.5 | O | ✗ | ? | ? |
+| 04h  | Chassis Identify | 28.5 | O | ⚡ | ? | ? |
 | 05h  | Set Chassis Capabilities | 28.7 | A | ✗ | ? | ? |
-| 06h  | Set Power Restore Policy | 28.8 | A | ✗ | ? | ? |
-| 07h  | Get System Restart Cause | 28.11 | U | ✗ | ? | ? |
+| 06h  | Set Power Restore Policy | 28.8 | A | ⚡ | ? | ? |
+| 07h  | Get System Restart Cause | 28.11 | U | ⚡ | ? | ? |
 | 08h  | Set System Boot Options | 28.12 | A | ✓ | ? (untested writeable) | ? |
 | 09h  | Get System Boot Options | 28.13 | U | ✓ | ✓ | ? |
 | 0Ah  | Set Front Panel Button Enables | 28.6 | A | ✗ | ? | ? |
@@ -213,9 +213,9 @@ and per-platform live test results.
 | 44h  | Add SEL Entry | 31.6 | O | ✗ | ? | ? |
 | 45h  | Partial Add SEL Entry | 31.7 | O | ✗ | ? | ? |
 | 46h  | Delete SEL Entry | 31.8 | O | ✗ | ? | ? |
-| 47h  | Clear SEL | 31.9 | O | ✗ | ? | ? |
-| 48h  | Get SEL Time | 31.10 | U | ✗ | ? | ? |
-| 49h  | Set SEL Time | 31.11 | O | ✗ | ? | ? |
+| 47h  | Clear SEL | 31.9 | O | ⚡ | ? | ? |
+| 48h  | Get SEL Time | 31.10 | U | ⚡ | ? | ? |
+| 49h  | Set SEL Time | 31.11 | O | ⚡ | ? | ? |
 | 5Ch  | Get SEL Time UTC Offset | 31.11a | U | ✗ | ? | ? |
 | 5Dh  | Set SEL Time UTC Offset | 31.11b | O | ✗ | ? | ? |
 | 5Ah  | Get Auxiliary Log Status | 31.12 | O | ✗ | ? | ? |
@@ -238,8 +238,8 @@ and per-platform live test results.
 
 | CMD  | Name | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|------|-------|------|--------|
-| 10h  | Set Serial/Modem Configuration | 25.1 | A | ✗ | ? | ? |
-| 11h  | Get Serial/Modem Configuration | 25.2 | U | ✗ | ? | ? |
+| 10h  | Set Serial/Modem Configuration | 25.1 | A | ⚡ | ? | ? |
+| 11h  | Get Serial/Modem Configuration | 25.2 | U | ⚡ | ? | ? |
 | 12h  | Set Serial/Modem Mux | 25.3 | A | ✗ | ? | ? |
 | 13h  | Get TAP Response Codes | 25.4 | A | ✗ | ? | ? |
 | 14h  | Set PPP UDP Proxy Transmit Data | 25.5 | A | ✗ | ? | ? |
@@ -257,8 +257,8 @@ and per-platform live test results.
 | CMD  | Name | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|------|-------|------|--------|
 | 20h  | SOL Activating | 26.1 | U | ✗ | ? | ? |
-| 21h  | Set SOL Configuration Parameters | 26.2 | A | ✗ | ? | ? |
-| 22h  | Get SOL Configuration Parameters | 26.3 | U | ✗ | ? | ? |
+| 21h  | Set SOL Configuration Parameters | 26.2 | A | ✓ | ? | ? |
+| 22h  | Get SOL Configuration Parameters | 26.3 | U | ✓ | ? | ? |
 
 ### Generic / Group
 
