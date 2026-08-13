@@ -217,26 +217,31 @@ result as JSON to stdout — text stays the default), **`--max-priv`**
 `{callback,user,operator,admin}` (cap the session's requested privilege).
 
 ```
-mc       {info, reset cold|warm, selftest, guid, watchdog {get,reset,off}}
-chassis  {status, power on|off|cycle|reset|soft --yes, identify [secs],
-          bootdev <dev> --yes, bootflags, restart_cause, policy}
-sel      {info, list, elist, clear --yes, time {get,set}}
-sdr      list
-sensor   {list, get <name>}
-lan      print [channel]
+mc       {info, reset cold|warm, selftest, guid, watchdog {get,reset,off},
+          global-enables, acpi, sysinfo}
+chassis  {status, caps, poh, power on|off|cycle|reset|soft --yes,
+          identify [secs], bootdev <dev> --yes, bootflags, restart_cause, policy}
+sel      {info, list, elist, clear --yes, time {get,set}, alloc, utc-offset}
+sdr      {list, alloc, time, device-info, device-reserve, device-get}
+sensor   {list, get <name>, threshold <n>, hysteresis <n>, factors <n>,
+          type <n>, event-enable <n>, event-status <n>}   # threshold cooked via SDR
+pef      {caps, config, last-event}
+lan      {print [channel], stats [channel]}
 fru      print [id]
 session  info [selector]
 user     {list [channel], set-name, enable, disable, set-password,
           test-password, priv}   # writes gated by --yes
 user-matrix list [--all] [--per-priv] [--findings]
                  # full user × channel privilege/auth/cipher grid (read-only)
-channel  {info [chan|all], getaccess <chan> <uid>}
+channel  {info [chan|all], getaccess <chan> <uid>,
+          payload-support [chan], payload-version [chan]}
 bridging {info [chan|all], privesc [chan|all]}
                  # info = Send Message reach map (medium, bridgeable, IPMB
                  #   satellite sweep); privesc = does bridging escalate a
                  #   --max-priv operator session? (confused-deputy probe)
 serial   {config [chan], set <chan> <param> ...}   # SOL/modem config
-sol      {info, baud, payload, set, activate, deactivate, looptest, autobaud}
+sol      {info, baud, payload, payload-instance, set, activate, deactivate,
+          looptest, autobaud}
 firewall [--channel N] [--probe] [--unsafe] [--subfn]   # IPMI firmware firewall (§21)
 raw      <netfn> <cmd> [byte ...]
 ipmi     [cmd-name [byte ...]]           # standard IPMI cmd by name; no args = list Table G-1
