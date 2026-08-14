@@ -659,36 +659,27 @@ class Session:
             return set()
         return parse_cipher_suite_records(blob)
 
-    def _activate_lanplus(self) -> None:
-        """RMCP+ Open Session + RAKP 1-4 + Set Privilege.
+    @classmethod
+    def _ranked_candidates(cls, offered: set[int]) -> list[int]:
+        """Usable suites strongest→weakest for the auto-select fallback ladder.
+        Same policy as _select_cipher (authenticated suites preferred), but returns
+        the whole ordered list so a suite the BMC advertises-but-won't-negotiate can
+        be skipped for the next-best. Cipher 0 only if it's the sole option; [3]
+        (spec-mandatory) when discovery found nothing usable."""
+        usable = sorted(
+            (s for s in offered if s in CIPHER_SUITES and CIPHER_SUITES[s].auth_alg != 0),
+            key=cls._cipher_strength, reverse=True)
+        if usable:
+            return usable
+        if 0 in offered and 0 in CIPHER_SUITES:
+            return [0]
+        return [3]
 
-        Per IPMI 2.0 §13.17 (Open Session), §13.20 (RAKP), §13.32 (key
-        derivation). HMAC formulas verified against ipmitool -C 3
-        oracle pcap vs Dell iDRAC6.
-
-        When cipher_suite is None (no explicit -C), auto-select: query the BMC's
-        supported suites and pick the strongest, like ipmitool. Falls back to 3
-        (spec-mandatory) if the BMC ignores the query — so it still works against
-        a BMC that only offers 3, and against SHA1-dropping BMCs that offer only 17.
-        """
-        import sys
-        auto = self.cipher_suite is None
-        if auto:
-            self.cipher_suite = self._select_cipher(self._query_cipher_suites())
-            # Squeak when auto-discovery landed on something other than the
-            # historical default 3 — the user didn't ask for a cipher, so tell
-            # them what got picked. Non-fatal; we proceed either way.
-            if self.cipher_suite != 3:
-                _msg.info(f"auto-selected cipher suite {self.cipher_suite} "
-                          f"(BMC's strongest offered; default is 3)")
-        if self.cipher_suite not in CIPHER_SUITES:
-            raise IPMIError(f"unsupported cipher suite {self.cipher_suite}")
-        cs = CIPHER_SUITES[self.cipher_suite]
-        self.cipher = cs
-
-        # Warn (auto or explicit) if the resolved suite skips auth or integrity —
-        # informative, non-blocking. Confidentiality is not warned (many valid
-        # deployments run authenticated-but-unencrypted).
+    def _warn_weak_suite(self) -> None:
+        """Warn if the resolved suite skips auth or integrity — informative,
+        non-blocking. Confidentiality is not warned (authenticated-but-unencrypted
+        is a valid deployment)."""
+        cs = self.cipher
         weak = []
         if cs.auth_alg == 0:
             weak.append("NO authentication (cipher-zero; session is UNAUTHENTICATED)")
@@ -698,6 +689,53 @@ class Session:
             _msg.warn(f"cipher suite {self.cipher_suite} — {'; '.join(weak)}. "
                       f"Use a non-zero suite (e.g. -C 3 or -C 17) for an "
                       f"authenticated session.")
+
+    def _activate_lanplus(self) -> None:
+        """RMCP+ Open Session + RAKP 1-4 + Set Privilege (§13.17/§13.20/§13.32).
+
+        No explicit -C → auto-select ranks the BMC's offered suites strongest→
+        weakest and tries each until one ESTABLISHES. A suite the BMC advertises
+        but won't actually negotiate (e.g. xRC4 on some Supermicro → Open Session
+        status 0x11) transparently falls back to the next-best, with a [note].
+        Explicit -C N is honored verbatim: one attempt, hard error on failure."""
+        if self.cipher_suite is not None:                # explicit -C N: one shot, die
+            if self.cipher_suite not in CIPHER_SUITES:
+                raise IPMIError(f"unsupported cipher suite {self.cipher_suite}")
+            self._establish_with_cipher(self.cipher_suite)
+            self._warn_weak_suite()
+            return
+        ranked = self._ranked_candidates(self._query_cipher_suites())
+        last = None
+        for i, sid in enumerate(ranked):
+            try:
+                self._establish_with_cipher(sid)
+            except IPMIError as e:
+                last = e
+                nxt = ranked[i + 1] if i + 1 < len(ranked) else None
+                if nxt is not None:
+                    _msg.info(f"cipher suite {sid} did not establish ({e}); "
+                              f"trying next: {nxt}")
+                continue
+            if i > 0:
+                _msg.info(f"fell back to cipher suite {sid} "
+                          f"(stronger offered suites did not establish)")
+            elif sid != 3:
+                _msg.info(f"auto-selected cipher suite {sid} "
+                          f"(BMC's strongest offered; default is 3)")
+            self._warn_weak_suite()
+            return
+        raise last or IPMIError("no offered cipher suite could establish a session")
+
+    def _establish_with_cipher(self, suite_id: int) -> None:
+        """One establish attempt with a specific suite: Open Session + RAKP 1-4 +
+        Set Privilege. Raises IPMIError on any rejection so the auto-select ladder
+        can try the next-best. HMAC formulas verified against ipmitool -C 3 vs
+        Dell iDRAC6."""
+        if suite_id not in CIPHER_SUITES:
+            raise IPMIError(f"unsupported cipher suite {suite_id}")
+        self.cipher_suite = suite_id
+        cs = CIPHER_SUITES[suite_id]
+        self.cipher = cs
 
         # Pick a random remote console session ID (avoid 0).
         import os, secrets

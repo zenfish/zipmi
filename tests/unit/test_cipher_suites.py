@@ -163,6 +163,50 @@ def test_negotiate_probe_maps_statuses(monkeypatch):
     }
 
 
+def test_auto_select_falls_back_when_strongest_wont_establish(monkeypatch):
+    # BMC offers 4 (xRC4, strongest by auth) + 8 (md5+aes). Suite 4 advertises but
+    # won't negotiate (0x11) -> auto ladder must fall back to 8, with notes.
+    from zipmi import core
+    from zipmi.core import Session, IPMIError, CIPHER_SUITES
+    s = object.__new__(Session)
+    s.cipher_suite = None
+    monkeypatch.setattr(Session, "_query_cipher_suites",
+                        lambda self, channel=0x0E: {4, 8})
+    done = []
+
+    def fake_establish(self, sid):
+        if sid == 4:
+            raise IPMIError("Open Session: status 0x11 (no cipher-suite match)")
+        self.cipher_suite = sid
+        self.cipher = CIPHER_SUITES[sid]
+        done.append(sid)
+    monkeypatch.setattr(Session, "_establish_with_cipher", fake_establish)
+    notes = []
+    monkeypatch.setattr(core._msg, "info", lambda m: notes.append(m))
+    monkeypatch.setattr(core._msg, "warn", lambda m: None)
+
+    s._activate_lanplus()
+    assert done == [8] and s.cipher_suite == 8           # fell back to 8
+    assert any("did not establish" in n and "trying next: 8" in n for n in notes)
+    assert any("fell back to cipher suite 8" in n for n in notes)
+
+
+def test_explicit_cipher_dies_no_fallback(monkeypatch):
+    # explicit -C 4 that fails must NOT ladder — one shot, hard error, no query.
+    import pytest
+    from zipmi.core import Session, IPMIError
+    s = object.__new__(Session)
+    s.cipher_suite = 4
+    monkeypatch.setattr(Session, "_establish_with_cipher",
+                        lambda self, sid: (_ for _ in ()).throw(IPMIError("0x11")))
+    queried = []
+    monkeypatch.setattr(Session, "_query_cipher_suites",
+                        lambda self, channel=0x0E: queried.append(1) or {3, 8})
+    with pytest.raises(IPMIError):
+        s._activate_lanplus()
+    assert queried == []                                 # never laddered
+
+
 def test_negotiate_probe_advertise_only_distinct_from_negotiate(monkeypatch):
     # mutation guard: 0x00 and 0x11 must NOT collapse to the same label
     import socket

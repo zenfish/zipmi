@@ -163,6 +163,13 @@ guessing: before opening the session it sends **Get Channel Cipher Suites**
 supports, and picks the strongest. An explicit `-C N` is honored verbatim and skips
 discovery.
 
+**Fallback ladder (auto only):** the offered suites are ranked strongest→weakest and
+tried in order — if the strongest doesn't actually *establish* (e.g. a BMC that
+advertises xRC4 in `0x54` but rejects it at Open Session with status `0x11`), zipmi
+transparently falls back to the next-best and emits a `[note]` (`cipher suite N did
+not establish …; trying next: M` → `fell back to cipher suite M`). An explicit `-C N`
+gets exactly one attempt and a hard error on failure — your choice, your problem.
+
 ```
 zipmi -I lanplus -H bmc -U root -P pass mc info      # auto: queries 0x54, picks best
 zipmi -C 17      -H bmc -U root -P pass mc info       # force suite 17
