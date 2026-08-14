@@ -353,11 +353,14 @@ def aes_decrypt(k2: bytes, body: bytes) -> bytes:
 # path every message (offset = 0 + fresh IV), which is self-contained and avoids
 # per-session RC4 state — valid for the offset==0 case the spec defines.
 #
-# !! UNVALIDATED against hardware: no reachable BMC negotiates xRC4. The Supermicro
-# X10 that ADVERTISES suites 4,5,9,10,13,14 has NO rc4 symbol in its libipmicrypt
-# (only MD5/HMAC-MD5/MD5_128/AES) and 0x11-rejects them. Residual spec ambiguity
-# (RC4 warm-up/discard-N; exact continuous-offset byte alignment) can only be
-# pinned against a real xRC4-negotiating BMC. Marked spec-faithful, not verified.
+# Not yet validated against real hardware — still hunting a BMC that actually
+# NEGOTIATES xRC4 (every stack examined skips it: ipmitool asserts AES-only,
+# FreeIPMI has it TODO, Supermicro's libipmicrypt advertises the suites with no
+# rc4 symbol and 0x11-rejects). Got one? Test with:
+#     zipmi -C 4 -H <bmc> -U <u> -P <p> mc info   # explicit -> pure xRC4-128 test
+# If it prints the BMC's info, encrypt+decrypt round-tripped over xRC4 for real.
+# Residual spec ambiguity (RC4 warm-up/discard-N; continuous-offset alignment) can
+# only be pinned against such a box. See docs/ipmi20-rakp.md.
 
 def _rc4_crypt(key: bytes, data: bytes) -> bytes:
     """Plain RC4 (KSA + PRGA). Symmetric — same call encrypts and decrypts."""

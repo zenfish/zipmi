@@ -73,12 +73,26 @@ a Supermicro X10 (the `vbmc x10` box): `-C 11` and `-C 12` establish full sessio
 **xRC4 confidentiality (conf 2/3)** — suites 4,5,9,10,13,14. `KRC = MD5(K2 ‖ IV)`
 (xRC4-128 uses all 16 bytes, xRC4-40 the top 5); confidentiality header =
 4-byte data-offset + 16-byte IV (IV present only at offset 0); no trailer
-(§13.30). zipmi is the **first open-source xRC4 implementation** — but it is
-**hardware-unvalidated**: no reachable BMC negotiates xRC4. The Supermicro X10
-*advertises* suites 4,5,9,10,13,14 in its Get-Channel-Cipher-Suites table, yet its
-`libipmicrypt` has **no RC4 symbol at all** (only MD5/HMAC-MD5/MD5_128/AES), so it
-rejects them at Open Session with status `0x11` (no cipher-suite match). Treat
-xRC4 as spec-faithful, not verified, until a real xRC4-negotiating BMC is found.
+(§13.30). zipmi is the **first open-source xRC4 implementation** — ipmitool
+`assert`s AES-only, FreeIPMI has it as a `TODO`, and Supermicro's own `libipmicrypt`
+*advertises* suites 4,5,9,10,13,14 while carrying **no `rc4` symbol at all** (so it
+`0x11`-rejects them at Open Session). Every stack examined skips it.
+
+> **Still hunting a BMC that actually negotiates xRC4 to validate against.** If
+> yours does, please test it and let us know:
+>
+> ```
+> zipmi -C 4 -H <bmc-ip> -U <user> -P <pass> mc info    # xRC4-128 (sha1)
+> zipmi -C 5 -H <bmc-ip> -U <user> -P <pass> mc info    # xRC4-40  (sha1)
+> ```
+>
+> `-C N` is explicit, so there's no fallback — it's a pure xRC4 test. If it prints
+> the BMC's manufacturer/firmware, the session encrypted **and** decrypted a real
+> command over xRC4 end-to-end → the implementation is correct; open an issue and
+> tell us the vendor/model/firmware. `Open Session: status 0x11` means that BMC
+> advertises the suite but won't negotiate it (like the Supermicro X10). Suites
+> 9/10 (md5) and 13/14 (md5-128) exercise the same xRC4 keystream with different
+> auth/integrity.
 
 ## In-session message framing
 
