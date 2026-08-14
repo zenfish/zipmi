@@ -101,6 +101,12 @@ class State:
     persona: Persona
     sessions_15: dict[tuple[str, int], Session1_5] = field(default_factory=dict)
     sessions_20: dict[int, Session2_0]            = field(default_factory=dict)
+    # Covert-backchannel PoC: when set, the vBMC only completes RMCP+ Open Session
+    # for this one cipher suite and 0x11-rejects every other — so a session can be
+    # established ONLY by a client that implements that suite. Point it at an
+    # obscure suite mainstream tools can't negotiate (e.g. 4 = xRC4-128) and
+    # ipmitool/FreeIPMI are locked out while zipmi -C 4 walks right in.
+    only_cipher: int | None = None
 
     def next_session_id(self) -> int:
         sid = secrets.randbits(32) | 1

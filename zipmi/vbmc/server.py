@@ -314,6 +314,24 @@ class VBMC(asyncio.DatagramProtocol):
                 break
         else:
             s20.cipher_id = 0
+
+        # Covert-backchannel gate: if this vBMC is pinned to one cipher suite,
+        # reject Open Session for anything else with 0x11 (no cipher-suite match) —
+        # so only a client that can negotiate the pinned suite ever gets a session.
+        if self.state.only_cipher is not None \
+                and s20.cipher_id != self.state.only_cipher:
+            reject = OpenSessionResponse(
+                msg_tag=req.msg_tag,
+                rmcp_status=0x11,                        # no matching cipher suite
+                max_priv=0,
+                remote_session_id=req.remote_session_id,
+                managed_session_id=0,
+                auth_payload=auth_payload(auth_alg),
+                integrity_payload=integrity_payload(integ_alg),
+                conf_payload=conf_payload(conf_alg),
+            )
+            return [self._wrap_outside_session(0x11, bytes(reject))]
+
         self.state.sessions_20[managed_sid] = s20
 
         resp = OpenSessionResponse(
@@ -465,7 +483,7 @@ class VBMC(asyncio.DatagramProtocol):
 
 async def run(persona_name: str, host: str = "127.0.0.1",
               port: int = 6230, trace: int = 0, color: bool = True,
-              fixtures: str | None = None) -> None:
+              fixtures: str | None = None, only_cipher: int | None = None) -> None:
     """Run the vbmc until cancelled. Resolves persona by module name.
 
     `trace`: 0=quiet, 1=event log per packet, 2=event log + hex dump.
@@ -473,6 +491,9 @@ async def run(persona_name: str, host: str = "127.0.0.1",
     `fixtures`: optional path to a sweep JSON (scripts/oem_sweep.py) whose
         captured OEM responses are loaded into the persona so the vbmc
         replays vendor OEM answers with no live BMC.
+    `only_cipher`: covert-backchannel PoC — only complete Open Session for this
+        one cipher suite, 0x11-rejecting all others (locks out tools that can't
+        negotiate it; see State.only_cipher).
     """
     persona_mod = importlib.import_module(f"zipmi.vbmc.personas.{persona_name}")
     persona = persona_mod.build()
@@ -480,7 +501,10 @@ async def run(persona_name: str, host: str = "127.0.0.1",
         from .fixtures import apply_fixture
         n = apply_fixture(persona, fixtures)
         print(f"vbmc loaded {n} synthetic OEM responses from {fixtures}")
-    state = State(persona=persona)
+    state = State(persona=persona, only_cipher=only_cipher)
+    if only_cipher is not None:
+        print(f"vbmc BACKCHANNEL: only cipher suite {only_cipher} accepted "
+              f"(all others -> Open Session 0x11)")
     loop = asyncio.get_running_loop()
     transport, _proto = await loop.create_datagram_endpoint(
         lambda: VBMC(state, trace=trace, color=color),
