@@ -1245,9 +1245,19 @@ def _suggest_for_cc(cc: int, netfn: int, cmd: int,
         print("#   `zipmi -H <bmc> user list` for valid user IDs.",
               file=sys.stderr)
     elif cc == 0xC1:      # Invalid command
-        print(f"# Hint: BMC doesn't implement this cmd. iDRAC6 lacks "
-              f"DCMI / iDRAC9-only cmds; check `mc info` to confirm "
-              f"target is in scope.", file=sys.stderr)
+        print(f"# Hint: this BMC doesn't implement {vendor} 0x{netfn:02x}/0x{cmd:02x} "
+              f"— wrong vendor or BMC generation? Confirm with `mc info` "
+              f"(and `zipmi oem` to list vendors).", file=sys.stderr)
+        note = {
+            "idrac6": "iDRAC6 is 11th-gen — many DCMI / iDRAC9+ cmds are absent.",
+            "supermicro": "the smcipmi/ATEN cmds are X10-X13; X14 (AST2600 OpenBMC) "
+                          "lacks them — is this an X14? try `oem supermicro-x14`.",
+            "supermicro-x11": "X11 uses the AMI/smcipmi stack (NetFn 0x30/0x3e); some "
+                              "cmds are board-fw specific.",
+            "supermicro-x14": "X14 is AST2600 OpenBMC — the X11 smcipmi cmds are absent.",
+        }.get(vendor)
+        if note:
+            print(f"#   * {note}", file=sys.stderr)
     elif cc == 0xD5:      # Cannot execute command, command disabled
         print("# Hint: cmd disabled on this channel/privilege; "
               "elevate or try a different channel.", file=sys.stderr)
