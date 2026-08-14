@@ -4,8 +4,8 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 131 of 188 standard IPMI commands** — 34 as Scapy
-> packet classes (✓, field-level encode/decode, usable programmatically) + 97 as
+> **Coverage: zipmi implements 131 of 188 standard IPMI commands** — 35 as Scapy
+> packet classes (✓, field-level encode/decode, usable programmatically) + 96 as
 > dedicated CLI verbs that decode in the handler (⚡, structured text/JSON output,
 > just not a packet class). Both are real, decoded commands. 57 are not
 > implemented (✗) — still reachable by opcode via `zipmi raw`. Per-NetFn breakdown
@@ -46,7 +46,7 @@ and per-platform live test results.
 
 ## App NetFn (0x06)
 
-**68 commands · 60 done by zipmi** — ✓ 19 decoded, ⚡ 41 raw · ✗ 8 not implemented.
+**68 commands · 60 done by zipmi** — ✓ 20 decoded, ⚡ 40 raw · ✗ 8 not implemented.
 Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device GUID, Get System GUID, Get Channel Authentication Capabilities, Get Session Challenge, Activate Session, Set Session Privilege Level, Close Session, Get Channel Access, Get Channel Info Command, Get User Access Command, Get User Name Command, Activate Payload, Deactivate Payload, Get Payload Activation Status, Get Channel Cipher Suites, Get NetFn Support, Get Command Support, Get Command Sub-function Support, Get Configurable Commands, Get Command Enables, Get Command Sub-function Enables, Reset Watchdog Timer, Set Watchdog Timer, Get Watchdog Timer, Get Message Flags, Get Message, Send Message, Get Session Info, Set User Access Command, Set User Name, Set User Password Command, Set User Payload Access, Get User Payload Access, Master Read-Write, Get System Interface Capabilities, Get BMC Global Enables, Get ACPI Power State, Get System Info Parameters, Get Channel Payload Support, Get Channel Payload Version, Get Payload Instance Info
 
 
@@ -123,7 +123,7 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 | 4Eh  | Get Channel Payload Support | `get_channel_payload_support` | 24.7 | U | ⚡ | ? | ? |
 | 4Fh  | Get Channel Payload Version | `get_channel_payload_version` | 24.8 | U | ⚡ | ? | ? |
 | 50h  | Get Channel OEM Payload Info | `get_channel_oem_payload_info` | 24.9 | U | ✗ | ? | ? |
-| 52h  | Master Read-Write | `master_write_read` | 22.11 | A* | ⚡ | ? | ? |
+| 52h  | Master Read-Write | `master_write_read` | 22.11 | A* | ✓ | ? | ? |
 | 54h  | Get Channel Cipher Suites | `get_channel_cipher_suites` | 22.15 | s | ✓ | ? | ? |
 | 55h  | Suspend/Resume Payload Encryption | `suspend_resume_payload_encryption` | 24.10 | U | ✗ | ? | ? |
 | 56h  | Set Channel Security Keys | `set_channel_security_keys` | 22.25 | A | ⚡ | ? | ? |

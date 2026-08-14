@@ -68,6 +68,7 @@ from ..scapy_ipmi.commands import (
     GetSystemBootOptionsReq,
     GetUserAccessReq,
     GetUserNameReq,
+    MasterWriteReadReq,
     SetSystemBootOptionsReq,
     decode_sol_bitrate,
     encode_boot_flags,
@@ -3872,10 +3873,18 @@ def _master_write_read(s, bus_byte: int, slave: int,
     """Issue Master Write-Read (NetFn App 0x06, Cmd 0x52).
 
     slave is the 7-bit address; the BMC expects it left-shifted (LSB clear).
-    Returns (completion_code, read_bytes).
-    """
-    payload = bytes([bus_byte, (slave & 0x7F) << 1, read_count & 0xFF]) + write_data
-    return s.send_raw(0x06, 0x52, payload)
+    Returns (completion_code, read_bytes). Built via the MasterWriteReadReq
+    Scapy class (so the CLI and the programmatic `send_cmd` path share one
+    model); send_raw keeps i2cscan non-raising on per-address rejects."""
+    req = MasterWriteReadReq(
+        channel=(bus_byte >> 4) & 0x0F,
+        priv_bus=(bus_byte >> 1) & 0x07,
+        private=bus_byte & 0x01,
+        slave_addr=slave & 0x7F,
+        read_count=read_count & 0xFF,
+        write_data=bytes(write_data),
+    )
+    return s.send_raw(0x06, 0x52, bytes(req))
 
 
 def _hex_dump(data: bytes, *, base: int = 0) -> str:

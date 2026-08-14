@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import importlib
 
-__version__ = "0.2.21"  # single source of truth; pyproject reads this via dynamic version
+__version__ = "0.2.22"  # single source of truth; pyproject reads this via dynamic version
 
 
 def full_version() -> str:

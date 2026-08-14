@@ -28,6 +28,10 @@ specify "lan" to use IPMI 1.5 or "lanplus" for explicitly using 2.0.
 
 - `zipmi.scapy_ipmi` — Scapy `Packet` classes for RMCP, ASF (DSP0136), IPMI 1.5
   session/message, IPMI 2.0 RMCP+, RAKP 1–4, and per-NetFn command payloads.
+  **Driving zipmi programmatically (build/send/dissect/fuzz packets): see
+  [docs/scapy-usage.md](docs/scapy-usage.md).** The `✓` column in
+  [docs/command-table.md](docs/command-table.md) is the authoritative list of
+  which commands have packet classes (vs `⚡` = CLI verb only).
 - `zipmi.scapy_ipmi.oem.{dell, supermicro, idrac9_generated, dell_generated}`
   — vendor OEM dispatch tables ingested from prior firmware RE: 192 Dell
   iDRAC6 entries (full dispatch) + 313 iDRAC9 handlers (name catalog) +

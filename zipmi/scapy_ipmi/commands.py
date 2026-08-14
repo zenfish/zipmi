@@ -917,9 +917,44 @@ class GetPayloadActivationStatusResp(Packet):
         return b"", s
 
 
+# -- Master Write-Read (NetFn 0x06 App, Cmd 0x52) --
+# Spec: IPMI 2.0 §22.11. The BMC's I2C/SMBus master primitive — write then read
+# on a public or private bus. Powers `i2c`, `i2cscan`, `i2c-id`, `spd`. Bus byte
+# and slave byte are modeled as bit-fields so each is fuzzable/inspectable.
+
+class MasterWriteReadReq(Packet):
+    name = "Master Write-Read Request"
+    fields_desc = [
+        # bus byte: [7:4] channel  [3:1] private-bus id  [0] 1=private/0=public
+        BitField("channel", 0, 4),
+        BitField("priv_bus", 0, 3),
+        BitField("private", 0, 1),
+        # slave byte: [7:1] 7-bit slave address, [0] reserved (0)
+        BitField("slave_addr", 0, 7),
+        BitField("_slave_lsb", 0, 1),
+        ByteField("read_count", 0),
+        StrField("write_data", b""),     # 0..N bytes written before the read
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class MasterWriteReadResp(Packet):
+    name = "Master Write-Read Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        StrField("read_data", b""),      # `read_count` bytes read back
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
 # Registry: (request_netfn, cmd) → (RequestPacket | None, ResponsePacket).
 # Request payload of None means the command takes no data field.
 CMD_PAYLOADS: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet]]] = {
+    (0x06, 0x52): (MasterWriteReadReq,      MasterWriteReadResp),
     (0x06, 0x38): (GetChanAuthCapsReq,      GetChanAuthCapsResp),
     (0x06, 0x39): (GetSessionChallengeReq,  GetSessionChallengeResp),
     (0x06, 0x3A): (ActivateSessionReq,      ActivateSessionResp),
