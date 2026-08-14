@@ -951,6 +951,257 @@ class MasterWriteReadResp(Packet):
         return b"", s
 
 
+# -- FRU Data (Storage, 0x0A: 0x11 read / 0x12 write) — IPMI 2.0 §34.2-34.3 --
+# The BMC's window onto FRU I2C EEPROMs (board serials, part numbers, and on
+# many boxes the SPD image). offset is a 16-bit LE byte offset into the area.
+
+class ReadFRUDataReq(Packet):
+    name = "Read FRU Data Request"
+    fields_desc = [
+        ByteField("device_id", 0),
+        LEShortField("offset", 0),        # 16-bit LE byte offset into FRU area
+        ByteField("count", 0),            # bytes to read (BMC may return fewer)
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class ReadFRUDataResp(Packet):
+    name = "Read FRU Data Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        ByteField("count_returned", 0),   # bytes actually returned
+        StrField("data", b""),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class WriteFRUDataReq(Packet):
+    name = "Write FRU Data Request"
+    fields_desc = [
+        ByteField("device_id", 0),
+        LEShortField("offset", 0),
+        StrField("data", b""),            # bytes to write at offset
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class WriteFRUDataResp(Packet):
+    name = "Write FRU Data Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        ByteField("count_written", 0),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- Transport: Set LAN Configuration Parameters (0x0C, 0x01) — IPMI 2.0 §23.1 --
+# The NIC config write surface (IP, gateway, VLAN, community, cipher privs).
+# channel is a full byte here (low nibble = channel number); the read
+# counterpart GetLANConfigParamReq models it as a 4-bit field, but the write
+# handler passes a plain masked byte, so a ByteField keeps the wire identical.
+
+class SetLANConfigParamReq(Packet):
+    name = "Set LAN Config Parameters Request"
+    fields_desc = [
+        ByteField("channel", 0xE),
+        ByteField("parameter_selector", 0),
+        StrField("data", b""),            # parameter data (param-specific length)
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- Transport: Get IP/UDP/RMCP Statistics (0x0C, 0x04) — IPMI 2.0 §23.3 --
+# Seven u16 LE counters. clear=1 zeroes them after read (bit 0 of byte 2).
+
+class GetIPUDPRMCPStatsReq(Packet):
+    name = "Get IP/UDP/RMCP Statistics Request"
+    fields_desc = [
+        ByteField("channel", 0xE),
+        ByteField("clear", 0),            # bit0: 1 = clear counters after read
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetIPUDPRMCPStatsResp(Packet):
+    name = "Get IP/UDP/RMCP Statistics Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        LEShortField("ip_hdr_errors", 0),
+        LEShortField("ip_addr_errors", 0),
+        LEShortField("fragments_rx", 0),
+        LEShortField("ip_pkts_tx", 0),
+        LEShortField("ip_pkts_rx", 0),
+        LEShortField("rx_pkts_dropped", 0),
+        LEShortField("rmcp_pkts_rx", 0),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- Transport: Get/Set Serial/Modem Configuration (0x0C, 0x11 / 0x10) — §25 --
+# The serial/modem substrate: connection mode, modem init/dial strings,
+# callback + alert destinations. channel is masked to its low nibble by the
+# caller (the high nibble is reserved), so a ByteField reproduces the wire.
+
+class GetSerialConfigReq(Packet):
+    name = "Get Serial/Modem Config Request"
+    fields_desc = [
+        ByteField("channel", 0xE),
+        ByteField("parameter_selector", 0),
+        ByteField("set_selector", 0),
+        ByteField("block_selector", 0),
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetSerialConfigResp(Packet):
+    name = "Get Serial/Modem Config Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        XByteField("parameter_revision", 0),
+        StrField("data", b""),            # config data, consume to end
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class SetSerialConfigReq(Packet):
+    name = "Set Serial/Modem Config Request"
+    fields_desc = [
+        ByteField("channel", 0xE),
+        ByteField("parameter_selector", 0),
+        StrField("data", b""),            # config data (param-specific length)
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- Sensor/Event: Get Sensor Threshold (0x04, 0x27) — IPMI 1.5 §35.9 --
+# Six raw threshold values gated by a readable mask. Order (bits 0..5):
+# lower-non-crit, lower-crit, lower-non-recov, upper-non-crit, upper-crit,
+# upper-non-recov.
+
+class GetSensorThresholdReq(Packet):
+    name = "Get Sensor Threshold Request"
+    fields_desc = [ByteField("sensor_num", 0)]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetSensorThresholdResp(Packet):
+    name = "Get Sensor Threshold Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        XByteField("readable_mask", 0),   # bit i set => threshold i is readable
+        ByteField("lnc", 0),              # lower non-critical
+        ByteField("lc", 0),               # lower critical
+        ByteField("lnr", 0),              # lower non-recoverable
+        ByteField("unc", 0),              # upper non-critical
+        ByteField("uc", 0),               # upper critical
+        ByteField("unr", 0),              # upper non-recoverable
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- Sensor/Event: Get Sensor Reading Factors (0x04, 0x23) — IPMI 1.5 §35.5 --
+# For non-linear sensors, the M/B/exp conversion factors for a given raw
+# reading. The factor bytes are bit-packed; sub-byte fields are modeled with
+# BitField so each stays individually fuzzable. Layout per §35.5:
+#   byte0 next_reading
+#   byte1 M[7:0]
+#   byte2 M[9:8] | tolerance[5:0]
+#   byte3 B[7:0]
+#   byte4 B[9:8] | accuracy[5:0]
+#   byte5 accuracy[9:6] | accuracy_exp[1:0] | reserved[1:0]
+#   byte6 R_exp[3:0] | B_exp[3:0]
+# The M/B split-across-two-bytes is little-endian in the low bits, so within a
+# single byte the high 2 bits precede the low 6/4 — Scapy BitField packs MSB
+# first, so declare the high slice first in each byte to match the wire.
+
+class GetSensorReadingFactorsReq(Packet):
+    name = "Get Sensor Reading Factors Request"
+    fields_desc = [
+        ByteField("sensor_num", 0),
+        ByteField("reading_byte", 0),     # the raw reading to get factors for
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetSensorReadingFactorsResp(Packet):
+    name = "Get Sensor Reading Factors Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        ByteField("next_reading", 0),
+        BitField("m_lo", 0, 8),           # byte1: M[7:0]
+        BitField("m_hi", 0, 2),           # byte2: M[9:8]
+        BitField("tolerance", 0, 6),      #        tolerance[5:0]
+        BitField("b_lo", 0, 8),           # byte3: B[7:0]
+        BitField("b_hi", 0, 2),           # byte4: B[9:8]
+        BitField("accuracy_lo", 0, 6),    #        accuracy[5:0]
+        BitField("accuracy_hi", 0, 4),    # byte5: accuracy[9:6]
+        BitField("accuracy_exp", 0, 2),   #        accuracy_exp[1:0]
+        BitField("reserved", 0, 2),       #        reserved
+        BitField("r_exp", 0, 4),          # byte6: R_exp[3:0]
+        BitField("b_exp", 0, 4),          #        B_exp[3:0]
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+# -- Sensor/Event: Get Device SDR (0x04, 0x21) — IPMI 1.5 §35.3 --
+# Reads a device SDR record (satellite/dynamic sensors). Same request shape as
+# Get SDR (0x0A/0x23) but for the sensor-device SDR repository. A reservation
+# (from Reserve Device SDR Repository, 0x04/0x22) is required for partial reads
+# on BMCs that enforce it; 0 is legal when reading the whole record at once.
+
+class GetDeviceSDRReq(Packet):
+    name = "Get Device SDR Request"
+    fields_desc = [
+        LEShortField("reservation", 0),
+        LEShortField("record_id", 0),
+        ByteField("offset", 0),
+        ByteField("bytes_to_read", 0xFF),  # 0xFF = entire record
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
+class GetDeviceSDRResp(Packet):
+    name = "Get Device SDR Response"
+    fields_desc = [
+        ByteEnumField("comp_code", 0x00, COMP_CODE),
+        LEShortField("next_record_id", 0xFFFF),
+        StrField("record_data", b""),      # consume to end of payload
+    ]
+
+    def extract_padding(self, s):
+        return b"", s
+
+
 # Registry: (request_netfn, cmd) → (RequestPacket | None, ResponsePacket).
 # Request payload of None means the command takes no data field.
 CMD_PAYLOADS: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet]]] = {
@@ -976,14 +1227,23 @@ CMD_PAYLOADS: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet]]] = 
     (0x00, 0x08): (SetSystemBootOptionsReq, _BareCCResp),
     (0x00, 0x09): (GetSystemBootOptionsReq, GetSystemBootOptionsResp),
     (0x04, 0x2D): (GetSensorReadingReq,     GetSensorReadingResp),
+    (0x04, 0x21): (GetDeviceSDRReq,         GetDeviceSDRResp),
+    (0x04, 0x23): (GetSensorReadingFactorsReq, GetSensorReadingFactorsResp),
+    (0x04, 0x27): (GetSensorThresholdReq,   GetSensorThresholdResp),
     (0x0A, 0x10): (GetFRUInventoryInfoReq,  GetFRUInventoryInfoResp),
+    (0x0A, 0x11): (ReadFRUDataReq,          ReadFRUDataResp),
+    (0x0A, 0x12): (WriteFRUDataReq,         WriteFRUDataResp),
     (0x0A, 0x20): (None,                    GetSDRRepositoryInfoResp),
     (0x0A, 0x22): (None,                    ReserveSDRRepoResp),
     (0x0A, 0x23): (GetSDRReq,               GetSDRResp),
     (0x0A, 0x40): (None,                    GetSELInfoResp),
     (0x0A, 0x42): (None,                    ReserveSELResp),
     (0x0A, 0x43): (GetSELEntryReq,          GetSELEntryResp),
+    (0x0C, 0x01): (SetLANConfigParamReq,    _BareCCResp),
     (0x0C, 0x02): (GetLANConfigParamReq,    _BareCCResp),       # variable resp
+    (0x0C, 0x04): (GetIPUDPRMCPStatsReq,    GetIPUDPRMCPStatsResp),
+    (0x0C, 0x10): (SetSerialConfigReq,      _BareCCResp),
+    (0x0C, 0x11): (GetSerialConfigReq,      GetSerialConfigResp),
     (0x0C, 0x21): (SetSOLConfigParamReq,    _BareCCResp),
     (0x0C, 0x22): (GetSOLConfigParamReq,    GetSOLConfigParamResp),
     (0x06, 0x48): (ActivatePayloadReq,      ActivatePayloadResp),
@@ -1014,6 +1274,14 @@ __all__ = [
     "GetSELInfoResp", "ReserveSELResp", "GetSELEntryReq", "GetSELEntryResp",
     "GetLANConfigParamReq", "GetChannelCipherSuitesReq",
     "GetSOLConfigParamReq", "GetSOLConfigParamResp", "SetSOLConfigParamReq",
+    "ReadFRUDataReq", "ReadFRUDataResp",
+    "WriteFRUDataReq", "WriteFRUDataResp",
+    "SetLANConfigParamReq",
+    "GetIPUDPRMCPStatsReq", "GetIPUDPRMCPStatsResp",
+    "GetSerialConfigReq", "GetSerialConfigResp", "SetSerialConfigReq",
+    "GetSensorThresholdReq", "GetSensorThresholdResp",
+    "GetSensorReadingFactorsReq", "GetSensorReadingFactorsResp",
+    "GetDeviceSDRReq", "GetDeviceSDRResp",
     "ActivatePayloadReq", "ActivatePayloadResp",
     "DeactivatePayloadReq",
     "GetPayloadActivationStatusReq", "GetPayloadActivationStatusResp",

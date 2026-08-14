@@ -62,14 +62,22 @@ from ..scapy_ipmi.commands import (
     ChassisControlReq,
     GetChanAuthCapsReq,
     GetChannelInfoReq,
+    GetDeviceSDRReq,
+    GetIPUDPRMCPStatsReq,
     GetSDRReq,
     GetSELEntryReq,
+    GetSensorReadingFactorsReq,
     GetSensorReadingReq,
+    GetSensorThresholdReq,
+    GetSerialConfigReq,
     GetSystemBootOptionsReq,
     GetUserAccessReq,
     GetUserNameReq,
     MasterWriteReadReq,
+    ReadFRUDataReq,
+    SetSerialConfigReq,
     SetSystemBootOptionsReq,
+    WriteFRUDataReq,
     decode_sol_bitrate,
     encode_boot_flags,
     encode_sol_bitrate,
@@ -2115,9 +2123,8 @@ def cmd_sdr_device_get(args: argparse.Namespace) -> int:
         # Reserve first so partial reads are legal on BMCs that require it.
         cc, rd = s.send_raw(0x04, 0x22, b"")
         rsv = int.from_bytes(rd[:2], "little") if cc == 0x00 and len(rd) >= 2 else 0
-        req = bytes([rsv & 0xFF, (rsv >> 8) & 0xFF,
-                     record_id & 0xFF, (record_id >> 8) & 0xFF,
-                     0x00, 0xFF])
+        req = bytes(GetDeviceSDRReq(reservation=rsv, record_id=record_id,
+                                    offset=0x00, bytes_to_read=0xFF))
         cc, data = s.send_raw(0x04, 0x21, req)
         if cc != 0x00 or len(data) < 2:
             _msg.error(f"cc=0x{cc:02x}")
@@ -2217,7 +2224,9 @@ def cmd_sensor_factors(args: argparse.Namespace) -> int:
     from ..sdr_full import _twos_complement
     num = int(args.num, 0)
     with _open_session(args) as s:
-        cc, data = s.send_raw(0x04, 0x23, bytes([num, 0x00]))
+        cc, data = s.send_raw(
+            0x04, 0x23,
+            bytes(GetSensorReadingFactorsReq(sensor_num=num, reading_byte=0x00)))
         if cc != 0x00 or len(data) < 7:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
@@ -2256,7 +2265,8 @@ def cmd_sensor_threshold(args: argparse.Namespace) -> int:
     num = int(args.num, 0)
     names = ["lnc", "lc", "lnr", "unc", "uc", "unr"]
     with _open_session(args) as s:
-        cc, data = s.send_raw(0x04, 0x27, bytes([num]))
+        cc, data = s.send_raw(
+            0x04, 0x27, bytes(GetSensorThresholdReq(sensor_num=num)))
         if cc != 0x00 or len(data) < 7:
             _msg.error(f"cc=0x{cc:02x}")
             return 1
@@ -2407,9 +2417,8 @@ def _read_fru_blob(s, device_id: int, total: int, chunk: int = 16) -> bytes:
     while len(out) < total:
         want = min(chunk, total - len(out))
         offset = len(out)
-        req = bytes([device_id & 0xFF,
-                     offset & 0xFF, (offset >> 8) & 0xFF,
-                     want & 0xFF])
+        req = bytes(ReadFRUDataReq(device_id=device_id & 0xFF,
+                                   offset=offset & 0xFFFF, count=want & 0xFF))
         cc, data = s.send_raw(0x0A, 0x11, req)
         if cc != 0x00 or len(data) < 1:
             break
@@ -3438,7 +3447,7 @@ def cmd_fru_write(args: argparse.Namespace) -> int:
     dev = args.device_id & 0xFF
     off = args.offset & 0xFFFF
     data = _hex_bytes(args.data) if args.data else b""
-    req = bytes([dev, off & 0xFF, off >> 8]) + data
+    req = bytes(WriteFRUDataReq(device_id=dev, offset=off, data=data))
     with _open_session(args) as s:
         cc, resp = s.send_raw(0x0A, 0x12, req)
         if cc != 0x00:
@@ -3704,7 +3713,8 @@ def cmd_lan_stats(args: argparse.Namespace) -> int:
         _msg.error(f"channel must be 0..15, got {channel}")
         return 2
     with _open_session(args) as s:
-        cc, data = s.send_raw(0x0C, 0x04, bytes([channel, 0x00]))
+        cc, data = s.send_raw(
+            0x0C, 0x04, bytes(GetIPUDPRMCPStatsReq(channel=channel, clear=0)))
         if cc != 0x00 or len(data) < 14:
             _msg.error(f"cc=0x{cc:02x}")
             return 1

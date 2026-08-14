@@ -4,10 +4,10 @@ Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
 (IPMI 2.0 spec, Appendix G). Adds columns for zipmi implementation status
 and per-platform live test results.
 
-> **Coverage: zipmi implements 131 of 188 standard IPMI commands** — 35 as Scapy
-> packet classes (✓, field-level encode/decode, usable programmatically) + 96 as
+> **Coverage: zipmi implements 132 of 188 standard IPMI commands** — 44 as Scapy
+> packet classes (✓, field-level encode/decode, usable programmatically) + 88 as
 > dedicated CLI verbs that decode in the handler (⚡, structured text/JSON output,
-> just not a packet class). Both are real, decoded commands. 57 are not
+> just not a packet class). Both are real, decoded commands. 56 are not
 > implemented (✗) — still reachable by opcode via `zipmi raw`. Per-NetFn breakdown
 > sits at the top of each section below.
 
@@ -162,7 +162,7 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 
 ## Sensor / Event NetFn (0x04)
 
-**27 commands · 25 done by zipmi** — ✓ 1 decoded, ⚡ 24 raw · ✗ 2 not implemented.
+**27 commands · 25 done by zipmi** — ✓ 4 decoded, ⚡ 21 raw · ✗ 2 not implemented.
 Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters, Get Last Processed Event ID, Get Device SDR Info, Get Device SDR, Reserve Device SDR Repository, Get Sensor Reading Factors, Get Sensor Hysteresis, Get Sensor Threshold, Get Sensor Event Enable, Get Sensor Event Status, Get Sensor Type
 
 
@@ -180,13 +180,13 @@ Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters
 | 16h  | Alert Immediate | `alert_immediate` | 30.7 | O | ⚡ | ? | ? |
 | 17h  | PET Acknowledge | `pet_acknowledge` | 30.8 | s | ⚡ | ? | ? |
 | 20h  | Get Device SDR Info | `get_device_sdr_info` | 35.2 | U | ⚡ | ? | ? |
-| 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ⚡ | ? | ? |
+| 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ✓ | ? | ? |
 | 22h  | Reserve Device SDR Repository | `reserve_device_sdr_repository` | 35.4 | U | ⚡ | ? | ? |
-| 23h  | Get Sensor Reading Factors | `get_sensor_reading_factors` | 35.5 | U | ⚡ | ? | ? |
+| 23h  | Get Sensor Reading Factors | `get_sensor_reading_factors` | 35.5 | U | ✓ | ? | ? |
 | 24h  | Set Sensor Hysteresis | `set_sensor_hysteresis` | 35.6 | O | ⚡ | ? | ? |
 | 25h  | Get Sensor Hysteresis | `get_sensor_hysteresis` | 35.7 | U | ⚡ | ? | ? |
 | 26h  | Set Sensor Threshold | `set_sensor_threshold` | 35.8 | O | ⚡ | ? | ? |
-| 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ⚡ | ? | ? |
+| 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ✓ | ? | ? |
 | 28h  | Set Sensor Event Enable | `set_sensor_event_enable` | 35.10 | O | ⚡ | ? | ? |
 | 29h  | Get Sensor Event Enable | `get_sensor_event_enable` | 35.11 | U | ⚡ | ? | ? |
 | 2Ah  | Re-arm Sensor Events | `re_arm_sensor_events` | 35.12 | O | ⚡ | ? | ? |
@@ -200,7 +200,7 @@ Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters
 
 ## Storage NetFn (0x0A)
 
-**30 commands · 27 done by zipmi** — ✓ 7 decoded, ⚡ 20 raw · ✗ 3 not implemented.
+**30 commands · 27 done by zipmi** — ✓ 9 decoded, ⚡ 18 raw · ✗ 3 not implemented.
 Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Repository, Get SDR, Get SEL Info, Reserve SEL, Get SEL Entry, Read FRU Data, Clear SEL, Get SEL Time, Set SEL Time
 
 
@@ -209,8 +209,8 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
 | 10h  | Get FRU Inventory Area Info | `get_fru_inventory_area_info` | 34.1 | U | ✓ | ? | ? |
-| 11h  | Read FRU Data | `read_fru_data` | 34.2 | O | ⚡ | ? | ? |
-| 12h  | Write FRU Data | `write_fru_data` | 34.3 | O | ⚡ | ? | ? |
+| 11h  | Read FRU Data | `read_fru_data` | 34.2 | O | ✓ | ? | ? |
+| 12h  | Write FRU Data | `write_fru_data` | 34.3 | O | ✓ | ? | ? |
 
 ### SDR Repository
 
@@ -253,7 +253,7 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 
 ## Transport NetFn (0x0C)
 
-**25 commands · 6 done by zipmi** — ✓ 3 decoded, ⚡ 3 raw · ✗ 19 not implemented.
+**25 commands · 7 done by zipmi** — ✓ 7 decoded, ⚡ 0 raw · ✗ 18 not implemented.
 Done: Get LAN Configuration Parameters, Set SOL Configuration Parameters, Get SOL Configuration Parameters, Set Serial/Modem Configuration, Get Serial/Modem Configuration
 
 
@@ -261,17 +261,17 @@ Done: Get LAN Configuration Parameters, Set SOL Configuration Parameters, Get SO
 
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
-| 01h  | Set LAN Configuration Parameters | `set_lan_configuration_parameters` | 23.1 | A | ✗ | ? | ? |
+| 01h  | Set LAN Configuration Parameters | `set_lan_configuration_parameters` | 23.1 | A | ✓ | ? | ? |
 | 02h  | Get LAN Configuration Parameters | `get_lan_configuration_parameters` | 23.2 | A | ✓ | ✓ | ? |
 | 03h  | Suspend BMC ARPs | `suspend_bmc_arps` | 23.3 | A | ✗ | ? | ? |
-| 04h  | Get IP/UDP/RMCP Statistics | `get_ip_udp_rmcp_statistics` | 23.4 | U | ⚡ | ? | ? |
+| 04h  | Get IP/UDP/RMCP Statistics | `get_ip_udp_rmcp_statistics` | 23.4 | U | ✓ | ? | ? |
 
 ### Serial / Modem
 
 | CMD  | Name | Run as | Spec § | Priv | zipmi | R710 | X11SSZ |
 |------|------|--------|--------|------|-------|------|--------|
-| 10h  | Set Serial/Modem Configuration | `set_serial_modem_configuration` | 25.1 | A | ⚡ | ? | ? |
-| 11h  | Get Serial/Modem Configuration | `get_serial_modem_configuration` | 25.2 | U | ⚡ | ? | ? |
+| 10h  | Set Serial/Modem Configuration | `set_serial_modem_configuration` | 25.1 | A | ✓ | ? | ? |
+| 11h  | Get Serial/Modem Configuration | `get_serial_modem_configuration` | 25.2 | U | ✓ | ? | ? |
 | 12h  | Set Serial/Modem Mux | `set_serial_modem_mux` | 25.3 | A | ✗ | ? | ? |
 | 13h  | Get TAP Response Codes | `get_tap_response_codes` | 25.4 | A | ✗ | ? | ? |
 | 14h  | Set PPP UDP Proxy Transmit Data | `set_ppp_udp_proxy_transmit_data` | 25.5 | A | ✗ | ? | ? |

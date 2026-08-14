@@ -65,9 +65,12 @@ def get_serial_param(sender, channel: int, param: int,
                      set_sel: int = 0, block_sel: int = 0) -> bytes | None:
     """One Get Serial/Modem Config value; config bytes with the leading
     parameter-revision byte stripped. None on any error/cc!=0."""
+    from ..scapy_ipmi.commands import GetSerialConfigReq
     try:
-        cc, data = sender.send_raw(0x0C, 0x11,
-                                   bytes([channel & 0x0F, param, set_sel, block_sel]))
+        cc, data = sender.send_raw(
+            0x0C, 0x11,
+            bytes(GetSerialConfigReq(channel=channel & 0x0F, parameter_selector=param,
+                                     set_selector=set_sel, block_selector=block_sel)))
     except Exception:
         return None
     if cc != 0x00 or len(data) < 1:
@@ -97,8 +100,11 @@ def serial_config_sweep(sender, channel: int,
 def set_serial_param(sender, channel: int, param: int, data: bytes):
     """Set Serial/Modem Config (0x0C/0x10). Returns (cc, resp). WRITE — the
     caller must gate this (admin/--yes)."""
-    return sender.send_raw(0x0C, 0x10,
-                           bytes([channel & 0x0F, param]) + bytes(data))
+    from ..scapy_ipmi.commands import SetSerialConfigReq
+    return sender.send_raw(
+        0x0C, 0x10,
+        bytes(SetSerialConfigReq(channel=channel & 0x0F, parameter_selector=param,
+                                 data=bytes(data))))
 
 
 def build_set_string_param(channel: int, param: int, block: int,
