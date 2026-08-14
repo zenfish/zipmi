@@ -36,7 +36,7 @@ def test_all_json_runs_every_step_and_aggregates(monkeypatch, capsys):
     assert ran == ["asf", "auth", "cs", "um", "c0"]     # every step runs
     d = json.loads(capsys.readouterr().out)             # single envelope, parses
     assert [s["step"] for s in d["steps"]] == [
-        "asf-ping", "auth-caps", "cipher-suites", "user-matrix", "cipher-zero"]
+        "asf-ping", "auth-caps", "ciphers", "user-matrix", "cipher-zero"]
 
 
 def test_run_scan_steps_isolates_failures(capsys):

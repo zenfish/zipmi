@@ -29,7 +29,7 @@ RUN      zipmi [-H host] [-U user] [-P pass] [-A auth] [-t timeout]
            raw <netfn> <cmd> [byte ...]
            scan auth-caps     # sessionless Get Channel Auth Caps
            scan asf-ping
-           scan cipher-suites
+           scan ciphers [--verify]
            scan all
 
 EXIT     0 on success; 1 on IPMI / transport error; 2 on usage error.
@@ -4669,8 +4669,14 @@ def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
 
 def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
     """Enumerate the BMC's advertised RMCP+ cipher suites via Get Channel
-    Cipher Suites (0x54). Sessionless, present channel."""
-    from .bmc_id import probe_cipher_suites, cipher_suite_algs
+    Cipher Suites (0x54). Sessionless, present channel.
+
+    With --verify, additionally send an UNAUTHENTICATED Open Session Request per
+    advertised suite (no RAKP, no creds, no access) to learn which it will
+    actually NEGOTIATE vs merely advertise — the advertise≠negotiate gap (e.g. a
+    BMC that lists xRC4 suites its crypto engine can't do and 0x11-rejects)."""
+    from .bmc_id import (probe_cipher_suites, cipher_suite_algs,
+                         probe_cipher_negotiation)
     host = _require_host(args)
     t = Transport(host=host, port=args.port, timeout=args.timeout)
     _apply_trace(t, args)
@@ -4680,20 +4686,31 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
         t.close()
     if not result or "error" in result:
         detail = result.get("error", "no reply") if result else "no reply"
-        _msg.error(f"cipher-suites {host}: {detail}")
+        _msg.error(f"ciphers {host}: {detail}")
         return 1
     suites = result["cipher_list"]
+    records = result.get("cipher_details", [])
+    verify = getattr(args, "verify", False)
+    negotiate = probe_cipher_negotiation(host, args.port, args.timeout, records) \
+        if verify else {}
     if emit(args, {"host": host, "suites": suites,
                    "cipher0": bool(result.get("cipher0")),
-                   "cipher_details": result.get("cipher_details", [])}):
+                   "cipher_details": records,
+                   "negotiate": negotiate or None}):
         return 0
-    print(f"cipher-suites {host}: [{', '.join(str(s) for s in suites) or '—'}]")
-    for rec in result.get("cipher_details", []):
+    print(f"ciphers {host}: [{', '.join(str(s) for s in suites) or '—'}]")
+    _neg_mark = {"negotiates": "✓ negotiates",
+                 "advertise-only": "⚠ advertise-only (won't negotiate)"}
+    for rec in records:
         oem = f"  (OEM IANA {rec['oem_iana']})" if rec.get("oem_iana") else ""
         warn = "  ⚠ CVE-2013-4783 (unauth access)" if rec["id"] == 0 else ""
-        print(f"  {rec['id']:>2}: {cipher_suite_algs(rec)}{oem}{warn}")
+        neg = ""
+        if verify:
+            st = negotiate.get(rec["id"], "?")
+            neg = f"  → {_neg_mark.get(st, st)}"
+        print(f"  {rec['id']:>2}: {cipher_suite_algs(rec)}{oem}{warn}{neg}")
     if result.get("cipher0"):
-        _msg.warn(f"cipher-suites {host}: cipher suite 0 advertised — "
+        _msg.warn(f"ciphers {host}: cipher suite 0 advertised — "
                   f"run 'scan cipher-zero' to confirm exploitability")
     return 0
 
@@ -4721,7 +4738,7 @@ def cmd_scan_all(args: argparse.Namespace) -> int:
     return _run_scan_steps(args, [
         ("asf-ping", cmd_scan_asf_ping),
         ("auth-caps", cmd_scan_auth_caps),
-        ("cipher-suites", cmd_scan_cipher_suites),
+        ("ciphers", cmd_scan_cipher_suites),
         ("user-matrix", cmd_user_matrix_list),
         ("cipher-zero", cmd_scan_cipher_zero),
     ])
@@ -4735,7 +4752,7 @@ def cmd_scan_unauth(args: argparse.Namespace) -> int:
     return _run_scan_steps(args, [
         ("asf-ping", cmd_scan_asf_ping),
         ("auth-caps", cmd_scan_auth_caps),
-        ("cipher-suites", cmd_scan_cipher_suites),
+        ("ciphers", cmd_scan_cipher_suites),
     ])
 
 
@@ -6237,14 +6254,20 @@ def build_parser() -> argparse.ArgumentParser:
     sc_sub = sc.add_subparsers(dest="action", required=True)
     for name, fn in [("asf-ping", cmd_scan_asf_ping),
                      ("auth-caps", cmd_scan_auth_caps),
-                     ("cipher-suites", cmd_scan_cipher_suites),
+                     ("ciphers", cmd_scan_cipher_suites),
                      ("cipher-zero", cmd_scan_cipher_zero),
                      ("unauth", cmd_scan_unauth),
                      ("all", cmd_scan_all)]:
+        kw = {"aliases": ["cipher-suites"]} if name == "ciphers" else {}
         s = sc_sub.add_parser(name, help={
+            "ciphers": "advertised RMCP+ cipher suites (--verify: which negotiate)",
             "unauth": "unauthenticated (sessionless) probes only",
             "all": "every probe (unauth + cipher-zero + user-matrix)",
-        }.get(name))
+        }.get(name), **kw)
+        if name == "ciphers":
+            s.add_argument("--verify", action="store_true",
+                           help="unauth Open Session probe per suite: negotiates vs "
+                                "advertise-only (no RAKP/creds/access)")
         s.set_defaults(func=fn)
 
     return p

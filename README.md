@@ -182,7 +182,8 @@ zipmi raw 0x06 0x01
 # Security probes
 zipmi scan asf-ping
 zipmi scan auth-caps
-zipmi scan cipher-suites             # enumerate advertised RMCP+ ciphers (0x54)
+zipmi scan ciphers                   # advertised RMCP+ ciphers (0x54)
+zipmi scan ciphers --verify          # + which the BMC actually NEGOTIATES (unauth Open Session probe)
 zipmi scan cipher-zero
 zipmi user-matrix list               # full user × channel privilege grid (audit)
 zipmi user-matrix list --json | jq '.channels'   # machine-readable

@@ -483,6 +483,62 @@ def probe_cipher_suites(t: Transport) -> dict | None:
     }
 
 
+def probe_cipher_negotiation(host: str, port: int, timeout: float,
+                             records: list[dict]) -> dict[int, str]:
+    """For each advertised cipher-suite record, ask the BMC whether it will
+    actually NEGOTIATE it — send one UNAUTHENTICATED RMCP+ Open Session Request
+    proposing that suite's (auth, integrity, conf) algorithm numbers and read the
+    Open Session Response status. No RAKP, no credentials, no session, no access:
+    this only tests whether the session engine accepts the algorithm *numbers*.
+
+        0x00 -> "negotiates"     would proceed to RAKP (the suite is real)
+        0x11 -> "advertise-only" no cipher-suite match (claimed but won't do it)
+        0x10 -> "bad-conf"       invalid confidentiality algorithm
+        else -> "0xNN"           other Open Session status
+        timeout / short reply -> "no-reply"
+
+    The advertise-vs-negotiate gap is real: a Supermicro X10 lists xRC4 suites its
+    crypto engine can't do and 0x11-rejects them. Returns {suite_id: status}."""
+    import socket as _socket
+    from ..scapy_ipmi.rakp import (
+        OpenSessionRequest, auth_payload, integrity_payload, conf_payload)
+
+    def _req(auth, integ, conf, rsid=0x0068ed6d):
+        osr = OpenSessionRequest(
+            msg_tag=0x00, max_priv=0x00, remote_session_id=rsid,
+            auth_payload=auth_payload(auth),
+            integrity_payload=integrity_payload(integ),
+            conf_payload=conf_payload(conf))
+        body = bytes(osr)
+        sess = bytes([0x06, 0x10]) + b"\x00" * 8 + len(body).to_bytes(2, "little") + body
+        return b"\x06\x00\xff\x07" + sess
+
+    out: dict[int, str] = {}
+    for rec in records:
+        sid = rec["id"]
+        if None in (rec.get("auth"), rec.get("integ"), rec.get("conf")):
+            out[sid] = "?"                               # malformed record — can't propose
+            continue
+        vlog(f"→ Open Session probe (unauth) suite {sid} "
+             f"({rec['auth']}/{rec['integ']}/{rec['conf']})")
+        s = _socket.socket(_socket.AF_INET, _socket.SOCK_DGRAM); s.settimeout(timeout)
+        try:
+            s.sendto(_req(rec["auth"], rec["integ"], rec["conf"]), (host, port))
+            r, _ = s.recvfrom(1024)
+        except (OSError, _socket.timeout):
+            out[sid] = "no-reply"; s.close(); continue
+        finally:
+            s.close()
+        # payload_type 0x11 = Open Session Response; status = payload byte 1
+        if len(r) >= 18 and r[5] == 0x11:
+            st = r[17]
+            out[sid] = {0x00: "negotiates", 0x11: "advertise-only",
+                        0x10: "bad-conf"}.get(st, f"0x{st:02x}")
+        else:
+            out[sid] = "no-reply"
+    return out
+
+
 def probe_active_v15(t: Transport) -> dict:
     """Active IPMI 1.5 reachability check via Get-Session-Challenge.
 

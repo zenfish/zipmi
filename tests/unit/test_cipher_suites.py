@@ -113,3 +113,63 @@ def test_xrc4_128_and_40_produce_different_ciphertext_same_iv():
     b128 = xrc4_encrypt(k2, pt, 2, iv=iv)[20:]
     b40 = xrc4_encrypt(k2, pt, 3, iv=iv)[20:]
     assert b128 != b40                            # different key length -> different keystream
+
+
+# === negotiate probe (scan ciphers --verify) — advertise vs negotiate ======
+
+def _osr_reply(status: int) -> bytes:
+    """Craft an Open Session Response with a given status (payload_type 0x11)."""
+    # RMCP(4) + auth_type(06) + ptype(11) + sid(4) + seq(4) + len(2) + tag + status
+    return (b"\x06\x00\xff\x07\x06\x11" + b"\x00" * 8 + b"\x07\x00"
+            + b"\x00" + bytes([status]))
+
+
+class _FakeSock:
+    """Socket that replays a scripted list of statuses, one per created socket."""
+    _queue: list = []
+
+    def __init__(self, *a, **k): self._status = self._queue.pop(0)
+    def settimeout(self, *_): pass
+    def sendto(self, *_): pass
+    def recvfrom(self, *_):
+        if self._status == "timeout":
+            import socket as s; raise s.timeout()
+        return _osr_reply(self._status), ("h", 0)
+    def close(self): pass
+
+
+def test_negotiate_probe_maps_statuses(monkeypatch):
+    import socket
+    from zipmi.cli.bmc_id import probe_cipher_negotiation
+    # advertised records: two negotiate (0x00), two advertise-only (0x11),
+    # one bad-conf (0x10), one timeout, one malformed (missing conf).
+    records = [
+        {"id": 3, "auth": 1, "integ": 1, "conf": 1},
+        {"id": 8, "auth": 2, "integ": 2, "conf": 1},
+        {"id": 9, "auth": 2, "integ": 2, "conf": 2},
+        {"id": 4, "auth": 1, "integ": 1, "conf": 2},
+        {"id": 13, "auth": 2, "integ": 3, "conf": 2},
+        {"id": 99, "auth": 2, "integ": 2, "conf": 2},
+        {"id": 7, "auth": 2, "integ": 2, "conf": None},   # malformed
+    ]
+    # the malformed record is skipped (no socket), so scripts align to the rest:
+    _FakeSock._queue = [0x00, 0x00, 0x11, 0x11, 0x10, "timeout"]
+    monkeypatch.setattr(socket, "socket", _FakeSock)
+    out = probe_cipher_negotiation("h", 623, 1.0, records)
+    assert out == {
+        3: "negotiates", 8: "negotiates",
+        9: "advertise-only", 4: "advertise-only",
+        13: "bad-conf", 99: "no-reply", 7: "?",
+    }
+
+
+def test_negotiate_probe_advertise_only_distinct_from_negotiate(monkeypatch):
+    # mutation guard: 0x00 and 0x11 must NOT collapse to the same label
+    import socket
+    from zipmi.cli.bmc_id import probe_cipher_negotiation
+    _FakeSock._queue = [0x00, 0x11]
+    monkeypatch.setattr(socket, "socket", _FakeSock)
+    out = probe_cipher_negotiation("h", 623, 1.0,
+                                   [{"id": 1, "auth": 1, "integ": 0, "conf": 0},
+                                    {"id": 2, "auth": 1, "integ": 1, "conf": 0}])
+    assert out[1] != out[2]
