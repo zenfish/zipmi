@@ -91,17 +91,44 @@ def ascii_or_none(data: bytes) -> str | None:
     return None
 
 
-def ascii_hint(data: bytes, *, stream=None) -> str | None:
-    """If `data` decodes to a printable ASCII string, emit it as an `[info]`
-    line (on stderr) and return it; else do nothing and return None.
+def hex_dump_lines(data: bytes, *, width: int = 16, base: int = 0) -> list[str]:
+    """hexdump-style two-line-per-row view: a hex row and, directly under it,
+    an ASCII row (printable byte -> its char, non-printable -> '.'), aligned
+    per byte. Returns a flat list [hex, ascii, hex, ascii, ...], `width` bytes
+    per row, with a 4-hex offset column.
 
-    Pairs with a raw-hex line printed to stdout: the hex stays pipeable/greppable
-    on stdout, the human-readable decode rides stderr as a diagnostic hint.
+        0000  00 33 41 42 34
+               .  3  A  B  4
+    """
+    lines: list[str] = []
+    for off in range(0, len(data), width):
+        chunk = data[off:off + width]
+        hexs = " ".join(f"{b:02x}" for b in chunk)
+        # right-align each char to 2 cols so it sits under the byte's low nibble
+        ascs = " ".join(f"{(chr(b) if 0x20 <= b <= 0x7E else '.'):>2}" for b in chunk)
+        lines.append(f"{base + off:04x}  {hexs}")
+        lines.append(f"{'':6}{ascs}")
+    return lines
+
+
+def ascii_hint(data: bytes, *, stream=None) -> str | None:
+    """Surface a human-readable view of a raw response on stderr as `[info]`
+    line(s), leaving the pipeable hex untouched on stdout. Decode ladder:
+
+      * fully printable ASCII (trailing NUL/pad ignored) -> one decoded string
+      * partly printable (mixed text+binary)             -> hexdump two-line view
+      * pure binary (no printable byte) / <2 bytes       -> nothing (hex row suffices)
+
+    Returns the decoded string when the first rung fired, else None.
     """
     s = ascii_or_none(data)
     if s is not None:
         info(s, stream=stream)
-    return s
+        return s
+    if len(data) >= 2 and any(0x20 <= b <= 0x7E for b in data):
+        for ln in hex_dump_lines(data):
+            info(ln, stream=stream)
+    return None
 
 
 if __name__ == "__main__":  # self-check: python -m zipmi._msg
@@ -114,4 +141,9 @@ if __name__ == "__main__":  # self-check: python -m zipmi._msg
     assert ascii_or_none(b"A") is None                        # single char = noise
     assert ascii_or_none(b"") is None                         # empty
     assert ascii_or_none(b"1.2.3") == "1.2.3"                 # version string
-    print("ascii_or_none self-check OK")
+    # hexdump fallback: hex row + aligned ascii/dot row
+    hd = hex_dump_lines(bytes([0x00, 0x33, 0x41, 0x42, 0x34]))
+    assert hd == ["0000  00 33 41 42 34", "       .  3  A  B  4"], hd
+    # ascii_hint on pure binary emits nothing (returns None, no dump)
+    assert ascii_hint(b"\x00\x01") is None
+    print("_msg self-check OK")
