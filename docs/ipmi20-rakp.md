@@ -76,10 +76,11 @@ a Supermicro X10 (the `vbmc x10` box): `-C 11` and `-C 12` establish full sessio
 **xRC4 confidentiality (conf 2/3)** — suites 4,5,9,10,13,14,18,19. `KRC = MD5(K2 ‖ IV)`
 (xRC4-128 uses all 16 bytes, xRC4-40 the top 5); confidentiality header =
 4-byte data-offset + 16-byte IV (IV present only at offset 0); no trailer
-(§13.30). zipmi is the **first open-source xRC4 implementation** — ipmitool
-`assert`s AES-only, FreeIPMI has it as a `TODO`, and Supermicro's own `libipmicrypt`
-*advertises* suites 4,5,9,10,13,14,18,19 while carrying **no `rc4` symbol at all** (so it
-`0x11`-rejects them at Open Session). Every stack examined skips it.
+(§13.30). Every stack we examined skips xRC4 — ipmitool `assert`s AES-only,
+FreeIPMI has it as a `TODO`, and Supermicro's own `libipmicrypt` *advertises*
+suites 4,5,9,10,13,14,18,19 while carrying **no `rc4` symbol at all** (so it
+`0x11`-rejects them at Open Session). So this may be the only working xRC4 impl —
+but we didn't survey everything, so treat that as unconfirmed, not a claim.
 
 > **Still hunting a BMC that actually negotiates xRC4 to validate against.** If
 > yours does, please test it and let us know:

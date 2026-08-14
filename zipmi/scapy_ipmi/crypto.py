@@ -342,9 +342,11 @@ def aes_decrypt(k2: bytes, body: bytes) -> bytes:
 
 
 # -- xRC4 confidentiality (§13.30, conf alg 2/3) --------------------------
-# THE FIRST OPEN-SOURCE xRC4 IMPLEMENTATION. ipmitool skips it; FreeIPMI lists it
-# TODO; no BMC-side stack in the reference trees implements it. Construction is
-# per IPMI 2.0 §13.30 + §13.30.2:
+# Every stack we actually looked at skips xRC4: ipmitool asserts AES-only,
+# FreeIPMI lists it TODO, Peppercon/Avocent embeds ipmitool, Supermicro's
+# libipmicrypt has no rc4 symbol. So this may be the only working implementation —
+# but we didn't survey everything (OpenIPMI, xCAT, vendor firmware at large are
+# unchecked), so that's unconfirmed, not a claim. Construction per §13.30 + §13.30.2:
 #
 #   KRC = MD5(K2 || IV)             K2 = derived confidentiality key (same as AES)
 #   xRC4-128: RC4 key = KRC (full 16 bytes)
