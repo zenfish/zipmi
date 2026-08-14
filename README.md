@@ -2,6 +2,8 @@
 
 Scapy-based IPMI library, CLI, and virtual BMC for security research.
 
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 standard commands implemented · 44 with Scapy packet classes.
+
 <details open>
 <summary><h2>What</h2></summary>
 
