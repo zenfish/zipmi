@@ -61,7 +61,7 @@ the RC4/MD5 suites that **ipmitool and FreeIPMI never implemented**:
 |--------|-------------------------|--------|
 | 0–3, 6–8, 15–17 | none/SHA1/MD5/SHA256, none·AES | verified (baseline) |
 | **11, 12** | HMAC-MD5 / **MD5-128 (alg 3)** / none·AES | **oracle-verified** ✓ |
-| **4, 5, 9, 10, 13, 14, 18, 19** | … / **xRC4-128/40 (conf 2/3)** | spec-faithful, **unvalidated** ⚠ |
+| **4, 5, 9, 10, 13, 14, 18, 19** | … / **xRC4-128/40 (conf 2/3)** | spec-faithful; **self-tested vs zipmi's vBMC**, no hardware yet ⚠ |
 
 (15 = SHA256/none/none, 16 = SHA256/SHA256-128/none, 17 = …/AES, 18 = …/xRC4-128,
 19 = …/xRC4-40 — mirroring the SHA1 block 1–5.)
@@ -82,8 +82,11 @@ suites 4,5,9,10,13,14,18,19 while carrying **no `rc4` symbol at all** (so it
 `0x11`-rejects them at Open Session). So this may be the only working xRC4 impl —
 but we didn't survey everything, so treat that as unconfirmed, not a claim.
 
-> **Still hunting a BMC that actually negotiates xRC4 to validate against.** If
-> yours does, please test it and let us know:
+> **Tested end-to-end against zipmi's own vBMC** (`zipmi vbmc serve`) — suites
+> 4,5,9,18,19 all establish and round-trip an encrypted command. That proves the
+> *wiring* is self-consistent (client and vBMC share the construction), **not** the
+> spec: a wrong `KRC`/framing would pass both sides. **Still hunting a real BMC
+> that negotiates xRC4** for an independent check. If yours does, please test it:
 >
 > ```
 > zipmi -C 4 -H <bmc-ip> -U <user> -P <pass> mc info    # xRC4-128 (sha1)

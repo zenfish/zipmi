@@ -37,9 +37,10 @@ from ..scapy_ipmi.commands import GetSessionChallengeReq
 from ..scapy_ipmi.crypto import (
     CIPHER_SUITES,
     derive_k1, derive_k2, derive_sik,
-    integrity_hmac,
+    integrity_hmac, integrity_md5_128,
     rakp2_authcode, rakp4_icv,
     aes_encrypt, aes_decrypt,
+    xrc4_encrypt, xrc4_decrypt,
 )
 from ..scapy_ipmi.ipmi15 import IPMI_Message, IPMI15_Session
 from ..scapy_ipmi.ipmi20 import IPMI20_Session
@@ -392,6 +393,8 @@ class VBMC(asyncio.DatagramProtocol):
         body = bytes(raw_layer.load)[: sess.payload_length]
         if sess.encrypted and cs.conf_alg == 1:
             ipmb_bytes = aes_decrypt(s20.k2, body)
+        elif sess.encrypted and cs.conf_alg in (2, 3):
+            ipmb_bytes = xrc4_decrypt(s20.k2, body, cs.conf_alg)
         else:
             ipmb_bytes = body
         # Manually carve IPMB.
@@ -425,6 +428,8 @@ class VBMC(asyncio.DatagramProtocol):
         seq = s20.inbound_seq
         if cs.conf_alg == 1:
             conf_body = aes_encrypt(s20.k2, resp_ipmb)
+        elif cs.conf_alg in (2, 3):
+            conf_body = xrc4_encrypt(s20.k2, resp_ipmb, cs.conf_alg)
         else:
             conf_body = resp_ipmb
         out_sess = IPMI20_Session(
@@ -440,7 +445,12 @@ class VBMC(asyncio.DatagramProtocol):
         pad_len = (-n) % 4
         ipad = b"\xFF" * pad_len + bytes([pad_len]) + b"\x07"
         covered = sess_bytes + ipad
-        mac = integrity_hmac(cs, s20.k1, covered) if cs.integrity_alg else b""
+        if cs.integrity_alg == 3:                        # MD5-128: keyed on password
+            mac = integrity_md5_128(self.state.persona.password, covered)
+        elif cs.integrity_alg:
+            mac = integrity_hmac(cs, s20.k1, covered)
+        else:
+            mac = b""
         wire = bytes(RMCP(msg_class=0x07)) + covered + mac
         return [wire]
 
