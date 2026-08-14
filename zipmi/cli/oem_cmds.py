@@ -1134,18 +1134,19 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     with _open_session(args) as s:
         cc, resp = s.send_raw(netfn, cmd, data_bytes)
 
-    print(f"# {info['name']}  (NetFn 0x{netfn:02x} cmd 0x{cmd:02x})",
-          file=sys.stderr)
+    _msg.info(f"{info['name']}  (NetFn 0x{netfn:02x} cmd 0x{cmd:02x})")
     if cc != 0:
         cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
         _msg.error(f"completion code: {cc_name}")
         _suggest_for_cc(cc, netfn, cmd, info, vendor)
         return 1
     if emit(args, {"vendor": vendor, "netfn": netfn, "cmd": cmd,
-                   "name": info["name"], "cc": cc, "data": resp.hex()}):
+                   "name": info["name"], "cc": cc, "data": resp.hex(),
+                   "ascii": _msg.ascii_or_none(resp)}):
         return 0
     if resp:
-        print(" ".join(f"{b:02x}" for b in resp))
+        print(" ".join(f"{b:02x}" for b in resp))   # raw hex -> stdout (pipeable)
+        _msg.ascii_hint(resp)                        # decoded string -> stderr [info]
     return 0
 
 

@@ -68,3 +68,50 @@ def error(msg: str, *, stream=None) -> None:
 
 def ok(msg: str, *, stream=None) -> None:
     emit("ok", msg, stream=stream)
+
+
+def ascii_or_none(data: bytes) -> str | None:
+    """Return `data` decoded as ASCII if it is a printable string (allowing
+    trailing NUL / 0xFF / whitespace padding), else None.
+
+    Purpose: many IPMI/OEM responses are plain strings — firmware build tags
+    (`BL_SUPERMICRO_X7SB3_2014-04-18_B`), version strings, asset/name fields —
+    that the CLI otherwise surfaces only as a hex row. Decoding it next to the
+    hex saves the manual `hex -> ascii` step. Conservative on purpose: decodes
+    only when EVERY non-padding byte is printable ASCII, so binary/status
+    responses (a lone 0x00, a bitmask, a struct) are left as hex, not mojibake.
+    """
+    if not data:
+        return None
+    trimmed = data.rstrip(b"\x00\xff \t\r\n")
+    if len(trimmed) < 2:                       # a lone char is noise, not a string
+        return None
+    if all(0x20 <= b <= 0x7E for b in trimmed):
+        return trimmed.decode("ascii")
+    return None
+
+
+def ascii_hint(data: bytes, *, stream=None) -> str | None:
+    """If `data` decodes to a printable ASCII string, emit it as an `[info]`
+    line (on stderr) and return it; else do nothing and return None.
+
+    Pairs with a raw-hex line printed to stdout: the hex stays pipeable/greppable
+    on stdout, the human-readable decode rides stderr as a diagnostic hint.
+    """
+    s = ascii_or_none(data)
+    if s is not None:
+        info(s, stream=stream)
+    return s
+
+
+if __name__ == "__main__":  # self-check: python -m zipmi._msg
+    assert ascii_or_none(bytes.fromhex(
+        "424c5f53555045524d4943524f5f5837534233"
+        "5f323031342d30342d31385f42")) == "BL_SUPERMICRO_X7SB3_2014-04-18_B"
+    assert ascii_or_none(b"OK\x00\x00\x00") == "OK"          # trailing NUL pad stripped
+    assert ascii_or_none(b"\x00") is None                     # lone binary byte
+    assert ascii_or_none(b"\x01\x02\x03\x04") is None         # binary struct
+    assert ascii_or_none(b"A") is None                        # single char = noise
+    assert ascii_or_none(b"") is None                         # empty
+    assert ascii_or_none(b"1.2.3") == "1.2.3"                 # version string
+    print("ascii_or_none self-check OK")

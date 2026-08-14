@@ -4571,10 +4571,12 @@ def cmd_raw(args: argparse.Namespace) -> int:
         _msg.error(f"completion code: {cc_name}")
         return 1
     if emit(args, {"netfn": netfn, "cmd": cmd, "name": name,
-                   "cc": cc, "data": resp.hex()}):
+                   "cc": cc, "data": resp.hex(),
+                   "ascii": _msg.ascii_or_none(resp)}):
         return 0
     if resp:
-        print(" ".join(f"{b:02x}" for b in resp))
+        print(" ".join(f"{b:02x}" for b in resp))   # raw hex -> stdout (pipeable)
+        _msg.ascii_hint(resp)                        # decoded string -> stderr [info]
     return 0
 
 
