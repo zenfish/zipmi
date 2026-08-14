@@ -2660,6 +2660,57 @@ def cmd_maser_set(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_supermicro_fwdump(args: argparse.Namespace, out_path: str) -> int:
+    """Supermicro ATEN/AlUpdate firmware dump over IPMI — NetFn 0x3e cmds
+    0x1d/0x1e/0x1f. Start (0x1d: BMC dd's /dev/mtdblockN -> /tmp/dump_flash),
+    poll (0x1e: returns 0x01 + 24-bit BE size when ready), then stream 55-byte
+    chunks (0x1f) until the reported size is drained; reassemble to `out_path`.
+
+    X10-X13 (ASPEED AST2300/2400, smcipmi/ATEN stack) only — X14 is OpenBMC and
+    lacks it (0xc1). Vendor-supported firmware exfil; where the box allows
+    cipher-0 it is reachable pre-auth."""
+    import time
+    with _open_session(args) as s:
+        cc, _ = s.send_raw(0x3E, 0x1D, b"")                  # FwDumpStart
+        if cc != 0x00:
+            _msg.error(f"FwDumpStart (0x3e/0x1d): cc=0x{cc:02x} "
+                       "(not an ATEN/X10-X13 BMC?)")
+            return 1
+        size = None
+        for _ in range(120):                                 # poll ~60s
+            cc, d = s.send_raw(0x3E, 0x1E, b"")              # FwDumpStatus
+            if cc == 0x00 and len(d) >= 4 and d[0] == 0x01:
+                size = (d[1] << 16) | (d[2] << 8) | d[3]     # 24-bit BE
+                break
+            time.sleep(0.5)
+        if size is None:
+            _msg.error("FwDumpStatus (0x3e/0x1e): dump never reported ready")
+            return 1
+        buf = bytearray()
+        while len(buf) < size:
+            cc, chunk = s.send_raw(0x3E, 0x1F, b"")          # FwDumpRead (55B)
+            if cc != 0x00 or not chunk:
+                break
+            buf += chunk
+            if not getattr(args, "json", False):
+                print(f"\r  {len(buf)}/{size} bytes", end="", flush=True)
+    if not getattr(args, "json", False):
+        print()
+    complete = len(buf) >= size
+    buf = buf[:size]                    # last chunk may overshoot; trim to size
+    with open(out_path, "wb") as f:
+        f.write(buf)
+    result = {"ok": complete, "action": "supermicro-fwdump",
+              "reported_size": size, "bytes_read": len(buf), "out": out_path}
+    if emit(args, result):
+        return 0 if complete else 1
+    if complete:
+        _msg.ok(f"Supermicro firmware dumped: {len(buf)} bytes -> {out_path}")
+    else:
+        _msg.warn(f"partial dump: {len(buf)}/{size} bytes -> {out_path}")
+    return 0 if complete else 1
+
+
 _SYSINFO_PARAMS = {
     1: "system-fw-version",
     2: "hostname",

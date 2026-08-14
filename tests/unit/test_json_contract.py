@@ -1411,3 +1411,33 @@ def test_firewall_set_sub_enables_req(monkeypatch):
     assert rc == 0
     assert s.sent == [(0x06, 0x62, bytes([0x0E, 0x06, 0x01, 0x00, 0x03]))]
     assert d["mask"] == "03"
+
+
+# === Supermicro fwdump (ATEN 0x3e/0x1d-1f exfil orchestration) ===========
+
+def test_supermicro_fwdump_loop(monkeypatch, tmp_path):
+    """start(0x1d)->status(0x1e ready+size)->stream(0x1f 55B chunks)->reassemble.
+    Size 110 = exactly two 55-byte chunks; file must reassemble to that."""
+    import zipmi.cli.zipmi as Z
+    from zipmi.cli.zipmi import cmd_supermicro_fwdump
+    chunk = bytes(range(55))
+    s = _S({(0x3E, 0x1D): (0x00, b""),                       # FwDumpStart ok
+            (0x3E, 0x1E): (0x00, bytes([0x01, 0x00, 0x00, 110])),  # ready, size 110
+            (0x3E, 0x1F): (0x00, chunk)})                    # 55B per read
+    monkeypatch.setattr(Z, "_open_session", lambda a: s)
+    out = tmp_path / "fw.bin"
+    rc = cmd_supermicro_fwdump(argparse.Namespace(json=False, host="x"), str(out))
+    assert rc == 0
+    assert out.read_bytes() == (chunk + chunk)[:110]         # reassembled, trimmed
+    issued = [(n, c) for n, c, _ in s.sent]
+    assert (0x3E, 0x1D) in issued and (0x3E, 0x1E) in issued and (0x3E, 0x1F) in issued
+
+
+def test_supermicro_fwdump_start_rejected(monkeypatch, tmp_path):
+    """Non-ATEN BMC (0x1d -> 0xc1) fails clean, writes nothing, rc=1."""
+    import zipmi.cli.zipmi as Z
+    from zipmi.cli.zipmi import cmd_supermicro_fwdump
+    monkeypatch.setattr(Z, "_open_session", lambda a: _S({(0x3E, 0x1D): (0xC1, b"")}))
+    out = tmp_path / "fw.bin"
+    rc = cmd_supermicro_fwdump(argparse.Namespace(json=False, host="x"), str(out))
+    assert rc == 1 and not out.exists()

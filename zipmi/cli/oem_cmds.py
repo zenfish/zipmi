@@ -1073,6 +1073,14 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
         _msg.error(f"unknown maser action {action!r} — use get | set")
         return 2
 
+    # `oem supermicro fwdump [outfile]` — orchestrate the ATEN 0x3e/0x1d-1f
+    # firmware exfil (start -> poll size -> stream chunks -> reassemble).
+    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14") and \
+            cmd_name.lower() == "fwdump":
+        from .zipmi import cmd_supermicro_fwdump
+        out = raw_data[0] if raw_data else "flash.bin"
+        return cmd_supermicro_fwdump(args, out)
+
     # Resolve name → (netfn, cmd).
     try:
         listing = _vendor_listing(vendor)

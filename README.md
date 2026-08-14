@@ -301,6 +301,12 @@ zipmi oem                                        # list vendors
 zipmi idrac6                                      # list iDRAC6's 192 cmds (RE'd from fullfw)
 zipmi -H <bmc> dell GetChassisStatus              # run by name (substring match)
 zipmi -H <bmc> oem supermicro UtilRestoreConfig   # `oem <vendor>` form
+zipmi -H <bmc> oem idrac9 maser get               # structured OEM sub-verb (get/set)
+zipmi -H <bmc> oem supermicro fwdump flash.bin    # dump X10-X13 firmware over IPMI
+
+# Firmware/bus access: IPMI reaches I2C/SMBus (Master Write-Read: i2c/i2cscan/
+# spd) but NOT SPI/eSPI. SPI flash is only reachable via vendor OEM dump cmds
+# (the BMC dd's its own flash) — see docs/firmware-and-bus-access.md.
 
 # Multi-word command names MUST be quoted (the shell would otherwise pass
 # each word as a separate arg, and the trailing words become data bytes):
