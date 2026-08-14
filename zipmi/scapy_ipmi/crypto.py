@@ -204,6 +204,29 @@ CIPHER_SUITES: dict[int, CipherSuite] = {
 # Verified byte-for-byte against ipmitool -I lanplus -C 3 oracle pcap vs
 # Dell iDRAC6, 2026-05-01.
 
+def rakp2_hmac_input(
+    sid_c: int,
+    sid_m: int,
+    rc: bytes,
+    rm: bytes,
+    guid_m: bytes,
+    role: int,
+    user_name: bytes,
+) -> bytes:
+    """The byte string the BMC keys-HMACs to produce the RAKP2 auth code (§13.22).
+
+    Single source of truth for this layout: `rakp2_authcode` HMACs it to verify
+    the BMC, and the RAKP2 hash-grabber uses it verbatim as the hashcat salt.
+    Keep them sharing this so an emitted salt always matches what we verify."""
+    return (
+        sid_c.to_bytes(4, "little")
+        + sid_m.to_bytes(4, "little")
+        + rc + rm + guid_m
+        + bytes([role, len(user_name)])
+        + user_name
+    )
+
+
 def rakp2_authcode(
     cipher: CipherSuite,
     password: bytes | str,
@@ -219,13 +242,7 @@ def rakp2_authcode(
     h = cipher.auth_hash
     if h is None:
         return b""
-    msg = (
-        sid_c.to_bytes(4, "little")
-        + sid_m.to_bytes(4, "little")
-        + rc + rm + guid_m
-        + bytes([role, len(user_name)])
-        + user_name
-    )
+    msg = rakp2_hmac_input(sid_c, sid_m, rc, rm, guid_m, role, user_name)
     return _hmac.new(pad_password(password), msg, h).digest()
 
 

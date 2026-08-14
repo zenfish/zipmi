@@ -100,6 +100,21 @@ def test_rakp2_authcode_oracle():
     assert got == expected
 
 
+def test_grab_salt_reproduces_crack():
+    """The hash-grabber's salt (rakp2_hmac_input) must, HMAC'd with the password,
+    reproduce the RAKP2 auth code for every algo — else the emitted hashcat line
+    won't crack. Guards the shared salt layout across crypto + the grabber."""
+    import hmac as _hmac
+    from zipmi.scapy_ipmi.crypto import rakp2_hmac_input, pad_password
+    from zipmi.core import Session
+    salt = rakp2_hmac_input(SID_C, SID_M, RC, RM, GUIDM, ROLE, UNAME)
+    for _alg, _name, suite, *_ in Session._RAKP_HASH_ALGOS:
+        cs = CIPHER_SUITES[suite]
+        mine = _hmac.new(pad_password(PW), salt, cs.auth_hash).digest()
+        oracle = rakp2_authcode(cs, PW, SID_C, SID_M, RC, RM, GUIDM, ROLE, UNAME)
+        assert mine == oracle, f"salt layout wrong for {_name}"
+
+
 def test_rakp3_authcode_oracle():
     cs = CIPHER_SUITES[3]
     expected = bytes.fromhex("d5d7624b1bab807db28c520f9df3d006d4518c31")

