@@ -20,18 +20,25 @@ from zipmi.scapy_ipmi.crypto import (
 
 # === suite registration ====================================================
 
-def test_all_standard_suites_0_through_14_plus_17_registered():
-    for sid in list(range(0, 15)) + [17]:
+def test_all_standard_suites_0_through_19_registered():
+    for sid in range(0, 20):                      # 0-19 are all standard (15-19 = SHA256)
         assert sid in CIPHER_SUITES, f"suite {sid} missing"
 
 
 @pytest.mark.parametrize("sid,triple", {
     4:  (1, 1, 2), 5:  (1, 1, 3), 9:  (2, 2, 2), 10: (2, 2, 3),
     11: (2, 3, 0), 12: (2, 3, 1), 13: (2, 3, 2), 14: (2, 3, 3),
+    15: (3, 0, 0), 16: (3, 4, 0), 18: (3, 4, 2), 19: (3, 4, 3),   # SHA256 family (Errata 4)
 }.items())
 def test_new_suite_algorithm_triples(sid, triple):
     cs = CIPHER_SUITES[sid]
     assert (cs.auth_alg, cs.integrity_alg, cs.conf_alg) == triple
+
+
+def test_all_xrc4_suites_registered():
+    # xRC4 confidentiality spans all three auth families: sha1, md5, sha256.
+    xrc4 = [s for s, cs in CIPHER_SUITES.items() if cs.conf_alg in (2, 3)]
+    assert sorted(xrc4) == [4, 5, 9, 10, 13, 14, 18, 19]
 
 
 def test_integrity_alg3_truncate_is_full_16():

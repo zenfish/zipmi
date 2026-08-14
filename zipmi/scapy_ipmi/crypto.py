@@ -172,8 +172,9 @@ class CipherSuite:
         return {0: 0, 1: 12, 2: 16, 3: 16, 4: 16}[self.integrity_alg]
 
 
-# Full table per IPMI 2.0 §13.28 Table 13-21. Values 0..14 standard;
-# 15..63 reserved; 64..255 OEM. Only suites we care about are spelled out.
+# Full standard table per IPMI 2.0 §22.15.2 (Table 22-20). Suites 0..19 are all
+# standard: 15-19 are the SHA256 family added by Errata 4 (SHA256/SHA256-128 in
+# place of SHA1/SHA1-96). 20..63 reserved; 64..255 OEM.
 CIPHER_SUITES: dict[int, CipherSuite] = {
     0:  CipherSuite(0,  0, 0, 0),    # none/none/none — cipher zero!
     1:  CipherSuite(1,  1, 0, 0),    # HMAC-SHA1 / none / none
@@ -190,7 +191,11 @@ CIPHER_SUITES: dict[int, CipherSuite] = {
     12: CipherSuite(12, 2, 3, 1),    # HMAC-MD5  / MD5-128 / AES-CBC-128
     13: CipherSuite(13, 2, 3, 2),    # HMAC-MD5  / MD5-128 / xRC4-128
     14: CipherSuite(14, 2, 3, 3),    # HMAC-MD5  / MD5-128 / xRC4-40
+    15: CipherSuite(15, 3, 0, 0),    # HMAC-SHA256 / none / none
+    16: CipherSuite(16, 3, 4, 0),    # HMAC-SHA256 / HMAC-SHA256-128 / none
     17: CipherSuite(17, 3, 4, 1),    # HMAC-SHA256 / HMAC-SHA256-128 / AES-CBC-128
+    18: CipherSuite(18, 3, 4, 2),    # HMAC-SHA256 / HMAC-SHA256-128 / xRC4-128
+    19: CipherSuite(19, 3, 4, 3),    # HMAC-SHA256 / HMAC-SHA256-128 / xRC4-40
 }
 
 

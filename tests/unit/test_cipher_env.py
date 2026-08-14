@@ -59,7 +59,7 @@ def test_unsupported_cipher_exits(monkeypatch, bad):
 def test_unsupported_flag_exits(monkeypatch):
     monkeypatch.delenv("ZIPMI_CIPHER", raising=False)
     with pytest.raises(SystemExit) as e:
-        _resolve(["-C", "15", "mc", "info"])  # 15 is reserved — not in CIPHER_SUITES
+        _resolve(["-C", "20", "mc", "info"])  # 20 is reserved — not in CIPHER_SUITES
     assert e.value.code == 2
 
 

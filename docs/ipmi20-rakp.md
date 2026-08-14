@@ -51,17 +51,20 @@ Close Session                      -->
 
 Cipher suite IDs and combos live in `zipmi.scapy_ipmi.crypto.CIPHER_SUITES`.
 
-## Full standard suite coverage (0–14, 17)
+## Full standard suite coverage (0–19)
 
-zipmi implements **every standard cipher suite 0–14 plus 17** — including the
-RC4/MD5 suites that **ipmitool and FreeIPMI never implemented**:
+zipmi implements **every standard cipher suite 0–19** — the SHA1 family (0–5), the
+MD5 families (6–14), and the **SHA256 family (15–19)** added by Errata 4 — including
+the RC4/MD5 suites that **ipmitool and FreeIPMI never implemented**:
 
 | Suites | Auth / Integrity / Conf | Status |
 |--------|-------------------------|--------|
-| 0–3, 17 | none/SHA1/SHA256 families, AES | verified (baseline) |
-| 6, 7, 8 | HMAC-MD5 / HMAC-MD5-128 / none·AES | verified |
+| 0–3, 6–8, 15–17 | none/SHA1/MD5/SHA256, none·AES | verified (baseline) |
 | **11, 12** | HMAC-MD5 / **MD5-128 (alg 3)** / none·AES | **oracle-verified** ✓ |
-| **4, 5, 9, 10, 13, 14** | … / **xRC4-128/40 (conf 2/3)** | spec-faithful, **unvalidated** ⚠ |
+| **4, 5, 9, 10, 13, 14, 18, 19** | … / **xRC4-128/40 (conf 2/3)** | spec-faithful, **unvalidated** ⚠ |
+
+(15 = SHA256/none/none, 16 = SHA256/SHA256-128/none, 17 = …/AES, 18 = …/xRC4-128,
+19 = …/xRC4-40 — mirroring the SHA1 block 1–5.)
 
 **MD5-128 integrity (alg 3)** — used by suites 11–14. Unlike the HMAC integrity
 algorithms (keyed with the SIK-derived K1), it is a plain keyed MD5 over the
@@ -70,12 +73,12 @@ algorithms (keyed with the SIK-derived K1), it is a plain keyed MD5 over the
 and the `MD5_128` symbol in Supermicro's own `libipmicrypt`. Verified live against
 a Supermicro X10 (the `vbmc x10` box): `-C 11` and `-C 12` establish full sessions.
 
-**xRC4 confidentiality (conf 2/3)** — suites 4,5,9,10,13,14. `KRC = MD5(K2 ‖ IV)`
+**xRC4 confidentiality (conf 2/3)** — suites 4,5,9,10,13,14,18,19. `KRC = MD5(K2 ‖ IV)`
 (xRC4-128 uses all 16 bytes, xRC4-40 the top 5); confidentiality header =
 4-byte data-offset + 16-byte IV (IV present only at offset 0); no trailer
 (§13.30). zipmi is the **first open-source xRC4 implementation** — ipmitool
 `assert`s AES-only, FreeIPMI has it as a `TODO`, and Supermicro's own `libipmicrypt`
-*advertises* suites 4,5,9,10,13,14 while carrying **no `rc4` symbol at all** (so it
+*advertises* suites 4,5,9,10,13,14,18,19 while carrying **no `rc4` symbol at all** (so it
 `0x11`-rejects them at Open Session). Every stack examined skips it.
 
 > **Still hunting a BMC that actually negotiates xRC4 to validate against.** If
