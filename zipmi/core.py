@@ -42,6 +42,9 @@ from .scapy_ipmi.crypto import (
     derive_k2,
     derive_sik,
     integrity_hmac,
+    integrity_md5_128,
+    xrc4_encrypt,
+    xrc4_decrypt,
     md5_auth_code,
     pad_password,
     rakp2_authcode,
@@ -72,6 +75,21 @@ AUTH_MD2 = 0x01
 AUTH_MD5 = 0x02
 AUTH_STRAIGHT = 0x04
 AUTH_RMCP_PLUS = 0x06   # IPMI 2.0 lanplus marker
+
+# RMCP+ Open Session Response status codes (§13.17 Table 13-15). Turns a
+# rejection into a readable reason instead of a cryptic "bad reply".
+_OPEN_SESS_STATUS = {
+    0x00: "no errors", 0x01: "insufficient resources", 0x02: "invalid session ID",
+    0x03: "invalid payload type", 0x04: "invalid authentication algorithm",
+    0x05: "invalid integrity algorithm", 0x06: "no matching auth payload",
+    0x07: "no matching integrity payload", 0x08: "inactive session ID",
+    0x09: "invalid role", 0x0A: "unauthorized role/privilege",
+    0x0B: "insufficient resources for role", 0x0C: "invalid name length",
+    0x0D: "unauthorized name", 0x0E: "unauthorized GUID",
+    0x0F: "invalid integrity check value", 0x10: "invalid confidentiality algorithm",
+    0x11: "no cipher-suite match with proposed algorithms",
+    0x12: "illegal/unrecognized parameter",
+}
 
 
 class IPMIError(RuntimeError):
@@ -697,10 +715,24 @@ class Session:
         )
         reply = self._send_lanplus_outside_session(0x10, bytes(osr))
         if not reply.haslayer(OpenSessionResponse):
+            # A rejection carries only tag+status+priv+rsvd+sid (no algorithm
+            # records), so the full OpenSessionResponse dissector produces no
+            # layer. Pull the status byte out of the raw payload and report it —
+            # e.g. status 0x11 (no cipher-suite match) when a BMC advertises a
+            # suite in Get Channel Cipher Suites but its RMCP+ engine won't
+            # actually establish it (seen with xRC4 on Supermicro X10).
+            from scapy.packet import Raw as _Raw
+            sess = reply.getlayer(IPMI20_Session)
+            raw = bytes(sess.getlayer(_Raw).load) if sess and sess.getlayer(_Raw) else b""
+            if sess is not None and sess.payload_type == 0x11 and len(raw) >= 2:
+                st = raw[1]
+                raise IPMIError(f"Open Session: status 0x{st:02x} "
+                                f"({_OPEN_SESS_STATUS.get(st, 'unknown')})")
             raise IPMIError("Open Session: bad reply")
         ores = reply[OpenSessionResponse]
         if ores.rmcp_status != 0:
-            raise IPMIError(f"Open Session: status 0x{ores.rmcp_status:02x}")
+            raise IPMIError(f"Open Session: status 0x{ores.rmcp_status:02x} "
+                            f"({_OPEN_SESS_STATUS.get(ores.rmcp_status, 'unknown')})")
         managed_sid = ores.managed_session_id
 
         # 2. RAKP1 → RAKP2 (verify BMC's auth code).
@@ -793,6 +825,9 @@ class Session:
         if cs.conf_alg == 1:
             conf_body = aes_encrypt(self.k2, payload)
             encrypted_bit = 1
+        elif cs.conf_alg in (2, 3):                       # xRC4-128 / xRC4-40
+            conf_body = xrc4_encrypt(self.k2, payload, cs.conf_alg)
+            encrypted_bit = 1
         elif cs.conf_alg == 0:
             conf_body = payload
             encrypted_bit = 0
@@ -820,7 +855,12 @@ class Session:
         ipad = b"\xFF" * pad_len + bytes([pad_len]) + b"\x07"  # 0x07 = trailer
         covered = sess_with_body + ipad
 
-        mac = integrity_hmac(cs, self.k1, covered) if cs.integrity_alg != 0 else b""
+        if cs.integrity_alg == 0:
+            mac = b""
+        elif cs.integrity_alg == 3:                      # MD5-128: keyed on password, not K1
+            mac = integrity_md5_128(self.password, covered)
+        else:
+            mac = integrity_hmac(cs, self.k1, covered)
         return bytes(RMCP(msg_class=0x07)) + covered + mac
 
     def _send_lanplus(
@@ -872,8 +912,11 @@ class Session:
         if raw_layer is None:
             return None
         body = bytes(raw_layer.load)[: sess.payload_length]
-        if sess.encrypted and cs is not None and cs.conf_alg == 1:
-            body = aes_decrypt(self.k2, body)
+        if sess.encrypted and cs is not None:
+            if cs.conf_alg == 1:
+                body = aes_decrypt(self.k2, body)
+            elif cs.conf_alg in (2, 3):
+                body = xrc4_decrypt(self.k2, body, cs.conf_alg)
         return int(sess.payload_type), body
 
     def _unwrap_lanplus(self, reply: Packet) -> tuple[IPMI_Message, Packet | None]:

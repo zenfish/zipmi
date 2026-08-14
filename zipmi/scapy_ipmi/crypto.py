@@ -168,8 +168,8 @@ class CipherSuite:
 
     @property
     def integrity_truncate(self) -> int:
-        """Bytes of HMAC output kept as the AuthCode."""
-        return {0: 0, 1: 12, 2: 16, 4: 16}[self.integrity_alg]
+        """Bytes of AuthCode kept. alg 3 (MD5-128) keeps the full 16-byte MD5."""
+        return {0: 0, 1: 12, 2: 16, 3: 16, 4: 16}[self.integrity_alg]
 
 
 # Full table per IPMI 2.0 §13.28 Table 13-21. Values 0..14 standard;
@@ -179,9 +179,17 @@ CIPHER_SUITES: dict[int, CipherSuite] = {
     1:  CipherSuite(1,  1, 0, 0),    # HMAC-SHA1 / none / none
     2:  CipherSuite(2,  1, 1, 0),    # HMAC-SHA1 / HMAC-SHA1-96 / none
     3:  CipherSuite(3,  1, 1, 1),    # HMAC-SHA1 / HMAC-SHA1-96 / AES-CBC-128
+    4:  CipherSuite(4,  1, 1, 2),    # HMAC-SHA1 / HMAC-SHA1-96 / xRC4-128
+    5:  CipherSuite(5,  1, 1, 3),    # HMAC-SHA1 / HMAC-SHA1-96 / xRC4-40
     6:  CipherSuite(6,  2, 0, 0),    # HMAC-MD5  / none / none
     7:  CipherSuite(7,  2, 2, 0),    # HMAC-MD5  / HMAC-MD5-128 / none
     8:  CipherSuite(8,  2, 2, 1),    # HMAC-MD5  / HMAC-MD5-128 / AES-CBC-128
+    9:  CipherSuite(9,  2, 2, 2),    # HMAC-MD5  / HMAC-MD5-128 / xRC4-128
+    10: CipherSuite(10, 2, 2, 3),    # HMAC-MD5  / HMAC-MD5-128 / xRC4-40
+    11: CipherSuite(11, 2, 3, 0),    # HMAC-MD5  / MD5-128 / none
+    12: CipherSuite(12, 2, 3, 1),    # HMAC-MD5  / MD5-128 / AES-CBC-128
+    13: CipherSuite(13, 2, 3, 2),    # HMAC-MD5  / MD5-128 / xRC4-128
+    14: CipherSuite(14, 2, 3, 3),    # HMAC-MD5  / MD5-128 / xRC4-40
     17: CipherSuite(17, 3, 4, 1),    # HMAC-SHA256 / HMAC-SHA256-128 / AES-CBC-128
 }
 
@@ -328,6 +336,74 @@ def aes_decrypt(k2: bytes, body: bytes) -> bytes:
     return pt[: -1 - pad_len]
 
 
+# -- xRC4 confidentiality (§13.30, conf alg 2/3) --------------------------
+# THE FIRST OPEN-SOURCE xRC4 IMPLEMENTATION. ipmitool skips it; FreeIPMI lists it
+# TODO; no BMC-side stack in the reference trees implements it. Construction is
+# per IPMI 2.0 §13.30 + §13.30.2:
+#
+#   KRC = MD5(K2 || IV)             K2 = derived confidentiality key (same as AES)
+#   xRC4-128: RC4 key = KRC (full 16 bytes)
+#   xRC4-40 : RC4 key = KRC[:5]     (most-significant 40 bits)
+#   Confidentiality header = 4-byte data-offset  + 16-byte IV (IV present only
+#                            when offset == 0, i.e. on (re)initialization).
+#   No confidentiality trailer (unlike AES-CBC's pad + pad-length).
+#
+# The spec models a CONTINUOUS per-direction keystream that the 4-byte offset
+# resynchronizes past dropped UDP packets. We take the spec's re-initialization
+# path every message (offset = 0 + fresh IV), which is self-contained and avoids
+# per-session RC4 state — valid for the offset==0 case the spec defines.
+#
+# !! UNVALIDATED against hardware: no reachable BMC negotiates xRC4. The Supermicro
+# X10 that ADVERTISES suites 4,5,9,10,13,14 has NO rc4 symbol in its libipmicrypt
+# (only MD5/HMAC-MD5/MD5_128/AES) and 0x11-rejects them. Residual spec ambiguity
+# (RC4 warm-up/discard-N; exact continuous-offset byte alignment) can only be
+# pinned against a real xRC4-negotiating BMC. Marked spec-faithful, not verified.
+
+def _rc4_crypt(key: bytes, data: bytes) -> bytes:
+    """Plain RC4 (KSA + PRGA). Symmetric — same call encrypts and decrypts."""
+    S = list(range(256))
+    j = 0
+    for i in range(256):
+        j = (j + S[i] + key[i % len(key)]) & 0xFF
+        S[i], S[j] = S[j], S[i]
+    out = bytearray()
+    i = j = 0
+    for b in data:
+        i = (i + 1) & 0xFF
+        j = (j + S[i]) & 0xFF
+        S[i], S[j] = S[j], S[i]
+        out.append(b ^ S[(S[i] + S[j]) & 0xFF])
+    return bytes(out)
+
+
+def _xrc4_key(k2: bytes, iv: bytes, conf_alg: int) -> bytes:
+    """KRC = MD5(K2 || IV); xRC4-128 uses all 16 bytes, xRC4-40 the top 5."""
+    krc = _hashlib.md5(k2[:16] + iv).digest()
+    return krc if conf_alg == 2 else krc[:5]
+
+
+def xrc4_encrypt(k2: bytes, plaintext: bytes, conf_alg: int,
+                 iv: bytes | None = None) -> bytes:
+    """Returns  offset(4B=0) || IV(16B) || RC4(KRC, plaintext).
+    Offset 0 => this packet (re)initializes the keystream, so the IV is carried."""
+    if iv is None:
+        iv = _os.urandom(16)
+    key = _xrc4_key(k2, iv, conf_alg)
+    return b"\x00\x00\x00\x00" + iv + _rc4_crypt(key, plaintext)
+
+
+def xrc4_decrypt(k2: bytes, body: bytes, conf_alg: int) -> bytes:
+    """Reverse: read the 4-byte offset; at offset 0 the 16-byte IV follows and
+    KRC = MD5(K2 || IV). (Non-zero offset = mid-stream continuation, which our
+    re-init-per-message send path never produces.)"""
+    offset = int.from_bytes(body[:4], "little")
+    if offset == 0:
+        iv, ct = body[4:20], body[20:]
+    else:
+        iv, ct = b"\x00" * 16, body[4:]
+    return _rc4_crypt(_xrc4_key(k2, iv, conf_alg), ct)
+
+
 # -- Integrity HMAC for in-session messages (§13.30) ----------------------
 
 def integrity_hmac(cipher: CipherSuite, k1: bytes, covered_bytes: bytes) -> bytes:
@@ -337,4 +413,20 @@ def integrity_hmac(cipher: CipherSuite, k1: bytes, covered_bytes: bytes) -> byte
         return b""
     full = _hmac.new(k1, covered_bytes, h).digest()
     return full[: cipher.integrity_truncate]
+
+
+def integrity_md5_128(password: str | bytes, covered_bytes: bytes) -> bytes:
+    """MD5-128 integrity (§13.28.4, integrity algorithm 03h) — used by cipher
+    suites 11-14. Unlike the HMAC integrity algorithms (keyed with the SIK-derived
+    K1), MD5-128 is a plain keyed MD5 over the user password (Kuid):
+
+        AuthCode = MD5(Kuid || <integrity-covered data> || Kuid)
+
+    Kuid = the session password, zero-padded to 20 bytes. The full 16-byte MD5
+    digest is the AuthCode. ipmitool never implemented this; verified against a
+    real Supermicro X10 (the vbmc x10 oracle)."""
+    if isinstance(password, str):
+        password = password.encode("latin-1")
+    kuid = password.ljust(20, b"\x00")[:20]
+    return _hashlib.md5(kuid + covered_bytes + kuid).digest()
 

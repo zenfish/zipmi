@@ -51,6 +51,35 @@ Close Session                      -->
 
 Cipher suite IDs and combos live in `zipmi.scapy_ipmi.crypto.CIPHER_SUITES`.
 
+## Full standard suite coverage (0–14, 17)
+
+zipmi implements **every standard cipher suite 0–14 plus 17** — including the
+RC4/MD5 suites that **ipmitool and FreeIPMI never implemented**:
+
+| Suites | Auth / Integrity / Conf | Status |
+|--------|-------------------------|--------|
+| 0–3, 17 | none/SHA1/SHA256 families, AES | verified (baseline) |
+| 6, 7, 8 | HMAC-MD5 / HMAC-MD5-128 / none·AES | verified |
+| **11, 12** | HMAC-MD5 / **MD5-128 (alg 3)** / none·AES | **oracle-verified** ✓ |
+| **4, 5, 9, 10, 13, 14** | … / **xRC4-128/40 (conf 2/3)** | spec-faithful, **unvalidated** ⚠ |
+
+**MD5-128 integrity (alg 3)** — used by suites 11–14. Unlike the HMAC integrity
+algorithms (keyed with the SIK-derived K1), it is a plain keyed MD5 over the
+**password (Kuid)**: `AuthCode = MD5(PW20 ‖ data ‖ PW20)`, password zero-padded to
+20 bytes, full 16-byte output (IPMI 2.0 §13.28.4). Matches FreeIPMI's reference
+and the `MD5_128` symbol in Supermicro's own `libipmicrypt`. Verified live against
+a Supermicro X10 (the `vbmc x10` box): `-C 11` and `-C 12` establish full sessions.
+
+**xRC4 confidentiality (conf 2/3)** — suites 4,5,9,10,13,14. `KRC = MD5(K2 ‖ IV)`
+(xRC4-128 uses all 16 bytes, xRC4-40 the top 5); confidentiality header =
+4-byte data-offset + 16-byte IV (IV present only at offset 0); no trailer
+(§13.30). zipmi is the **first open-source xRC4 implementation** — but it is
+**hardware-unvalidated**: no reachable BMC negotiates xRC4. The Supermicro X10
+*advertises* suites 4,5,9,10,13,14 in its Get-Channel-Cipher-Suites table, yet its
+`libipmicrypt` has **no RC4 symbol at all** (only MD5/HMAC-MD5/MD5_128/AES), so it
+rejects them at Open Session with status `0x11` (no cipher-suite match). Treat
+xRC4 as spec-faithful, not verified, until a real xRC4-negotiating BMC is found.
+
 ## In-session message framing
 
 Every authenticated+encrypted IPMI message:
