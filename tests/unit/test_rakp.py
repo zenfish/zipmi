@@ -100,6 +100,15 @@ def test_rakp2_authcode_oracle():
     assert got == expected
 
 
+def test_rakp_userlists():
+    """Bundled userlists: 6 famous defaults, 44 from oobscan, and the small list
+    is a subset of the extended one."""
+    from zipmi.core import Session
+    assert len(Session.RAKP_DEFAULT_USERS) == 6
+    assert len(Session.RAKP_EXTENDED_USERS) == 44
+    assert set(Session.RAKP_DEFAULT_USERS) <= set(Session.RAKP_EXTENDED_USERS)
+
+
 def test_grab_salt_reproduces_crack():
     """The hash-grabber's salt (rakp2_hmac_input) must, HMAC'd with the password,
     reproduce the RAKP2 auth code for every algo — else the emitted hashcat line

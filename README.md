@@ -1,8 +1,8 @@
 # zipmi
 
-Scapy-based IPMI library, CLI, and virtual BMC for security research.
+IPMI command line tool & library based on Scapy (https://scapy.net/) for protocol understanding and security research.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 standard commands implemented · 44 with Scapy packet classes.
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes.
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -187,6 +187,8 @@ zipmi scan ciphers --verify          # + which the BMC actually NEGOTIATES (unau
 zipmi scan cipher-zero
 zipmi scan rakp-hash -U root         # grab crackable RAKP2 HMAC, no auth (CVE-2013-4786)
                                      # negotiates MD5>SHA1>SHA256 (fastest crack); prints hashcat line
+zipmi scan rakp-hash                 # no -U: sweep 6 famous default accounts (also user-enum)
+zipmi scan rakp-hash --extended-user-list   # sweep bundled 44 default BMC accounts (credit: oobscan)
 zipmi user-matrix list               # full user × channel privilege grid (audit)
 zipmi user-matrix list --json | jq '.channels'   # machine-readable
 zipmi scan all --json                # one {steps:[...]} envelope, findings on
