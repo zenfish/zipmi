@@ -5515,6 +5515,25 @@ def _annotate_subcommand_options(sub_action) -> None:
                 + "[" + " ".join(flags) + "]"
 
 
+def _annotate_all_subcommands(parser: argparse.ArgumentParser) -> None:
+    """Walk the whole parser tree and annotate every subcommand group's help with
+    its per-command flags (see _annotate_subcommand_options). One pass at the end
+    of build_parser covers scan/oem/groups/fuzz/vbmc/channel/... — no per-group
+    wiring to keep in sync."""
+    seen: set[int] = set()
+
+    def walk(p: argparse.ArgumentParser) -> None:
+        for act in p._actions:
+            if isinstance(act, argparse._SubParsersAction):
+                _annotate_subcommand_options(act)
+                for child in act.choices.values():
+                    if id(child) not in seen:      # dedup aliases -> same parser
+                        seen.add(id(child))
+                        walk(child)
+
+    walk(parser)
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="zipmi",
@@ -6382,9 +6401,10 @@ def build_parser() -> argparse.ArgumentParser:
                                 "(credit: oobscan) instead of the 6 famous defaults")
         s.set_defaults(func=fn)
 
-    # Surface each subcommand's flags in `scan --help` so they're discoverable
-    # without drilling into every `scan <verb> -h`.
-    _annotate_subcommand_options(sc_sub)
+    # Surface every subcommand's flags in its group's `--help` so they're
+    # discoverable without drilling into each `<group> <verb> -h`. One tree walk
+    # covers scan/oem/groups/fuzz/vbmc/channel/... after the parser is built.
+    _annotate_all_subcommands(p)
 
     return p
 
