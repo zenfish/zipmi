@@ -15,17 +15,19 @@ Static reverse-engineering of the ASMB-787 BMC firmware (**AMI MegaRAC SP-X 4.0 
 +12 u16 SuppIface (channel bitmask; 0xFFFF = all)
 ```
 
-`GetCmdHndlr` matches on the **Cmd byte only** (no priv logic); the privilege floor at +8 is enforced by the IPMI core dispatcher against the session-established level.
+`GetCmdHndlr` matches on the **Cmd byte only** (no priv logic). The privilege gate is the dispatch loop `FUN_0002b0f0` in `libipmimsghndlr.so` (confirmed in Ghidra): it reads the matched entry's Priv byte (+8), and if it is **not** `0xff` compares it against the session privilege; a mismatch returns completion code **0xD4** (insufficient privilege). On success it calls the handler through the entry's +4 pointer as a **direct C call in the IPMI daemon** — no shell, no fork, at dispatch time.
 
 ## Privilege model
 
 | Priv byte | Meaning |
 |-----------|---------|
 | `0x00` | **No minimum** — callable at any level, including the host-side KCS system interface where there is *no session and no auth*. |
-| `0x01`–`0x05` | IPMI floor: Callback / User / Operator / Administrator / OEM. Enforced as `session_priv >= floor` (`SetSessionPrivLevel` uses the 1–5 scale; OEM=5 gated behind a feature flag). |
-| `0xff` (`self*`) | Outside the 1–5 scale, so it can never satisfy a numeric `>=` floor — it is a **sentinel: the handler enforces its own privilege** (AMI convention). Used by the password handlers. |
+| `0x01`–`0x05` | IPMI level: Callback / User / Operator / Administrator / OEM (`SetSessionPrivLevel` uses the 1–5 scale; OEM=5 gated behind a feature flag). |
+| `0xff` (`self*`) | **Confirmed sentinel** — `FUN_0002b0f0` explicitly tests `entry.Priv != 0xff` before comparing, so `0xff` **bypasses the dispatcher priv check**; the handler enforces its own privilege (AMI convention). Used by the password handlers. |
 
 > **KCS caveat:** a `0x00`-floor command reachable on the system interface is issuable by any local OS-admin with zero BMC credentials. This is exactly the ASUS ASMB9 `ipmitool raw 0x32 0x66` factory-reset note.
+
+> **What `0x32/0x66` actually executes** — full chain (dispatch → async task → root shell script `rm -rf /conf/*`) is written up in [advantech_ASMB787-restore-backdoor.md](advantech_ASMB787-restore-backdoor.md).
 
 ## NetFn → table map
 
