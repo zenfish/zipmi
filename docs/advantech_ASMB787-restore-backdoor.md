@@ -152,6 +152,64 @@ way the command is reachable at `Priv = 0x00`.
 | Blocking? | No — handler returns CC 0x00 immediately; reset runs as async task 0x3f. |
 | Advantech-specific? | No — `g_AMI`/`AMIRestoreDefaults` is stock AMI MegaRAC (see [oem-handler-lineage.md](oem-handler-lineage.md)); expected AMI-wide. |
 
+## Dynamic confirmation (live vBMC, 2026-08-14)
+
+Fired against the emulated ASMB-787 (`vbmc advantech-asmb787`, qemu ast2600).
+LAN answers on loopback inside the guest (the NC-SI wall only blocks *external*
+traffic); default creds `admin/admin`, cipher 17.
+
+```
+# ipmitool -I lanplus -C 17 -H 127.0.0.1 -U admin -P admin raw 0x32 0x66
+# → (empty response, RC=0)   == completion code 0x00, returned immediately
+```
+
+Observed, in order:
+
+1. **CC 0x00 returned instantly** — confirms the async shim: the handler
+   answers success before any reset happens.
+2. **Task 0x3f fired a full re-provision storm** — redis, stunnel, and the VM
+   app restarted; config services re-read `/conf`; the serial session was reset
+   to a `login:` prompt. The restore pathway definitively executed.
+3. **The `rm -rf /conf/*` did NOT run over the IPMI path.** `/conf` stayed at
+   102 entries, the sentinel survived. Cause, confirmed on the box:
+
+   ```
+   /usr/local/bin/flasher        → present
+   /var/flasher.initcomplete     → ABSENT
+   ```
+
+   The script's guard `if [ -f /var/flasher.initcomplete ]; then restore_function`
+   gates the wipe. This vBMC is perpetually mid-bring-up (the same reason
+   ext-net is WIP — `flasher` never reaches init-complete), so the destructive
+   branch is structurally skipped. Arming the marker then re-firing still lost
+   the race: the restore storm restarts `flasher`, which clears its own marker
+   before task 0x3f's script re-checks it.
+
+4. **Running the mechanism synchronously (guard satisfied, no storm race) —
+   glass from orbit:**
+
+   ```
+   # touch /var/flasher.initcomplete; sh /etc/restoredefaults.sh restore
+   pre_conf=102  sentinel=/conf/ZZZ_NUKE_SENTINEL
+   Restoring to default configuration...  Done.
+   post_conf=72  sentinel=GONE
+   ```
+
+   `/conf` 102 → **72** (the `/etc/defconfig` skeleton count), the sentinel and
+   all 101 operational files destroyed. Exactly `rm -rf /conf/*; cp -Rp
+   /etc/defconfig/* /conf`, plus a `libpreserveconf.c` message.
+
+5. **Resurrection** — `vbmc restart` (boot copies pristine `mtdflash.bin` →
+   `mtdflash-run.bin`): `/conf` back to 101, root login OK, IPMI `Get Device ID`
+   answers again.
+
+**Takeaways.** The command is accepted and returns success async (verified). The
+destructive `rm -rf /conf/*` is real (verified) but sits behind a
+`flasher.initcomplete` safety that only a fully-flashed/operational unit
+satisfies — on production hardware that marker exists, so the IPMI path wipes;
+on a half-provisioned box it is skipped. Worth checking on real hardware whether
+that guard is the only thing standing between `raw 0x32 0x66` and a live wipe.
+
 ## Provenance
 
 - Binary: `usr/local/lib/libipmimsghndlr.so.13.22.0` (ARM32, stripped-ish, AMI MegaRAC SP-X 4.0)
