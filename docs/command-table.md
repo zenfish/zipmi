@@ -31,6 +31,13 @@ and per-platform live test results.
 
 **Per-platform columns (R710, X11SSZ, …):**
 
+> **ASMB787 column is different** — it is *not* live-tested. It is **static
+> ground truth** from firmware RE: ✓ = a handler for that (NetFn, cmd) is
+> present in the ASMB-787's real dispatch tables, ✗ = absent. See
+> [advantech_ASMB787-command-table.md](advantech_ASMB787-command-table.md) for
+> the full OEM handler catalog and [oem-handler-lineage.md](oem-handler-lineage.md)
+> for the cross-vendor comparison.
+
 | Symbol | Meaning |
 |--------|---------|
 | ✓ | Tested live, returns expected response |
@@ -60,87 +67,87 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 
 ### IPM Device "Global" Commands
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 00h  | Reserved | `reserved` | — | — | — | — | — | — |
-| 01h  | Get Device ID | `get_device_id` | 20.1 | s | ✓ | ✓ | ✓ | ? |
-| 01h  | Broadcast Get Device ID | `get_device_id` | 20.9 | s | ✗ | ✓ | ? | ? |
-| 02h  | Cold Reset | `cold_reset` | 20.2 | A | ✓ | ✓ | ? | ? |
-| 03h  | Warm Reset | `warm_reset` | 20.3 | A | ✓ | ✓ | ? | ? |
-| 04h  | Get Self Test Results | `get_self_test_results` | 20.4 | U | ✓ | ✓ | ✓ | ? |
-| 05h  | Manufacturing Test On | `manufacturing_test_on` | 20.5 | A | ⚡ | — | ? | ? |
-| 06h  | Set ACPI Power State | `set_acpi_power_state` | 20.6 | A | ⚡ | — | ? | ? |
-| 07h  | Get ACPI Power State | `get_acpi_power_state` | 20.7 | U | ⚡ | — | ? | ? |
-| 08h  | Get Device GUID | `get_device_guid` | 20.8 | U | ✓ | ✓ | ✓ | ? |
-| 09h  | Get NetFn Support | `get_net_fn_support` | 21.2 | A | ⚡ | — | ? | ? |
-| 0Ah  | Get Command Support | `get_command_support` | 21.3 | A | ⚡ | — | ? | ? |
-| 0Bh  | Get Command Sub-function Support | `get_command_sub_function_support` | 21.4 | A | ⚡ | — | ? | ? |
-| 0Ch  | Get Configurable Commands | `get_configurable_commands` | 21.5 | A | ⚡ | — | ? | ? |
-| 0Dh  | Get Configurable Command Sub-functions | `get_configurable_command_sub_functions` | 21.6 | A | ⚡ | — | ? | ? |
-| 60h  | Set Command Enables | `set_command_enables` | 21.7 | A | ⚡ | — | ? | ? |
-| 61h  | Get Command Enables | `get_command_enables` | 21.8 | A | ⚡ | — | ? | ? |
-| 62h  | Set Command Sub-function Enables | `set_command_sub_function_enables` | 21.9 | A | ⚡ | — | ? | ? |
-| 63h  | Get Command Sub-function Enables | `get_command_sub_function_enables` | 21.10 | A | ⚡ | — | ? | ? |
-| 64h  | Get OEM NetFn IANA Support | `get_oem_net_fn_iana_support` | 21.11 | A | ⚡ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 00h  | Reserved | `reserved` | — | — | — | — | — | — | ✗ |
+| 01h  | Get Device ID | `get_device_id` | 20.1 | s | ✓ | ✓ | ✓ | ? | ✓ |
+| 01h  | Broadcast Get Device ID | `get_device_id` | 20.9 | s | ✗ | ✓ | ? | ? | ✓ |
+| 02h  | Cold Reset | `cold_reset` | 20.2 | A | ✓ | ✓ | ? | ? | ✓ |
+| 03h  | Warm Reset | `warm_reset` | 20.3 | A | ✓ | ✓ | ? | ? | ✓ |
+| 04h  | Get Self Test Results | `get_self_test_results` | 20.4 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 05h  | Manufacturing Test On | `manufacturing_test_on` | 20.5 | A | ⚡ | — | ? | ? | ✓ |
+| 06h  | Set ACPI Power State | `set_acpi_power_state` | 20.6 | A | ⚡ | — | ? | ? | ✓ |
+| 07h  | Get ACPI Power State | `get_acpi_power_state` | 20.7 | U | ⚡ | — | ? | ? | ✓ |
+| 08h  | Get Device GUID | `get_device_guid` | 20.8 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 09h  | Get NetFn Support | `get_net_fn_support` | 21.2 | A | ⚡ | — | ? | ? | ✓ |
+| 0Ah  | Get Command Support | `get_command_support` | 21.3 | A | ⚡ | — | ? | ? | ✓ |
+| 0Bh  | Get Command Sub-function Support | `get_command_sub_function_support` | 21.4 | A | ⚡ | — | ? | ? | ✓ |
+| 0Ch  | Get Configurable Commands | `get_configurable_commands` | 21.5 | A | ⚡ | — | ? | ? | ✓ |
+| 0Dh  | Get Configurable Command Sub-functions | `get_configurable_command_sub_functions` | 21.6 | A | ⚡ | — | ? | ? | ✓ |
+| 60h  | Set Command Enables | `set_command_enables` | 21.7 | A | ⚡ | — | ? | ? | ✓ |
+| 61h  | Get Command Enables | `get_command_enables` | 21.8 | A | ⚡ | — | ? | ? | ✓ |
+| 62h  | Set Command Sub-function Enables | `set_command_sub_function_enables` | 21.9 | A | ⚡ | — | ? | ? | ✓ |
+| 63h  | Get Command Sub-function Enables | `get_command_sub_function_enables` | 21.10 | A | ⚡ | — | ? | ? | ✓ |
+| 64h  | Get OEM NetFn IANA Support | `get_oem_net_fn_iana_support` | 21.11 | A | ⚡ | — | ? | ? | ✓ |
 
 ### BMC Watchdog Timer Commands
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 22h  | Reset Watchdog Timer | `reset_watchdog_timer` | 27.5 | O | ⚡ | — | ? | ? |
-| 24h  | Set Watchdog Timer   | `set_watchdog_timer` | 27.6 | O | ⚡ | — | ? | ? |
-| 25h  | Get Watchdog Timer   | `get_watchdog_timer` | 27.7 | U | ⚡ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 22h  | Reset Watchdog Timer | `reset_watchdog_timer` | 27.5 | O | ⚡ | — | ? | ? | ✓ |
+| 24h  | Set Watchdog Timer   | `set_watchdog_timer` | 27.6 | O | ⚡ | — | ? | ? | ✓ |
+| 25h  | Get Watchdog Timer   | `get_watchdog_timer` | 27.7 | U | ⚡ | — | ? | ? | ✓ |
 
 ### BMC Device and Messaging Commands
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 2Eh  | Set BMC Global Enables | `set_bmc_global_enables` | 22.1 | A | ⚡ | — | ? | ? |
-| 2Fh  | Get BMC Global Enables | `get_bmc_global_enables` | 22.2 | U | ⚡ | — | ? | ? |
-| 30h  | Clear Message Flags | `clear_message_flags` | 22.3 | A | ⚡ | — | ? | ? |
-| 31h  | Get Message Flags | `get_message_flags` | 22.4 | A | ⚡ | — | ? | ? |
-| 32h  | Enable Message Channel Receive | `enable_message_channel_receive` | 22.5 | A | ⚡ | — | ? | ? |
-| 33h  | Get Message | `get_message` | 22.6 | A | ⚡ | — | ? | ? |
-| 34h  | Send Message | `send_message` | 22.7 | A* | ⚡ | — | ? | ? |
-| 35h  | Read Event Message Buffer | `read_event_message_buffer` | 22.8 | A | ⚡ | — | ? | ? |
-| 36h  | Get BT Interface Capabilities | `get_bt_interface_capabilities` | 22.10 | U | ⚡ | — | ? | ? |
-| 37h  | Get System GUID | `get_system_guid` | 22.14 | U | ✓ | ✓ | ✓ | ? |
-| 58h  | Set System Info Parameters | `set_system_info_parameters` | 22.14a | A | ⚡ | — | ? | ? |
-| 59h  | Get System Info Parameters | `get_system_info_parameters` | 22.14b | U | ⚡ | — | ? | ? |
-| 38h  | Get Channel Authentication Capabilities | `get_channel_authentication_capabilities` | 22.13 | s | ✓ | ✓ | ✓ | ? |
-| 39h  | Get Session Challenge | `get_session_challenge` | 22.15 | s | ✓ | ✓ | ✓ | ? |
-| 3Ah  | Activate Session | `activate_session` | 22.17 | s | ✓ | ✓ | ✓ | ? |
-| 3Bh  | Set Session Privilege Level | `set_session_privilege_level` | 22.18 | U | ✓ | ✓ | ✓ | ? |
-| 3Ch  | Close Session | `close_session` | 22.19 | C | ✓ | ✓ | ✓ | ? |
-| 3Dh  | Get Session Info | `get_session_info` | 22.20 | U | ⚡ | — | ? | ? |
-| 3Fh  | Get AuthCode | `get_auth_code` | 22.21 | U | ⚡ | — | ? | ? |
-| 40h  | Set Channel Access | `set_channel_access` | 22.22 | A | ⚡ | — | ? | ? |
-| 41h  | Get Channel Access | `get_channel_access` | 22.23 | U | ✓ | ✓ | ? | ? |
-| 42h  | Get Channel Info Command | `get_channel_info` | 22.24 | U | ✓ | ✓ | ? | ? |
-| 43h  | Set User Access Command | `set_user_access` | 22.26 | A | ⚡ | — | ? | ? |
-| 44h  | Get User Access Command | `get_user_access` | 22.27 | O | ✓ | ✓ | ✓ | ? |
-| 45h  | Set User Name | `set_user_name` | 22.28 | A | ⚡ | — | ? | ? |
-| 46h  | Get User Name Command | `get_user_name` | 22.29 | O | ✓ | ✓ | ✓ | ? |
-| 47h  | Set User Password Command | `set_user_password` | 22.30 | A | ⚡ | — | ? | ? |
-| 48h  | Activate Payload | `activate_payload` | 24.1 | U/O | ✓ | ✓ | ? | ? |
-| 49h  | Deactivate Payload | `deactivate_payload` | 24.2 | U/O | ✓ | ✓ | ? | ? |
-| 4Ah  | Get Payload Activation Status | `get_payload_activation_status` | 24.3 | U | ✓ | ✓ | ? | ? |
-| 4Bh  | Get Payload Instance Info | `get_payload_instance_info` | 24.4 | U | ⚡ | — | ? | ? |
-| 4Ch  | Set User Payload Access | `set_user_payload_access` | 24.5 | A | ⚡ | — | ? | ? |
-| 4Dh  | Get User Payload Access | `get_user_payload_access` | 24.6 | O | ⚡ | — | ? | ? |
-| 4Eh  | Get Channel Payload Support | `get_channel_payload_support` | 24.7 | U | ⚡ | — | ? | ? |
-| 4Fh  | Get Channel Payload Version | `get_channel_payload_version` | 24.8 | U | ⚡ | — | ? | ? |
-| 50h  | Get Channel OEM Payload Info | `get_channel_oem_payload_info` | 24.9 | U | ✗ | — | ? | ? |
-| 52h  | Master Read-Write | `master_write_read` | 22.11 | A* | ✓ | ✓ | ? | ? |
-| 54h  | Get Channel Cipher Suites | `get_channel_cipher_suites` | 22.15 | s | ✓ | ✓ | ? | ? |
-| 55h  | Suspend/Resume Payload Encryption | `suspend_resume_payload_encryption` | 24.10 | U | ✗ | — | ? | ? |
-| 56h  | Set Channel Security Keys | `set_channel_security_keys` | 22.25 | A | ⚡ | — | ? | ? |
-| 57h  | Get System Interface Capabilities | `get_system_interface_capabilities` | 22.9 | U | ⚡ | — | ? | ? |
-| 5Ah  | Get Authorization Privilege Level | `get_authorization_privilege_level` | 22.x | s | ✗ | — | ? | ? |
-| 5Bh  | Get Authentication Capabilities (v2) | `get_authentication_capabilities_v2` | 22.x | s | ✗ | — | ? | ? |
-| 5Ch  | Get Session-Less Channel Privilege Level | `get_session_less_channel_privilege_level` | 22.x | s | ✗ | — | ? | ? |
-| 5Dh  | Set Session-Less Channel Privilege Level | `set_session_less_channel_privilege_level` | 22.x | s | ✗ | — | ? | ? |
-| 5Eh  | Get Session-Less Channel Auth Caps | `get_session_less_channel_auth_caps` | 22.x | s | ✗ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 2Eh  | Set BMC Global Enables | `set_bmc_global_enables` | 22.1 | A | ⚡ | — | ? | ? | ✓ |
+| 2Fh  | Get BMC Global Enables | `get_bmc_global_enables` | 22.2 | U | ⚡ | — | ? | ? | ✓ |
+| 30h  | Clear Message Flags | `clear_message_flags` | 22.3 | A | ⚡ | — | ? | ? | ✓ |
+| 31h  | Get Message Flags | `get_message_flags` | 22.4 | A | ⚡ | — | ? | ? | ✓ |
+| 32h  | Enable Message Channel Receive | `enable_message_channel_receive` | 22.5 | A | ⚡ | — | ? | ? | ✓ |
+| 33h  | Get Message | `get_message` | 22.6 | A | ⚡ | — | ? | ? | ✓ |
+| 34h  | Send Message | `send_message` | 22.7 | A* | ⚡ | — | ? | ? | ✓ |
+| 35h  | Read Event Message Buffer | `read_event_message_buffer` | 22.8 | A | ⚡ | — | ? | ? | ✓ |
+| 36h  | Get BT Interface Capabilities | `get_bt_interface_capabilities` | 22.10 | U | ⚡ | — | ? | ? | ✓ |
+| 37h  | Get System GUID | `get_system_guid` | 22.14 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 58h  | Set System Info Parameters | `set_system_info_parameters` | 22.14a | A | ⚡ | — | ? | ? | ✓ |
+| 59h  | Get System Info Parameters | `get_system_info_parameters` | 22.14b | U | ⚡ | — | ? | ? | ✓ |
+| 38h  | Get Channel Authentication Capabilities | `get_channel_authentication_capabilities` | 22.13 | s | ✓ | ✓ | ✓ | ? | ✓ |
+| 39h  | Get Session Challenge | `get_session_challenge` | 22.15 | s | ✓ | ✓ | ✓ | ? | ✓ |
+| 3Ah  | Activate Session | `activate_session` | 22.17 | s | ✓ | ✓ | ✓ | ? | ✓ |
+| 3Bh  | Set Session Privilege Level | `set_session_privilege_level` | 22.18 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 3Ch  | Close Session | `close_session` | 22.19 | C | ✓ | ✓ | ✓ | ? | ✓ |
+| 3Dh  | Get Session Info | `get_session_info` | 22.20 | U | ⚡ | — | ? | ? | ✓ |
+| 3Fh  | Get AuthCode | `get_auth_code` | 22.21 | U | ⚡ | — | ? | ? | ✓ |
+| 40h  | Set Channel Access | `set_channel_access` | 22.22 | A | ⚡ | — | ? | ? | ✓ |
+| 41h  | Get Channel Access | `get_channel_access` | 22.23 | U | ✓ | ✓ | ? | ? | ✓ |
+| 42h  | Get Channel Info Command | `get_channel_info` | 22.24 | U | ✓ | ✓ | ? | ? | ✓ |
+| 43h  | Set User Access Command | `set_user_access` | 22.26 | A | ⚡ | — | ? | ? | ✓ |
+| 44h  | Get User Access Command | `get_user_access` | 22.27 | O | ✓ | ✓ | ✓ | ? | ✓ |
+| 45h  | Set User Name | `set_user_name` | 22.28 | A | ⚡ | — | ? | ? | ✓ |
+| 46h  | Get User Name Command | `get_user_name` | 22.29 | O | ✓ | ✓ | ✓ | ? | ✓ |
+| 47h  | Set User Password Command | `set_user_password` | 22.30 | A | ⚡ | — | ? | ? | ✓ |
+| 48h  | Activate Payload | `activate_payload` | 24.1 | U/O | ✓ | ✓ | ? | ? | ✓ |
+| 49h  | Deactivate Payload | `deactivate_payload` | 24.2 | U/O | ✓ | ✓ | ? | ? | ✓ |
+| 4Ah  | Get Payload Activation Status | `get_payload_activation_status` | 24.3 | U | ✓ | ✓ | ? | ? | ✓ |
+| 4Bh  | Get Payload Instance Info | `get_payload_instance_info` | 24.4 | U | ⚡ | — | ? | ? | ✓ |
+| 4Ch  | Set User Payload Access | `set_user_payload_access` | 24.5 | A | ⚡ | — | ? | ? | ✓ |
+| 4Dh  | Get User Payload Access | `get_user_payload_access` | 24.6 | O | ⚡ | — | ? | ? | ✓ |
+| 4Eh  | Get Channel Payload Support | `get_channel_payload_support` | 24.7 | U | ⚡ | — | ? | ? | ✓ |
+| 4Fh  | Get Channel Payload Version | `get_channel_payload_version` | 24.8 | U | ⚡ | — | ? | ? | ✓ |
+| 50h  | Get Channel OEM Payload Info | `get_channel_oem_payload_info` | 24.9 | U | ✗ | — | ? | ? | ✓ |
+| 52h  | Master Read-Write | `master_write_read` | 22.11 | A* | ✓ | ✓ | ? | ? | ✓ |
+| 54h  | Get Channel Cipher Suites | `get_channel_cipher_suites` | 22.15 | s | ✓ | ✓ | ? | ? | ✓ |
+| 55h  | Suspend/Resume Payload Encryption | `suspend_resume_payload_encryption` | 24.10 | U | ✗ | — | ? | ? | ✓ |
+| 56h  | Set Channel Security Keys | `set_channel_security_keys` | 22.25 | A | ⚡ | — | ? | ? | ✓ |
+| 57h  | Get System Interface Capabilities | `get_system_interface_capabilities` | 22.9 | U | ⚡ | — | ? | ? | ✓ |
+| 5Ah  | Get Authorization Privilege Level | `get_authorization_privilege_level` | 22.x | s | ✗ | — | ? | ? | ✗ |
+| 5Bh  | Get Authentication Capabilities (v2) | `get_authentication_capabilities_v2` | 22.x | s | ✗ | — | ? | ? | ✗ |
+| 5Ch  | Get Session-Less Channel Privilege Level | `get_session_less_channel_privilege_level` | 22.x | s | ✗ | — | ? | ? | ✗ |
+| 5Dh  | Set Session-Less Channel Privilege Level | `set_session_less_channel_privilege_level` | 22.x | s | ✗ | — | ? | ? | ✗ |
+| 5Eh  | Get Session-Less Channel Auth Caps | `get_session_less_channel_auth_caps` | 22.x | s | ✗ | — | ? | ? | ✗ |
 
 ---
 
@@ -150,21 +157,21 @@ Done: Get Device ID, Cold Reset, Warm Reset, Get Self Test Results, Get Device G
 Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System Boot Options, Chassis Identify, Set Power Restore Policy, Get System Restart Cause, Get Chassis Capabilities, Get POH Counter
 
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 00h  | Get Chassis Capabilities | `get_chassis_capabilities` | 28.1 | U | ⚡ | — | ? | ? |
-| 01h  | Get Chassis Status | `get_chassis_status` | 28.2 | U | ✓ | ✓ | ✓ | ? |
-| 02h  | Chassis Control | `chassis_control` | 28.3 | O | ✓ | ✓ | ? (untested destructive) | ? |
-| 03h  | Chassis Reset | `chassis_reset` | 28.4 | O | ⚡ | — | ? | ? |
-| 04h  | Chassis Identify | `chassis_identify` | 28.5 | O | ⚡ | — | ? | ? |
-| 05h  | Set Chassis Capabilities | `set_chassis_capabilities` | 28.7 | A | ⚡ | — | ? | ? |
-| 06h  | Set Power Restore Policy | `set_power_restore_policy` | 28.8 | A | ⚡ | — | ? | ? |
-| 07h  | Get System Restart Cause | `get_system_restart_cause` | 28.11 | U | ⚡ | — | ? | ? |
-| 08h  | Set System Boot Options | `set_system_boot_options` | 28.12 | A | ✓ | ✓ | ? (untested writeable) | ? |
-| 09h  | Get System Boot Options | `get_system_boot_options` | 28.13 | U | ✓ | ✓ | ✓ | ? |
-| 0Ah  | Set Front Panel Button Enables | `set_front_panel_button_enables` | 28.6 | A | ⚡ | — | ? | ? |
-| 0Bh  | Set Power Cycle Interval | `set_power_cycle_interval` | 28.9 | A | ⚡ | — | ? | ? |
-| 0Fh  | Get POH Counter | `get_poh_counter` | 28.14 | U | ⚡ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 00h  | Get Chassis Capabilities | `get_chassis_capabilities` | 28.1 | U | ⚡ | — | ? | ? | ✓ |
+| 01h  | Get Chassis Status | `get_chassis_status` | 28.2 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 02h  | Chassis Control | `chassis_control` | 28.3 | O | ✓ | ✓ | ? (untested destructive) | ? | ✓ |
+| 03h  | Chassis Reset | `chassis_reset` | 28.4 | O | ⚡ | — | ? | ? | ✓ |
+| 04h  | Chassis Identify | `chassis_identify` | 28.5 | O | ⚡ | — | ? | ? | ✓ |
+| 05h  | Set Chassis Capabilities | `set_chassis_capabilities` | 28.7 | A | ⚡ | — | ? | ? | ✓ |
+| 06h  | Set Power Restore Policy | `set_power_restore_policy` | 28.8 | A | ⚡ | — | ? | ? | ✓ |
+| 07h  | Get System Restart Cause | `get_system_restart_cause` | 28.11 | U | ⚡ | — | ? | ? | ✓ |
+| 08h  | Set System Boot Options | `set_system_boot_options` | 28.12 | A | ✓ | ✓ | ? (untested writeable) | ? | ✓ |
+| 09h  | Get System Boot Options | `get_system_boot_options` | 28.13 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 0Ah  | Set Front Panel Button Enables | `set_front_panel_button_enables` | 28.6 | A | ⚡ | — | ? | ? | ✓ |
+| 0Bh  | Set Power Cycle Interval | `set_power_cycle_interval` | 28.9 | A | ⚡ | — | ? | ? | ✓ |
+| 0Fh  | Get POH Counter | `get_poh_counter` | 28.14 | U | ⚡ | — | ? | ? | ✓ |
 
 ---
 
@@ -174,35 +181,35 @@ Done: Get Chassis Status, Chassis Control, Set System Boot Options, Get System B
 Done: Get Sensor Reading, Get PEF Capabilities, Get PEF Configuration Parameters, Get Last Processed Event ID, Get Device SDR Info, Get Device SDR, Reserve Device SDR Repository, Get Sensor Reading Factors, Get Sensor Hysteresis, Get Sensor Threshold, Get Sensor Event Enable, Get Sensor Event Status, Get Sensor Type
 
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 00h  | Set Event Receiver | `set_event_receiver` | 29.1 | A | ⚡ | — | ? | ? |
-| 01h  | Get Event Receiver | `get_event_receiver` | 29.2 | U | ⚡ | — | ? | ? |
-| 02h  | Platform Event Message | `platform_event` | 29.3 | O | ⚡ | — | ? | ? |
-| 10h  | Get PEF Capabilities | `get_pef_capabilities` | 30.1 | U | ⚡ | — | ? | ? |
-| 11h  | Arm PEF Postpone Timer | `arm_pef_postpone_timer` | 30.2 | A | ⚡ | — | ? | ? |
-| 12h  | Set PEF Configuration Parameters | `set_pef_configuration_parameters` | 30.3 | A | ⚡ | — | ? | ? |
-| 13h  | Get PEF Configuration Parameters | `get_pef_configuration_parameters` | 30.4 | U | ⚡ | — | ? | ? |
-| 14h  | Set Last Processed Event ID | `set_last_processed_event_id` | 30.5 | A | ⚡ | — | ? | ? |
-| 15h  | Get Last Processed Event ID | `get_last_processed_event_id` | 30.6 | A | ⚡ | — | ? | ? |
-| 16h  | Alert Immediate | `alert_immediate` | 30.7 | O | ⚡ | — | ? | ? |
-| 17h  | PET Acknowledge | `pet_acknowledge` | 30.8 | s | ⚡ | — | ? | ? |
-| 20h  | Get Device SDR Info | `get_device_sdr_info` | 35.2 | U | ⚡ | — | ? | ? |
-| 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ✓ | ✓ | ? | ? |
-| 22h  | Reserve Device SDR Repository | `reserve_device_sdr_repository` | 35.4 | U | ⚡ | — | ? | ? |
-| 23h  | Get Sensor Reading Factors | `get_sensor_reading_factors` | 35.5 | U | ✓ | ✓ | ? | ? |
-| 24h  | Set Sensor Hysteresis | `set_sensor_hysteresis` | 35.6 | O | ⚡ | — | ? | ? |
-| 25h  | Get Sensor Hysteresis | `get_sensor_hysteresis` | 35.7 | U | ⚡ | — | ? | ? |
-| 26h  | Set Sensor Threshold | `set_sensor_threshold` | 35.8 | O | ⚡ | — | ? | ? |
-| 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ✓ | ✓ | ? | ? |
-| 28h  | Set Sensor Event Enable | `set_sensor_event_enable` | 35.10 | O | ⚡ | — | ? | ? |
-| 29h  | Get Sensor Event Enable | `get_sensor_event_enable` | 35.11 | U | ⚡ | — | ? | ? |
-| 2Ah  | Re-arm Sensor Events | `re_arm_sensor_events` | 35.12 | O | ⚡ | — | ? | ? |
-| 2Bh  | Get Sensor Event Status | `get_sensor_event_status` | 35.13 | U | ⚡ | — | ? | ? |
-| 2Dh  | Get Sensor Reading | `get_sensor_reading` | 35.14 | U | ✓ | ✓ | ✓ | ? |
-| 2Eh  | Set Sensor Type | `set_sensor_type` | 35.16 | O | ✗ | — | ? | ? |
-| 2Fh  | Get Sensor Type | `get_sensor_type` | 35.17 | U | ⚡ | — | ? | ? |
-| 30h  | Set Sensor Reading And Event Status | `set_sensor_reading_and_event_status` | 35.15 | O | ✗ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 00h  | Set Event Receiver | `set_event_receiver` | 29.1 | A | ⚡ | — | ? | ? | ✓ |
+| 01h  | Get Event Receiver | `get_event_receiver` | 29.2 | U | ⚡ | — | ? | ? | ✓ |
+| 02h  | Platform Event Message | `platform_event` | 29.3 | O | ⚡ | — | ? | ? | ✓ |
+| 10h  | Get PEF Capabilities | `get_pef_capabilities` | 30.1 | U | ⚡ | — | ? | ? | ✓ |
+| 11h  | Arm PEF Postpone Timer | `arm_pef_postpone_timer` | 30.2 | A | ⚡ | — | ? | ? | ✓ |
+| 12h  | Set PEF Configuration Parameters | `set_pef_configuration_parameters` | 30.3 | A | ⚡ | — | ? | ? | ✓ |
+| 13h  | Get PEF Configuration Parameters | `get_pef_configuration_parameters` | 30.4 | U | ⚡ | — | ? | ? | ✓ |
+| 14h  | Set Last Processed Event ID | `set_last_processed_event_id` | 30.5 | A | ⚡ | — | ? | ? | ✓ |
+| 15h  | Get Last Processed Event ID | `get_last_processed_event_id` | 30.6 | A | ⚡ | — | ? | ? | ✓ |
+| 16h  | Alert Immediate | `alert_immediate` | 30.7 | O | ⚡ | — | ? | ? | ✓ |
+| 17h  | PET Acknowledge | `pet_acknowledge` | 30.8 | s | ⚡ | — | ? | ? | ✓ |
+| 20h  | Get Device SDR Info | `get_device_sdr_info` | 35.2 | U | ⚡ | — | ? | ? | ✓ |
+| 21h  | Get Device SDR | `get_device_sdr` | 35.3 | U | ✓ | ✓ | ? | ? | ✓ |
+| 22h  | Reserve Device SDR Repository | `reserve_device_sdr_repository` | 35.4 | U | ⚡ | — | ? | ? | ✓ |
+| 23h  | Get Sensor Reading Factors | `get_sensor_reading_factors` | 35.5 | U | ✓ | ✓ | ? | ? | ✓ |
+| 24h  | Set Sensor Hysteresis | `set_sensor_hysteresis` | 35.6 | O | ⚡ | — | ? | ? | ✓ |
+| 25h  | Get Sensor Hysteresis | `get_sensor_hysteresis` | 35.7 | U | ⚡ | — | ? | ? | ✓ |
+| 26h  | Set Sensor Threshold | `set_sensor_threshold` | 35.8 | O | ⚡ | — | ? | ? | ✓ |
+| 27h  | Get Sensor Threshold | `get_sensor_threshold` | 35.9 | U | ✓ | ✓ | ? | ? | ✓ |
+| 28h  | Set Sensor Event Enable | `set_sensor_event_enable` | 35.10 | O | ⚡ | — | ? | ? | ✓ |
+| 29h  | Get Sensor Event Enable | `get_sensor_event_enable` | 35.11 | U | ⚡ | — | ? | ? | ✓ |
+| 2Ah  | Re-arm Sensor Events | `re_arm_sensor_events` | 35.12 | O | ⚡ | — | ? | ? | ✓ |
+| 2Bh  | Get Sensor Event Status | `get_sensor_event_status` | 35.13 | U | ⚡ | — | ? | ? | ✓ |
+| 2Dh  | Get Sensor Reading | `get_sensor_reading` | 35.14 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 2Eh  | Set Sensor Type | `set_sensor_type` | 35.16 | O | ✗ | — | ? | ? | ✓ |
+| 2Fh  | Get Sensor Type | `get_sensor_type` | 35.17 | U | ⚡ | — | ? | ? | ✓ |
+| 30h  | Set Sensor Reading And Event Status | `set_sensor_reading_and_event_status` | 35.15 | O | ✗ | — | ? | ? | ✓ |
 
 ---
 
@@ -214,48 +221,48 @@ Done: Get FRU Inventory Area Info, Get SDR Repository Info, Reserve SDR Reposito
 
 ### FRU Inventory
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 10h  | Get FRU Inventory Area Info | `get_fru_inventory_area_info` | 34.1 | U | ✓ | ✓ | ? | ? |
-| 11h  | Read FRU Data | `read_fru_data` | 34.2 | O | ✓ | ✓ | ? | ? |
-| 12h  | Write FRU Data | `write_fru_data` | 34.3 | O | ✓ | ✓ | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 10h  | Get FRU Inventory Area Info | `get_fru_inventory_area_info` | 34.1 | U | ✓ | ✓ | ? | ? | ✓ |
+| 11h  | Read FRU Data | `read_fru_data` | 34.2 | O | ✓ | ✓ | ? | ? | ✓ |
+| 12h  | Write FRU Data | `write_fru_data` | 34.3 | O | ✓ | ✓ | ? | ? | ✓ |
 
 ### SDR Repository
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 20h  | Get SDR Repository Info | `get_sdr_repository_info` | 33.9 | U | ✓ | ✓ | ✓ | ? |
-| 21h  | Get SDR Repository Allocation Info | `get_sdr_repository_allocation_info` | 33.10 | U | ⚡ | — | ? | ? |
-| 22h  | Reserve SDR Repository | `reserve_sdr_repository` | 33.11 | U | ✓ | ✓ | ✓ | ? |
-| 23h  | Get SDR | `get_sdr` | 33.12 | U | ✓ | ✓ | ✓ (chunked reads required) | ? |
-| 24h  | Add SDR | `add_sdr` | 33.13 | A | ⚡ | — | ? | ? |
-| 25h  | Partial Add SDR | `partial_add_sdr` | 33.14 | A | ✗ | — | ? | ? |
-| 26h  | Delete SDR | `delete_sdr` | 33.15 | O | ⚡ | — | ? | ? |
-| 27h  | Clear SDR Repository | `clear_sdr_repository` | 33.16 | O | ⚡ | — | ? | ? |
-| 28h  | Get SDR Repository Time | `get_sdr_repository_time` | 33.17 | U | ⚡ | — | ? | ? |
-| 29h  | Set SDR Repository Time | `set_sdr_repository_time` | 33.18 | A | ⚡ | — | ? | ? |
-| 2Ah  | Enter SDR Repository Update Mode | `enter_sdr_repository_update_mode` | 33.19 | A | ⚡ | — | ? | ? |
-| 2Bh  | Exit SDR Repository Update Mode | `exit_sdr_repository_update_mode` | 33.20 | A | ⚡ | — | ? | ? |
-| 2Ch  | Run Initialization Agent | `run_initialization_agent` | 33.21 | A | ⚡ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 20h  | Get SDR Repository Info | `get_sdr_repository_info` | 33.9 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 21h  | Get SDR Repository Allocation Info | `get_sdr_repository_allocation_info` | 33.10 | U | ⚡ | — | ? | ? | ✓ |
+| 22h  | Reserve SDR Repository | `reserve_sdr_repository` | 33.11 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 23h  | Get SDR | `get_sdr` | 33.12 | U | ✓ | ✓ | ✓ (chunked reads required) | ? | ✓ |
+| 24h  | Add SDR | `add_sdr` | 33.13 | A | ⚡ | — | ? | ? | ✓ |
+| 25h  | Partial Add SDR | `partial_add_sdr` | 33.14 | A | ✗ | — | ? | ? | ✓ |
+| 26h  | Delete SDR | `delete_sdr` | 33.15 | O | ⚡ | — | ? | ? | ✓ |
+| 27h  | Clear SDR Repository | `clear_sdr_repository` | 33.16 | O | ⚡ | — | ? | ? | ✓ |
+| 28h  | Get SDR Repository Time | `get_sdr_repository_time` | 33.17 | U | ⚡ | — | ? | ? | ✓ |
+| 29h  | Set SDR Repository Time | `set_sdr_repository_time` | 33.18 | A | ⚡ | — | ? | ? | ✓ |
+| 2Ah  | Enter SDR Repository Update Mode | `enter_sdr_repository_update_mode` | 33.19 | A | ⚡ | — | ? | ? | ✓ |
+| 2Bh  | Exit SDR Repository Update Mode | `exit_sdr_repository_update_mode` | 33.20 | A | ⚡ | — | ? | ? | ✓ |
+| 2Ch  | Run Initialization Agent | `run_initialization_agent` | 33.21 | A | ⚡ | — | ? | ? | ✓ |
 
 ### SEL
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 40h  | Get SEL Info | `get_sel_info` | 31.2 | U | ✓ | ✓ | ✓ | ? |
-| 41h  | Get SEL Allocation Info | `get_sel_allocation_info` | 31.3 | U | ⚡ | — | ? | ? |
-| 42h  | Reserve SEL | `reserve_sel` | 31.4 | U | ✓ | ✓ | ✓ | ? |
-| 43h  | Get SEL Entry | `get_sel_entry` | 31.5 | U | ✓ | ✓ | ✓ | ? |
-| 44h  | Add SEL Entry | `add_sel_entry` | 31.6 | O | ⚡ | — | ? | ? |
-| 45h  | Partial Add SEL Entry | `partial_add_sel_entry` | 31.7 | O | ⚡ | — | ? | ? |
-| 46h  | Delete SEL Entry | `delete_sel_entry` | 31.8 | O | ⚡ | — | ? | ? |
-| 47h  | Clear SEL | `clear_sel` | 31.9 | O | ⚡ | — | ? | ? |
-| 48h  | Get SEL Time | `get_sel_time` | 31.10 | U | ⚡ | — | ? | ? |
-| 49h  | Set SEL Time | `set_sel_time` | 31.11 | O | ⚡ | — | ? | ? |
-| 5Ch  | Get SEL Time UTC Offset | `get_sel_time_utc_offset` | 31.11a | U | ⚡ | — | ? | ? |
-| 5Dh  | Set SEL Time UTC Offset | `set_sel_time_utc_offset` | 31.11b | O | ⚡ | — | ? | ? |
-| 5Ah  | Get Auxiliary Log Status | `get_auxiliary_log_status` | 31.12 | O | ✗ | — | ? | ? |
-| 5Bh  | Set Auxiliary Log Status | `set_auxiliary_log_status` | 31.13 | A | ✗ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 40h  | Get SEL Info | `get_sel_info` | 31.2 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 41h  | Get SEL Allocation Info | `get_sel_allocation_info` | 31.3 | U | ⚡ | — | ? | ? | ✓ |
+| 42h  | Reserve SEL | `reserve_sel` | 31.4 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 43h  | Get SEL Entry | `get_sel_entry` | 31.5 | U | ✓ | ✓ | ✓ | ? | ✓ |
+| 44h  | Add SEL Entry | `add_sel_entry` | 31.6 | O | ⚡ | — | ? | ? | ✓ |
+| 45h  | Partial Add SEL Entry | `partial_add_sel_entry` | 31.7 | O | ⚡ | — | ? | ? | ✓ |
+| 46h  | Delete SEL Entry | `delete_sel_entry` | 31.8 | O | ⚡ | — | ? | ? | ✓ |
+| 47h  | Clear SEL | `clear_sel` | 31.9 | O | ⚡ | — | ? | ? | ✓ |
+| 48h  | Get SEL Time | `get_sel_time` | 31.10 | U | ⚡ | — | ? | ? | ✓ |
+| 49h  | Set SEL Time | `set_sel_time` | 31.11 | O | ⚡ | — | ? | ? | ✓ |
+| 5Ch  | Get SEL Time UTC Offset | `get_sel_time_utc_offset` | 31.11a | U | ⚡ | — | ? | ? | ✓ |
+| 5Dh  | Set SEL Time UTC Offset | `set_sel_time_utc_offset` | 31.11b | O | ⚡ | — | ? | ? | ✓ |
+| 5Ah  | Get Auxiliary Log Status | `get_auxiliary_log_status` | 31.12 | O | ✗ | — | ? | ? | ✓ |
+| 5Bh  | Set Auxiliary Log Status | `set_auxiliary_log_status` | 31.13 | A | ✗ | — | ? | ? | ✓ |
 
 ---
 
@@ -267,38 +274,38 @@ Done: Get LAN Configuration Parameters, Set SOL Configuration Parameters, Get SO
 
 ### LAN Device Commands
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 01h  | Set LAN Configuration Parameters | `set_lan_configuration_parameters` | 23.1 | A | ✓ | ✓ | ? | ? |
-| 02h  | Get LAN Configuration Parameters | `get_lan_configuration_parameters` | 23.2 | A | ✓ | ✓ | ✓ | ? |
-| 03h  | Suspend BMC ARPs | `suspend_bmc_arps` | 23.3 | A | ✗ | — | ? | ? |
-| 04h  | Get IP/UDP/RMCP Statistics | `get_ip_udp_rmcp_statistics` | 23.4 | U | ✓ | ✓ | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 01h  | Set LAN Configuration Parameters | `set_lan_configuration_parameters` | 23.1 | A | ✓ | ✓ | ? | ? | ✓ |
+| 02h  | Get LAN Configuration Parameters | `get_lan_configuration_parameters` | 23.2 | A | ✓ | ✓ | ✓ | ? | ✓ |
+| 03h  | Suspend BMC ARPs | `suspend_bmc_arps` | 23.3 | A | ✗ | — | ? | ? | ✓ |
+| 04h  | Get IP/UDP/RMCP Statistics | `get_ip_udp_rmcp_statistics` | 23.4 | U | ✓ | ✓ | ? | ? | ✓ |
 
 ### Serial / Modem
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 10h  | Set Serial/Modem Configuration | `set_serial_modem_configuration` | 25.1 | A | ✓ | ✓ | ? | ? |
-| 11h  | Get Serial/Modem Configuration | `get_serial_modem_configuration` | 25.2 | U | ✓ | ✓ | ? | ? |
-| 12h  | Set Serial/Modem Mux | `set_serial_modem_mux` | 25.3 | A | ✗ | — | ? | ? |
-| 13h  | Get TAP Response Codes | `get_tap_response_codes` | 25.4 | A | ✗ | — | ? | ? |
-| 14h  | Set PPP UDP Proxy Transmit Data | `set_ppp_udp_proxy_transmit_data` | 25.5 | A | ✗ | — | ? | ? |
-| 15h  | Get PPP UDP Proxy Transmit Data | `get_ppp_udp_proxy_transmit_data` | 25.6 | A | ✗ | — | ? | ? |
-| 16h  | Send PPP UDP Proxy Packet | `send_ppp_udp_proxy_packet` | 25.7 | A | ✗ | — | ? | ? |
-| 17h  | Get PPP UDP Proxy Receive Data | `get_ppp_udp_proxy_receive_data` | 25.8 | A | ✗ | — | ? | ? |
-| 18h  | Serial/Modem Connection Active | `serial_modem_connection_active` | 25.9 | A | ✗ | — | ? | ? |
-| 19h  | Callback | `callback` | 25.10 | A | ✗ | — | ? | ? |
-| 1Ah  | Set User Callback Options | `set_user_callback_options` | 25.11 | A | ✗ | — | ? | ? |
-| 1Bh  | Get User Callback Options | `get_user_callback_options` | 25.12 | U | ✗ | — | ? | ? |
-| 1Ch  | Set Serial Routing Mux | `set_serial_routing_mux` | 25.13 | A | ✗ | — | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 10h  | Set Serial/Modem Configuration | `set_serial_modem_configuration` | 25.1 | A | ✓ | ✓ | ? | ? | ✓ |
+| 11h  | Get Serial/Modem Configuration | `get_serial_modem_configuration` | 25.2 | U | ✓ | ✓ | ? | ? | ✓ |
+| 12h  | Set Serial/Modem Mux | `set_serial_modem_mux` | 25.3 | A | ✗ | — | ? | ? | ✓ |
+| 13h  | Get TAP Response Codes | `get_tap_response_codes` | 25.4 | A | ✗ | — | ? | ? | ✓ |
+| 14h  | Set PPP UDP Proxy Transmit Data | `set_ppp_udp_proxy_transmit_data` | 25.5 | A | ✗ | — | ? | ? | ✗ |
+| 15h  | Get PPP UDP Proxy Transmit Data | `get_ppp_udp_proxy_transmit_data` | 25.6 | A | ✗ | — | ? | ? | ✗ |
+| 16h  | Send PPP UDP Proxy Packet | `send_ppp_udp_proxy_packet` | 25.7 | A | ✗ | — | ? | ? | ✗ |
+| 17h  | Get PPP UDP Proxy Receive Data | `get_ppp_udp_proxy_receive_data` | 25.8 | A | ✗ | — | ? | ? | ✗ |
+| 18h  | Serial/Modem Connection Active | `serial_modem_connection_active` | 25.9 | A | ✗ | — | ? | ? | ✓ |
+| 19h  | Callback | `callback` | 25.10 | A | ✗ | — | ? | ? | ✓ |
+| 1Ah  | Set User Callback Options | `set_user_callback_options` | 25.11 | A | ✗ | — | ? | ? | ✓ |
+| 1Bh  | Get User Callback Options | `get_user_callback_options` | 25.12 | U | ✗ | — | ? | ? | ✓ |
+| 1Ch  | Set Serial Routing Mux | `set_serial_routing_mux` | 25.13 | A | ✗ | — | ? | ? | ✗ |
 
 ### SOL
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 20h  | SOL Activating | `sol_activating` | 26.1 | U | ✗ | — | ? | ? |
-| 21h  | Set SOL Configuration Parameters | `set_sol_configuration_parameters` | 26.2 | A | ✓ | ✓ | ? | ? |
-| 22h  | Get SOL Configuration Parameters | `get_sol_configuration_parameters` | 26.3 | U | ✓ | ✓ | ? | ? |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 20h  | SOL Activating | `sol_activating` | 26.1 | U | ✗ | — | ? | ? | ✗ |
+| 21h  | Set SOL Configuration Parameters | `set_sol_configuration_parameters` | 26.2 | A | ✓ | ✓ | ? | ? | ✓ |
+| 22h  | Get SOL Configuration Parameters | `get_sol_configuration_parameters` | 26.3 | U | ✓ | ✓ | ? | ? | ✓ |
 
 ### Generic / Group
 
@@ -322,10 +329,10 @@ Done: _none_
 Most bridge commands implemented as `⚡ raw` only; we don't model ICMB
 specifically. Listed here for completeness.
 
-| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ |
-|------|------|--------|--------|------|-------|-------|------|--------|
-| 00h  | Get Bridge State | `get_bridge_state` | 26.x | A | ✗ | — | ? | ? |
-| 30h  | Send ICMB Connection ID | `get_event_count` | (ICMB) | — | ✗ | — | — | — |
+| CMD  | Name | Run as | Spec § | Priv | zipmi | Scapy | R710 | X11SSZ | ASMB787 |
+|------|------|--------|--------|------|-------|-------|------|--------|------|
+| 00h  | Get Bridge State | `get_bridge_state` | 26.x | A | ✗ | — | ? | ? | ? |
+| 30h  | Send ICMB Connection ID | `get_event_count` | (ICMB) | — | ✗ | — | — | — | ? |
 
 ---
 

@@ -1,3 +1,25 @@
+# ⭐ TOP PRIORITY (2026-08-14): per-OEM columns across the whole command table
+
+We now have full handler catalogs for several OEM stacks (ASMB-787/AMI,
+iDRAC9, iDRAC6/Dell, OpenBMC ×9, Supermicro stub). `docs/command-table.md`
+only shows two live-hardware columns (R710, X11SSZ) + one static column
+(ASMB787). **Go over ALL the other OEMs and add a column for each** to the
+standard-command tables in `docs/command-table.md`, filled from each stack's
+real dispatch tables (static ground truth: ✓ handler present / ✗ absent),
+same as the ASMB787 column just added.
+
+- Source of truth per stack:
+  - ASMB787 (AMI) — `docs/advantech_ASMB787-command-table.md` (DONE, column added)
+  - iDRAC9 — `docs/idrac9-command-table.md` (name-only; needs NetFn/cmd bytes
+    from `G_asOEMIPMIReqeustHandleTable` — not yet cracked)
+  - iDRAC6 — `docs/dell-command-table.md` (has NetFn/cmd — ready to columnize)
+  - OpenBMC vendors — from `oem/*.py` (netfn,cmd) maps
+- Also: pull a **Supermicro/Tyan AMI-MegaRAC** firmware and re-run
+  `oem-handler-lineage.md` to test whether `raw 0x32 0x66` restore-defaults is
+  an AMI-wide backdoor (see that doc's open follow-up).
+
+---
+
 # Task: OpenBMC support for zipmi (2026-06-12)
 
 Goal (from user, PHD research): add OEM support for OpenBMC vendors via the
