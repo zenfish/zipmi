@@ -185,10 +185,10 @@ zipmi scan auth-caps
 zipmi scan ciphers                   # advertised RMCP+ ciphers (0x54)
 zipmi scan ciphers --verify          # + which the BMC actually NEGOTIATES (unauth Open Session probe)
 zipmi scan cipher-zero
-zipmi scan rakp-hash -U root         # grab crackable RAKP2 HMAC, no auth (CVE-2013-4786)
+zipmi scan rakp -U root              # grab crackable RAKP2 HMAC, no auth (CVE-2013-4786)
                                      # negotiates MD5>SHA1>SHA256 (fastest crack); prints hashcat line
-zipmi scan rakp-hash                 # no -U: sweep 6 famous default accounts (also user-enum)
-zipmi scan rakp-hash --extended-user-list   # sweep bundled 44 default BMC accounts (credit: oobscan)
+zipmi scan rakp                      # no -U: sweep 6 famous default accounts (also user-enum)
+zipmi scan rakp --extended-user-list # sweep bundled 44 default BMC accounts (credit: oobscan)
 zipmi user-matrix list               # full user × channel privilege grid (audit)
 zipmi user-matrix list --json | jq '.channels'   # machine-readable
 zipmi scan all --json                # one {steps:[...]} envelope, findings on
@@ -262,7 +262,7 @@ groups   [body [cmd-name [byte ...]]]    # IPMI Group Extension dispatcher (NetF
 dcmi        [cmd-name [byte ...]]          # shortcut for `groups dcmi ...`
 i2c/i2cscan/i2c-id  # Master Write-Read bus ops; spd <addr>  # decode a DIMM SPD
 fingerprint  (fp)                          # identify BMC stack + vendor flavor
-scan         {asf-ping, auth-caps, cipher-suites, cipher-zero, rakp-hash, unauth, all}
+scan         {asf-ping, auth-caps, cipher-suites, cipher-zero, rakp, unauth, all}
 sessionless                                # list spec-permitted pre-session cmds
 fuzz         {sweep --netfn 0xNN, rakp, length, cipher, list}
 vbmc         serve [--vpersona dell_idrac6|generic] [--vport N]

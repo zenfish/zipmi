@@ -30,7 +30,7 @@ RUN      zipmi [-H host] [-U user] [-P pass] [-A auth] [-t timeout]
            scan auth-caps     # sessionless Get Channel Auth Caps
            scan asf-ping
            scan ciphers [--verify]
-           scan rakp-hash     # grab crackable RAKP2 HMAC, no auth (CVE-2013-4786)
+           scan rakp          # grab crackable RAKP2 HMAC, no auth (CVE-2013-4786)
            scan all
 
 EXIT     0 on success; 1 on IPMI / transport error; 2 on usage error.
@@ -4740,11 +4740,11 @@ def cmd_scan_rakp_hash(args: argparse.Namespace) -> int:
     s.transport.port = args.port
     _apply_trace(s.transport, args)
     if len(users) > 1:
-        _msg.info(f"rakp-hash {host}: sweeping {len(users)} usernames")
+        _msg.info(f"rakp {host}: sweeping {len(users)} usernames")
     try:
         result = s.grab_rakp_hashes(users=users, pad_username=getattr(args, "pad", False))
     except Exception as e:
-        _msg.error(f"rakp-hash {host}: {e}")
+        _msg.error(f"rakp {host}: {e}")
         return 2
     finally:
         s.transport.close()
@@ -4761,13 +4761,13 @@ def cmd_scan_rakp_hash(args: argparse.Namespace) -> int:
         for a in openfail:
             _msg.info(f"{a['alg']:<11} suite {a['suite']:<2} -> {a['error']}")
     if not hashes:
-        _msg.error(f"rakp-hash {host}: no hashes captured "
+        _msg.error(f"rakp {host}: no hashes captured "
                    f"(no valid user, or no hash algo)")
         return 1
     if len(users) > 1:
         noacct = sum(1 for a in result["attempts"]
                      if a.get("user") is not None and "0x0d" in a["error"])
-        _msg.info(f"rakp-hash {host}: {len(hashes)} hash(es), {noacct} no-account")
+        _msg.info(f"rakp {host}: {len(hashes)} hash(es), {noacct} no-account")
     for h in hashes:
         _msg.info(f"{h['user']!r}  {h['alg']}  ({len(h['auth_code']) // 2}-byte auth code)")
         print(h["record"])                               # record -> stdout (pipeable)
@@ -5494,6 +5494,25 @@ def cmd_firewall_set_sub_enables(args: argparse.Namespace) -> int:
 
 
 # -- argparse wiring ------------------------------------------------------
+
+
+def _annotate_subcommand_options(sub_action) -> None:
+    """Append '[--flag ...]' (each subcommand's real long options) to its line in
+    the parent group's `--help` listing, so `<group> --help` reveals per-command
+    flags without drilling into every `<group> <verb> -h`.
+
+    Reads argparse internals (`_choices_actions`) — stable across CPython, but a
+    cosmetic reliance: if a future argparse drops it, the hints just don't appear.
+    Flags are pulled from the actual parsers, so they can't drift from reality."""
+    for pseudo in getattr(sub_action, "_choices_actions", []):
+        parser = sub_action.choices.get(pseudo.dest)
+        if parser is None:
+            continue
+        flags = sorted({s for a in parser._actions for s in a.option_strings
+                        if s.startswith("--") and s != "--help"})
+        if flags:
+            pseudo.help = ((pseudo.help + "  ") if pseudo.help else "") \
+                + "[" + " ".join(flags) + "]"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -6319,18 +6338,35 @@ def build_parser() -> argparse.ArgumentParser:
 
     sc = sub.add_parser("scan", help="posture probes (sessionless + session)")
     sc_sub = sc.add_subparsers(dest="action", required=True)
+    _RAKP_DESC = (
+        "RAKP2 hash grab (CVE-2013-4786) — capture a password-keyed RAKP2 HMAC\n"
+        "without authenticating, for offline cracking. No password needed; only a\n"
+        "valid username. The BMC sends the HMAC in RAKP2 before RAKP3 proves\n"
+        "anything, so we catch it and drop.\n\n"
+        "Auth-algo priority (fastest GPU crack first): HMAC-MD5 > HMAC-SHA1 >\n"
+        "HMAC-SHA256. Negotiates the fastest-cracking algo the BMC will actually\n"
+        "establish and emits a hashcat-ready line (-m 50 / 7300 / 1450) per user.\n"
+        "Confidentiality algo is irrelevant (RAKP2 is pre-encryption).\n\n"
+        "Usernames:\n"
+        "  -U NAME               one account\n"
+        "  (neither -U nor flag) sweep 6 famous defaults (doubles as user-enum)\n"
+        "  --extended-user-list  sweep bundled 44 default accounts (credit: oobscan)"
+    )
     for name, fn in [("asf-ping", cmd_scan_asf_ping),
                      ("auth-caps", cmd_scan_auth_caps),
                      ("ciphers", cmd_scan_cipher_suites),
                      ("cipher-zero", cmd_scan_cipher_zero),
-                     ("rakp-hash", cmd_scan_rakp_hash),
+                     ("rakp", cmd_scan_rakp_hash),
                      ("unauth", cmd_scan_unauth),
                      ("all", cmd_scan_all)]:
         kw = {"aliases": ["cipher-suites"]} if name == "ciphers" else \
-             {"aliases": ["ripper"]} if name == "rakp-hash" else {}
+             {"aliases": ["rakp-hash", "ripper"]} if name == "rakp" else {}
+        if name == "rakp":
+            kw["description"] = _RAKP_DESC
+            kw["formatter_class"] = argparse.RawDescriptionHelpFormatter
         s = sc_sub.add_parser(name, help={
             "ciphers": "advertised RMCP+ cipher suites (--verify: which negotiate)",
-            "rakp-hash": "grab crackable RAKP2 HMAC, no auth (CVE-2013-4786); MD5>SHA1>SHA256",
+            "rakp": "grab crackable RAKP2 HMAC, no auth (CVE-2013-4786); MD5>SHA1>SHA256",
             "unauth": "unauthenticated (sessionless) probes only",
             "all": "every probe (unauth + cipher-zero + user-matrix)",
         }.get(name), **kw)
@@ -6338,13 +6374,17 @@ def build_parser() -> argparse.ArgumentParser:
             s.add_argument("--verify", action="store_true",
                            help="unauth Open Session probe per suite: negotiates vs "
                                 "advertise-only (no RAKP/creds/access)")
-        if name == "rakp-hash":
+        if name == "rakp":
             s.add_argument("--pad", action="store_true",
                            help="NUL-pad username to 16B (iDRAC-quirk targets only)")
             s.add_argument("--extended-user-list", action="store_true",
                            help="sweep the bundled 44 default BMC accounts "
                                 "(credit: oobscan) instead of the 6 famous defaults")
         s.set_defaults(func=fn)
+
+    # Surface each subcommand's flags in `scan --help` so they're discoverable
+    # without drilling into every `scan <verb> -h`.
+    _annotate_subcommand_options(sc_sub)
 
     return p
 
