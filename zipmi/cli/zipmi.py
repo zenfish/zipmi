@@ -6357,6 +6357,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     sc = sub.add_parser("scan", help="posture probes (sessionless + session)")
     sc_sub = sc.add_subparsers(dest="action", required=True)
+    # Name the default sweep list from the source of truth so help can't drift.
+    _dfl_users = ", ".join(u if u else '""' for u in Session.RAKP_DEFAULT_USERS)
     _RAKP_DESC = (
         "RAKP2 hash grab (CVE-2013-4786) — capture a password-keyed RAKP2 HMAC\n"
         "without authenticating, for offline cracking. No password needed; only a\n"
@@ -6368,7 +6370,9 @@ def build_parser() -> argparse.ArgumentParser:
         "Confidentiality algo is irrelevant (RAKP2 is pre-encryption).\n\n"
         "Usernames:\n"
         "  -U NAME               one account\n"
-        "  (neither -U nor flag) sweep 6 famous defaults (doubles as user-enum)\n"
+        f"  (neither -U nor flag) sweep 6 famous defaults (doubles as user-enum):\n"
+        f"                          {_dfl_users}\n"
+        f'                          ("" = the null/empty username)\n'
         "  --extended-user-list  sweep bundled 44 default accounts (credit: oobscan)"
     )
     for name, fn in [("asf-ping", cmd_scan_asf_ping),
@@ -6398,7 +6402,8 @@ def build_parser() -> argparse.ArgumentParser:
                            help="NUL-pad username to 16B (iDRAC-quirk targets only)")
             s.add_argument("--extended-user-list", action="store_true",
                            help="sweep the bundled 44 default BMC accounts "
-                                "(credit: oobscan) instead of the 6 famous defaults")
+                                "(credit: oobscan) instead of the 6 famous defaults "
+                                f"({_dfl_users})")
         s.set_defaults(func=fn)
 
     # Surface every subcommand's flags in its group's `--help` so they're
