@@ -158,6 +158,31 @@ def check_cli_fields_documented() -> list[str]:
     return []
 
 
+def check_oem_count() -> list[str]:
+    """README's <!--OEM-COUNT-->N<!--/OEM-COUNT--> must match the live OEM total.
+
+    The count drifts as vendor dispatch tables grow. Regenerate with
+    `make readme-stats` (scripts/update_readme_stats.py).
+    """
+    readme = (ROOT / "README.md").read_text()
+    m = re.search(r"<!--OEM-COUNT-->(\d+)<!--/OEM-COUNT-->", readme)
+    if not m:
+        return ["README.md: OEM-COUNT marker missing — "
+                "wrap the OEM total in <!--OEM-COUNT-->N<!--/OEM-COUNT-->"]
+    sys.path.insert(0, str(ROOT))
+    try:
+        from zipmi.cli.oem_cmds import oem_command_totals  # type: ignore
+        _known, named = oem_command_totals()
+    except Exception as e:
+        return [f"could not compute OEM totals: {e}"]
+    finally:
+        sys.path.pop(0)
+    if int(m.group(1)) != named:
+        return [f"README.md OEM-COUNT is {m.group(1)} but live total is {named} "
+                f"— run `make readme-stats`"]
+    return []
+
+
 def main() -> int:
     actual = collect_test_count()
     errs: list[str] = []
@@ -167,6 +192,7 @@ def main() -> int:
     errs += check_bmc_generation_documented()
     errs += check_fuzz_inventory_consistent()
     errs += check_cli_fields_documented()
+    errs += check_oem_count()
     if errs:
         print("doc/code symmetry violation:", file=sys.stderr)
         for e in errs:

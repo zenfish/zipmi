@@ -30,7 +30,7 @@ play-by-play; this doc is the bird's-eye view.
 ```
 $ pytest tests/ -q
 ..................................................................       [100%]
-130 passed in 3.10s
+2133 passed in 67.09s
 ```
 
 Eight integration tests + 122 unit tests covering RMCP / ASF / IPMI 1.5

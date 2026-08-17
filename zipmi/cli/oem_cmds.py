@@ -174,6 +174,27 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     return 0, 0
 
 
+def oem_command_totals() -> tuple[int, int]:
+    """(known, named) OEM command totals across every vendor `zipmi oem` lists.
+
+    `known` sums all known dispatch slots (idrac9 = 349); `named` sums only the
+    slots with a handler name (idrac9 = 277). This is the number behind the
+    README coverage line — single source for scripts/update_readme_stats.py and
+    the doc-sync guard, so it can never drift from the live listing.
+    """
+    try:                                    # openbmc flavors register lazily
+        from ..scapy_ipmi.oem import openbmc
+        openbmc.load_all()
+    except Exception:
+        pass
+    known = named = 0
+    for v in VENDORS:
+        k, n = _vendor_stats(v)
+        known += k
+        named += n
+    return known, named
+
+
 # Java decompiled-class name → human-readable subsystem label.
 SRC_CLASS_LABELS: dict[str, str] = {
     "IPMINM20Command":          "Intel Node Manager 2.0",

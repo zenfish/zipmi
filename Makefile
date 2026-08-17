@@ -33,7 +33,7 @@ ZIPMI_ALLOW_UNTESTED ?=
 SHELL := bash
 .ONESHELL:
 .SHELLFLAGS := -eu -o pipefail -c
-.PHONY: all build install dev uninstall verify clean wire-trace
+.PHONY: all build install dev uninstall verify clean wire-trace readme-stats
 .DEFAULT_GOAL := build
 
 all: build
@@ -147,3 +147,9 @@ wire-trace:
 	 FORCE_COLOR=1 $(PY) -m zipmi.cli.zipmi -H 127.0.0.1 -p 16230 -U root -P calvin bmc info -d \
 	   | $(PY) scripts/ansi_to_svg.py docs/img/wire-trace.svg
 	@echo ">> done — embed: ![wire trace](docs/img/wire-trace.svg)"
+
+# Regenerate the OEM command-count in README.md from the live registry, so it
+# never drifts as vendor dispatch tables grow. check_doc_sync.py blocks commits
+# if it's stale; this fixes it.
+readme-stats:
+	@$(PY) scripts/update_readme_stats.py
