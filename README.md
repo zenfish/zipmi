@@ -103,6 +103,11 @@ git clone https://github.com/zenfish/zipmi.git && cd zipmi
 make install                 # make dev for editable + dev extras
 ```
 
+> **Tested on:** macOS 26.5 with Python 3.14 (min Python 3.11). zipmi is
+> pure-Python + Scapy with no OS-specific calls, so it should run anywhere
+> Python ≥3.11 and Scapy do — Linux included — but macOS is what it's
+> exercised on day to day.
+
 You get **both** the `zipmi` / `bmc-id` commands **and** a working
 `import zipmi` in your own scripts (`python myscript.py`, no venv to
 activate). The two commands install into the scripts directory of
