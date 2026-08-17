@@ -62,7 +62,7 @@ Nine OpenBMC vendor flavors, each a thin `oem/<v>.py` calling
 ASF endianness, cipher-zero guards, registry iana=None, all 9 vendor modules,
 google envelope, nvidia group, sbmr autoload, umbrella). Full suite: **241 passed**.
 
-### Research deliverables (in ~/phd/bmc/openbmc/)
+### Research deliverables (author's private research library)
 - `OPENBMC_OEM_IPMI.md` — full per-source OEM command catalog (9 vendors +
   phosphor baseline, ~260 cmds, security rollup, fingerprinting).
 - `SURVEY-OPENBMC.md` — internet prevalence: ~148 OpenBMC IPs (~0.32% of

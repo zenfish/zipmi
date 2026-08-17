@@ -36,7 +36,7 @@ Each catalogue is sourced differently:
 - **idrac6**: 195 names binary-RE'd from `T710-bmc/bin/fullfw` with
   radare2; the rest of the dispatch table (~190 entries) keeps
   privilege + description metadata from the human MD analysis. See
-  `~/phd/bmc/dell/fullfw-dispatch-binary.md` for the raw dump.
+  the author's private firmware-dispatch dump for the raw dump.
 - **idrac9**: 349 known dispatch slots (271 static + 78 runtime-only),
   **277 named**. Three resolution layers: 46 from the upstream RE doc,
   99 from dynsym DF .text addr resolution (handler addresses point
@@ -505,6 +505,6 @@ Useful for:
 | 1.5 quirks observed            | `docs/ipmi15-notes.md`                    |
 | RMCP+ state machine + framing  | `docs/ipmi20-rakp.md`                     |
 | Cmd-by-cmd status              | `docs/command-table.md`                   |
-| Spec PDFs                      | `/Users/zen/phd/dox/specs/IPMI*.pdf`      |
+| Spec PDFs                      | IPMI spec PDFs (from DMTF / Intel)        |
 
 Happy hacking.

@@ -634,5 +634,6 @@ Scapy, pyghmi, OpenBMC, and more), each with a URL.
 
 ---
 
-Use zipmi responsibly and ensure you have permission prior to scanning any
-systems that aren't owned by you.
+Please use zipmi responsibly and ensure you have permission prior to scanning any systems that 
+aren't owned by you.
+

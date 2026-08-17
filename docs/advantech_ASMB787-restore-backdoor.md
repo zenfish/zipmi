@@ -150,7 +150,7 @@ way the command is reachable at `Priv = 0x00`.
 | Does it run a script on the BMC OS? | **Yes** — `/etc/restoredefaults.sh restore`, as root. |
 | What does the script do? | `rm -rf /conf/*` then `cp -Rp /etc/defconfig/* /conf`. |
 | Blocking? | No — handler returns CC 0x00 immediately; reset runs as async task 0x3f. |
-| Advantech-specific? | No — `g_AMI`/`AMIRestoreDefaults` is stock AMI MegaRAC (see [oem-handler-lineage.md](oem-handler-lineage.md)); expected AMI-wide. |
+| Advantech-specific? | No — `g_AMI`/`AMIRestoreDefaults` is stock AMI MegaRAC (cross-vendor lineage analysis in the author's private research library); expected AMI-wide. |
 
 ## Dynamic confirmation (live vBMC, 2026-08-14)
 

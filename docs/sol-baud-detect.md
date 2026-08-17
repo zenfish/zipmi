@@ -32,7 +32,7 @@ the boot is effectively blind. BMC SOL defaults vary widely:
 | Dell iDRAC7+/9 | 115200 |
 | Supermicro / most others | 115200 (sometimes 57600) |
 
-In the BMC→PXE pivot PoC (`~/phd/bmc/dell/upgrade-toolkit/poc/`), guessing 57600
+In the BMC→PXE pivot PoC (author's BMC→PXE pivot PoC), guessing 57600
 then 115200 cost two blind boot cycles before `ipmitool sol info` revealed 19200.
 We want zipmi to read this so a tool can set the right console baud automatically.
 

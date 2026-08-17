@@ -161,8 +161,8 @@ per line) — the scan-pipeline mode. Mix any of the forms.
 | `-q`, `--quiet` | One TSV line per host: `ip⇥vendor⇥conf⇥source` |
 | `-j`, `--json` | JSON: per-target objects under `{"targets": {...}}` |
 | `--no-https` | Skip the HTTPS **and** Redfish probes (UDP-only) |
-| `--tuple-map PATH` | Custom `tuple_map.json` (default `~/phd/bmc/zmap-ipmi-decode/tuple_map.json`) |
-| `--kb-dir PATH` | Custom knowledge-base dir (default `~/phd/bmc/zmap-ipmi-decode/kb`) |
+| `--tuple-map PATH` | Custom `tuple_map.json` (default: bundled `zipmi/data/zmap-ipmi-decode/tuple_map.json`) |
+| `--kb-dir PATH` | Custom knowledge-base dir (default: bundled `zipmi/data/zmap-ipmi-decode/kb`) |
 
 **Exit status:** `0` if at least one probe decoded for at least one
 target; `1` if every probe failed.
@@ -239,9 +239,9 @@ interest.
 
 ## The fleet knowledge base (optional)
 
-The tuple→vendor mapping and KB live **outside** the repo by default
-(`~/phd/bmc/zmap-ipmi-decode/`), since they're derived from
-large-scale scan data. `bmc-id` degrades gracefully without them:
+The tuple→vendor mapping and KB ship **bundled** with the package
+(`zipmi/data/zmap-ipmi-decode/`); they're derived from large-scale scan
+data. `bmc-id` degrades gracefully without them:
 
 - **no `tuple_map.json`** → the report still shows the decoded tuple,
   device-ID vendor, ciphers, GUID, and HTTPS identity; only the
@@ -259,4 +259,4 @@ large-scale scan data. `bmc-id` degrades gracefully without them:
 - [`examples/01_get_chan_auth_caps.py`](examples) — single-probe baseline
 - [`zipmi/scapy_ipmi/commands.py`](zipmi/scapy_ipmi/commands.py) — the request layers used
 - [`zipmi/consts.py`](zipmi/consts.py) — `IANA`, `BMC_GENERATION`, `guess_bmc_generation`
-- `~/phd/bmc/zmap-ipmi-decode/findings.md` — "What is an IPMI tuple?" writeup (external research corpus)
+- the "What is an IPMI tuple?" writeup (author's external research corpus, not in this repo)

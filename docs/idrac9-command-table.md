@@ -7,7 +7,7 @@ Regenerate with:
 python -m zipmi.parsers.idrac9_md --markdown > docs/idrac9-command-table.md
 ```
 
-Source: `/Volumes/yyy/phd/bmc/idrac9-firmware/IPMI_COMMAND_ENUMERATION.md`  
+Source: iDRAC9 firmware IPMI command enumeration (author's private firmware-RE corpus, not in this repo)  
 Entries: **313**
 
 **Note:** the source doc lists cmd names + handlers without their NetFn/cmd

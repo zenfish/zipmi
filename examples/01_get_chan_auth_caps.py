@@ -6,7 +6,7 @@ WHAT     Sends an IPMI Get Channel Authentication Capabilities request
          (NetFn 0x06 App, Cmd 0x38) without any session, decodes the
          reply, computes the **IPMI capability tuple** that fingerprints
          the BMC vendor/firmware family, and (optionally) looks up the
-         tuple in tuple_map.json from ~/phd/bmc/zmap-ipmi-decode/ for a
+         tuple in the bundled tuple_map.json for a
          vendor classification.
 
 WHY      First live IPMI roundtrip — sessionless probe, no auth state.
@@ -42,9 +42,9 @@ RUN      python examples/01_get_chan_auth_caps.py <bmc-ip> [timeout-seconds]
 EXIT     0 on decoded reply; 1 on timeout / parse error; 2 on usage error.
 
 RELATED  zipmi/scapy_ipmi/commands.py
-         /Users/zen/phd/dox/specs/IPMI-1.5.pdf §22.13
-         ~/phd/bmc/zmap-ipmi-decode/findings.md (tuple concept + fleet stats)
-         ~/phd/bmc/zmap-ipmi-decode/tuple_map.json (76-vendor lookup table)
+         IPMI 1.5 spec, §22.13
+         capability-tuple fingerprinting concept (author's fleet research)
+         bundled tuple_map.json (76-vendor lookup table)
 """
 
 from __future__ import annotations
@@ -54,12 +54,13 @@ import os
 import sys
 from pathlib import Path
 
+import zipmi
 from zipmi.consts import COMP_CODE, IANA
 from zipmi.core import Transport
 from zipmi.scapy_ipmi.commands import GetChanAuthCapsReq
 
-# Default location of the public-fleet vendor map.
-DEFAULT_TUPLE_MAP = Path.home() / "phd/bmc/zmap-ipmi-decode/tuple_map.json"
+# Default: the vendor map bundled with the zipmi package.
+DEFAULT_TUPLE_MAP = Path(zipmi.__file__).parent / "data" / "zmap-ipmi-decode" / "tuple_map.json"
 
 
 def decode_auth_bits(b: int) -> list[str]:
@@ -95,7 +96,7 @@ def decode_ext_bits(b: int) -> list[str]:
 
 
 def tuple_key(channel: int, auth: int, status: int, ext: int, oem: int) -> str:
-    """Cluster key matching ~/phd/bmc/zmap-ipmi-decode/tuple_map.json schema."""
+    """Cluster key matching the bundled tuple_map.json schema."""
     return f"ch{channel}_a{auth:02x}_s{status:02x}_e{ext:02x}_o{oem:06x}"
 
 

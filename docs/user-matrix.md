@@ -40,7 +40,7 @@ Each line is `chN: <medium> / <session-support> / limit=<ceiling>` from
 ### medium
 The physical/logical transport: IPMB (I2C), 802.3 LAN, async serial/modem, PCI
 SMBus, SMBus, system interface (KCS/SMIC/BT), USB, OEM. See the protocol
-writeup: `~/phd/bmc/ipmi/ipmi-channels-users-auth.html`.
+writeup: the author's IPMI channels/users/auth research doc (private).
 
 ### session-support
 - **multi-session** — several sessions at once (LAN). A new connection gets its
@@ -199,25 +199,18 @@ any other cc = permitted-but-rejected-for-this-channel. (JSON carries
 `{"bridge": {"supported", "bridgeable", "cc", "detail"}}` per channel.)
 
 Bridgeable channels are **reach edges** — `user-matrix list --json --bridge`
-(with `--medium` for the MACs/IPs) is the connectivity source that feeds the
-hardware graph in `~/phd/bmc/hwmaps/`. Convert it with
-`~/phd/bmc/tools/usermatrix2hwmap.py`:
-
-```
-zipmi -H <bmc> -U .. -P .. user-matrix list --json --bridge --medium > um.json
-~/phd/bmc/tools/usermatrix2hwmap.py um.json -o graphs/<box>-channels.json
-# merge-hwmap.py then folds the channel reach-edges into the box's graph
-```
-
-It emits: `BMC → CHn` per channel, `CHn(LAN) → LAN` (external reach, labelled
-with MAC/IP), and — the payoff — `<connected-channel> → CHn` for every
-`bridge:yes` channel (internal reach: which buses your LAN session can pivot
-onto via Send Message).
+(with `--medium` for the MACs/IPs) is the connectivity source that feeds a
+hardware-connectivity graph. A converter that turns this JSON into that graph
+is part of the author's private research toolchain (not shipped here); it emits
+`BMC → CHn` per channel, `CHn(LAN) → LAN` (external reach, labelled with
+MAC/IP), and — the payoff — `<connected-channel> → CHn` for every `bridge:yes`
+channel (internal reach: which buses your LAN session can pivot onto via Send
+Message).
 
 ## Relation to the protocol writeup
 
 The *why* behind all of this — global-identity/per-channel-access, the two
 ceilings, the auth-by-medium model, the internal injection surface — is in
-`~/phd/bmc/ipmi/ipmi-channels-users-auth.html` (doc-UUID
+the author's IPMI channels/users/auth research doc (private; doc-UUID
 `bffab790-2ab1-4e3b-8eaa-25e7163b4a2f`). This file is the operator's guide to the
 tool output; that one is the protocol/security model.

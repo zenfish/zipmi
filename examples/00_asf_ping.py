@@ -27,7 +27,7 @@ RUN      python examples/00_asf_ping.py <bmc-ip> [timeout-seconds]
 EXIT     0 on Pong received; 1 on timeout; 2 on usage error.
 
 RELATED  zipmi/scapy_ipmi/rmcp.py, zipmi/scapy_ipmi/asf.py,
-         /Users/zen/phd/dox/specs/DSP0136.pdf §3.2.4
+         ASF spec DSP0136, §3.2.4
 """
 
 from __future__ import annotations

@@ -21,7 +21,7 @@ We want a command that enumerates the **whole grid** and emits it faithfully,
 with JSON for downstream consumers (recon pipeline, hwmaps injection-surface
 matrix, cross-box diffing).
 
-Reference writeup: `~/phd/bmc/ipmi/ipmi-channels-users-auth.html`
+Reference writeup: the author's IPMI channels/users/auth research doc (private).
 (doc-UUID `bffab790-2ab1-4e3b-8eaa-25e7163b4a2f`).
 
 ## Goals

@@ -35,8 +35,8 @@ and per-platform live test results.
 > ground truth** from firmware RE: ✓ = a handler for that (NetFn, cmd) is
 > present in the ASMB-787's real dispatch tables, ✗ = absent. See
 > [advantech_ASMB787-command-table.md](advantech_ASMB787-command-table.md) for
-> the full OEM handler catalog and [oem-handler-lineage.md](oem-handler-lineage.md)
-> for the cross-vendor comparison.
+> the full OEM handler catalog. (Cross-vendor OEM handler-lineage analysis lives
+> in the author's private research library, not this repo.)
 
 | Symbol | Meaning |
 |--------|---------|
@@ -373,7 +373,7 @@ explicit `zipmi.load_vendor("<vendor>")`.
 
 **Full Dell iDRAC6 dispatch table is in [dell-command-table.md](dell-command-table.md)**
 — 192 entries auto-generated from the fullfw RE markdown
-(`/Volumes/yyy/phd/bmc/dell/fullfw-ipmi-commands.md`) by
+(from a full-firmware IPMI command dump — author's private firmware-RE corpus, not in this repo) by
 `python -m zipmi.parsers.md_table --markdown`.
 
 By NetFn:

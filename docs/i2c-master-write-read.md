@@ -70,4 +70,4 @@ narrower range. None help the loops — those are dominated by the session/impor
 and 3 FRU/VPD EEPROMs at `0x52/0x54/0x55`. Only bus 0 answered MWR over LAN, so the sweep is
 not exhaustive of the physical plant.
 
-*Companion (full writeup, styled): `~/phd/bmc/ipmi/I2C-OVER-IPMI-MWR.html`.*
+*Companion full writeup lives in the author's private research library.*
