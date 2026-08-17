@@ -36,7 +36,8 @@ specify "lan" to use IPMI 1.5 or "lanplus" for explicitly using 2.0.
   which commands have packet classes (vs `⚡` = CLI verb only).
 - `zipmi.scapy_ipmi.oem.{dell, supermicro, idrac9_generated, dell_generated}`
   — vendor OEM dispatch tables ingested from prior firmware RE: 192 Dell
-  iDRAC6 entries (full dispatch) + 313 iDRAC9 handlers (name catalog) +
+  iDRAC6 entries (full dispatch) + 277 named iDRAC9 handlers (349 known
+  dispatch slots) +
   Supermicro X11 OEM cmd/sub-cmd map + shell-injection attack primitives.
 - `zipmi.attacks.dell` — named, callable Dell attack primitives (PROCHOT
   throttle, power cap, sensor threshold tamper, racadm extended config)
@@ -602,7 +603,7 @@ docs/              — architecture, ipmi notes, fuzzing, vbmc
 `scan {asf-ping, auth-caps, cipher-suites, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
 RAKP / cipher 3 lanplus session (incl. SOL payload type 1 over the encrypted
 session). 192 Dell OEM dispatch entries auto-loaded
-from `fullfw-ipmi-commands.md`; 313 iDRAC9 handler names from rootfs `.so`
+from `fullfw-ipmi-commands.md`; 277 iDRAC9 handler names from rootfs `.so`
 catalog **plus 271 (NetFn, cmd, priv) tuples from static dispatch-table
 extraction**; 11 static + 2 factory Dell attack primitives in
 `attacks/dell.py`.

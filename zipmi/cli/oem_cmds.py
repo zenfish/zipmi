@@ -50,11 +50,11 @@ VENDORS: dict[str, dict] = {
     },
     "idrac9": {
         "iana": 674,
-        "blurb": "Dell iDRAC9 (dispatch tables + RE'd catalog, 276 cmds, IANA 674)",
+        "blurb": "Dell iDRAC9 (dispatch tables + RE'd catalog)",
     },
     "idrac10": {
         "iana": 674,
-        "blurb": "Dell iDRAC10 (RE'd + verified catalog, 447 cmds, IANA 674)",
+        "blurb": "Dell iDRAC10 (RE'd + verified catalog)",
     },
     "supermicro-x11": {
         "iana": 10876,
