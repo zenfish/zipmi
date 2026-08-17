@@ -2,7 +2,7 @@
 
 IPMI command line tool & library based on Scapy (https://scapy.net/) for protocol understanding and security research.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes.
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. 1653 OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork.
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -12,14 +12,17 @@ Scapy layers. Lets you dissect, build, fuzz, and replay IPMI traffic with
 full byte-level visibility — every field of every packet is a real Scapy field, 
 not an opaque blob.
 
-It's *somewhat* compatible with the basics of `ipmitool` (most definitely not all!),
+It's *somewhat* compatible with the basics of `ipmitool` (most definitely not all),
 so things like this should work -
 ```
 # print out the details of the default channel
 zipmi -H 10.0.0.1 -U root -P calvin lan print
 
-# some potentially interesting new things
+# prints out the basics of the various oem vendors
 zipmi oem
+
+# supply the vendor to see more on what they have to (potentially) offer
+zipmi oem idrac10
 ```
 Type "zipmi" or "zipmi --help" for other things it can do.
 
