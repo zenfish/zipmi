@@ -132,7 +132,7 @@ pipx install /path/to/zipmi          # zipmi + bmc-id on PATH, isolated
 
 pipx sandboxes the package in its own venv, so the `zipmi`/`bmc-id`
 commands work but your own scripts **cannot** `import zipmi` from a
-system interpreter. Fine if you only use the CLI; use `./install.sh`
+system interpreter. Fine if you only use the CLI; use `make install`
 if you write Python against the library.
 
 </details>
