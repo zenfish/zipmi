@@ -172,13 +172,13 @@ def check_oem_count() -> list[str]:
     sys.path.insert(0, str(ROOT))
     try:
         from zipmi.cli.oem_cmds import oem_command_totals  # type: ignore
-        _known, named = oem_command_totals()
+        known, _named = oem_command_totals()
     except Exception as e:
         return [f"could not compute OEM totals: {e}"]
     finally:
         sys.path.pop(0)
-    if int(m.group(1)) != named:
-        return [f"README.md OEM-COUNT is {m.group(1)} but live total is {named} "
+    if int(m.group(1)) != known:
+        return [f"README.md OEM-COUNT is {m.group(1)} but live total is {known} "
                 f"— run `make readme-stats`"]
     return []
 
