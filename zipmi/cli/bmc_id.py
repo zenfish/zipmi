@@ -583,7 +583,7 @@ RMCP_PLUS_STATUS = {
     0x12: "illegal/unrecognized parameter",
 }
 
-DEFAULT_CIPHER0_USERS = ("admin", "ADMIN", "root", "USERID", "Administrator")
+DEFAULT_CIPHER0_USERS = ("admin", "ADMIN", "root", "USERID", "Administrator", "")
 
 
 def _build_open_session_pkt(rcs_sid: int) -> bytes:
