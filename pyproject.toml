@@ -9,7 +9,7 @@ description = "Scapy-based IPMI library, CLI, and virtual BMC"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Dan Farmer" }]
+authors = [{ name = "dan farmer" }]
 keywords = ["ipmi", "bmc", "idrac", "redfish", "scapy", "security", "rmcp", "rakp"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -22,8 +22,11 @@ classifiers = [
     "Topic :: System :: Networking :: Monitoring",
 ]
 dependencies = [
-    "scapy>=2.6",
-    "cryptography>=45",
+    # Upper caps are deliberate: zipmi subclasses Scapy's layer/field internals,
+    # so a new major could break the custom IPMI layers. Bump the ceiling after
+    # testing against the next major.
+    "scapy>=2.6,<3",
+    "cryptography>=45,<46",
 ]
 
 [project.urls]

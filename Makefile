@@ -18,8 +18,17 @@
 #                        FORCE_COLOR, freeze the coloured trace to SVG.
 #
 # Override the interpreter:  make install PY=python3.12
+# Ignore dep upper-bounds:   make install ZIPMI_ALLOW_UNTESTED=1
+#                        (installs latest scapy/cryptography past the pyproject
+#                         caps; zipmi then just runs and hopes the APIs held.)
 
 PY ?= python3
+
+# Escape hatch for the pyproject dep upper-bounds (scapy<3, cryptography<46).
+# `make install ZIPMI_ALLOW_UNTESTED=1` installs zipmi --no-deps then pulls the
+# LATEST scapy/cryptography, ignoring the caps. For testing zipmi against a new
+# major before the ceiling is officially bumped. Unset = normal, capped install.
+ZIPMI_ALLOW_UNTESTED ?=
 
 SHELL := bash
 .ONESHELL:
@@ -53,7 +62,14 @@ install:
 	if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then dirty=True; else dirty=False; fi; \
 	printf 'GIT_SHA = "%s"\nGIT_DIRTY = %s\n' "$$sha" "$$dirty" > zipmi/_buildstamp.py; \
 	echo ">> stamped build: g$$sha (dirty=$$dirty)"; \
-	if $(PY) -m pip install . 2>/tmp/zipmi-pip.err \
+	if [ -n "$(ZIPMI_ALLOW_UNTESTED)" ]; then \
+		echo ">> ZIPMI_ALLOW_UNTESTED set — ignoring dep upper-bounds; pulling latest scapy/cryptography"; \
+		$(PY) -m pip install --no-deps --force-reinstall --no-cache-dir . \
+		&& $(PY) -m pip install --upgrade scapy cryptography \
+		|| { $(PY) -m pip install --user --break-system-packages --no-deps --force-reinstall --no-cache-dir . \
+		     && $(PY) -m pip install --user --break-system-packages --upgrade scapy cryptography; }; \
+		echo ">> installed (UNTESTED dep versions — zipmi runs and hopes)"; \
+	elif $(PY) -m pip install . 2>/tmp/zipmi-pip.err \
 	   && $(PY) -m pip install --force-reinstall --no-deps --no-cache-dir . 2>/tmp/zipmi-pip.err; then \
 		echo ">> installed (global/venv)"; \
 	else \
