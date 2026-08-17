@@ -1,6 +1,27 @@
 # zipmi
 
-IPMI command line tool & library based on Scapy (https://scapy.net/) for protocol understanding and security research.
+zipmi is a pure-Python IPMI/BMC stack — an `ipmitool`-style CLI plus a library
+where every byte is an inspectable and mangleable object. Built for people/AI
+(are AIs people yet?) who need to understand, test, or research BMCs, not just
+run commands.
+
+- **Every IPMI field is real, not an opaque blob.** Dissect, build, corrupt,
+  fuzz, and replay any packet with full byte-level visibility — the thing
+  `ipmitool` and `pyghmi` don't give you. Drop into the middle of a session and
+  ask "what does this byte mean?" or "what if I flip field X?"
+- **Deep OEM coverage: <!--OEM-COUNT-->1725<!--/OEM-COUNT--> vendor commands
+  most tools/people don't know exist.** Dell iDRAC6/9/10, Supermicro X11/X14,
+  AMI MegaRAC, and 9 OpenBMC vendor flavors — reverse-engineered from firmware
+  and Ghidra, callable by name, not just raw opcodes.
+- **Security research batteries included.** Full IPMI 2.0 cipher suites 0–14 +
+  17, cipher-0 and RAKP-hash checks, unauthenticated `bmc-id` fingerprinting,
+  plus a built-in virtual BMC and fuzzers to test against with no hardware.
+- **Readable wire traces.** Color-coded `-d` output showing the full
+  request/response back-and-forth with every packet field labeled — "ipmi-hex
+  friendly," about as friendly as hex gets.
+
+Big thanks to Claude Code, which worked with me over the last half-year on this
+project — all aspects of the package.
 
 📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->1725<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork.
 
