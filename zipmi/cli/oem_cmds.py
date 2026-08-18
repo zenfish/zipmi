@@ -73,6 +73,17 @@ VENDORS: dict[str, dict] = {
         "iana": None,
         "blurb": "AMI MegaRAC SP-X (HPE/Cray XD670 et al) — NetFn 0x30, 95 RE'd OEM cmds",
     },
+    "yafu": {
+        # YAFU is AMI's shared firmware-flash + memory-R/W protocol on NetFn
+        # 0x32. Cross-vendor: same cmd bytes on every AMI-lineage BMC (MegaRAC
+        # SP-X, Supermicro X10-X13, Advantech ASMB, HPE Cray XD670, Quanta /
+        # GIGABYTE / ByteBmc relabels). Registered as a pseudo-vendor so the
+        # catalog is vendor-agnostic — `zipmi oem yafu <cmd>` runs against ANY
+        # host, BMC replies CC 0xC1 if not implemented / not AMI-lineage.
+        # Source-of-truth: `libipmi_AMIOEM.h` (ASUS ASMB9 GPL SP-X drop).
+        "iana": None,
+        "blurb": "AMI YAFU flash + memory protocol (NetFn 0x32) — cross-vendor AMI-lineage",
+    },
     # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---
     # All registered via the simple register(vendor, iana, {(netfn,cmd):name})
     # pattern, so `cmd_names` points the generic listing branch at the module's
@@ -161,7 +172,8 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "idrac10":
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
-    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14", "megarac"):
+    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14",
+                  "megarac", "yafu"):
         listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if VENDORS.get(vendor, {}).get("cmd_names") is not None:
@@ -302,6 +314,7 @@ VENDOR_TAG: dict[str, str] = {
     "supermicro": "Smc",
     "supermicro-x11": "Smc",
     "supermicro-x14": "SmcX14",
+    "yafu": "Yafu",
 }
 
 
@@ -767,6 +780,33 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             for key, e in MEGARAC_COMMANDS.items()
         }
         return _normalize_listing(out, "megarac")
+    if vendor == "yafu":
+        from ..scapy_ipmi.oem.yafu import YAFU_COMMANDS, YAFU_BLOCKS
+        out: dict = {}
+        for key, e in YAFU_COMMANDS.items():
+            # Compose description: block label + tier + BMC-side notes.
+            block_label = YAFU_BLOCKS.get(e.get("block", ""), e.get("block", ""))
+            tier = e.get("tier", "")
+            tier_tag = f"[{tier}]" if tier else ""
+            desc_parts = [x for x in (tier_tag, block_label, e.get("desc", "")) if x]
+            desc = " — ".join(desc_parts) if desc_parts else ""
+            out[key] = {
+                "name": e["name"],
+                "priv": e.get("priv"),
+                "desc": desc,
+                "live": None,
+                "missing": False,
+                "prefix": None,
+                # Rich per-command doc for `<name> help`.
+                "request": e.get("request"),
+                "response": e.get("response"),
+                "security": e.get("security"),
+                "tier": tier,
+                "block": e.get("block"),
+                "req_len": e.get("req_len"),
+                "resp_len": e.get("resp_len"),
+            }
+        return _normalize_listing(out, "yafu")
     raise KeyError(f"unknown vendor: {vendor}")
 
 
@@ -1194,6 +1234,10 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         print(f"  Data prefix:  {prefix_s}   (auto-prepended on name-resolve)")
         if info.get("priv"):
             print(f"  Privilege:    {info['priv']}")
+        if info.get("tier"):
+            tier = info["tier"]
+            warn = " ⚠ GUARD BEFORE SENDING" if tier == "destructive" else ""
+            print(f"  Tier:         {tier}{warn}")
         args = info.get("args") or ""
         if args:
             print(f"  Args:         {_human_args(args)}")
@@ -1276,6 +1320,10 @@ def _suggest_for_cc(cc: int, netfn: int, cmd: int,
             "supermicro-x11": "X11 uses the AMI/smcipmi stack (NetFn 0x30/0x3e); some "
                               "cmds are board-fw specific.",
             "supermicro-x14": "X14 is AST2600 OpenBMC — the X11 smcipmi cmds are absent.",
+            "yafu": "YAFU rides NetFn 0x32 on AMI-lineage BMCs (MegaRAC / "
+                    "Supermicro X10-X13 / Advantech ASMB / HPE Cray XD670). "
+                    "Non-AMI BMCs (OpenBMC / Dell iDRAC / X14) either lack it "
+                    "or reuse 0x32 for something else.",
         }.get(vendor)
         if note:
             print(f"#   * {note}", file=sys.stderr)
