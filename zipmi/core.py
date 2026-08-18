@@ -656,8 +656,17 @@ class Session:
                 blob += rec
                 if len(rec) < 16:
                     break
+        except (TimeoutError, OSError) as e:
+            # No response at all → BMC unreachable. RMCP+ session establishment
+            # depends on this step, so abort here instead of falling back to [3]
+            # and firing an Open Session Request that can only time out too.
+            raise IPMIError(
+                f"Get Channel Cipher Suites got no response ({e!r}) from "
+                f"{self.transport.host}:{self.transport.port} — "
+                f"BMC unreachable, not opening a session"
+            ) from e
         except Exception:
-            return set()
+            return set()          # reachable but unparseable → [3] fallback
         return parse_cipher_suite_records(blob)
 
     @classmethod
