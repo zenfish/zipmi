@@ -86,7 +86,7 @@ capabilities once all the work is done.
 <details>
 <summary><h2>Targets</h2></summary>
 
-(From my museum :))
+(From my virtual museum :))
 
 - Dell PowerEdge T710 / iDRAC6 — IPMI 1.5, NetFn 0x30 OEM (Dell IANA 674)
 - Supermicro X11SSZ-QF — IPMI 2.0 RMCP+, NetFn 0x30 OEM (SM IANA 10876)
@@ -614,37 +614,16 @@ docs/              — architecture, ipmi notes, fuzzing, vbmc
 
 </details>
 
-<details>
-<summary><h2>Status</h2></summary>
+<h2>Trivia</h2>
 
-**Phases 0–14 done.** 2133/2133 tests pass. Live-verified against Dell iDRAC6
-1.70: `mc info`, `chassis status`, `sel list`, `sdr list`, `sensor list`,
-`lan print`, `user list`, `chassis bootflags`, `raw`,
-`sol {info, baud, payload, set, activate, deactivate, looptest, autobaud}`,
-`scan {asf-ping, auth-caps, cipher-suites, cipher-zero}`, `fuzz sweep`, plus full RMCP+ /
-RAKP / cipher 3 lanplus session (incl. SOL payload type 1 over the encrypted
-session). 192 Dell OEM dispatch entries auto-loaded
-from `fullfw-ipmi-commands.md`; 277 iDRAC9 handler names from rootfs `.so`
-catalog **plus 271 (NetFn, cmd, priv) tuples from static dispatch-table
-extraction**; 11 static + 2 factory Dell attack primitives in
-`attacks/dell.py`.
+Did you know that cipher suites 4, 5, 9, 10, 18, and 19 (as per IPMI spec 2.0) aren't supported by ipmitool or freeipmi?
 
-See `docs/STATUS.md` for the per-commit phase log, `docs/command-table.md`
-for spec coverage, `docs/dell-command-table.md` for the full Dell iDRAC6
-dispatch surface (192 entries), `docs/idrac9-command-table.md` for the
-iDRAC9 handler catalog (313 entries), `docs/attacks-dell.md` for the
-attack primitives catalog, `docs/bmc-generations.md` for the
-`Manufacturer Generation` heuristic (Dell product-ID → iDRAC6/8/9
-mapping, monolithic vs modular split), `docs/fuzz.md` for the
-fuzzer inventory (sweep, rakp, length, cipher), `docs/fuzz-sweep.md`
-for the verbosity / bucket / skip-list details of `fuzz sweep`, and
-`docs/tutorial.md` for a Scapy-style REPL walkthrough, and
-`docs/i2c-master-write-read.md` for the `i2c`/`i2cscan`/`i2c-id` feature
-(I2C over IPMI Master Write-Read) with the in-session-vs-loop timing, and
-`docs/firmware-firewall.md` for the `firewall` verb (IPMI §21 command-surface
-discovery — exposed / lockable / disabled).
+It's because of the weird xRC4-40/128 confidentiality algorithms... no one supports it.
 
-</details>
+I think I do here. But it's hard to even find a BMC that supports it either.
+
+I guess you just enable that - and only that - cipher and you're invulnerable! Well. Maybe not. But no one can run
+rakp-authenticated commands against your system.
 
 # License
 
