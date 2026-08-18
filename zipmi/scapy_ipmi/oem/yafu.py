@@ -3,7 +3,7 @@
 WHAT     YAFU is AMI's "Yet Another Firmware Updater" IPMI protocol, the
          firmware-flash and BMC-side memory R/W command family that ships in
          every AMI-derived BMC stack (MegaRAC SP-X, Supermicro X10-X13,
-         Advantech ASMB, HPE/Cray XD670, Quanta / GIGABYTE MegaRAC relabels).
+         Advantech ASMB, HPE/HPE XD670, Quanta / GIGABYTE MegaRAC relabels).
          NOT a per-vendor OEM set — it's a *shared protocol family*, source-
          compiled from `links/libipmi/data/libipmi_AMIOEM.c` (path leaked in
          debug strings of every vendor's libipmi.so). Same NetFn + cmd bytes
@@ -72,7 +72,7 @@ GAP      A newer AMI Yafuflash Linux binary (~/Yafuflash, unstripped + DWARF)
            IPMICMD_AMIYAFUStateless                             — session-less variant
            IPMICMD_AMIYAFUWritetoFile                           — direct file-write (bypasses flash-mode?)
 
-LIVE     Cray XD670 (AMI MegaRAC / Gigabyte MfgID 15370) live-confirmed:
+LIVE     HPE XD670 (AMI MegaRAC / Gigabyte MfgID 15370) live-confirmed:
            GetFlashInfo (0x32/0x01)    req_len=12 → resp 32B (JEDEC-like at off 6-11)
            GetFirmwareInfo (0x32/0x02) req_len=12 → resp 40B (ASCII "Rom.ima" at off 24-30)
            GetFMHInfo (0x32/0x03)      req_len=12 → CC 0xCC (needs param byte selector)
@@ -104,7 +104,7 @@ YAFU_COMMANDS: dict[tuple[int, int], dict] = {
         "name": "GetFlashInfo", "priv": "Admin", "tier": SAFE, "block": "info",
         "req_len": 12, "resp_len": 32,
         "desc": "Return flash chip metadata (JEDEC ID, size, block layout). "
-                "LIVE-CONFIRMED on Cray XD670 (AMI MegaRAC / Gigabyte MfgID "
+                "LIVE-CONFIRMED on HPE XD670 (AMI MegaRAC / Gigabyte MfgID "
                 "15370): 12-byte request body (YafuCmd + 11B params), 32-byte "
                 "response including JEDEC-like bytes at offset 6-11.",
         "request": "byte YafuCmd (echo=0x01) + 11B params (padding)",
@@ -114,7 +114,7 @@ YAFU_COMMANDS: dict[tuple[int, int], dict] = {
         "name": "GetFirmwareInfo", "priv": "Admin", "tier": SAFE, "block": "info",
         "req_len": 12, "resp_len": 40,
         "desc": "Return BMC firmware version + build metadata + image filename. "
-                "LIVE-CONFIRMED on Cray XD670: 40-byte response includes ASCII "
+                "LIVE-CONFIRMED on HPE XD670: 40-byte response includes ASCII "
                 "'Rom.ima' at offset 24-30 (image filename), checksum bytes 8-11.",
         "request": "byte YafuCmd (echo=0x02) + 11B params",
         "response": "40B fw info blob (checksum + name + version fields)",
@@ -123,7 +123,7 @@ YAFU_COMMANDS: dict[tuple[int, int], dict] = {
         "name": "GetFMHInfo", "priv": "Admin", "tier": SAFE, "block": "info",
         "req_len": 12, "resp_len": None,
         "desc": "Return Firmware Module Header (FMH) inventory — per-module "
-                "offsets + checksums. Cray XD670: 12B body → CC 0xCC (Invalid "
+                "offsets + checksums. HPE XD670: 12B body → CC 0xCC (Invalid "
                 "data field) — parameter selector byte needed; iterate to find.",
         "request": "byte YafuCmd (echo=0x03) + 11B params (module selector TBD)",
         "response": "FMH table (per-module 64-byte entries)",
@@ -132,7 +132,7 @@ YAFU_COMMANDS: dict[tuple[int, int], dict] = {
         "name": "GetStatus", "priv": "Admin", "tier": SAFE, "block": "info",
         "req_len": 12, "resp_len": None,
         "desc": "YAFU state machine status (flash-mode / idle / in-progress). "
-                "Cray XD670 idle: CC 0x25 (YAFU-specific state code — likely "
+                "HPE XD670 idle: CC 0x25 (YAFU-specific state code — likely "
                 "STATE_NOT_ACTIVATED, precedes ActivateFlashMode).",
         "request": "byte YafuCmd (echo=0x04) + 11B params",
         "response": "status byte(s)",
@@ -507,7 +507,7 @@ YAFU_CMD_NAMES: dict[tuple[int, int], str] = {
 # `<name> help` to surface a "seen in" list. Membership = high-confidence
 # based on RE / vendor lineage; per-fw reachability still needs live probe.
 YAFU_SEEN_IN: tuple[str, ...] = (
-    "AMI MegaRAC SP-X 13.x (HPE Cray XD670, generic MegaRAC relabels)",
+    "AMI MegaRAC SP-X 13.x (HPE XD670, generic MegaRAC relabels)",
     "AMI MegaRAC SP-X 4.0 (Advantech ASMB-787 — BMC-side authoritative decomp)",
     "Supermicro X10 / X11 / X12 / X13 (smcipmi + libipmi_AMIOEM.c)",
     "Quanta / GIGABYTE / ByteBmc AMI-relabels (per lineage)",

@@ -3,7 +3,7 @@
 WHAT     Stock AMI MegaRAC SP-X 13.x LTS OEM command handlers (210 across
          40 modules), extracted from the .dynsym of the
          /usr/local/lib/ipmi/libipmiamioem<x>.so handler libraries. This is the
-         provider behind "HPE/Cray XD670" and every other MegaRAC-on-* box —
+         provider behind "HPE/HPE XD670" and every other MegaRAC-on-* box —
          the HPE/Cray badge is packaging, the BMC code is all AMI.
 
 WIRE     Raw vendor NetFns 0x30 (primary AMI range) and 0x3E (secondary), both
