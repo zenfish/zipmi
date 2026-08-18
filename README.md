@@ -15,7 +15,7 @@ zipmi is a pure-Python IPMI/BMC stack — an `ipmitool`-style CLI plus a library
 ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran on a few linux systems w no problems, but YMMV.
 
 
-Big thanks to Claude Code, which worked with me over the last half-year on this project — all aspects of the package.
+Big thanks to Claude Code, which worked with me over the last half-year on this project — in all aspects of the package.
 
 📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->1725<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork.
 
