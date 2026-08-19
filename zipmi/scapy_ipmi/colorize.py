@@ -52,37 +52,46 @@ import sys
 # ColorBrewer Pastel1 qualitative, n=8 — pastel pink/blue/green/purple/...
 # https://colorbrewer2.org/#type=qualitative&scheme=Pastel1&n=8
 _PASTEL_ROLES: dict[str, tuple[int, int, int]] = {
-    "rmcp":      (0xb3, 0xcd, 0xe3),  # blue
-    "session":   (0xde, 0xcb, 0xe4),  # purple
-    "auth":      (0xfd, 0xda, 0xec),  # magenta — auth_type byte + AuthCode
-    "netfn":     (0xcc, 0xeb, 0xc5),  # green
-    "cmd":       (0xfe, 0xd9, 0xa6),  # orange
-    "data":      (0xff, 0xff, 0xcc),  # yellow
-    "cc":        (0xfb, 0xb4, 0xae),  # pink
+    "rmcp":        (0xb3, 0xcd, 0xe3),  # blue
+    "session":     (0xde, 0xcb, 0xe4),  # purple
+    "auth":        (0xfd, 0xda, 0xec),  # magenta — auth_type byte + AuthCode
+    "netfn":       (0xcc, 0xeb, 0xc5),  # green
+    "cmd":         (0xfe, 0xd9, 0xa6),  # orange
+    "data":        (0xff, 0xff, 0xcc),  # yellow
+    "cc":          (0xfb, 0xb4, 0xae),  # pink
+    # enc_payload / dec_payload are security-semantic; same across all palettes
+    # so the red/green signal is consistent regardless of --palette choice.
+    # Edit these two lines to remap for colorblindness or personal preference.
+    "enc_payload": (220,  60,  60),     # bright red   — encrypted ciphertext bytes
+    "dec_payload": ( 60, 210,  90),     # bright green — decrypted plaintext bytes
 }
 
 # ColorBrewer Set1 qualitative, n=8 — saturated red/blue/green/purple/...
 # https://colorbrewer2.org/#type=qualitative&scheme=Set1&n=8
 _SET_ROLES: dict[str, tuple[int, int, int]] = {
-    "rmcp":      ( 55, 126, 184),     # blue
-    "session":   (152,  78, 163),     # purple
-    "auth":      (247, 129, 191),     # pink (Set1's 8th)
-    "netfn":     ( 77, 175,  74),     # green
-    "cmd":       (255, 127,   0),     # orange
-    "data":      (255, 255,  51),     # yellow
-    "cc":        (228,  26,  28),     # red (CC pops)
+    "rmcp":        ( 55, 126, 184),     # blue
+    "session":     (152,  78, 163),     # purple
+    "auth":        (247, 129, 191),     # pink (Set1's 8th)
+    "netfn":       ( 77, 175,  74),     # green
+    "cmd":         (255, 127,   0),     # orange
+    "data":        (255, 255,  51),     # yellow
+    "cc":          (228,  26,  28),     # red (CC pops)
+    "enc_payload": (220,  60,  60),     # bright red   — encrypted ciphertext bytes
+    "dec_payload": ( 60, 210,  90),     # bright green — decrypted plaintext bytes
 }
 
 # ColorBrewer Dark2 qualitative, n=8 — muted teal/orange/purple/magenta/...
 # https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=8
 _DARK_ROLES: dict[str, tuple[int, int, int]] = {
-    "rmcp":      ( 27, 158, 119),     # teal
-    "session":   (117, 112, 179),     # purple
-    "auth":      (166, 118,  29),     # brown
-    "netfn":     (102, 166,  30),     # green
-    "cmd":       (217,  95,   2),     # orange
-    "data":      (230, 171,   2),     # mustard
-    "cc":        (231,  41, 138),     # magenta (CC pops)
+    "rmcp":        ( 27, 158, 119),     # teal
+    "session":     (117, 112, 179),     # purple
+    "auth":        (166, 118,  29),     # brown
+    "netfn":       (102, 166,  30),     # green
+    "cmd":         (217,  95,   2),     # orange
+    "data":        (230, 171,   2),     # mustard
+    "cc":          (231,  41, 138),     # magenta (CC pops)
+    "enc_payload": (220,  60,  60),     # bright red   — encrypted ciphertext bytes
+    "dec_payload": ( 60, 210,  90),     # bright green — decrypted plaintext bytes
 }
 
 PALETTES: dict[str, dict[str, tuple[int, int, int]]] = {
@@ -302,7 +311,8 @@ def _ranges_for(buf: bytes, is_response: bool) -> list[tuple[int, int, tuple[int
         if ptype != 0x00 or encrypted:
             # RAKP/OpenSession or encrypted IPMI — payload is opaque.
             if sess_end < n:
-                out.append((sess_end, n, ROLE_COLORS["data"]))
+                color = ROLE_COLORS["enc_payload"] if encrypted else ROLE_COLORS["data"]
+                out.append((sess_end, n, color))
             return out
         # Embedded IPMI message — colour the IPMB layer.
         return out + _ipmb_ranges(buf, 4 + 12, is_response)
@@ -385,19 +395,35 @@ def colorize_hex(buf: bytes, *, is_response: bool, enabled: bool = True) -> str:
     return _wrap(plain, _ranges_for(buf, is_response))
 
 
+def colorize_hex_dec(buf: bytes, *, enabled: bool = True) -> str:
+    """Return buf.hex() wrapped entirely in dec_payload (green).
+
+    Used for the decrypted-plaintext second line that follows an encrypted
+    wire dump. Colours all bytes uniformly so the green clearly signals
+    "this is what the ciphertext above actually contains".
+    """
+    plain = buf.hex()
+    if not enabled or not plain:
+        return plain
+    _legend_arm()
+    return _ansi(ROLE_COLORS["dec_payload"]) + plain + _RESET
+
+
 # --------------------------------------------------------------------------
 # Legend — printed once at process exit if any coloured trace was emitted.
 # Lists every role in byte-order (the order they appear on the wire) so the
 # reader can map colour → meaning by scanning left-to-right.
 # --------------------------------------------------------------------------
 _LEGEND_ORDER = [
-    ("rmcp",      "RMCP"),
-    ("session",   "session"),
-    ("auth",      "Auth"),
-    ("netfn",     "NetFn"),
-    ("cmd",       "cmd"),
-    ("data",      "data"),
-    ("cc",        "CC"),
+    ("rmcp",        "RMCP"),
+    ("session",     "session"),
+    ("auth",        "Auth"),
+    ("netfn",       "NetFn"),
+    ("cmd",         "cmd"),
+    ("data",        "data"),
+    ("cc",          "CC"),
+    ("enc_payload", "encrypted"),
+    ("dec_payload", "decrypted"),
 ]
 
 _legend_pending = False
@@ -429,6 +455,7 @@ __all__ = [
     "ROLE_COLORS",
     "color_enabled",
     "colorize_hex",
+    "colorize_hex_dec",
     "detect_background",
     "normalize_palette_name",
     "resolve_palette",

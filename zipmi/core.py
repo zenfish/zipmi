@@ -196,12 +196,11 @@ class Transport:
                 self._event(f"!! timeout after {self.timeout}s waiting for {self.host}:{self.port}")
                 raise
         if self.wire_trace >= 1:
-            self._event(f"← recv {len(data):3d}B  (reply)                                  "
-                        f"{self.host}:{self.port}")
+            from .scapy_ipmi.cmd_names import label_from_wire
+            recv_label = label_from_wire(data) or "(reply)"
+            self._event(f"← recv {len(data):3d}B  {recv_label:<40s}  {self.host}:{self.port}")
         if do_hex:
-            # RECV is the immediate reply to the SEND above — no need to
-            # repeat the command name. (send_recv pairs them synchronously.)
-            self._dump("← RECV", data, name=False, is_response=True)
+            self._dump("← RECV", data, name=True, is_response=True)
         return data
 
     def _dump(self, label: str, buf: bytes, *, name: bool, is_response: bool) -> None:
@@ -216,6 +215,21 @@ class Transport:
         # Pad cmd column to a fixed width for alignment. Padding the bare
         # name (not ANSI-decorated) keeps the column count correct.
         print(f"  {prefix}{label} {cmd:<40s}  {hexstr}",
+              flush=True)
+
+    def _dump_plain(self, direction: str, buf: bytes) -> None:
+        """Print the decrypted plaintext line (wire_trace >= 2 only).
+
+        Called by Session after it has decrypted a send or recv buffer.
+        Colors all bytes green via colorize_hex_dec so the line is visually
+        distinct from the red encrypted line above it.
+        """
+        if self.wire_trace < 2:
+            return
+        from .scapy_ipmi.colorize import colorize_hex_dec
+        hexstr = colorize_hex_dec(buf, enabled=self.wire_color)
+        prefix = "[setup] " if self.in_setup else "        "
+        print(f"  {prefix}{direction} {'IPMI Message (decrypted)':<40s}  {hexstr}",
               flush=True)
 
     def sessionless_request(
@@ -1088,8 +1102,14 @@ class Session:
             cmd=cmd,
             data=data,
         )
-        wire = self._wrap_lanplus(0x00, bytes(ipmb))
-        reply = RMCP(self.transport.send_recv(wire))
+        plaintext = bytes(ipmb)
+        wire = self._wrap_lanplus(0x00, plaintext)
+        reply_bytes = self.transport.send_recv(wire)
+        self.transport._dump_plain("→ SEND", plaintext)
+        reply = RMCP(reply_bytes)
+        res = self._unwrap_payload(reply)
+        if res is not None:
+            self.transport._dump_plain("← RECV", res[1])
         return self._unwrap_lanplus(reply)
 
     # -- SOL payload transport (payload type 0x01) -------------------------
