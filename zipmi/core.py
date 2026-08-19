@@ -218,19 +218,24 @@ class Transport:
               flush=True)
 
     def _dump_plain(self, direction: str, buf: bytes) -> None:
-        """Print the decrypted plaintext line (wire_trace >= 2 only).
+        """Print the decrypted plaintext for encrypted RMCP+ traffic.
 
-        Called by Session after it has decrypted a send or recv buffer.
-        Colors all bytes green via colorize_hex_dec so the line is visually
-        distinct from the red encrypted line above it.
+        wire_trace 1 (-v): [info] line so it appears between the timestamped
+        send/recv event lines without the full hex-dump block.
+        wire_trace 2 (-d): indented block line matching the encrypted _dump
+        line above it.
         """
-        if self.wire_trace < 2:
+        if self.wire_trace < 1:
             return
         from .scapy_ipmi.colorize import colorize_hex_dec
         hexstr = colorize_hex_dec(buf, enabled=self.wire_color)
-        prefix = "[setup] " if self.in_setup else "        "
-        print(f"  {prefix}{direction} {'IPMI Message (decrypted)':<40s}  {hexstr}",
-              flush=True)
+        if self.wire_trace >= 2:
+            prefix = "[setup] " if self.in_setup else "        "
+            print(f"  {prefix}{direction} {'IPMI Message (decrypted)':<40s}  {hexstr}",
+                  flush=True)
+        else:
+            from . import _msg
+            _msg.info(f"decrypted: {hexstr}")
 
     def sessionless_request(
         self,
