@@ -234,6 +234,9 @@ zipmi sessionless               # list pre-session cmds
 # In-process target for tests / fuzzing / CI
 zipmi vbmc serve --vpersona dell_idrac6 --vport 6231 &
 zipmi -H 127.0.0.1 -p 6231 mc info
+
+# show encrypted traffic in the clear - use -d/-v
+zipmi -d user list 
 ```
 
 </details>
@@ -559,6 +562,8 @@ permits outside a session.
   `!! timeout after 3.0s`. Session-setup events are tagged `[setup]`.
 - `-d` / `--debug` — everything `-v` shows PLUS a hex dump of every
   packet (work + setup).
+
+(Both also decrypt encypted payloads and show it in the clear.)
 
 Each event line carries the IPMI Table G-1 command name (or the
 RAKP/OpenSession payload type, or the ASF message type). OEM commands
