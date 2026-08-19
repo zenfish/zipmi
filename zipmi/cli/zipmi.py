@@ -169,6 +169,8 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
                              "lanplus.")
     parser.add_argument("-t", "--timeout", type=float, default=d(3.0),
                         help="UDP timeout in seconds (default 3.0)")
+    parser.add_argument("-R", "--retries", type=int, default=d(3),
+                        help="UDP retransmits on no-reply (default 3; 0 = single send)")
     parser.add_argument("-v", "--verbose", action="store_true",
                         default=d(False),
                         help="log high-level events with timestamps (no hex)")
@@ -303,6 +305,7 @@ def _open_session(args: argparse.Namespace) -> Session:
     )
     s.priv = PRIV_LEVELS.get(getattr(args, "max_priv", "admin") or "admin", 0x04)
     s.transport.port = args.port
+    s.transport.retries = args.retries
     _apply_trace(s.transport, args)
     return s
 
@@ -4539,6 +4542,7 @@ def cmd_scan_cipher_zero(args: argparse.Namespace) -> int:
         lanplus=True, cipher_suite=0, timeout=args.timeout,
     )
     s.transport.port = args.port
+    s.transport.retries = args.retries
     _apply_trace(s.transport, args)
     try:
         vulnerable, detail = s.probe_cipher_zero()
@@ -4606,7 +4610,8 @@ def cmd_scan_asf_ping(args: argparse.Namespace) -> int:
     pkt = RMCP(msg_class=0x06) / build_ping(msg_tag=0x42)
     # Use Transport (not a bare socket) so -v / -d / colour flags
     # produce a wire trace just like every other verb.
-    t = Transport(host=host, port=args.port, timeout=args.timeout)
+    t = Transport(host=host, port=args.port, timeout=args.timeout,
+                  retries=getattr(args, "retries", 3))
     _apply_trace(t, args)
     try:
         data = t.send_recv(bytes(pkt))
@@ -4635,7 +4640,8 @@ def cmd_scan_asf_ping(args: argparse.Namespace) -> int:
 
 def cmd_scan_auth_caps(args: argparse.Namespace) -> int:
     host = _require_host(args)
-    t = Transport(host=host, port=args.port, timeout=args.timeout)
+    t = Transport(host=host, port=args.port, timeout=args.timeout,
+                  retries=getattr(args, "retries", 3))
     _apply_trace(t, args)
     try:
         _, resp = t.sessionless_request(
@@ -4680,7 +4686,8 @@ def cmd_scan_cipher_suites(args: argparse.Namespace) -> int:
     from .bmc_id import (probe_cipher_suites, cipher_suite_algs,
                          probe_cipher_negotiation)
     host = _require_host(args)
-    t = Transport(host=host, port=args.port, timeout=args.timeout)
+    t = Transport(host=host, port=args.port, timeout=args.timeout,
+                  retries=getattr(args, "retries", 3))
     _apply_trace(t, args)
     try:
         result = probe_cipher_suites(t)
@@ -4738,6 +4745,7 @@ def cmd_scan_rakp_hash(args: argparse.Namespace) -> int:
     s = Session(host=host, username=args.user or "", password=args.password or "x",
                 lanplus=True, timeout=args.timeout)
     s.transport.port = args.port
+    s.transport.retries = args.retries
     _apply_trace(s.transport, args)
     if len(users) > 1:
         _msg.info(f"rakp {host}: sweeping {len(users)} usernames")
