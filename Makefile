@@ -119,12 +119,12 @@ verify:
 	@# stale build/ dirs, pip wheel-cache hits, and version-pin no-op installs —
 	@# all of which silently shipped old code before. Generic; never rots.
 	@inst=$$(cd / && $(PY) -c "import zipmi.cli.zipmi as m; print(m.__file__)"); \
-	 if cmp -s "$$inst" zipmi/cli/zipmi.py; then \
+	 if cmp -s "$$inst" "$(CURDIR)/zipmi/cli/zipmi.py"; then \
 		echo ">> freshness OK: installed CLI matches checkout"; \
 	 else \
 		echo "error: installed zipmi is STALE — does not match this checkout" >&2; \
 		echo "       installed: $$inst" >&2; \
-		echo "       checkout : $$(pwd)/zipmi/cli/zipmi.py" >&2; \
+		echo "       checkout : $(CURDIR)/zipmi/cli/zipmi.py" >&2; \
 		echo "       fix: make clean && make install   (or: make dev)" >&2; \
 		exit 1; \
 	 fi
