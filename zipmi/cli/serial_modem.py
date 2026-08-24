@@ -10,7 +10,7 @@ WHAT   (#1, read) Enumerate every serial/modem config parameter — connection
        same params — including the modem init string (raw AT) and destination
        dial numbers — so an admin session can point the BMC at an arbitrary
        number and (via PEF alerting / callback) make it dial out. Admin,
-       destructive, --yes-gated.
+       destructive and explicit write operations.
 
 WIRE   Get Serial/Modem Config (Transport 0x0C / cmd 0x11): req [channel, param,
        set-selector, block-selector]; resp [cc, param-rev, config-data...].
@@ -99,7 +99,7 @@ def serial_config_sweep(sender, channel: int,
 
 def set_serial_param(sender, channel: int, param: int, data: bytes):
     """Set Serial/Modem Config (0x0C/0x10). Returns (cc, resp). WRITE — the
-    caller must gate this (admin/--yes)."""
+    caller supplies an authenticated admin session."""
     from ..scapy_ipmi.commands import SetSerialConfigReq
     return sender.send_raw(
         0x0C, 0x10,

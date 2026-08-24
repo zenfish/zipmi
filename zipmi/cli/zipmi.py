@@ -592,9 +592,6 @@ def cmd_chassis_power(args: argparse.Namespace) -> int:
     if args.action not in code_by_name:
         _msg.error(f"unknown power action '{args.action}'")
         return 2
-    if args.action != "status" and not args.yes:
-        _msg.warn(f"'{args.action}' affects host power. Pass --yes to proceed.")
-        return 2
     with _open_session(args) as s:
         s.send_cmd(0x00, 0x02, ChassisControlReq(action=code_by_name[args.action]))
     if emit(args, {"ok": True, "action": f"chassis-power-{args.action}",
@@ -1248,18 +1245,8 @@ PRIV_LEVELS: dict[str, int] = {
 }
 
 
-def _guard_write_user(args: argparse.Namespace, what: str) -> bool:
-    """User-table writes can lock you out of the BMC. Require --yes."""
-    if not args.yes:
-        _msg.warn(f"'{what}' modifies the BMC user table. Pass --yes to proceed.")
-        return False
-    return True
-
-
 def cmd_user_set_name(args: argparse.Namespace) -> int:
     """Set User Name (0x06/0x45). Name padded to 16 bytes with NULs."""
-    if not _guard_write_user(args, "user set name"):
-        return 2
     uid = args.user_id
     if not 1 <= uid <= 63:
         _msg.error(f"user_id {uid} out of range 1..63")
@@ -1315,8 +1302,6 @@ def _user_password_op(args: argparse.Namespace, op: int, password: bytes = b"") 
 
 
 def cmd_user_enable(args: argparse.Namespace) -> int:
-    if not _guard_write_user(args, "user enable"):
-        return 2
     rc = _user_password_op(args, op=0x01)
     if rc == 0 and not emit(args, {"ok": True, "user_id": args.user_id, "action": "enable"}):
         print(f"user {args.user_id}: enabled")
@@ -1324,8 +1309,6 @@ def cmd_user_enable(args: argparse.Namespace) -> int:
 
 
 def cmd_user_disable(args: argparse.Namespace) -> int:
-    if not _guard_write_user(args, "user disable"):
-        return 2
     rc = _user_password_op(args, op=0x00)
     if rc == 0 and not emit(args, {"ok": True, "user_id": args.user_id, "action": "disable"}):
         print(f"user {args.user_id}: disabled")
@@ -1333,8 +1316,6 @@ def cmd_user_disable(args: argparse.Namespace) -> int:
 
 
 def cmd_user_set_password(args: argparse.Namespace) -> int:
-    if not _guard_write_user(args, "user set password"):
-        return 2
     pw = args.new_password.encode("utf-8")
     rc = _user_password_op(args, op=0x02, password=pw)
     if rc == 0 and not emit(args, {"ok": True, "user_id": args.user_id, "size": args.size}):
@@ -1355,8 +1336,6 @@ def cmd_user_priv(args: argparse.Namespace) -> int:
     """Set User Access (0x06/0x43). Updates privilege level for the given
     user on the given channel. Leaves callin/link-auth/ipmi-msg bits alone
     (byte-0 bit 7 = 0 = don't change those bits)."""
-    if not _guard_write_user(args, "user priv"):
-        return 2
     uid = args.user_id
     level = PRIV_LEVELS[args.level]
     chan = args.channel
@@ -1427,10 +1406,6 @@ def cmd_serial_set(args: argparse.Namespace) -> int:
     """Set a serial/modem config param (WRITE — admin). This is the dial-out
     surface: modem init string (raw AT), destination dial numbers, callback."""
     from . import serial_modem
-    if not args.yes:
-        _msg.warn("'serial set' writes BMC serial/modem config (the dial-out "
-                  "surface — init/dial strings, callback numbers). Pass --yes.")
-        return 2
     ch = args.channel
     param = int(args.param, 0)
     data = bytes.fromhex(args.hexdata)
@@ -1928,9 +1903,6 @@ def cmd_mc_watchdog_off(args: argparse.Namespace) -> int:
     the stop bit cleared. Reads current config first to preserve everything
     else, then turns the timer off.
     """
-    if not args.yes:
-        _msg.warn("'mc watchdog off' modifies BMC watchdog state. Pass --yes.")
-        return 2
     with _open_session(args) as s:
         cc, data = s.send_raw(0x06, 0x25, b"")
         if cc != 0x00 or len(data) < 8:
@@ -2786,8 +2758,8 @@ def cmd_mc_sysinfo(args: argparse.Namespace) -> int:
 
 
 # -- write (Set*) handlers ------------------------------------------------
-# The verb name (set-*) IS the intent; per project convention these do not
-# gate on --yes.
+# The explicit write verb is the operator's authorization; no second
+# confirmation flag is required.
 
 
 def cmd_mc_set_global_enables(args: argparse.Namespace) -> int:
@@ -3600,10 +3572,6 @@ def cmd_chassis_bootdev(args: argparse.Namespace) -> int:
         return 0
     if args.device not in devices:
         _msg.error(f"unknown device {args.device!r}; try `chassis bootdev list`")
-        return 2
-    if not args.yes and args.device != "no_override":
-        _msg.warn(f"setting boot device to {args.device!r} affects host's "
-                  f"next boot. Pass --yes to proceed.")
         return 2
     payload = encode_boot_flags(args.device,
                                 persistent=args.persistent,
@@ -5030,10 +4998,6 @@ def cmd_sol_payload(args: argparse.Namespace) -> int:
             _msg.error("enable/disable require a user id "
                        "(`sol payload enable <channel> <userid>`)")
             return 2
-        if not args.yes:
-            _msg.warn(f"'{args.op}' changes SOL access for user {userid}. "
-                      f"Pass --yes to proceed.")
-            return 2
         operation = 0x00 if args.op == "enable" else (0x01 << 6)
         req = bytes([channel & 0x0F, operation | (userid & 0x3F), 0x02, 0, 0, 0])
         cc, _ = s.send_raw(0x06, 0x4C, req)
@@ -5060,18 +5024,13 @@ def _parse_bitrate_value(v: str) -> int | None:
 
 
 def cmd_sol_set(args: argparse.Namespace) -> int:
-    """Set a SOL configuration parameter (writes BMC config; --yes gated).
+    """Set a SOL configuration parameter (writes BMC config).
 
     Multi-field params (authentication, accumulate, retry) are read-modify-
     written so a single field change doesn't clobber the others.
     """
     param = args.parameter
     value = args.value
-    if not args.yes:
-        _msg.warn(f"'sol set {param}' writes BMC SOL config. "
-                  f"Pass --yes to proceed.")
-        return 2
-
     def truth(v: str) -> bool:
         return v.strip().lower() in ("1", "true", "on", "yes", "enable", "enabled")
 
@@ -5258,9 +5217,8 @@ def cmd_sol_autobaud(args: argparse.Namespace) -> int:
 
 
 # -- remaining App (NetFn 0x06) commands ----------------------------------
-# Reads and writes filling out the App NetFn surface. The verb IS the intent;
-# per project convention the destructive ones do not gate on --yes (the zoo is
-# disposable).
+# Reads and writes filling out the App NetFn surface. The explicit write verb
+# is the operator's authorization; no second confirmation flag is required.
 
 
 def cmd_mc_read_event_buffer(args: argparse.Namespace) -> int:
@@ -5600,7 +5558,7 @@ def build_parser() -> argparse.ArgumentParser:
     mc_wdr.set_defaults(func=cmd_mc_watchdog_reset)
     mc_wdo = mc_wd_sub.add_parser("off", help="stop the watchdog")
     mc_wdo.add_argument("--yes", action="store_true",
-                        help="confirm — disabling the watchdog changes BMC state")
+                        help=argparse.SUPPRESS)
     mc_wdo.set_defaults(func=cmd_mc_watchdog_off)
     mc_reb = mc_sub.add_parser("read-event-buffer",
                                help="Read Event Message Buffer (16-byte record)")
@@ -5676,7 +5634,7 @@ def build_parser() -> argparse.ArgumentParser:
     ch_power = ch_sub.add_parser("power", help="chassis power control")
     ch_power.add_argument("action", choices=list(CHASSIS_CTRL.values()) + ["status"])
     ch_power.add_argument("--yes", action="store_true",
-                          help="confirm destructive power action")
+                          help=argparse.SUPPRESS)
     ch_power.set_defaults(func=cmd_chassis_power)
     ch_id = ch_sub.add_parser("identify", help="blink chassis identify LED")
     ch_id.add_argument("duration", type=int, nargs="?", default=15,
@@ -5690,7 +5648,7 @@ def build_parser() -> argparse.ArgumentParser:
     ch_bd.add_argument("--uefi", action="store_true",
                        help="boot in UEFI mode rather than legacy")
     ch_bd.add_argument("--yes", action="store_true",
-                       help="confirm setting boot override")
+                       help=argparse.SUPPRESS)
     ch_bd.set_defaults(func=cmd_chassis_bootdev)
     ch_bf = ch_sub.add_parser("bootflags",
                               help="read current boot flags (selector 5)")
@@ -5995,14 +5953,14 @@ def build_parser() -> argparse.ArgumentParser:
     sol_pl.add_argument("channel", nargs="?", default=None)
     sol_pl.add_argument("userid", nargs="?", type=int, default=None)
     sol_pl.add_argument("--yes", action="store_true",
-                        help="confirm enable/disable (writes config)")
+                        help=argparse.SUPPRESS)
     sol_pl.set_defaults(func=cmd_sol_payload)
     sol_set = sol_sub.add_parser("set", help="set a SOL configuration parameter")
     sol_set.add_argument("parameter", choices=SOL_SET_PARAMS)
     sol_set.add_argument("value")
     sol_set.add_argument("channel", nargs="?", default=None)
     sol_set.add_argument("--yes", action="store_true",
-                         help="confirm write to BMC SOL config")
+                         help=argparse.SUPPRESS)
     sol_set.set_defaults(func=cmd_sol_set)
     sol_act = sol_sub.add_parser("activate",
                                  help="open interactive SOL console (needs -I lanplus)")
@@ -6060,7 +6018,7 @@ def build_parser() -> argparse.ArgumentParser:
     ser_set.add_argument("param", help="param selector (e.g. 13 = modem dial command)")
     ser_set.add_argument("hexdata", help="config bytes as hex")
     ser_set.add_argument("--yes", action="store_true",
-                         help="confirm the BMC serial/modem write")
+                         help=argparse.SUPPRESS)
     ser_set.set_defaults(func=cmd_serial_set)
 
     user = sub.add_parser("user", help="user accounts")
@@ -6076,7 +6034,7 @@ def build_parser() -> argparse.ArgumentParser:
     user_set_name.add_argument("user_id", type=int)
     user_set_name.add_argument("name")
     user_set_name.add_argument("--yes", action="store_true",
-                               help="confirm BMC user-table modification")
+                               help=argparse.SUPPRESS)
     user_set_name.set_defaults(func=cmd_user_set_name)
     user_set_pw = user_set_sub.add_parser("password", help="Set User Password")
     user_set_pw.add_argument("user_id", type=int)
@@ -6085,15 +6043,15 @@ def build_parser() -> argparse.ArgumentParser:
                              choices=[16, 20],
                              help="password slot size (16 or 20 bytes)")
     user_set_pw.add_argument("--yes", action="store_true",
-                             help="confirm BMC user-table modification")
+                             help=argparse.SUPPRESS)
     user_set_pw.set_defaults(func=cmd_user_set_password)
     user_en = user_sub.add_parser("enable", help="enable user (op 1)")
     user_en.add_argument("user_id", type=int)
-    user_en.add_argument("--yes", action="store_true")
+    user_en.add_argument("--yes", action="store_true", help=argparse.SUPPRESS)
     user_en.set_defaults(func=cmd_user_enable, size=16)
     user_dis = user_sub.add_parser("disable", help="disable user (op 0)")
     user_dis.add_argument("user_id", type=int)
-    user_dis.add_argument("--yes", action="store_true")
+    user_dis.add_argument("--yes", action="store_true", help=argparse.SUPPRESS)
     user_dis.set_defaults(func=cmd_user_disable, size=16)
     user_test = user_sub.add_parser("test", help="test password (op 3, read-only)")
     user_test.add_argument("user_id", type=int)
@@ -6107,7 +6065,7 @@ def build_parser() -> argparse.ArgumentParser:
     user_priv.add_argument("channel", nargs="?", type=lambda s: int(s, 0),
                            default=0x0E,
                            help="channel number (default 0x0E = this channel)")
-    user_priv.add_argument("--yes", action="store_true")
+    user_priv.add_argument("--yes", action="store_true", help=argparse.SUPPRESS)
     user_priv.set_defaults(func=cmd_user_priv)
 
     # channel

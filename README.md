@@ -255,9 +255,9 @@ result as JSON to stdout — text stays the default), **`--max-priv`**
 ```
 mc       {info, reset cold|warm, selftest, guid, watchdog {get,reset,off},
           global-enables, acpi, sysinfo}
-chassis  {status, caps, poh, power on|off|cycle|reset|soft --yes,
-          identify [secs], bootdev <dev> --yes, bootflags, restart_cause, policy}
-sel      {info, list, elist, clear --yes, time {get,set}, alloc, utc-offset}
+chassis  {status, caps, poh, power on|off|cycle|reset|soft,
+          identify [secs], bootdev <dev>, bootflags, restart_cause, policy}
+sel      {info, list, elist, clear, time {get,set}, alloc, utc-offset}
 sdr      {list, alloc, time, device-info, device-reserve, device-get}
 sensor   {list, get <name>, threshold <n>, hysteresis <n>, factors <n>,
           type <n>, event-enable <n>, event-status <n>}   # threshold cooked via SDR
@@ -266,7 +266,7 @@ lan      {print [channel], stats [channel]}
 fru      print [id]
 session  info [selector]
 user     {list [channel], set-name, enable, disable, set-password,
-          test-password, priv}   # writes gated by --yes
+          test-password, priv}
 user-matrix list [--all] [--per-priv] [--findings]
                  # full user × channel privilege/auth/cipher grid (read-only)
 channel  {info [chan|all], getaccess <chan> <uid>,
@@ -642,4 +642,3 @@ Scapy, pyghmi, OpenBMC, and more), each with a URL.
 
 Please use zipmi responsibly and ensure you have permission prior to scanning any systems that 
 aren't owned by you.
-

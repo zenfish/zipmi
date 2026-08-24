@@ -73,7 +73,7 @@ def test_build_set_string_param_layout():
     assert len(build_set_string_param(0, 10, 0, b"A" * 40)) == 3 + 16
 
 
-# --- CLI: read verb parses; write verb is --yes-gated and byte-exact ---------
+# --- CLI: read verb parses; write verb is direct and byte-exact ---------------
 import argparse
 import zipmi.cli.zipmi as _z
 
@@ -92,18 +92,10 @@ def test_serial_config_parses():
     assert ns.channel == 2 and ns.json is True
 
 
-def test_serial_set_requires_yes_blocks_write(monkeypatch):
-    def _boom(_a): raise AssertionError("_open_session called — write not gated!")
-    monkeypatch.setattr(_z, "_open_session", _boom)
-    ns = _z.parse_cli(["serial", "set", "2", "13", "415454"])   # no --yes
-    assert _z.cmd_serial_set(ns) == 2                            # refused, no write
-
-
-def test_serial_set_with_yes_writes_exact_bytes(monkeypatch):
+def test_serial_set_without_yes_writes_exact_bytes(monkeypatch):
     fake = _EffSession()
     monkeypatch.setattr(_z, "_open_session", lambda _a: fake)
     ns = _z.parse_cli(["serial", "set", "2", "13", "415454"])   # param 13, "ATT" hex
-    ns.yes = True
     assert _z.cmd_serial_set(ns) == 0
     # Set Serial/Modem Config (0x0C/0x10): [ch=2, param=13] + data
     assert fake.sent == [(0x0C, 0x10, bytes([0x02, 0x0D]) + bytes.fromhex("415454"))]

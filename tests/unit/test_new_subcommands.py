@@ -171,7 +171,7 @@ def test_sensor_get_requires_name(capsys):
         parse_cli(["-H", "x", "sensor", "get"])
 
 
-def test_mc_watchdog_off_requires_yes_and_dispatches():
+def test_mc_watchdog_off_dispatches_and_accepts_legacy_yes():
     args = parse_cli(["-H", "x", "mc", "watchdog", "off"])
     assert args.func.__name__ == "cmd_mc_watchdog_off"
     assert args.yes is False
@@ -318,7 +318,7 @@ def test_user_set_name_effect(monkeypatch):
     then 16-byte name NUL-padded."""
     fake = _install(monkeypatch, _EffectSession())
     rc = _z.cmd_user_set_name(
-        parse_cli(["-H", "x", "user", "set", "name", "4", "alice", "--yes"]))
+        parse_cli(["-H", "x", "user", "set", "name", "4", "alice"]))
     assert rc == 0
     assert fake.sent == [(0x06, 0x45, bytes([0x04]) + b"alice".ljust(16, b"\x00"))]
 
@@ -328,7 +328,7 @@ def test_user_enable_effect(monkeypatch):
     byte0=user_id, byte1=op (no password buffer for enable)."""
     fake = _install(monkeypatch, _EffectSession())
     rc = _z.cmd_user_enable(
-        parse_cli(["-H", "x", "user", "enable", "5", "--yes"]))
+        parse_cli(["-H", "x", "user", "enable", "5"]))
     assert rc == 0
     assert fake.sent == [(0x06, 0x47, bytes([0x05, 0x01]))]
 
@@ -337,7 +337,7 @@ def test_user_disable_effect(monkeypatch):
     """op=disable(0x00)."""
     fake = _install(monkeypatch, _EffectSession())
     rc = _z.cmd_user_disable(
-        parse_cli(["-H", "x", "user", "disable", "5", "--yes"]))
+        parse_cli(["-H", "x", "user", "disable", "5"]))
     assert rc == 0
     assert fake.sent == [(0x06, 0x47, bytes([0x05, 0x00]))]
 
@@ -347,8 +347,7 @@ def test_user_set_password_effect_20byte(monkeypatch):
     NUL-padded to 20."""
     fake = _install(monkeypatch, _EffectSession())
     rc = _z.cmd_user_set_password(
-        parse_cli(["-H", "x", "user", "set", "password", "3", "newpw", "20",
-                   "--yes"]))
+        parse_cli(["-H", "x", "user", "set", "password", "3", "newpw", "20"]))
     assert rc == 0
     expect = bytes([0x03 | 0x80, 0x02]) + b"newpw".ljust(20, b"\x00")
     assert fake.sent == [(0x06, 0x47, expect)]
@@ -369,7 +368,7 @@ def test_user_priv_effect(monkeypatch):
     bits3:0=channel; byte1=user_id; byte2=priv level; byte3=session limit 0."""
     fake = _install(monkeypatch, _EffectSession())
     rc = _z.cmd_user_priv(
-        parse_cli(["-H", "x", "user", "priv", "2", "admin", "1", "--yes"]))
+        parse_cli(["-H", "x", "user", "priv", "2", "admin", "1"]))
     assert rc == 0
     # channel=1, user=2, admin=0x04, limit=0
     assert fake.sent == [(0x06, 0x43, bytes([0x01, 0x02, 0x04, 0x00]))]
@@ -488,22 +487,11 @@ def test_spd_effect_chunked_reads(monkeypatch):
     assert fake.sent[1] == (0x06, 0x52, bytes([0x00, 0xA0, 0x10, 0x10]))
 
 
-def test_mc_watchdog_off_without_yes_sends_nothing(monkeypatch):
-    """The destructive gate must BLOCK the write, not just parse a flag."""
-    def _boom(_args):
-        raise AssertionError("_open_session called — gate failed to block!")
-    monkeypatch.setattr(_z, "_open_session", _boom)
-    args = parse_cli(["-H", "x", "mc", "watchdog", "off"])   # no --yes
-    rc = _z.cmd_mc_watchdog_off(args)
-    assert rc == 2                                            # refused, nothing sent
-
-
-def test_mc_watchdog_off_with_yes_clears_running_bit(monkeypatch):
-    """With --yes it reads (0x25) then writes (0x24) with the 0x40 running bit
-    cleared — the actual disable logic, not just dispatch."""
+def test_mc_watchdog_off_without_yes_clears_running_bit(monkeypatch):
+    """The explicit write verb executes without a confirmation flag."""
     fake = _FakeSession()
     monkeypatch.setattr(_z, "_open_session", lambda _args: fake)
-    args = parse_cli(["-H", "x", "mc", "watchdog", "off", "--yes"])
+    args = parse_cli(["-H", "x", "mc", "watchdog", "off"])
     rc = _z.cmd_mc_watchdog_off(args)
     assert rc == 0
     assert fake.sent[0][:2] == (0x06, 0x25)                  # reads current config first
