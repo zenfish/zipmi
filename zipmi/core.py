@@ -172,13 +172,23 @@ class Transport:
             tag = "[setup] " if self.in_setup else ""
             print(f"  [{self._ts()}] {tag}{msg}", flush=True)
 
+    def _target_label(self, sock: socket.socket) -> str:
+        """Return the configured target plus the address DNS resolved to."""
+        try:
+            peer_ip = sock.getpeername()[0]
+        except OSError:
+            peer_ip = self.host
+        target = self.host if peer_ip == self.host else f"{self.host} ({peer_ip})"
+        return f"{target}:{self.port}"
+
     def send_recv(self, wire: bytes) -> bytes:
         s = self._socket()
+        target = self._target_label(s)
         do_hex = self.wire_trace >= 2
         if self.wire_trace >= 1:
             from .scapy_ipmi.cmd_names import label_from_wire
             label = label_from_wire(wire) or "?"
-            self._event(f"→ send {len(wire):3d}B  {label:<40s}  {self.host}:{self.port}")
+            self._event(f"→ send {len(wire):3d}B  {label:<40s}  {target}")
         if do_hex:
             self._dump("→ SEND", wire, name=True, is_response=False)
         attempts = self.retries + 1
@@ -193,12 +203,12 @@ class Transport:
                         f"!! timeout after {self.timeout}s "
                         f"(retransmit {attempt + 1}/{self.retries})")
                     continue
-                self._event(f"!! timeout after {self.timeout}s waiting for {self.host}:{self.port}")
+                self._event(f"!! timeout after {self.timeout}s waiting for {target}")
                 raise
         if self.wire_trace >= 1:
             from .scapy_ipmi.cmd_names import label_from_wire
             recv_label = label_from_wire(data) or "(reply)"
-            self._event(f"← recv {len(data):3d}B  {recv_label:<40s}  {self.host}:{self.port}")
+            self._event(f"← recv {len(data):3d}B  {recv_label:<40s}  {target}")
         if do_hex:
             self._dump("← RECV", data, name=True, is_response=True)
         return data
