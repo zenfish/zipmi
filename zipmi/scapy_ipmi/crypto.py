@@ -44,8 +44,8 @@ class RawKey(bytes):
     __slots__ = ()
 
 
-def pad_password(password: str | bytes) -> bytes:
-    """Pad an IPMI password to 16 bytes with NULs (IPMI 1.5 §13.16.1).
+def pad_password(password: str | bytes, size: int = 16) -> bytes:
+    """NUL-pad to the protocol width: 16 for IPMI 1.5, 20 for RMCP+.
 
     A RawKey is returned verbatim — it is already Kuid HMAC-key bytes, not a
     password to pad/truncate.
@@ -54,9 +54,9 @@ def pad_password(password: str | bytes) -> bytes:
         return bytes(password)
     if isinstance(password, str):
         password = password.encode("utf-8")
-    if len(password) > 16:
-        raise ValueError("IPMI passwords are at most 16 bytes")
-    return password.ljust(16, b"\x00")
+    if len(password) > size:
+        raise ValueError(f"IPMI passwords are at most {size} bytes")
+    return password.ljust(size, b"\x00")
 
 
 def md5_auth_code(
@@ -243,7 +243,7 @@ def rakp2_authcode(
     if h is None:
         return b""
     msg = rakp2_hmac_input(sid_c, sid_m, rc, rm, guid_m, role, user_name)
-    return _hmac.new(pad_password(password), msg, h).digest()
+    return _hmac.new(pad_password(password, 20), msg, h).digest()
 
 
 def rakp3_authcode(
@@ -264,7 +264,7 @@ def rakp3_authcode(
         + bytes([role, len(user_name)])
         + user_name
     )
-    return _hmac.new(pad_password(password), msg, h).digest()
+    return _hmac.new(pad_password(password, 20), msg, h).digest()
 
 
 def derive_sik(
@@ -280,7 +280,7 @@ def derive_sik(
     if h is None:
         return b""
     msg = rc + rm + bytes([role, len(user_name)]) + user_name
-    return _hmac.new(pad_password(password), msg, h).digest()
+    return _hmac.new(pad_password(password, 20), msg, h).digest()
 
 
 def rakp4_icv(
@@ -456,4 +456,3 @@ def integrity_md5_128(password: str | bytes, covered_bytes: bytes) -> bytes:
         password = password.encode("latin-1")
     kuid = password.ljust(20, b"\x00")[:20]
     return _hashlib.md5(kuid + covered_bytes + kuid).digest()
-
