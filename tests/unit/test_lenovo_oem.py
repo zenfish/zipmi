@@ -79,3 +79,48 @@ def test_lenovo_named_command_sends_exact_group_prefix(monkeypatch):
     args = argparse.Namespace(cmd_name="XCCBmcEmerson_2E_80_66_4A_00", data=["0x99"], json=True)
     assert cmd_oem_run(args, "lenovo") == 0
     assert session.sent == [(0x2E, 0x80, bytes.fromhex("66 4a 00 99"))]
+
+
+def test_lenovo_decoded_operation_contracts_are_structured():
+    from zipmi.scapy_ipmi.oem.lenovo import lookup
+
+    board = lookup(0x3A, 0x0D).operations
+    assert len(board) == 1
+    assert board[0].operation == "board information"
+    assert board[0].request == "empty"
+    assert board[0].response.startswith("2 bytes")
+
+    bmu = lookup(0x3A, 0x7A).operations
+    assert [(o.selector, o.effect) for o in bmu] == [
+        ("00", "read"), ("01", "state change")]
+
+    credentials = lookup(0x3A, 0x7B).operations
+    assert len(credentials) == 2
+    assert all("system-interface channel only" in o.request for o in credentials)
+
+    inventory = lookup(0x3A, 0xA4).operations
+    assert inventory[0].request == "empty"
+    assert inventory[1].selector == "any-byte"
+    assert inventory[1].effect == "runtime state change"
+
+
+def test_lenovo_group_command_operation_preserves_wire_prefix():
+    from zipmi.scapy_ipmi.oem.lenovo import lookup
+
+    led = lookup(0x2E, 0x0C, bytes.fromhex("d0 51 00"))
+    assert led.prefix == bytes.fromhex("d0 51 00")
+    assert led.operations[0].operation == "LED get"
+    assert "IANA d0 51 00" in led.operations[0].request
+
+
+def test_lenovo_json_listing_exposes_decoded_operations():
+    from zipmi.cli.oem_cmds import _vendor_listing_data
+
+    listing = _vendor_listing_data("lenovo")
+    board = next(c for c in listing["commands"] if c["netfn"] == 0x3A and c["cmd"] == 0x0D)
+    assert board["operations"] == [{
+        "selector": "", "operation": "board information", "request": "empty",
+        "response": "2 bytes: system revision and board level",
+        "completionCodes": "", "effect": "read", "evidence": "Decoded",
+        "source": "libmodules.so:get_board_info@000e87e4",
+    }]

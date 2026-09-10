@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ._registry import register
-from .lenovo_commands_generated import LENOVO_COMMANDS, LenovoCommand
+from .lenovo_commands_generated import LENOVO_COMMANDS, LenovoCommand, LenovoOperation
 
 LENOVO_DEVICE_IANA = 2
 LENOVO_GROUP_IANA = 0x4A66
@@ -24,5 +24,5 @@ def lookup(netfn: int, cmd: int, prefix: bytes = b"") -> LenovoCommand | None:
 
 __all__ = [
     "LENOVO_DEVICE_IANA", "LENOVO_GROUP_IANA", "LENOVO_COMMANDS", "LENOVO_COMMANDS_BY_KEY",
-    "LENOVO_CMD_NAMES", "LenovoCommand", "lookup",
+    "LENOVO_CMD_NAMES", "LenovoCommand", "LenovoOperation", "lookup",
 ]

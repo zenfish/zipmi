@@ -8,6 +8,18 @@ from pathlib import Path
 
 
 @dataclass(frozen=True)
+class LenovoOperation:
+    selector: str
+    operation: str
+    request: str
+    response: str
+    completion_codes: str
+    effect: str
+    evidence: str
+    source: str
+
+
+@dataclass(frozen=True)
 class LenovoCommand:
     name: str
     netfn: int
@@ -29,12 +41,19 @@ class LenovoCommand:
     confidence: str
     source: str
     notes: str
+    operations: tuple[LenovoOperation, ...]
 
 
 def parse_json(text: str) -> list[LenovoCommand]:
     data = json.loads(text)
     out = []
     for c in data["commands"]:
+        operations = tuple(LenovoOperation(
+            selector=o["selector"], operation=o["operation"],
+            request=o["request"], response=o["response"],
+            completion_codes=o["completionCodes"], effect=o["effect"],
+            evidence=o["evidence"], source=o["source"],
+        ) for o in c.get("operations", []))
         out.append(LenovoCommand(
             name=c["name"], netfn=c["netfn"], cmd=c["cmd"],
             prefix=bytes(c["prefix"]), iana=c["iana"], runnable=c["runnable"],
@@ -47,7 +66,7 @@ def parse_json(text: str) -> list[LenovoCommand]:
             purpose=c["purpose"], request=c["request"], response=c["response"],
             side_effect=c["sideEffect"], remote_restriction=c["remoteRestriction"],
             evidence_state=c["evidenceState"], confidence=c["confidence"],
-            source=c["source"], notes=c["notes"],
+            source=c["source"], notes=c["notes"], operations=operations,
         ))
     return out
 
@@ -56,6 +75,10 @@ def emit_module(entries: list[LenovoCommand], source: str) -> str:
     lines = [
         '"""Auto-generated Lenovo XCC OEM command catalog; do not edit."""',
         "from __future__ import annotations", "", "from dataclasses import dataclass", "", "",
+        "@dataclass(frozen=True)", "class LenovoOperation:",
+        "    selector: str", "    operation: str", "    request: str",
+        "    response: str", "    completion_codes: str", "    effect: str",
+        "    evidence: str", "    source: str", "", "",
         "@dataclass(frozen=True)", "class LenovoCommand:",
         "    name: str", "    netfn: int", "    cmd: int", "    prefix: bytes",
         "    iana: int | None", "    runnable: bool", "    dispatch: str",
@@ -63,7 +86,8 @@ def emit_module(entries: list[LenovoCommand], source: str) -> str:
         "    handler: str", "    registrations: tuple[tuple[str, str], ...]",
         "    purpose: str", "    request: str", "    response: str",
         "    side_effect: str", "    remote_restriction: str", "    evidence_state: str",
-        "    confidence: str", "    source: str", "    notes: str", "", "",
+        "    confidence: str", "    source: str", "    notes: str",
+        "    operations: tuple[LenovoOperation, ...]", "", "",
         f"# Source: {source}", f"# Entries: {len(entries)}",
         "LENOVO_COMMANDS: list[LenovoCommand] = [",
     ]
@@ -78,7 +102,7 @@ def emit_module(entries: list[LenovoCommand], source: str) -> str:
             f"request={e.request!r}, response={e.response!r}, "
             f"side_effect={e.side_effect!r}, remote_restriction={e.remote_restriction!r}, "
             f"evidence_state={e.evidence_state!r}, confidence={e.confidence!r}, "
-            f"source={e.source!r}, notes={e.notes!r}),"
+            f"source={e.source!r}, notes={e.notes!r}, operations={e.operations!r}),"
         )
     lines += ["]", ""]
     return "\n".join(lines)

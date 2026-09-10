@@ -830,6 +830,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "response": c.response, "security": f"side effects: {c.side_effect}",
                 "confidence": c.confidence, "lib": c.handler,
                 "backend_deps": c.notes,
+                "operations": c.operations,
                 "args": "", "src": c.source + (f"; request length {rules}" if rules else ""),
             }
         return _normalize_listing(out, "lenovo")
@@ -895,7 +896,7 @@ def _vendor_listing_data(vendor: str) -> dict:
     for key, info in sorted(listing.items()):
         netfn, cmd = key[0], key[1]
         prefix = key[2:]
-        commands.append({
+        command = {
             "netfn": netfn, "cmd": cmd,
             "prefix": [b for b in prefix] if prefix else [],
             "name": info["name"],
@@ -904,7 +905,18 @@ def _vendor_listing_data(vendor: str) -> dict:
             "args": info.get("args") or "",
             "src": info.get("src") or "",
             "missing": bool(info.get("missing")),
-        })
+        }
+        if info.get("operations"):
+            command["operations"] = [
+                {
+                    "selector": o.selector, "operation": o.operation,
+                    "request": o.request, "response": o.response,
+                    "completionCodes": o.completion_codes, "effect": o.effect,
+                    "evidence": o.evidence, "source": o.source,
+                }
+                for o in info["operations"]
+            ]
+        commands.append(command)
     return {"vendor": vendor, "verb": _display_verb(vendor),
             "named": named, "total": total, "commands": commands}
 
@@ -1287,6 +1299,17 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
             print(f"  Library:      {info['lib']}")
         if info.get("confidence"):
             print(f"  Confidence:   {info['confidence']}")
+        if info.get("operations"):
+            print("  Operations:")
+            for operation in info["operations"]:
+                selector = operation.selector or "(none)"
+                print(f"    - {operation.operation} [selector {selector}]")
+                print(f"      Request: {operation.request}")
+                print(f"      Response: {operation.response}")
+                if operation.completion_codes:
+                    print(f"      Completion codes: {operation.completion_codes}")
+                print(f"      Effect: {operation.effect}; evidence: {operation.evidence}")
+                print(f"      Source: {operation.source}")
         if info.get("reservation_from"):
             print(f"  Reservation:  {info['reservation_from']}")
         if info.get("live"):
