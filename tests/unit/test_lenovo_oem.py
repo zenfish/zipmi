@@ -30,7 +30,7 @@ def test_lenovo_vendor_load_and_listing():
     from zipmi.cli.oem_cmds import _vendor_listing
     from zipmi.scapy_ipmi.oem._registry import ENTERPRISE_IDS
     listing = _vendor_listing("lenovo")
-    assert ENTERPRISE_IDS[0x4A66] == "lenovo"
+    assert ENTERPRISE_IDS[2] == "lenovo"
     assert len(listing) == 217
     assert listing[(0x2E, 0x80, 0x66, 0x4A, 0x00)]["prefix"] == bytes.fromhex("66 4a 00")
 

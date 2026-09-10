@@ -85,7 +85,7 @@ VENDORS: dict[str, dict] = {
         "blurb": "AMI YAFU flash + memory protocol (NetFn 0x32) — cross-vendor AMI-lineage",
     },
     "lenovo": {
-        "iana": 0x4A66,
+        "iana": 2,
         "blurb": "Lenovo IMM/XCC 6.92 — 222 decoded server-side OEM command identities",
     },
     # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---

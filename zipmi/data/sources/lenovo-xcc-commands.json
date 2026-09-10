@@ -1,7 +1,9 @@
 {
   "generated": "2026-09-10",
   "firmware": "Lenovo XCC 6.92 Newyork-pass1",
-  "lenovoIana": 19046,
+  "deviceManufacturerIana": 2,
+  "deviceManufacturerIanaEvidence": "live Get Device ID from Debby XCC 6.92, 2026-09-10",
+  "lenovoGroupExtensionIana": 19046,
   "counts": {
     "commands": 222,
     "cppRegistrations": 192,
@@ -3523,7 +3525,15 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4"
+      "notes": "Registration owner(s): initialize@000e64b4",
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0x0d, empty payload",
+        "completionCode": 0,
+        "responseHex": "ff00",
+        "repeatability": "one success after one missing-RAKP2 retry"
+      }
     },
     {
       "name": "XCCLed_3A_0E",
