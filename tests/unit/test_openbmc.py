@@ -155,7 +155,10 @@ def test_openbmc_oem_cmds_registered(vendor, iana, key, name):
     hits = _find_cmd(_vendor_listing(vendor), display_name)
     assert (key[0], key[1]) in {(h[0], h[1]) for h, _ in hits}
     if iana is not None:
-        assert ENTERPRISE_IDS.get(iana) == vendor
+        expected = {vendor}
+        if iana == 2:
+            expected.add("lenovo")  # IBM PEN is shared by OpenPower and XCC.
+        assert ENTERPRISE_IDS.get(iana) in expected
 
 
 def test_wistron_netfn_0x32():
@@ -208,7 +211,7 @@ def test_openpower_alias_ibm():
     from zipmi.scapy_ipmi.oem._registry import ENTERPRISE_IDS
     assert lookup_cmd_name(0x32, 0x10) == "OpenPower Prep FW Update"
     # The alias also brought in openpower's IANA (2) → openpower mapping.
-    assert ENTERPRISE_IDS.get(2) == "openpower"
+    assert ENTERPRISE_IDS.get(2) in ("openpower", "lenovo")
 
 
 def test_google_oem_envelope_and_subcmds():

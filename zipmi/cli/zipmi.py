@@ -5509,6 +5509,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub = p.add_subparsers(dest="verb", required=True)
 
+    from .redfish_cmds import add_redfish_parser
+    add_redfish_parser(sub)
+
     # mc (bmc = backwards-compat alias, mirrors ipmitool's deprecated "bmc")
     mc = sub.add_parser("mc", aliases=["bmc"], help="management controller")
     mc_sub = mc.add_subparsers(dest="action", required=True)

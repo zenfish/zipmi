@@ -1,0 +1,4265 @@
+{
+  "generated": "2026-09-10",
+  "firmware": "Lenovo XCC 6.92 Newyork-pass1",
+  "evidence": {
+    "nativeBinary": "RF_Root/RF_Log action-name or target strings",
+    "inputTemplate": "runtime SSI .dat request validation contract",
+    "versionedSchema": "shipped Lenovo Redfish JSON schema",
+    "metadata": "shipped OData metadata action declaration"
+  },
+  "counts": {
+    "actions": 88,
+    "nativeBinary": 74,
+    "inputTemplate": 76,
+    "versionedSchema": 37,
+    "exactTargets": 15
+  },
+  "actions": [
+    {
+      "name": "#LenovoBios.GetProtectedAttributes",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Bios/Actions/Oem/#LenovoBios.GetProtectedAttributes",
+          "source": "RF_Root",
+          "offset": 5448392
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5448320",
+        "RF_Root@5448392",
+        "RF_Root@5454380"
+      ],
+      "schema": null,
+      "template": "Bios.dat"
+    },
+    {
+      "name": "#LenovoBios.SetProtectedAttributes",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Bios/Actions/Oem/#LenovoBios.SetProtectedAttributes",
+          "source": "RF_Root",
+          "offset": 5448556
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5448356",
+        "RF_Root@5448556",
+        "RF_Root@5454544"
+      ],
+      "schema": null,
+      "template": "Bios.dat"
+    },
+    {
+      "name": "#LenovoChassis.NodeVirtualReset",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "ResetType",
+          "raw": "S@ar@@e:ACPowerCycle,XCCReboot",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "ACPowerCycle",
+            "XCCReboot"
+          ]
+        },
+        {
+          "name": "NodeId",
+          "raw": "u@ar@@m:1,M:4",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "minimum": "1",
+          "maximum": "4"
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "ResetType",
+            "NodeId"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "ResetType"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5318888",
+        "RF_Root@5319964"
+      ],
+      "schema": null,
+      "template": "Chassis.dat"
+    },
+    {
+      "name": "#LenovoChassis.SetDustFilter",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Schedule",
+          "raw": "S@ar@@e:Disabled,RunImmediately,LastMondayOfEveryMonth,LastTuesdayOfEveryMonth,LastWednesdayOfEveryMonth,LastThursdayOfEveryMonth,LastFridayOfEveryMonth,LastSaturdayOfEveryMonth,LastSundayOfEveryMonth",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Disabled",
+            "RunImmediately",
+            "LastMondayOfEveryMonth",
+            "LastTuesdayOfEveryMonth",
+            "LastWednesdayOfEveryMonth",
+            "LastThursdayOfEveryMonth",
+            "LastFridayOfEveryMonth",
+            "LastSaturdayOfEveryMonth",
+            "LastSundayOfEveryMonth"
+          ]
+        },
+        {
+          "name": "Time",
+          "raw": "S@a@@p:([0-1][0-9]|2[0-3]):([0-5][0-9])$",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "pattern": "([0-1][0-9]|2[0-3]):([0-5][0-9])$"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Schedule",
+            "Time"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5314036"
+      ],
+      "schema": null,
+      "template": "Chassis.dat"
+    },
+    {
+      "name": "#LenovoChassis.SetMidplaneVpd",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Model",
+          "raw": "S@a@@M:10",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "maximum": "10"
+        },
+        {
+          "name": "SerialNumber",
+          "raw": "S@a@@M:10",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "maximum": "10"
+        },
+        {
+          "name": "UUID",
+          "raw": "S@a@@p:^([0-9A-F]{32})$",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "pattern": "^([0-9A-F]{32})$"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Model",
+            "SerialNumber",
+            "UUID"
+          ]
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Chassis/2/Actions/Oem/#LenovoChassis.SetMidplaneVpd",
+          "source": "RF_Root",
+          "offset": 5320040
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5320008",
+        "RF_Root@5320040"
+      ],
+      "schema": null,
+      "template": "Chassis.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.ACPowerCycle",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "ResetType",
+          "raw": "S@ar@@e:ACPowerCycle",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "ACPowerCycle"
+          ]
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "ResetType"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.BootToBIOSSetup",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5286388"
+      ],
+      "schema": "LenovoComputerSystem.v1_0_0.json",
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.ClearSSDTrackingRecord",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5286636"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoComputerSystem.CustomizedReset",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Date",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "ResetType",
+          "raw": "S@ar@@e:On",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "On"
+          ]
+        },
+        {
+          "name": "Time",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Date",
+            "ResetType",
+            "Time"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "ResetType",
+            "Date",
+            "Time"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Date",
+            "ResetType",
+            "Time"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5286332"
+      ],
+      "schema": "LenovoComputerSystem.v1_0_0.json",
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.DSReadFile",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "FileName",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Exclusive",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Volatile",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "ShareMem",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Offset",
+          "raw": "s@a@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Length",
+          "raw": "s@a@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "FileName",
+            "Exclusive",
+            "Volatile",
+            "ShareMem",
+            "Offset",
+            "Length"
+          ]
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoComputerSystem.DSReadFile",
+          "source": "RF_Root",
+          "offset": 5287324
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5286496",
+        "RF_Root@5287324"
+      ],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.DSWriteFile",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "FileName",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Content",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Exclusive",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Volatile",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "ShareMem",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "ClearWrite",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Resize",
+          "raw": "s@a@@m:1",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "minimum": "1"
+        },
+        {
+          "name": "Offset",
+          "raw": "s@a@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "FileName",
+            "Content",
+            "Exclusive",
+            "Volatile",
+            "ShareMem",
+            "ClearWrite",
+            "Resize",
+            "Offset"
+          ]
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoComputerSystem.DSWriteFile",
+          "source": "RF_Root",
+          "offset": 5287436
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5286532",
+        "RF_Root@5287436"
+      ],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.DumpSSDTrackingRecord",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [
+        {
+          "name": "DriveScope",
+          "type": "LenovoComputerSystem.v1_0_0.DriveScopeItem",
+          "required": false,
+          "enum": [
+            "All",
+            "CurrentInstalled"
+          ],
+          "description": "The scope of drives to dump SSD record."
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "DriveScope"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5286968"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoComputerSystem.GetDSFileList",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoComputerSystem.GetDSFileList",
+          "source": "RF_Root",
+          "offset": 5287168
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5286444",
+        "RF_Root@5287168"
+      ],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.GetHiddenLogsDownloadURI",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoComputerSystem.GetHiddenLogsDownloadURI",
+          "source": "RF_Root",
+          "offset": 5287788
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5287788"
+      ],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.GetIPMIFru",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoComputerSystem.GetIPMIFru",
+          "source": "RF_Root",
+          "offset": 5287552
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5286852",
+        "RF_Root@5287552"
+      ],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.RemoteClearCMOS",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "UefiAdminPassword",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "UefiAdminPassword"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "UefiAdminPassword"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5286580"
+      ],
+      "schema": "LenovoComputerSystem.v1_0_0.json",
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.RemoveHiddenLogs",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoComputerSystem.RemoveHiddenLogs",
+          "source": "RF_Root",
+          "offset": 5287664
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5287664"
+      ],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.SetEncryptionKey",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "EncryptionKey",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "CurrentEncryptionKey",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "TargetStorage",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "EncryptionKey",
+            "CurrentEncryptionKey",
+            "TargetStorage"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "EncryptionKey",
+            "TargetStorage",
+            "CurrentEncryptionKey"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5285856"
+      ],
+      "schema": null,
+      "template": "ComputerSystem.dat"
+    },
+    {
+      "name": "#LenovoComputerSystem.SystemReset",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [
+        {
+          "name": "ResetType",
+          "type": "LenovoComputerSystem.v1_0_0.ResetTypeItem",
+          "required": false,
+          "enum": [
+            "ACPowerCycle"
+          ],
+          "description": "The type of reset to be performed."
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "ResetType"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "ResetType"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5274984"
+      ],
+      "schema": "LenovoComputerSystem.v1_0_0.json",
+      "template": null
+    },
+    {
+      "name": "#LenovoConfigurationService.BackupConfiguration",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Passphrase",
+          "raw": "S@ar@s@m:9",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "minimum": "9"
+        },
+        {
+          "name": "EncryptScope",
+          "raw": "S@a@@e:WholeFile,SensitiveInfo",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "WholeFile",
+            "SensitiveInfo"
+          ]
+        },
+        {
+          "name": "BackupType",
+          "raw": "S@a@@e:Normal,Federation",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "Normal",
+            "Federation"
+          ]
+        },
+        {
+          "name": "FileType",
+          "raw": "S@a@@e:Configuration,SED",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "Configuration",
+            "SED"
+          ]
+        },
+        {
+          "name": "IncludeUEFISecureSetting",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Passphrase",
+            "EncryptScope",
+            "BackupType",
+            "FileType",
+            "IncludeUEFISecureSetting"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Passphrase",
+            "EncryptScope",
+            "BackupType",
+            "FileType",
+            "IncludeUEFISecureSetting"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "EncryptScope",
+            "Passphrase",
+            "IncludeUEFISecureSetting"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5344948"
+      ],
+      "schema": "LenovoConfigurationService.v1_0_0.json",
+      "template": "LenovoConfigurationService.dat"
+    },
+    {
+      "name": "#LenovoConfigurationService.BackupConfigurationDescriptor",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5344996"
+      ],
+      "schema": "LenovoConfigurationService.v1_0_0.json",
+      "template": "LenovoConfigurationService.dat"
+    },
+    {
+      "name": "#LenovoConfigurationService.GetDSFile",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "FileName",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "FileName"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "FileName"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5345160"
+      ],
+      "schema": null,
+      "template": "LenovoConfigurationService.dat"
+    },
+    {
+      "name": "#LenovoConfigurationService.GetRestoreConfigurationDetails",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5345056"
+      ],
+      "schema": "LenovoConfigurationService.v1_0_0.json",
+      "template": null
+    },
+    {
+      "name": "#LenovoConfigurationService.ResetToDefault",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5345116"
+      ],
+      "schema": "LenovoConfigurationService.v1_0_0.json",
+      "template": "LenovoConfigurationService.dat"
+    },
+    {
+      "name": "#LenovoConfigurationService.RestoreConfiguration",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Passphrase",
+          "raw": "S@ar@s@m:9",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "minimum": "9"
+        },
+        {
+          "name": "ConfigContent",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "RestoreType",
+          "raw": "S@a@@e:Normal,Federation",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "Normal",
+            "Federation"
+          ]
+        },
+        {
+          "name": "FileType",
+          "raw": "S@a@@e:Configuration,SED",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "Configuration",
+            "SED"
+          ]
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Passphrase",
+            "ConfigContent",
+            "RestoreType",
+            "FileType"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Passphrase",
+            "ConfigContent",
+            "RestoreType",
+            "FileType"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "ConfigContent",
+            "Passphrase"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5344896"
+      ],
+      "schema": "LenovoConfigurationService.v1_0_0.json",
+      "template": "LenovoConfigurationService.dat"
+    },
+    {
+      "name": "#LenovoConfigurationService.SetCmrConfiguration",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5345200"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoDateTimeService.ImmediatelySync",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5362044"
+      ],
+      "schema": "LenovoDateTimeService.v1_0_0.json",
+      "template": "LenovoDateTimeService.dat"
+    },
+    {
+      "name": "#LenovoDiskDrive.AssignHotSpare",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "HotspareType",
+          "raw": "S@ar@@e:GlobalHotSpare,DedicatedHotSpare",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "GlobalHotSpare",
+            "DedicatedHotSpare"
+          ]
+        },
+        {
+          "name": "SelectedPool",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "HotspareType",
+            "SelectedPool"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoDiskDrive.dat"
+    },
+    {
+      "name": "#LenovoDiskDrive.RemoveHotSpare",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoDiskDrive.dat"
+    },
+    {
+      "name": "#LenovoEthernetInterface.ConnectWifi",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "SSID",
+          "raw": "S@ar@@M:64",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "maximum": "64"
+        },
+        {
+          "name": "Mode",
+          "raw": "S@ar@@e:WPA2-PSK,WPA2-Enterprise",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "WPA2-PSK",
+            "WPA2-Enterprise"
+          ]
+        },
+        {
+          "name": "SecurityType",
+          "raw": "S@a@@e:EAP-PEAP/GTC,EAP-TTLS/EAP-GTC,EAP-TTLS/PAP,EAP-PEAP/MSCHAPv2,EAP-TTLS/EAP-MSCHAPv2,EAP-TTLS/MSCHAPv2,EAP-TTLS/CHAP",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "EAP-PEAP/GTC",
+            "EAP-TTLS/EAP-GTC",
+            "EAP-TTLS/PAP",
+            "EAP-PEAP/MSCHAPv2",
+            "EAP-TTLS/EAP-MSCHAPv2",
+            "EAP-TTLS/MSCHAPv2",
+            "EAP-TTLS/CHAP"
+          ]
+        },
+        {
+          "name": "UserName",
+          "raw": "S@a@@M:64",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "maximum": "64"
+        },
+        {
+          "name": "Password",
+          "raw": "S@a@s@m:14,M:255",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "minimum": "14",
+          "maximum": "255"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "SSID",
+            "Mode",
+            "SecurityType",
+            "UserName",
+            "Password"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5589336"
+      ],
+      "schema": null,
+      "template": "EthernetInterface.dat"
+    },
+    {
+      "name": "#LenovoEthernetInterface.DisconnectWifi",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5589404"
+      ],
+      "schema": null,
+      "template": "EthernetInterface.dat"
+    },
+    {
+      "name": "#LenovoEthernetInterface.DoManualWifiScan",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5589444"
+      ],
+      "schema": null,
+      "template": "EthernetInterface.dat"
+    },
+    {
+      "name": "#LenovoEthernetInterface.GetWifiScanResults",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5589488"
+      ],
+      "schema": null,
+      "template": "EthernetInterface.dat"
+    },
+    {
+      "name": "#LenovoEthernetInterface.IgnoreWifiAutoList",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "SSID",
+          "raw": "S@ar@@M:64",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "maximum": "64"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "SSID"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5589532"
+      ],
+      "schema": null,
+      "template": "EthernetInterface.dat"
+    },
+    {
+      "name": "#LenovoFirmwareService.CompleteBareMetal",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "NeedRestorePower",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "NeedRestorePower"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "NeedRestorePower"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "NeedRestorePower"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5521832"
+      ],
+      "schema": "LenovoFirmwareService.v1_0_0.json",
+      "template": "LenovoFirmwareService.dat"
+    },
+    {
+      "name": "#LenovoFirmwareService.InstallFromURI",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "InstallOptions",
+          "raw": "S@a@@e:Install,PCI_OOB_Update",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "Install",
+            "PCI_OOB_Update"
+          ]
+        },
+        {
+          "name": "InstallOptionsValues",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "URI",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "UpdateTarget",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "InstallOptions",
+            "InstallOptionsValues",
+            "URI",
+            "UpdateTarget"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoFirmwareService.dat"
+    },
+    {
+      "name": "#LenovoFirmwareService.RestartToBareMetal",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5521768"
+      ],
+      "schema": "LenovoFirmwareService.v1_0_0.json",
+      "template": "LenovoFirmwareService.dat"
+    },
+    {
+      "name": "#LenovoFirmwareService.StartBareMetalConnection",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "BareMetalUpdateData",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "ExternalPort",
+          "raw": "s@a@@m:1025",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "minimum": "1025"
+        },
+        {
+          "name": "ImageName",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "TargetServerIP",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "TimeoutInMin",
+          "raw": "s@a@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "BootTimeoutInMin",
+          "raw": "s@a@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "USBPort",
+          "raw": "s@a@@m:1025",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "minimum": "1025"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "BareMetalUpdateData",
+            "ExternalPort",
+            "ImageName",
+            "TargetServerIP",
+            "TimeoutInMin",
+            "BootTimeoutInMin",
+            "USBPort"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "BareMetalUpdateData",
+            "ImageName",
+            "TargetServerIP",
+            "USBPort",
+            "ExternalPort",
+            "TimeoutInMin",
+            "BootTimeoutInMin"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "BareMetalUpdateData",
+            "BootTimeoutInMin",
+            "ExternalPort",
+            "ImageName",
+            "TargetServerIP",
+            "TimeoutInMin",
+            "USBPort"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5521896"
+      ],
+      "schema": "LenovoFirmwareService.v1_0_0.json",
+      "template": "LenovoFirmwareService.dat"
+    },
+    {
+      "name": "#LenovoFirmwareService.StartDeferredUpdateActivation",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "BareMetalUpdateData",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "CoreFirmwareOnly",
+          "raw": "b@ar@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "ExternalPort",
+          "raw": "s@a@@m:1025",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "minimum": "1025"
+        },
+        {
+          "name": "ImageName",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "TargetServerIP",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "TimeoutInMin",
+          "raw": "s@a@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "BootTimeoutInMin",
+          "raw": "s@a@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "USBPort",
+          "raw": "s@a@@m:1025",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "minimum": "1025"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "BareMetalUpdateData",
+            "CoreFirmwareOnly",
+            "ExternalPort",
+            "ImageName",
+            "TargetServerIP",
+            "TimeoutInMin",
+            "BootTimeoutInMin",
+            "USBPort"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "BareMetalUpdateData",
+            "ImageName",
+            "TargetServerIP",
+            "USBPort",
+            "ExternalPort",
+            "TimeoutInMin",
+            "BootTimeoutInMin",
+            "CoreFirmwareOnly"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "BareMetalUpdateData",
+            "BootTimeoutInMin",
+            "CoreFirmwareOnly",
+            "ExternalPort",
+            "ImageName",
+            "TargetServerIP",
+            "TimeoutInMin",
+            "USBPort"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5521680"
+      ],
+      "schema": "LenovoFirmwareService.v1_0_0.json",
+      "template": "LenovoFirmwareService.dat"
+    },
+    {
+      "name": "#LenovoFirmwareService.UEFIRecoveryOperation",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "ParamInput",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "ParamInput"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "ParamInput"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "ParamInput"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5521972"
+      ],
+      "schema": "LenovoFirmwareService.v1_0_0.json",
+      "template": "LenovoFirmwareService.dat"
+    },
+    {
+      "name": "#LenovoGroupService.Invite",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "TargetIP",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "TargetAccountName",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "TargetAccountPassword",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "TargetIP",
+            "TargetAccountName",
+            "TargetAccountPassword"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoGroupService.dat"
+    },
+    {
+      "name": "#LenovoLicense.ExportStateReport",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5670336"
+      ],
+      "schema": "LenovoLicense.v1_0_0.json",
+      "template": null
+    },
+    {
+      "name": "#LenovoLogService.GetLogEntriesBySequenceNumber",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "FirstEventSequenceNumber",
+          "raw": "u@ar@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "HiddenType",
+          "raw": "S@a@@e:hidden,none-hidden",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "hidden",
+            "none-hidden"
+          ]
+        },
+        {
+          "name": "NumberOfEntries",
+          "raw": "u@ar@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "FirstEventSequenceNumber",
+            "HiddenType",
+            "NumberOfEntries"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "FirstEventSequenceNumber",
+            "NumberOfEntries",
+            "HiddenType"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "FirstEventSequenceNumber",
+            "HiddenType",
+            "NumberOfEntries"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Log@541128"
+      ],
+      "schema": "LenovoLogService.v1_0_0.json",
+      "template": "LogService.dat"
+    },
+    {
+      "name": "#LenovoManager.CheckIPaddressAvailable",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": false,
+      "handlerHint": true,
+      "parameterSource": "handler",
+      "parameters": [
+        {
+          "name": "AvailableIPaddress",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "handler",
+          "parameterNames": [
+            "AvailableIPaddress"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5305424"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoManager.EnableUSB1PortForwarding",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": false,
+      "handlerHint": true,
+      "parameterSource": "handler",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "handler",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5305356"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoManager.GetIPMIProperty",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Name",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Name"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5305244"
+      ],
+      "schema": null,
+      "template": "Manager.dat"
+    },
+    {
+      "name": "#LenovoManager.OperateWifiCountryCode",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Flag",
+          "raw": "u@ar@@",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Value",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Flag",
+            "Value"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5305292"
+      ],
+      "schema": null,
+      "template": "Manager.dat"
+    },
+    {
+      "name": "#LenovoManager.SetiHDTStatus",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Enabled",
+          "raw": "b@ar@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Enabled"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Enabled"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "Manager.dat"
+    },
+    {
+      "name": "#LenovoOutboundConnection.ImportPFXCertificate",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Certificate",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Password",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Certificate",
+            "Password"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Certificate",
+            "Password"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5675908"
+      ],
+      "schema": "LenovoOutboundConnection.v1_0_0.json",
+      "template": "OutboundConnection.dat"
+    },
+    {
+      "name": "#LenovoRemoteControlService.GetRemoteConsoleToken",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "vmshow"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5464880"
+      ],
+      "schema": null,
+      "template": "LenovoRemoteControlService.dat"
+    },
+    {
+      "name": "#LenovoRemoteControlService.UploadFromURL",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Domain",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Options",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Password",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Readonly",
+          "raw": "b@ar@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Type",
+          "raw": "S@a@@e:Samba,NFS,HTTP,SFTP,FTP,HTTPS",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "Samba",
+            "NFS",
+            "HTTP",
+            "SFTP",
+            "FTP",
+            "HTTPS"
+          ]
+        },
+        {
+          "name": "Username",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "sourceURL",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Domain",
+            "Options",
+            "Password",
+            "Readonly",
+            "Type",
+            "Username",
+            "sourceURL"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "sourceURL",
+            "Username",
+            "Password",
+            "Readonly",
+            "type",
+            "Domain",
+            "Options"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Domain",
+            "Options",
+            "Password",
+            "Readonly",
+            "Username",
+            "sourceURL",
+            "type"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5464836"
+      ],
+      "schema": "LenovoRemoteControlService.v1_0_0.json",
+      "template": "LenovoRemoteControlService.dat"
+    },
+    {
+      "name": "#LenovoRemoteControlService.UploadMountImage",
+      "nativeBinary": false,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Filename",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Readonly",
+          "raw": "b@ar@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "bytes",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Filename",
+            "Readonly",
+            "bytes"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Filename",
+            "bytes",
+            "Readonly"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Filename",
+            "Readonly",
+            "bytes"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": "LenovoRemoteControlService.v1_0_0.json",
+      "template": "LenovoRemoteControlService.dat"
+    },
+    {
+      "name": "#LenovoRemoteMapService.Mount",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5354364"
+      ],
+      "schema": "LenovoRemoteMapService.v1_0_0.json",
+      "template": "LenovoRemoteMapService.dat"
+    },
+    {
+      "name": "#LenovoRemoteMapService.Reset",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5354284"
+      ],
+      "schema": "LenovoRemoteMapService.v1_0_0.json",
+      "template": "LenovoRemoteMapService.dat"
+    },
+    {
+      "name": "#LenovoRemoteMapService.UMount",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5354324"
+      ],
+      "schema": "LenovoRemoteMapService.v1_0_0.json",
+      "template": "LenovoRemoteMapService.dat"
+    },
+    {
+      "name": "#LenovoSecureBoot.ImportPubKeyDB",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": false,
+      "handlerHint": true,
+      "parameterSource": "handler",
+      "parameters": [
+        {
+          "name": "Cert",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "handler",
+          "parameterNames": [
+            "Cert"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5444944"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoSecureKeyLifecycle.TestConnection",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "ServerIndex",
+          "raw": "u@ar@@m:1,M:4",
+          "type": "integer",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "minimum": "1",
+          "maximum": "4"
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "ServerIndex"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5645656"
+      ],
+      "schema": null,
+      "template": "LenovoSecureKeyLifecycle.dat"
+    },
+    {
+      "name": "#LenovoSecurityService.ActivateDevice",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Activated",
+          "raw": "S@ar@@e:Active,Inactive",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Active",
+            "Inactive"
+          ]
+        },
+        {
+          "name": "ChallengeResponse",
+          "raw": "S@a@@M:32",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "maximum": "32"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Activated",
+            "ChallengeResponse"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Activated",
+            "ChallengeResponse"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5610636"
+      ],
+      "schema": null,
+      "template": "LenovoSecurityService.dat"
+    },
+    {
+      "name": "#LenovoSecurityService.ActivationMethod",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "ActivationMethod",
+          "raw": "S@ar@@e:Local,Portal",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Local",
+            "Portal"
+          ]
+        },
+        {
+          "name": "ChallengeResponse",
+          "raw": "S@a@@M:32",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "maximum": "32"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "ActivationMethod",
+            "ChallengeResponse"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "ActivationMethod",
+            "ChallengeResponse"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5610676"
+      ],
+      "schema": null,
+      "template": "LenovoSecurityService.dat"
+    },
+    {
+      "name": "#LenovoSecurityService.CreateKeyPair",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Service",
+          "raw": "S@ar@@e:SSH_SVR",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "SSH_SVR"
+          ]
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Service"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Service"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Service"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5610504"
+      ],
+      "schema": "LenovoSecurityService.v1_0_0.json",
+      "template": "LenovoSecurityService.dat"
+    },
+    {
+      "name": "#LenovoSecurityService.DisableSecurityPack",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Managers/1/Oem/Lenovo/Security/Actions/#LenovoSecurityService.DisableSecurityPack",
+          "source": "RF_Root",
+          "offset": 5611332
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5610788",
+        "RF_Root@5611332"
+      ],
+      "schema": null,
+      "template": "LenovoSecurityService.dat"
+    },
+    {
+      "name": "#LenovoSecurityService.EnableSecurityPack",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Managers/1/Oem/Lenovo/Security/Actions/#LenovoSecurityService.EnableSecurityPack",
+          "source": "RF_Root",
+          "offset": 5611128
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5611128"
+      ],
+      "schema": null,
+      "template": "LenovoSecurityService.dat"
+    },
+    {
+      "name": "#LenovoSecurityService.ResetCounter",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5610736"
+      ],
+      "schema": null,
+      "template": "LenovoSecurityService.dat"
+    },
+    {
+      "name": "#LenovoSecurityService.ValidateSecurityMode",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Mode",
+          "raw": "S@ar@@e:Compatibility,Standard,Strict",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Compatibility",
+            "Standard",
+            "Strict"
+          ]
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Mode"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Mode"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Mode"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5610568"
+      ],
+      "schema": "LenovoSecurityService.v1_0_0.json",
+      "template": "LenovoSecurityService.dat"
+    },
+    {
+      "name": "#LenovoServerProfileService.ApplySystemProfiles",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "SysProfPassPhrase",
+          "raw": "S@a@s@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "SysProfPassPhrase"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "SysProfPassPhrase"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "SysProfPassPhrase"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5461300"
+      ],
+      "schema": "LenovoServerProfileService.v1_0_0.json",
+      "template": "LenovoServerProfileService.dat"
+    },
+    {
+      "name": "#LenovoServiceAdvisor.TestCallHome",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5629788"
+      ],
+      "schema": "LenovoServiceAdvisor.v1_0_0.json",
+      "template": "LenovoServiceAdvisor.dat"
+    },
+    {
+      "name": "#LenovoServiceData.ExportFFDCData",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "DataCollectionType",
+          "raw": "S@ar@@e:ProcessorDump,ServiceDataFile,BootPOSTDump,Mini-log",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "ProcessorDump",
+            "ServiceDataFile",
+            "BootPOSTDump",
+            "Mini-log"
+          ]
+        },
+        {
+          "name": "ExportURI",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "InitializationNeeded",
+          "raw": "b@ar@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "Password",
+          "raw": "S@a@s@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Username",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "DataCollectionType",
+            "ExportURI",
+            "InitializationNeeded",
+            "Password",
+            "Username"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "DataCollectionType",
+            "InitializationNeeded",
+            "Username",
+            "Password",
+            "ExportURI"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "DataCollectionType",
+            "ExportURI",
+            "InitializationNeeded",
+            "Password",
+            "Username"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5359408"
+      ],
+      "schema": "LenovoServiceData.v1_0_0.json",
+      "template": "LenovoServiceData.dat"
+    },
+    {
+      "name": "#LenovoServiceData.ExportHealthReport",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5359520"
+      ],
+      "schema": "LenovoServiceData.v1_0_0.json",
+      "template": "LenovoServiceData.dat"
+    },
+    {
+      "name": "#LenovoServiceData.ExportLatestOSFailureScreen",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5359444"
+      ],
+      "schema": "LenovoServiceData.v1_0_0.json",
+      "template": "LenovoServiceData.dat"
+    },
+    {
+      "name": "#LenovoStorage.PrefetchSMARTData",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5403364"
+      ],
+      "schema": "LenovoStorage.v1_0_0.json",
+      "template": "Storage.dat"
+    },
+    {
+      "name": "#LenovoStorage.Rekey",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5403400"
+      ],
+      "schema": null,
+      "template": "Storage.dat"
+    },
+    {
+      "name": "#LenovoStorage.SetAllDrivesEncryptionKey",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoStorage.SetAllDrivesEncryptionKey",
+          "source": "RF_Root",
+          "offset": 5288060
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5286780",
+        "RF_Root@5288060"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoStorage.SetControllerEncryptionKey",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoStorage.SetControllerEncryptionKey",
+          "source": "RF_Root",
+          "offset": 5287928
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5286708",
+        "RF_Root@5287928"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoStorage.SetEncryptionKey",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": false,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "metadata",
+      "parameters": [
+        {
+          "name": "EncryptionKey",
+          "type": "Edm.String",
+          "required": false,
+          "enum": null,
+          "description": "The new encryption key."
+        },
+        {
+          "name": "CurrentEncryptionKey",
+          "type": "Edm.String",
+          "required": false,
+          "enum": null,
+          "description": "Currently used encryption key."
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "EncryptionKey",
+            "CurrentEncryptionKey"
+          ]
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Systems/1/Actions/Oem/#LenovoStorage.SetEncryptionKey",
+          "source": "RF_Root",
+          "offset": 5288188
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5286936",
+        "RF_Root@5288188"
+      ],
+      "schema": null,
+      "template": null
+    },
+    {
+      "name": "#LenovoStorageCtrlExt.ClearForeign",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoStorageCtrlExt.dat"
+    },
+    {
+      "name": "#LenovoStorageCtrlExt.ClearRAIDConfig",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoStorageCtrlExt.dat"
+    },
+    {
+      "name": "#LenovoStorageCtrlExt.CreateVolume",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "AccessPolicy",
+          "raw": "n,S@ar@@e:ReadWrite,ReadOnly,Blocked",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "ReadWrite",
+            "ReadOnly",
+            "Blocked"
+          ]
+        },
+        {
+          "name": "BackgroundInitialization",
+          "raw": "n,S@ar@@e:Disable,Quick,Full",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Disable",
+            "Quick",
+            "Full"
+          ]
+        },
+        {
+          "name": "DiskCachePolicy",
+          "raw": "n,S@ar@@e:Unchanged,Enable,Disable",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Unchanged",
+            "Enable",
+            "Disable"
+          ]
+        },
+        {
+          "name": "Drives",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Hotspares",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "IOPolicy",
+          "raw": "n,S@ar@@e:DirectIO,CachedIO",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "DirectIO",
+            "CachedIO"
+          ]
+        },
+        {
+          "name": "RAIDLevel",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "ReadPolicy",
+          "raw": "n,S@ar@@e:NoReadAhead,ReadAhead,AdaptiveReadAhead",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "NoReadAhead",
+            "ReadAhead",
+            "AdaptiveReadAhead"
+          ]
+        },
+        {
+          "name": "StripeSizeByte",
+          "raw": "n,s@ar@@",
+          "type": "integer",
+          "nullable": true,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "VolumeName",
+          "raw": "n,S@ar@@",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "VolumeSizeMB",
+          "raw": "n,s@ar@@",
+          "type": "integer",
+          "nullable": true,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "WritePolicy",
+          "raw": "n,S@ar@@e:WriteThrough,AlwaysWriteBack,WriteBackWithBBU",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "WriteThrough",
+            "AlwaysWriteBack",
+            "WriteBackWithBBU"
+          ]
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "AccessPolicy",
+            "BackgroundInitialization",
+            "DiskCachePolicy",
+            "Drives",
+            "Hotspares",
+            "IOPolicy",
+            "RAIDLevel",
+            "ReadPolicy",
+            "StripeSizeByte",
+            "VolumeName",
+            "VolumeSizeMB",
+            "WritePolicy"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoStorageCtrlExt.dat"
+    },
+    {
+      "name": "#LenovoStorageCtrlExt.DetectForeign",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoStorageCtrlExt.dat"
+    },
+    {
+      "name": "#LenovoStorageCtrlExt.GetFreeCap",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Drives",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Hotspares",
+          "raw": "a@a@@",
+          "type": "array",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "RAIDLevel",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Drives",
+            "Hotspares",
+            "RAIDLevel"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoStorageCtrlExt.dat"
+    },
+    {
+      "name": "#LenovoStorageCtrlExt.ImportForeign",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoStorageCtrlExt.dat"
+    },
+    {
+      "name": "#LenovoStoragePool.CreateVolume",
+      "nativeBinary": false,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "AccessPolicy",
+          "raw": "n,S@ar@@e:ReadWrite,ReadOnly,Blocked",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "ReadWrite",
+            "ReadOnly",
+            "Blocked"
+          ]
+        },
+        {
+          "name": "BackgroundInitialization",
+          "raw": "n,S@ar@@e:Disable,Quick,Full",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Disable",
+            "Quick",
+            "Full"
+          ]
+        },
+        {
+          "name": "DiskCachePolicy",
+          "raw": "n,S@ar@@e:Unchanged,Enable,Disable",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "Unchanged",
+            "Enable",
+            "Disable"
+          ]
+        },
+        {
+          "name": "HoleIndex",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "IOPolicy",
+          "raw": "n,S@ar@@e:DirectIO,CachedIO",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "DirectIO",
+            "CachedIO"
+          ]
+        },
+        {
+          "name": "ReadPolicy",
+          "raw": "n,S@ar@@e:NoReadAhead,ReadAhead,AdaptiveReadAhead",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "NoReadAhead",
+            "ReadAhead",
+            "AdaptiveReadAhead"
+          ]
+        },
+        {
+          "name": "StripeSizeByte",
+          "raw": "n,s@ar@@",
+          "type": "integer",
+          "nullable": true,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "VolumeName",
+          "raw": "n,S@ar@@",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "VolumeSizeMB",
+          "raw": "n,s@ar@@",
+          "type": "integer",
+          "nullable": true,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "WritePolicy",
+          "raw": "n,S@ar@@e:WriteThrough,AlwaysWriteBack,WriteBackWithBBU",
+          "type": "string",
+          "nullable": true,
+          "action_input": true,
+          "required": true,
+          "enum": [
+            "WriteThrough",
+            "AlwaysWriteBack",
+            "WriteBackWithBBU"
+          ]
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "AccessPolicy",
+            "BackgroundInitialization",
+            "DiskCachePolicy",
+            "HoleIndex",
+            "IOPolicy",
+            "ReadPolicy",
+            "StripeSizeByte",
+            "VolumeName",
+            "VolumeSizeMB",
+            "WritePolicy"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [],
+      "schema": null,
+      "template": "LenovoStoragePool.dat"
+    },
+    {
+      "name": "#LenovoSystemGuardService.ClearSnapshot",
+      "nativeBinary": true,
+      "versionedSchema": false,
+      "inputTemplate": true,
+      "metadata": false,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        }
+      ],
+      "targets": [
+        {
+          "target": "/redfish/v1/Managers/1/Oem/Lenovo/SystemGuard/Actions/#LenovoSystemGuardService.ClearSnapshot",
+          "source": "RF_Root",
+          "offset": 5472308
+        }
+      ],
+      "nativeSources": [
+        "RF_Root@5472004",
+        "RF_Root@5472308"
+      ],
+      "schema": null,
+      "template": "LenovoSystemGuardService.dat"
+    },
+    {
+      "name": "#LenovoSystemGuardService.DoSnapshot",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "Desc",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "Desc"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "Desc"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Desc"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5471952"
+      ],
+      "schema": "LenovoSystemGuardService.v1_0_0.json",
+      "template": "LenovoSystemGuardService.dat"
+    },
+    {
+      "name": "#LenovoSystemGuardService.SetSystemGuard",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "SaveCurrentAsTrust",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Enabled",
+          "raw": "b@ar@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "SaveCurrentAsTrust",
+            "Enabled"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "SaveCurrentAsTrust",
+            "Password",
+            "Enabled"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Enabled",
+            "Password",
+            "SaveCurrentAsTrust"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5471820"
+      ],
+      "schema": "LenovoSystemGuardService.v1_0_0.json",
+      "template": "LenovoSystemGuardService.dat"
+    },
+    {
+      "name": "#LenovoSystemGuardService.SetSystemGuardSetting",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "CPU",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "DIMM",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "PCIAdapter",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Drive",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Backplane",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "Riser",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "PowerPolicy",
+          "raw": "S@a@@e:NoAction,DisablePermission,PreventOSBooting",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false,
+          "enum": [
+            "NoAction",
+            "DisablePermission",
+            "PreventOSBooting"
+          ]
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "CPU",
+            "DIMM",
+            "PCIAdapter",
+            "Drive",
+            "Backplane",
+            "Riser",
+            "PowerPolicy"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "PowerPolicy",
+            "CPU",
+            "DIMM",
+            "PCIAdapter",
+            "Drive",
+            "Backplane",
+            "Riser"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "Backplane",
+            "CPU",
+            "DIMM",
+            "Drive",
+            "PCIAdapter",
+            "PowerPolicy",
+            "Riser"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5471880"
+      ],
+      "schema": "LenovoSystemGuardService.v1_0_0.json",
+      "template": "LenovoSystemGuardService.dat"
+    },
+    {
+      "name": "#LenovoUpdateService.BundleRollback",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "TargetBundle",
+          "raw": "S@ar@@p:^(/redfish/v1/UpdateService/FirmwareInventory/Bundle.)((current)|(N-[1-9]))$",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true,
+          "pattern": "^(/redfish/v1/UpdateService/FirmwareInventory/Bundle.)((current)|(N-[1-9]))$"
+        }
+      ],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "TargetBundle"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "TargetBundle"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "TargetBundle"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5485824"
+      ],
+      "schema": "LenovoUpdateService.v1_0_0.json",
+      "template": "UpdateService.dat"
+    },
+    {
+      "name": "#LenovoUpdateService.GetRepoUpdateDetail",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [],
+      "parameterNameDisagreement": false,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": []
+        },
+        {
+          "source": "metadata",
+          "parameterNames": []
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": []
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5485760"
+      ],
+      "schema": "LenovoUpdateService.v1_0_0.json",
+      "template": "UpdateService.dat"
+    },
+    {
+      "name": "#LenovoUpdateService.UpdateFromRepository",
+      "nativeBinary": true,
+      "versionedSchema": true,
+      "inputTemplate": true,
+      "metadata": true,
+      "handlerHint": false,
+      "parameterSource": "input-template",
+      "parameters": [
+        {
+          "name": "RepoURI",
+          "raw": "S@ar@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": true
+        },
+        {
+          "name": "RepoUserName",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "RepoPassword",
+          "raw": "S@a@s@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "RepoMountOpt",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "RepoDomain",
+          "raw": "S@a@@",
+          "type": "string",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        },
+        {
+          "name": "GroupRequest",
+          "raw": "b@a@@",
+          "type": "boolean",
+          "nullable": false,
+          "action_input": true,
+          "required": false
+        }
+      ],
+      "parameterNameDisagreement": true,
+      "bodyContractSources": [
+        {
+          "source": "input-template",
+          "parameterNames": [
+            "RepoURI",
+            "RepoUserName",
+            "RepoPassword",
+            "RepoMountOpt",
+            "RepoDomain",
+            "GroupRequest"
+          ]
+        },
+        {
+          "source": "metadata",
+          "parameterNames": [
+            "RepoURI",
+            "RepoUserName",
+            "RepoPassword",
+            "RepoMountOpt",
+            "GroupRequest"
+          ]
+        },
+        {
+          "source": "versioned-schema",
+          "parameterNames": [
+            "GroupRequest",
+            "RepoMountOpt",
+            "RepoPassword",
+            "RepoURI",
+            "RepoUserName"
+          ]
+        }
+      ],
+      "targets": [],
+      "nativeSources": [
+        "RF_Root@5485692"
+      ],
+      "schema": "LenovoUpdateService.v1_0_0.json",
+      "template": "UpdateService.dat"
+    }
+  ]
+}
