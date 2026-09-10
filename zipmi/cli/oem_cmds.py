@@ -84,6 +84,10 @@ VENDORS: dict[str, dict] = {
         "iana": None,
         "blurb": "AMI YAFU flash + memory protocol (NetFn 0x32) — cross-vendor AMI-lineage",
     },
+    "lenovo": {
+        "iana": 0x4A66,
+        "blurb": "Lenovo IMM/XCC 6.92 — 222 decoded server-side OEM command identities",
+    },
     # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---
     # All registered via the simple register(vendor, iana, {(netfn,cmd):name})
     # pattern, so `cmd_names` points the generic listing branch at the module's
@@ -172,6 +176,9 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "idrac10":
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
+    if vendor == "lenovo":
+        from ..scapy_ipmi.oem.lenovo import LENOVO_COMMANDS, LENOVO_CMD_NAMES
+        return len(LENOVO_COMMANDS), len(LENOVO_CMD_NAMES)
     if vendor in ("supermicro", "supermicro-x11", "supermicro-x14",
                   "megarac", "yafu"):
         listing = _vendor_listing(vendor)
@@ -807,6 +814,25 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "resp_len": e.get("resp_len"),
             }
         return _normalize_listing(out, "yafu")
+    if vendor == "lenovo":
+        from ..scapy_ipmi.oem.lenovo import LENOVO_COMMANDS
+        out: dict = {}
+        PRIVS = {2: "User", 4: "Admin"}
+        for c in LENOVO_COMMANDS:
+            if not c.runnable:
+                continue
+            key = (c.netfn, c.cmd, *c.prefix)
+            rules = ", ".join(f"{kind} {length}" for kind, length in c.request_length_rules)
+            out[key] = {
+                "name": c.name, "priv": PRIVS.get(c.privilege),
+                "desc": c.purpose, "live": None, "missing": False,
+                "prefix": c.prefix or None, "request": c.request,
+                "response": c.response, "security": f"side effects: {c.side_effect}",
+                "confidence": c.confidence, "lib": c.handler,
+                "backend_deps": c.notes,
+                "args": "", "src": c.source + (f"; request length {rules}" if rules else ""),
+            }
+        return _normalize_listing(out, "lenovo")
     raise KeyError(f"unknown vendor: {vendor}")
 
 
@@ -814,7 +840,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
 # drop separators. Lets `GetChassisStatus`, `get-chassis-status`,
 # `Cmd Get Chassis Status`, and `getchassisstatus` all match the same
 # entry.
-_PREFIX_RE = re.compile(r"^(?:idrac6|idrac9|dell|supermicro|cmd|oem|sm)+",
+_PREFIX_RE = re.compile(r"^(?:idrac6|idrac9|dell|supermicro|lenovo|xcc|imm|cmd|oem|sm)+",
                         re.IGNORECASE)
 
 
@@ -1378,6 +1404,7 @@ def _add_all_vendor_parsers(parent_sub) -> None:
     _extra_aliases = {
         "megarac": ["ami"],
         "supermicro-x11": ["supermicro"],  # legacy `oem supermicro` → X11
+        "lenovo": ["xcc", "imm"],
     }
     for vkey, vinfo in VENDORS.items():
         if vkey in obmc:

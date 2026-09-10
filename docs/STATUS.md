@@ -28,12 +28,12 @@ play-by-play; this doc is the bird's-eye view.
 ## Tests
 
 ```
-$ pytest tests/ -q
+$ pytest tests/unit -q
 ..................................................................       [100%]
-2133 passed in 67.09s
+2131 unit checks successful in 7.40s
 ```
 
-Eight integration tests + 122 unit tests covering RMCP / ASF / IPMI 1.5
+The suite collects 2,150 checks: 2,131 unit and 19 integration checks covering RMCP / ASF / IPMI 1.5
 checksums + auth code / RAKP HMACs + SIK derivation / OEM dispatch / Dell
 fullfw codegen + iDRAC9 dispatch-table codegen + Dell attack primitives
 + BMC generation fingerprinting + SOL config/payload codecs + SOL console
