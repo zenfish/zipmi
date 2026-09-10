@@ -130,7 +130,9 @@ def test_lenovo_second_tranche_and_live_evidence_are_exposed():
     from zipmi.cli.oem_cmds import _vendor_listing_data
     from zipmi.scapy_ipmi.oem.lenovo import LENOVO_COMMANDS, lookup
 
-    assert sum(len(c.operations) for c in LENOVO_COMMANDS) == 74
+    assert sum(len(c.operations) for c in LENOVO_COMMANDS) == 198
+    assert sum(bool(c.registrations) for c in LENOVO_COMMANDS) == 166
+    assert all(c.operations for c in LENOVO_COMMANDS if c.registrations)
     assert len(lookup(0x3A, 0xC4).operations) == 8
     assert len(lookup(0x2E, 0x90, bytes.fromhex("66 4a 00")).operations) == 10
     assert lookup(0x2E, 0x90, bytes.fromhex("4d 4f 00")).operations[0].operation == \

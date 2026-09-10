@@ -8,7 +8,7 @@
     "commands": 222,
     "cppRegistrations": 192,
     "legacyAdmissions": 175,
-    "decodedOperations": 74
+    "decodedOperations": 198
   },
   "commands": [
     {
@@ -91,7 +91,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001fdc8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001fdc8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "chassis identify",
+          "request": "empty starts identify; 1 byte sets timeout/off; 2 bytes add force-identify bit",
+          "response": "empty",
+          "completionCodes": "c7 length",
+          "effect": "changes identify LED and timer",
+          "evidence": "Decoded",
+          "source": "libmod_led.so:chassis_identify@0002074c"
+        }
+      ]
     },
     {
       "name": "XCCPower_00_06",
@@ -126,7 +138,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "power restore policy",
+          "request": "exactly 1 byte; low 3 bits 00..02 set policy, 03 queries supported-policy mask; bit 2 must be clear",
+          "response": "set: supported-policy mask byte; query: supported-policy mask byte",
+          "completionCodes": "c1 unsupported platform/policy; c7 length; cc reserved bit",
+          "effect": "persistent power-policy change for selectors 00..02",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:CmdSetPowerRestorePolicy@0004b708"
+        }
+      ]
     },
     {
       "name": "XCCPower_06_07",
@@ -302,7 +326,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "platform FRU write",
+          "request": "FRU id, 16-bit little-endian offset, then data; only FRU 00 and the platform-advertised exact offset/block size are writable",
+          "response": "1-byte written count",
+          "completionCodes": "80 write protected/framing; cb absent; cc device; ff short write",
+          "effect": "persistent FRU write",
+          "evidence": "Decoded",
+          "source": "libmodules.so:write_fru_cmd@000dff30"
+        }
+      ]
     },
     {
       "name": "XCCLogging_0A_5A",
@@ -337,7 +373,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "aux log cmd",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_logging.so.0.0.0:aux_log_cmd"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_00_D0_51_00",
@@ -434,7 +482,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..07",
+          "operation": "manufacturing check alias",
+          "request": "IANA 4d 4f 00 with same body as Lenovo-IANA registration",
+          "response": "same as Lenovo-IANA registration",
+          "completionCodes": "same as Lenovo-IANA registration",
+          "effect": "mixed manufacturing diagnostics and control",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:mfg_check_cmd@000e0c38"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_01_66_4A_00",
@@ -473,7 +533,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..07",
+          "operation": "manufacturing check",
+          "request": "IANA 66 4a 00 with empty body returns eMMC result; selectors 01..07 run tests/actions; selector 03 additionally carries 32-bit little-endian SPI offset and length byte",
+          "response": "selector-dependent status/data",
+          "completionCodes": "c0 busy; c1 framing; cc SPI failure",
+          "effect": "mixed manufacturing diagnostics and control",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:mfg_check_cmd@000e0c38"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_02_66_4A_00",
@@ -512,7 +584,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "SMM power permission set",
+          "request": "IANA 66 4a 00 followed by permission bit field",
+          "response": "empty",
+          "completionCodes": "",
+          "effect": "persists and applies three power-permission bits",
+          "evidence": "Decoded",
+          "source": "libmodules.so:set_power_permission@001124a8"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_02_D0_51_00",
@@ -558,7 +642,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "chassis power permission set",
+          "request": "IANA d0 51 00 followed by permission bit field; CMM additionally accepts a fifth override byte",
+          "response": "empty",
+          "completionCodes": "c7 platform-specific length",
+          "effect": "applies three chassis power-permission outputs and publishes update",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:set_power_permission@000eee1c,@00186430"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_03_66_4A_00",
@@ -597,7 +693,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "SMM power permission",
+          "request": "IANA 66 4a 00; handler consumes no additional request body",
+          "response": "1-byte power-permission state",
+          "completionCodes": "",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:get_power_permission@00112214"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_03_D0_51_00",
@@ -687,7 +795,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "KVM management transport set",
+          "request": "IANA d0 51 00 followed by mode byte",
+          "response": "empty",
+          "completionCodes": "",
+          "effect": "persists KVM transport/mode and publishes connection-state events",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:set_kvm_mt@001865ec"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_07_D0_51_00",
@@ -879,7 +999,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "LED set",
+          "request": "IANA d0 51 00 followed by 16-bit LED id and delegated LED-specific body; exactly 6 request bytes including IANA",
+          "response": "delegated LED-specific response",
+          "completionCodes": "c7 length; c9 unknown LED; cb unavailable; d5 controller disabled",
+          "effect": "changes selected LED state",
+          "evidence": "Decoded/partial",
+          "source": "libmod_led.so:led_set@0002376c"
+        }
+      ]
     },
     {
       "name": "XCCLed_2E_0C_D0_51_00",
@@ -969,7 +1101,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00102f9c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00102f9c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "DEM enable set",
+          "request": "IANA d0 51 00 followed by selector byte: low 7 bits device, bits 7/8 encode control flags as interpreted by handler",
+          "response": "empty",
+          "completionCodes": "cc unknown DEM target",
+          "effect": "changes DEM enable state and publishes transition events",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:set_DEM_enable@00106cb8"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_16_D0_51_00",
@@ -1059,7 +1203,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "event aux info cmd",
+          "request": "IANA d0 51 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_logging.so.0.0.0:event_aux_info_cmd"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_1A_D0_51_00",
@@ -1098,7 +1254,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "service-location configuration",
+          "request": "IANA d0 51 00 followed by operation, location selector, 16-bit field and variable location data; platform- and mode-specific",
+          "response": "status bytes or location record",
+          "completionCodes": "c7 framing; cc fields; d4 privilege/backend",
+          "effect": "reads or changes chassis service-location identity and publishes update",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:set_service_location@000f5668"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_20_D0_51_00",
@@ -1137,7 +1305,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM acoustic mode set",
+          "request": "IANA d0 51 00 followed by enable byte; handler requires at least one post-IANA byte",
+          "response": "empty",
+          "completionCodes": "c7 short request; d5 unavailable/conflicting state",
+          "effect": "changes acoustic-mode flags and publishes power event",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:fpm_ipmi_SetAcousticMode@000c4aa8"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_21_D0_51_00",
@@ -1329,7 +1509,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM preset watts set",
+          "request": "IANA d0 51 00 followed by three control bytes and two-byte big-endian watt presets; at least 8 total bytes including IANA",
+          "response": "empty",
+          "completionCodes": "c7 short request; d2 unavailable; d5 conflicting state",
+          "effect": "sets preset watt table and may issue server power control",
+          "evidence": "Decoded/partial",
+          "source": "libmod_power.so:fpm_ipmi_SetPresetWatts@000c66dc"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_27_D0_51_00",
@@ -1446,7 +1638,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM throttle override set",
+          "request": "IANA d0 51 00; handler ignores payload",
+          "response": "empty",
+          "completionCodes": "d5 unconditionally",
+          "effect": "unsupported stub; no state change",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:fpm_ipmi_SetThrottleOverride@000c0464"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_2C_D0_51_00",
@@ -1536,7 +1740,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "chassis information",
+          "request": "IANA d0 51 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmodules.so.0.0.0:chassis_information"
+        }
+      ]
     },
     {
       "name": "XCCCore_2E_32_D0_51_00",
@@ -1653,7 +1869,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "AMM port configuration stub",
+          "request": "IANA d0 51 00; handler ignores body",
+          "response": "empty",
+          "completionCodes": "",
+          "effect": "no operation",
+          "evidence": "Decoded",
+          "source": "libmodules.so:get_port_configuration@001856f0"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_46_D0_51_00",
@@ -1923,7 +2151,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "find firmware proc",
+          "request": "IANA 02 00 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:find_firmware_proc"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_80_66_4A_00",
@@ -1962,7 +2202,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "find firmware proc",
+          "request": "IANA 66 4a 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:find_firmware_proc"
+        }
+      ]
     },
     {
       "name": "XCCOpenbmc_2E_80_CF_C2_00",
@@ -2001,7 +2253,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00015e30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00015e30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "OpenBMC blob protocol",
+          "request": "IANA cf c2 00 plus phosphor-host-ipmid blob payload",
+          "response": "delegated blob response",
+          "completionCodes": "delegated blob completion code",
+          "effect": "mixed blob read/write protocol",
+          "evidence": "Decoded/partial",
+          "source": "libmod_openbmc.so:blob_cmd@00015ee8"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_81_02_00_00",
@@ -2040,7 +2304,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "invoke element method proc",
+          "request": "IANA 02 00 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:invoke_element_method_proc"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_81_66_4A_00",
@@ -2079,7 +2355,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "invoke element method proc",
+          "request": "IANA 66 4a 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:invoke_element_method_proc"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_82_02_00_00",
@@ -2118,7 +2406,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "find firmware instance proc",
+          "request": "IANA 02 00 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:find_firmware_instance_proc"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_82_66_4A_00",
@@ -2157,7 +2457,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "find firmware instance proc",
+          "request": "IANA 66 4a 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:find_firmware_instance_proc"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_90_4D_4F_00",
@@ -2388,7 +2700,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "vgpio cmd",
+          "request": "IANA 4d 4f 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_logging.so.0.0.0:vgpio_cmd"
+        }
+      ]
     },
     {
       "name": "XCCLogging_2E_92_66_4A_00",
@@ -2427,7 +2751,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "vgpio cmd",
+          "request": "IANA 66 4a 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_logging.so.0.0.0:vgpio_cmd"
+        }
+      ]
     },
     {
       "name": "XCCLogging_2E_93_4D_4F_00",
@@ -2466,7 +2802,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "aux log cmd",
+          "request": "IANA 4d 4f 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_logging.so.0.0.0:aux_log_cmd"
+        }
+      ]
     },
     {
       "name": "XCCLogging_2E_93_66_4A_00",
@@ -2505,7 +2853,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "aux log cmd",
+          "request": "IANA 66 4a 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_logging.so.0.0.0:aux_log_cmd"
+        }
+      ]
     },
     {
       "name": "XCCCore_2E_94_4D_4F_00",
@@ -2544,7 +2904,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..02",
+          "operation": "VID burst alias",
+          "request": "IANA 4d 4f 00 plus mode 00..02",
+          "response": "1 byte command result 00/01",
+          "completionCodes": "c7 length/channel; c9 selector; c1 result unavailable",
+          "effect": "invokes mode-specific VID burst helper",
+          "evidence": "Decoded",
+          "source": "libcore.so:vid_burst@0006ff34"
+        }
+      ]
     },
     {
       "name": "XCCCore_2E_94_66_4A_00",
@@ -2583,7 +2955,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..02",
+          "operation": "VID burst alias",
+          "request": "IANA 66 4a 00 plus mode 00..02",
+          "response": "1 byte command result 00/01",
+          "completionCodes": "c7 length/channel; c9 selector; c1 result unavailable",
+          "effect": "invokes mode-specific VID burst helper",
+          "evidence": "Decoded",
+          "source": "libcore.so:vid_burst@0006ff34"
+        }
+      ]
     },
     {
       "name": "XCCFod_2E_95_4D_4F_00",
@@ -2622,7 +3006,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "oem fod cmd",
+          "request": "IANA 4d 4f 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_fod.so.0.0.0:oem_fod_cmd"
+        }
+      ]
     },
     {
       "name": "XCCFod_2E_95_66_4A_00",
@@ -2661,7 +3057,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "oem fod cmd",
+          "request": "IANA 66 4a 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_fod.so.0.0.0:oem_fod_cmd"
+        }
+      ]
     },
     {
       "name": "XCCFod_2E_95_D0_51_00",
@@ -2700,7 +3108,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "oem fod cmd",
+          "request": "IANA d0 51 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_fod.so.0.0.0:oem_fod_cmd"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_96_4D_4F_00",
@@ -2739,7 +3159,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "sanitization proc",
+          "request": "IANA 4d 4f 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:sanitization_proc"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_96_66_4A_00",
@@ -2778,7 +3210,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "sanitization proc",
+          "request": "IANA 66 4a 00 plus operation-specific body; delegated framing remains unresolved",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libbmc_emerson.so:sanitization_proc"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_97_4D_4F_00",
@@ -2817,7 +3261,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00157338; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00157338; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "TKLM command alias",
+          "request": "IANA 4d 4f 00 plus same delegated payload as Lenovo-IANA registration",
+          "response": "same as Lenovo-IANA registration",
+          "completionCodes": "same as Lenovo-IANA registration",
+          "effect": "mixed key-lifecycle operation; active backend is platform-dependent",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:tklm_ipmi_command@0015ccf0"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_97_66_4A_00",
@@ -2856,7 +3312,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00157338; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00157338; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "TKLM command",
+          "request": "IANA 66 4a 00 plus delegated TKLM/TK-shield payload",
+          "response": "delegated TKLM response",
+          "completionCodes": "12 unsupported TK-shield/platform state",
+          "effect": "mixed key-lifecycle operation; active backend is platform-dependent",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:tklm_ipmi_command@0015ccf0"
+        }
+      ]
     },
     {
       "name": "XCCSysfw_2E_98_D0_51_00",
@@ -2895,7 +3363,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "UEFI audit event",
+          "request": "IANA d0 51 00 plus at least 6 bytes: two 16-bit little-endian fields, boolean field, and event data",
+          "response": "2-byte little-endian status",
+          "completionCodes": "c7 short request",
+          "effect": "appends and trims UEFI audit log",
+          "evidence": "Decoded/partial",
+          "source": "libmod_sysfw.so:ipmi_uefi_event@00018530"
+        }
+      ]
     },
     {
       "name": "XCCCmdTerminalSYS_2E_A0",
@@ -2961,7 +3441,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "LED status",
+          "request": "IANA d0 51 00 followed by 16-bit LED id; exactly 5 request bytes including IANA",
+          "response": "delegated LED-type-specific status response; exact bytes vary by device implementation",
+          "completionCodes": "c7 length; c9 unknown LED; cb unavailable LED",
+          "effect": "read",
+          "evidence": "Decoded/partial",
+          "source": "libmod_led.so:led_status@0002366c"
+        }
+      ]
     },
     {
       "name": "XCCCmdOSAOEMCmdHandler_2E_CC_5E_2B_00",
@@ -3596,7 +4088,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "set BMC slave address",
+          "request": "exactly 1 byte; address bit 0 must be clear",
+          "response": "empty",
+          "completionCodes": "c7 length; c9 odd address",
+          "effect": "changes runtime and persisted BMC slave address",
+          "evidence": "Decoded",
+          "source": "libcore.so:set_bmc_slave_addr@000a6734"
+        }
+      ]
     },
     {
       "name": "XCCCmdSetSessionLessChannelPrivilege_3A_03",
@@ -3685,7 +4189,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001b451c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@001b451c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..03,80,c0,c1",
+          "operation": "thermal debug/control",
+          "request": "first byte selector: 00..03 enable debug families, 80 loads algorithm, c0 gets/sets TGP with total length 2/4, c1 gets/sets EDPP with total length 2/3",
+          "response": "selector-dependent thermal values or empty",
+          "completionCodes": "ca selector-specific length; cc missing selector",
+          "effect": "reads or changes thermal debug and user limits",
+          "evidence": "Decoded/partial",
+          "source": "libthermal.so:debug_thermal@001bda68"
+        }
+      ]
     },
     {
       "name": "XCCThermal_3A_07",
@@ -3720,7 +4236,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001b451c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@001b451c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "fan speed override",
+          "request": "empty lists current PWM for every fan; 3..8 byte body sets or queries override tuple (fan, zone, selector, optional 16-bit bounds and mode)",
+          "response": "empty request: one PWM byte per fan; sentinel query returns 5-byte override record; set returns empty",
+          "completionCodes": "c7 length",
+          "effect": "read or thermal fan-override change",
+          "evidence": "Decoded/partial",
+          "source": "libthermal.so:set_fan_speed@001c0d54"
+        }
+      ]
     },
     {
       "name": "XCCLed_3A_08",
@@ -3755,7 +4283,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "LED request",
+          "request": "2 bytes select request-LED index; 3 bytes select 16-bit big-endian LED id; delegated device body",
+          "response": "delegated LED-specific response",
+          "completionCodes": "c7 length; c9 id; cb unavailable; d5 LED test active",
+          "effect": "mixed LED read/control",
+          "evidence": "Decoded/partial",
+          "source": "libmod_led.so:led_request@00023980"
+        }
+      ]
     },
     {
       "name": "XCCIoModules_3A_09",
@@ -3797,7 +4337,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "I2C bus test",
+          "request": "empty runs static tests and returns one result byte per configured test; nonempty body begins bus/test selector and response length followed by transaction bytes",
+          "response": "static-test vector or transaction response bytes",
+          "completionCodes": "c7 malformed one-byte body; d2 port unavailable; d3 test failure; d4 disabled; d5 unknown test",
+          "effect": "raw I2C diagnostics/read-write",
+          "evidence": "Decoded/partial",
+          "source": "libmod_io.so,libmodules.so:i2c_bus_test@0001ee40,@000d71a4"
+        }
+      ]
     },
     {
       "name": "XCCLed_3A_0A",
@@ -3827,7 +4379,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "LED test",
+          "request": "exactly 1 delegated test byte",
+          "response": "empty",
+          "completionCodes": "c7 length",
+          "effect": "starts LED test and posts update event",
+          "evidence": "Decoded/partial",
+          "source": "libmod_led.so:led_test@00022c44"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_0B",
@@ -4053,7 +4617,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "ipmi uefi performance",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_sysfw.so.0.0.0:ipmi_uefi_performance"
+        }
+      ]
     },
     {
       "name": "XCCCore_3A_13",
@@ -4088,7 +4664,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "deactivate USERID",
+          "request": "empty",
+          "response": "empty",
+          "completionCodes": "c7 length",
+          "effect": "invokes account-deactivation helper",
+          "evidence": "Decoded",
+          "source": "libcore.so:deactivate_userid@000a5de0"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_14",
@@ -4150,7 +4738,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..04",
+          "operation": "BIOS media control",
+          "request": "three-byte header selects media family, operation, and flags; selectors 01..04 provide inventory/configuration, mount/unmount and status operations with variable strings",
+          "response": "selector-dependent status, media records, or command output",
+          "completionCodes": "c7 framing; c9 fields; d5 unavailable",
+          "effect": "mixed media discovery, configuration, and mount/unmount control; invokes platform commands",
+          "evidence": "Decoded/partial",
+          "source": "libmod_sysfw.so:ipmi_media_control@0001e87c"
+        }
+      ]
     },
     {
       "name": "XCCSensors_3A_17",
@@ -4185,7 +4785,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000142b0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000142b0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..0d",
+          "operation": "sensor-test control",
+          "request": "first byte operation: 00 begin, 01 set reading, 02 end, 03 version, 04 state, 05 scan off, 06 scan on, 07 scan status, 08 reconnect, 09 poll, 0b last closed, 0c current session, 0d counts; trailing body is operation-specific",
+          "response": "operation-specific",
+          "completionCodes": "c1 selector; c7 missing selector; d5 invalid for current session/channel",
+          "effect": "creates and controls sensor-test sessions and reads their state",
+          "evidence": "Decoded/partial",
+          "source": "libmod_sensors.so:ipmi_sensor_test_control@00015c1c"
+        }
+      ]
     },
     {
       "name": "XCCReset_3A_19",
@@ -4220,7 +4832,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "SMI queued-state read",
+          "request": "empty",
+          "response": "1 byte dequeued state; empty queue produces one default byte",
+          "completionCodes": "c7 length",
+          "effect": "read and consumes queued state; may post next event",
+          "evidence": "Decoded",
+          "source": "libmod_reset.so:ipmi_smi_state@0001baf8"
+        }
+      ]
     },
     {
       "name": "XCCReset_3A_1A",
@@ -4255,7 +4879,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "SMI enable/configure",
+          "request": "empty gets state; 1 byte enables/disables; 2-byte big-endian nonzero value enables with periodic interval",
+          "response": "get returns 1 byte; set returns empty",
+          "completionCodes": "c7 length; c9 zero interval; d5 unavailable",
+          "effect": "read or changes SMI state/timer",
+          "evidence": "Decoded",
+          "source": "libmod_reset.so:ipmi_smi_enable@0001cf18"
+        }
+      ]
     },
     {
       "name": "XCCReset_3A_1B",
@@ -4290,7 +4926,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..07",
+          "operation": "SMI timeout action",
+          "request": "selector 00..07; selector 01 additionally takes 16-bit little-endian timeout >=31; others are operation-specific",
+          "response": "selector 00 returns 2 bytes; 02/05 return 1 byte; others empty",
+          "completionCodes": "c7 framing; c9 timeout; ce selector; d2 port unavailable",
+          "effect": "mixed SMI timeout/status configuration",
+          "evidence": "Decoded/partial",
+          "source": "libmod_reset.so:smi_timeout_action@0001bc4c"
+        }
+      ]
     },
     {
       "name": "XCCRecovery_3A_1C",
@@ -4325,7 +4973,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00030178; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00030178; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..07",
+          "operation": "automated recovery control",
+          "request": "1..5 bytes; primary selector 00..07 and secondary operation control timeout, start/stop/restart helpers, configuration strings, status and counters",
+          "response": "selector-dependent timeout, string, status or empty response",
+          "completionCodes": "c7 length; c9 field; cc selector",
+          "effect": "mixed automated-recovery configuration, service control, and status read",
+          "evidence": "Decoded/partial",
+          "source": "libmod_recovery.so:ipmi_arr_control@000332ac"
+        }
+      ]
     },
     {
       "name": "XCCPower_3A_1D",
@@ -4360,7 +5020,29 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01",
+          "operation": "ACPI state get",
+          "request": "selector with low nibble 01",
+          "response": "1-byte ACPI state",
+          "completionCodes": "c7 length; d5 state unavailable",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:get_set_acpi_state@0004b43c"
+        },
+        {
+          "selector": "00",
+          "operation": "ACPI state set",
+          "request": "selector with low nibble 00 followed by state 00..04",
+          "response": "empty",
+          "completionCodes": "c1 platform gate; c7 length; cc selector/state/transition",
+          "effect": "publishes ACPI state-change event",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:get_set_acpi_state@0004b43c"
+        }
+      ]
     },
     {
       "name": "XCCPower_3A_1E",
@@ -4395,7 +5077,29 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01",
+          "operation": "AC restore options get",
+          "request": "selector with low nibble 01",
+          "response": "1-byte restore-options state",
+          "completionCodes": "c1 unsupported platform; c7 length",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:get_set_ac_restore_options@0004b0a0"
+        },
+        {
+          "selector": "00",
+          "operation": "AC restore options set",
+          "request": "selector with low nibble 00 followed by options byte; only bit 0 may be set",
+          "response": "empty",
+          "completionCodes": "c1 unsupported platform; c7 length; cc reserved bits",
+          "effect": "persists restore options and updates EPO state",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:get_set_ac_restore_options@0004b0a0"
+        }
+      ]
     },
     {
       "name": "XCCCpu_3A_20",
@@ -4430,7 +5134,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): cpu_controller@00017f10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): cpu_controller@00017f10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "CPU T-control set",
+          "request": "exactly 2 bytes: control value and CPU/target value",
+          "response": "empty",
+          "completionCodes": "c7 length",
+          "effect": "posts CPU thermal-control event",
+          "evidence": "Decoded",
+          "source": "libmod_cpu.so:set_tcontrol@00017c7c"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_21",
@@ -4465,7 +5181,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00145584; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00145584; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "enm ipmi cmd",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmodules.so.0.0.0:enm_ipmi_cmd"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_22",
@@ -4500,7 +5228,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0006ecd4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0006ecd4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..0a",
+          "operation": "manufacturing configuration",
+          "request": "selector plus operation/body; covers manufacturing flags, files, string blobs, platform modes and readback; selectors 01..0a",
+          "response": "selector-dependent status/blob",
+          "completionCodes": "c7 length; cc selector/body; ff backend failure",
+          "effect": "mixed manufacturing configuration and readback",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:mfg_config@0006dc80"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_2A",
@@ -4569,7 +5309,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "PCIe-slot I2C transfer",
+          "request": "at least 3 bytes: slot selector, read length, then write bytes; remaining bytes after first two are sent to the configured slot bus",
+          "response": "requested read bytes",
+          "completionCodes": "c7 short request; cc slot disabled; d3 transaction failure; d5 unknown slot",
+          "effect": "raw I2C read/write",
+          "evidence": "Decoded",
+          "source": "libmod_io.so,libmodules.so:pcie_slot_i2c_master_read_write@0001e7a8,@000d6b0c"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_30",
@@ -4715,7 +5467,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001114b8, initialize@00132734; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@001114b8, initialize@00132734; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..06,09,ff",
+          "operation": "power-management interface",
+          "request": "first byte operation: 01 telemetry, 02 cap set, 03 cap get, 04 FPGA meter, 05 reserved, 06 settings, 09 platform utilization, ff debug; trailing fields delegated",
+          "response": "selector-specific power records/status",
+          "completionCodes": "handler-specific",
+          "effect": "mixed power telemetry and capping control; active implementation is platform-dependent",
+          "evidence": "Decoded/partial",
+          "source": "libcore.so:zarkon_pwrmgt_interface@0010d934;libmod_power.so:pwrmgt_oemcmd_handle@00134b84"
+        }
+      ]
     },
     {
       "name": "XCCPanel_3A_33",
@@ -4750,7 +5514,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00025424; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00025424; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "0a",
+          "operation": "front-panel development dump",
+          "request": "first byte must be 0a; trailing bytes ignored",
+          "response": "empty",
+          "completionCodes": "cc selector",
+          "effect": "writes front-panel development dump",
+          "evidence": "Decoded",
+          "source": "libmod_panel.so:ipmi_function@00025e70"
+        }
+      ]
     },
     {
       "name": "XCCCore_3A_34",
@@ -4832,7 +5608,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "virtual reseat",
+          "request": "handler ignores request body",
+          "response": "empty",
+          "completionCodes": "d5 port unavailable; ff thread/port failure",
+          "effect": "starts asynchronous virtual reseat",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:trigger_virtual_reseat@00049bb8"
+        }
+      ]
     },
     {
       "name": "XCCReset_3A_38",
@@ -4867,7 +5655,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00018274; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00018274; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "NMI request",
+          "request": "1 byte NMI source; optional second byte 00/01 controls follow-up state",
+          "response": "empty",
+          "completionCodes": "c7 length; cc flag",
+          "effect": "asserts NMI state and posts event",
+          "evidence": "Decoded",
+          "source": "libmod_reset.so:ibmcmd_nmi@00017718"
+        }
+      ]
     },
     {
       "name": "XCCSysfw_3A_39",
@@ -4902,7 +5702,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..82",
+          "operation": "AC decouple control",
+          "request": "first byte operation; 01..0a/0c and broad 10..80 range are reads, 02/0b/0d..0f/81 are writes, 82 returns internal status; exact operation-specific fields vary",
+          "response": "operation-specific configuration/status blobs",
+          "completionCodes": "c7 length; cc selector/body; d5 unavailable; ff backend failure",
+          "effect": "mixed AC-decouple configuration, file/state update, and readback",
+          "evidence": "Decoded/partial",
+          "source": "libmod_sysfw.so:ac_decouple_control@00020980"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_49",
@@ -4991,7 +5803,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "logging flags get/set",
+          "request": "get: 1-byte facility index 00..1b; set: facility 00..1b or ff plus 32-bit flags",
+          "response": "get: platform ulong flags; set: empty",
+          "completionCodes": "c7 length; c9 facility",
+          "effect": "read or runtime logging configuration change",
+          "evidence": "Decoded",
+          "source": "libmod_logging.so:set_logging_flags@00038d10"
+        }
+      ]
     },
     {
       "name": "XCCLogging_3A_4C",
@@ -5026,7 +5850,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "debug cmd",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_logging.so.0.0.0:debug_cmd"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_4D",
@@ -5088,7 +5924,29 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00012acc; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00012acc; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "boot partition get",
+          "request": "operation 00; total request shorter than 3 bytes",
+          "response": "1-byte active IMM bank",
+          "completionCodes": "c7 length; cc operation/bank",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_ilma.so:config_bootpart@00014480"
+        },
+        {
+          "selector": "01 or 02",
+          "operation": "boot partition set",
+          "request": "operation 01/02 followed by bank 02/03; operation 02 additionally invokes platform activation helper",
+          "response": "empty",
+          "completionCodes": "c7 length; cc operation/bank",
+          "effect": "changes BMC boot partition; selector 02 activates it",
+          "evidence": "Decoded",
+          "source": "libmod_ilma.so:config_bootpart@00014480"
+        }
+      ]
     },
     {
       "name": "XCCIlma_3A_4F",
@@ -5123,7 +5981,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00012acc; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00012acc; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "BMC shutdown",
+          "request": "mode 00 or 01; handler accepts total length below 3",
+          "response": "empty",
+          "completionCodes": "c7 length; cc mode",
+          "effect": "removes mode-dependent state files and invokes BMC shutdown helper",
+          "evidence": "Decoded",
+          "source": "libmod_ilma.so:shutdown_bmc@00012f20"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_50",
@@ -5205,7 +6075,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00018d04; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00018d04; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "reset cause",
+          "request": "handler consumes no request body",
+          "response": "reset-cause byte, auxiliary byte, then optional reset-cause string capped at 16 bytes",
+          "completionCodes": "ce primary property unavailable",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_reset.so:reset_cause_cmd@00018edc"
+        }
+      ]
     },
     {
       "name": "XCCPldm_3A_52",
@@ -5240,7 +6122,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00021090; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00021090; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "ipmi pldm debug",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_pldm.so.0.0.0:ipmi_pldm_debug"
+        }
+      ]
     },
     {
       "name": "XCCStorage_3A_53",
@@ -5275,7 +6169,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0002cf7c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0002cf7c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "raid event handler",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_storage.so.0.0.0:raid_event_handler"
+        }
+      ]
     },
     {
       "name": "XCCPldm_3A_54",
@@ -5310,7 +6216,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0002c7c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0002c7c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "monterey oem ipmi handler",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_pldm.so.0.0.0:monterey_oem_ipmi_handler"
+        }
+      ]
     },
     {
       "name": "XCCCore_3A_55",
@@ -5345,7 +6263,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "host name get/set",
+          "request": "empty gets; 1..64 bytes set the host name",
+          "response": "get returns the nonempty host name, including its terminating newline when present; set returns empty",
+          "completionCodes": "c7 length or set failure; ce get failure",
+          "effect": "read or persistent host-name change",
+          "evidence": "Decoded",
+          "source": "libcore.so:hostname_cmd@000a5ea0"
+        }
+      ]
     },
     {
       "name": "XCCLogging_3A_56",
@@ -5380,7 +6310,29 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "performance-metrics state get",
+          "request": "exactly 1 byte 00",
+          "response": "1 byte current enable state",
+          "completionCodes": "c7 length",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_logging.so:perf_metrics_cmd@00038c5c"
+        },
+        {
+          "selector": "01",
+          "operation": "performance-metrics state set",
+          "request": "exactly 2 bytes: 01 and state",
+          "response": "empty",
+          "completionCodes": "c7 length",
+          "effect": "changes runtime metrics state",
+          "evidence": "Decoded",
+          "source": "libmod_logging.so:perf_metrics_cmd@00038c5c"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_57",
@@ -5442,7 +6394,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "VPDD SMBIOS update notification",
+          "request": "handler ignores request body",
+          "response": "empty",
+          "completionCodes": "",
+          "effect": "sets the VPDD SMBIOS-update flag",
+          "evidence": "Decoded",
+          "source": "libmod_logging.so:vpdd_smbios_update@00070d88"
+        }
+      ]
     },
     {
       "name": "XCCFlash_3A_59",
@@ -5477,7 +6441,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00041648; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00041648; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "syncrep op",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_flash.so.0.0.0:syncrep_op"
+        }
+      ]
     },
     {
       "name": "XCCFlash_3A_5A",
@@ -5512,7 +6488,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00041648; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00041648; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "syncrep init",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_flash.so.0.0.0:syncrep_init"
+        }
+      ]
     },
     {
       "name": "XCCInventory_3A_5C",
@@ -5547,7 +6535,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00039148; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00039148; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "syslock cmd",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_inventory.so.0.0.0:syslock_cmd"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_60",
@@ -5609,7 +6609,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00,01",
+          "operation": "VPD lock",
+          "request": "one-byte body 00 unlocks or 01 locks for caller channel; OEM alias form may include IANA d0 51 00 before selector",
+          "response": "OEM form echoes three IANA bytes; otherwise empty",
+          "completionCodes": "c1 IANA; c9 selector; d5 lock unavailable/owned",
+          "effect": "acquires, refreshes, or releases timed VPD lock",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:lock_vpd_cmd@000dd438"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_63",
@@ -5644,7 +6656,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "system MAC read/write",
+          "request": "empty reads entry 1; 1-byte selector 01..05 reads selected 6-byte MAC; 6-byte body writes entry 1; 7-byte body starts with selector 01..05 then writes 6-byte MAC",
+          "response": "read returns 6 bytes; write returns empty",
+          "completionCodes": "cc selector; ce storage read/write failure",
+          "effect": "read or persistent MAC change",
+          "evidence": "Decoded",
+          "source": "libmodules.so:mac_cmd@000dceb8"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_64",
@@ -6046,7 +7070,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00039528; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00039528; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "pfr cmd",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_recovery.so.0.0.0:pfr_cmd"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_70",
@@ -6270,7 +7306,29 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0006c8d4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0006c8d4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "EDDC configuration",
+          "request": "00 plus enable byte; exactly 2 bytes",
+          "response": "empty",
+          "completionCodes": "c7 length; ff file creation failure",
+          "effect": "creates or removes EDDC configuration marker",
+          "evidence": "Decoded",
+          "source": "libmodules.so:configure_eddc@0006ca3c"
+        },
+        {
+          "selector": "01",
+          "operation": "EDDC event",
+          "request": "01, event id, two 32-bit values; exactly 10 bytes",
+          "response": "empty",
+          "completionCodes": "c7 length; c9 selector",
+          "effect": "publishes EDDC application event",
+          "evidence": "Decoded",
+          "source": "libmodules.so:configure_eddc@0006ca3c"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_79",
@@ -6441,7 +7499,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "remote physical-presence configuration",
+          "request": "UEFI-interface only; empty gets two configuration bytes, 2-byte body sets them",
+          "response": "get: 2 bytes; set: empty",
+          "completionCodes": "c1 non-UEFI channel; c7 length; ff configuration backend failure",
+          "effect": "read or persistent physical-presence configuration change",
+          "evidence": "Decoded",
+          "source": "libbmc_emerson.so:config_remote_pp@0003f390"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_3A_7D",
@@ -6471,7 +7541,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "remote physical-presence assertion",
+          "request": "empty gets assertion state; 1-byte value 00/01 asserts event on an allowed interface",
+          "response": "get: 1 byte; set: empty",
+          "completionCodes": "c1 channel; c7 length; c9 value; d5 disabled; ff backend failure",
+          "effect": "read or physical-presence event assertion",
+          "evidence": "Decoded",
+          "source": "libbmc_emerson.so:assert_remote_pp@0003f6a4"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_7E",
@@ -6506,7 +7588,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c8058; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c8058; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "next-boot record get/set",
+          "request": "empty gets; exactly 3 bytes set a 16-bit big-endian value and one flag",
+          "response": "get returns the same 3-byte record; set returns empty",
+          "completionCodes": "c7 length",
+          "effect": "read or changes cached next-boot record",
+          "evidence": "Decoded",
+          "source": "libmodules.so:ipmi_next_boot_handler@000c8334"
+        }
+      ]
     },
     {
       "name": "XCCSysfw_3A_7F",
@@ -6541,7 +7635,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00023598; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00023598; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "PCIe mailbox control",
+          "request": "exactly 1 flag byte; bits 0..2 select mailbox/file shared-memory operations",
+          "response": "operation-specific status including 32-bit little-endian value",
+          "completionCodes": "ca length; ce shared-memory failure; d4 platform gate; d6 operation failure",
+          "effect": "clears or updates PCIe mailbox/shared-memory state",
+          "evidence": "Decoded/partial",
+          "source": "libmod_sysfw.so:pcie_mbox_control@00025b24"
+        }
+      ]
     },
     {
       "name": "XCCCmdOemGetSOLConfiguration_3A_88",
@@ -6691,7 +7797,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "local FPGA data write",
+          "request": "16-bit selector, 1-byte length 00..10, then exactly that many bytes; selector bits 11:4 register, bits 3:0 block, bit 14 selects ADI",
+          "response": "empty",
+          "completionCodes": "c7 framing; c8 length above 16; ce FPGA failure; d5 protected register/channel combination",
+          "effect": "writes local FPGA register or ADI space",
+          "evidence": "Decoded",
+          "source": "libmod_fpga.so:oem_write_fpga_data_cmd@00020f80,@00035d50"
+        }
+      ]
     },
     {
       "name": "XCCFpga_3A_92",
@@ -6780,7 +7898,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "remote/platform FPGA data write alias",
+          "request": "16-bit selector, 1-byte length 00..10, then exactly that many bytes; selector bit 14 selects ADI",
+          "response": "empty",
+          "completionCodes": "c7 framing; c8 length above 16; ce FPGA failure; d5 protected register/channel combination",
+          "effect": "writes platform FPGA register or ADI space",
+          "evidence": "Decoded",
+          "source": "libmod_fpga.so:oem_write_fpga_data_cmd@00035d50"
+        }
+      ]
     },
     {
       "name": "XCCCmdOEMMasterWriteRead_3A_94",
@@ -6869,7 +7999,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0012cc2c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0012cc2c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "management-engine update control",
+          "request": "first two bytes select target and operation; optional third byte; selectors query/update ME state through device-specific ports",
+          "response": "selector-dependent one-byte status or empty",
+          "completionCodes": "c1 unsupported selector/target; c7 short request",
+          "effect": "mixed ME firmware-update state query and control",
+          "evidence": "Decoded/partial",
+          "source": "libmod_power.so:me_update_cmd@0012e898"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_97",
@@ -6931,7 +8073,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001f548; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001f548; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..06",
+          "operation": "front-panel USB control",
+          "request": "selector 01 status, 02 configuration, 03 set configuration, 04 attach/detach, 05 service toggle, 06 property status; selector-specific trailing fields",
+          "response": "selector 01/06: 1 byte; 02: configuration record; mutating selectors usually empty",
+          "completionCodes": "c7 missing/short body; c9 selector; d5 state; d6 unsupported platform",
+          "effect": "mixed read and USB forwarding/configuration control",
+          "evidence": "Decoded/partial",
+          "source": "libmod_panel.so:fp_usb_port_control@0001f830"
+        }
+      ]
     },
     {
       "name": "XCCSysfw_3A_99",
@@ -6966,7 +8120,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "BIOS USB reset",
+          "request": "1-byte mode 00 or 01",
+          "response": "empty",
+          "completionCodes": "c9 mode",
+          "effect": "invokes mode-specific USB reset helper",
+          "evidence": "Decoded",
+          "source": "libmod_sysfw.so:ipmi_usb_reset@00018468"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_9A",
@@ -7001,7 +8167,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "retimer control",
+          "request": "operation 00 followed by state 00 or 01; total length below 3",
+          "response": "empty",
+          "completionCodes": "c7 length; cc operation/state",
+          "effect": "changes cached retimer-control state",
+          "evidence": "Decoded",
+          "source": "libmodules.so:retimer_control@000e6c48"
+        }
+      ]
     },
     {
       "name": "XCCNICStatusWR_3A_9B",
@@ -7063,7 +8241,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000328d0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000328d0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00,01",
+          "operation": "FPGA fast-throttle control",
+          "request": "00 plus enable byte 00/01 sets state; 01 gets current FPGA state",
+          "response": "get returns 2-byte state value; set returns empty",
+          "completionCodes": "c9 missing/invalid selector",
+          "effect": "read or changes persisted FPGA fast-throttle state and output",
+          "evidence": "Decoded",
+          "source": "liblegoland_hv.so:fpga_fast_throttle_callback@00032710"
+        }
+      ]
     },
     {
       "name": "XCCPanel_3A_A3",
@@ -7098,7 +8288,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001d700; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001d700; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "front-panel power-button permission",
+          "request": "empty gets two state bytes; 1-byte 00/01 sets primary permission; 2-byte 00/01 pair sets primary and disable state",
+          "response": "get returns 2 bytes; set returns empty",
+          "completionCodes": "c7 length; c9 value; d5 unavailable",
+          "effect": "read or changes button permission",
+          "evidence": "Decoded",
+          "source": "libmod_panel.so:fp_button_power_permission@0001ed30"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_A4",
@@ -7198,7 +8400,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001a224; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001a224; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "CPU instance control",
+          "request": "empty returns two CPU availability/disabled masks; 2-byte body contains action 00/01 and a one-hot CPU mask",
+          "response": "get: 2 mask bytes; set: empty",
+          "completionCodes": "c7 length; c9 action/mask; d5 unavailable",
+          "effect": "read or disable/enable CPU instance event",
+          "evidence": "Decoded",
+          "source": "libmod_cpu.so:cpu_instance_control@0001874c"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_A8",
@@ -7260,7 +8474,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00076420; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00076420; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..02",
+          "operation": "retimer debug dump",
+          "request": "00 plus 3 bytes starts a dump and returns 2 status bytes; 01 alone returns 2 status bytes; 02 alone restarts retimer polling after dump",
+          "response": "selector-dependent 2 status bytes or empty",
+          "completionCodes": "c7 length; cc selector; d5 retimer unavailable",
+          "effect": "read status or start/stop retimer dump workflow",
+          "evidence": "Decoded",
+          "source": "libmod_storage.so:ipmi_cmd_retimer_dbg_dump@0007e820"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_B0",
@@ -7295,7 +8521,29 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000dc464; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000dc464; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "BMC service state get",
+          "request": "00 followed by service id; exactly 2 bytes",
+          "response": "1-byte service state",
+          "completionCodes": "c7 length; backend completion code",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:config_bmc_service@000dca60"
+        },
+        {
+          "selector": "01",
+          "operation": "BMC service state set",
+          "request": "01, service id, enable byte; exactly 3 bytes",
+          "response": "empty",
+          "completionCodes": "c7 length; d5 operation; backend completion code",
+          "effect": "starts/stops selected BMC service",
+          "evidence": "Decoded",
+          "source": "libmodules.so:config_bmc_service@000dca60"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_B3",
@@ -7459,7 +8707,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "BIOS capability set",
+          "request": "exactly 2 capability bytes",
+          "response": "empty",
+          "completionCodes": "c7 length",
+          "effect": "changes cached BIOS capability bytes",
+          "evidence": "Decoded",
+          "source": "libmodules.so:set_bios_cap@000e6b9c"
+        }
+      ]
     },
     {
       "name": "XCCSysfw_3A_C3",
@@ -7494,7 +8754,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00,01,10",
+          "operation": "BIOS state/progress",
+          "request": "00 returns one cached BIOS-state byte; 01 plus progress byte posts a UEFI progress code; 10 triggers MCTP rediscovery; total length 1 or 2",
+          "response": "selector 00 returns 1 byte; others empty",
+          "completionCodes": "c7 length; c9 selector/progress",
+          "effect": "read or BIOS/MCTP state transition",
+          "evidence": "Decoded",
+          "source": "libmod_sysfw.so:ipmi_bios_state@0001dc0c"
+        }
+      ]
     },
     {
       "name": "XCCCore_3A_C4",
@@ -7646,7 +8918,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..02",
+          "operation": "VID burst",
+          "request": "exactly 1 byte mode 00..02",
+          "response": "1 byte command result 00/01",
+          "completionCodes": "c7 length/channel; c9 selector; c1 result unavailable",
+          "effect": "invokes mode-specific VID burst helper",
+          "evidence": "Decoded",
+          "source": "libcore.so:vid_burst@0006ff34"
+        }
+      ]
     },
     {
       "name": "XCCModulesPower_3A_C6",
@@ -7824,7 +9108,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "PSU output voltage set",
+          "request": "exactly 3 bytes: PSU index 00..03 and 16-bit big-endian millivolts 900..1300",
+          "response": "1 status byte",
+          "completionCodes": "c7 length; ff PMBus/validation failure",
+          "effect": "writes PMBus VOUT command",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:set_voltage_out@00050194 and platform variants"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_CD",
@@ -7859,7 +9155,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001a18c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@001a18c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "mem register interface",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmodules.so.0.0.0:mem_register_interface"
+        }
+      ]
     },
     {
       "name": "XCCRfUsb_3A_CE",
@@ -7894,7 +9202,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00024fa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00024fa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "09",
+          "operation": "remote-flash USB bundle control",
+          "request": "09, family 01, operation: 01 gets state, 03 gets completion percent, 04 plus timeout updates timeout; start form carries family 01, operation 02, then decimal-digit bundle id",
+          "response": "selector-dependent 1-byte state/progress or empty",
+          "completionCodes": "c0 busy; c9 digit; cc framing/selector; ce timeout failure",
+          "effect": "reads or starts/configures remote-flash USB bundle workflow",
+          "evidence": "Decoded/partial",
+          "source": "libmod_rf_usb.so:rf_usb_oem_cmd@00020638"
+        }
+      ]
     },
     {
       "name": "XCCPower_3A_CF",
@@ -7950,7 +9270,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..07",
+          "operation": "PSU firmware update",
+          "request": "exactly 2 bytes: PSU index and operation 00..07; operation 06 applies a constrained PSU selector range",
+          "response": "operation-dependent status/ulong",
+          "completionCodes": "c7 length; c9 index; ca hardware; cc operation; d5 unavailable",
+          "effect": "controls PSU firmware-update process",
+          "evidence": "Decoded/partial",
+          "source": "libmod_power.so:update_psu_fw@00059c38 and platform variants"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_D0",
@@ -7985,7 +9317,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "RS-485 legacy packet",
+          "request": "at least 6 bytes; first four are echoed, next two select optional response",
+          "response": "echoes first four request bytes; selector 02 f2 appends ten platform bytes",
+          "completionCodes": "",
+          "effect": "legacy RS-485 packet exchange",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:rs485_legacy_packet@00185f9c"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_D1",
@@ -8020,7 +9364,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "RS-485 BSC response clear",
+          "request": "first byte indexes response slots; trailing bytes ignored",
+          "response": "empty",
+          "completionCodes": "",
+          "effect": "clears indexed RS-485 response state",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:rs485_BSC_response@00185e50"
+        }
+      ]
     },
     {
       "name": "XCCCore_3A_D9",
@@ -8055,7 +9411,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "secure erase",
+          "request": "exactly 1 byte 00",
+          "response": "empty",
+          "completionCodes": "c7 invalid framing or helper failure",
+          "effect": "invokes the platform secure-erase command",
+          "evidence": "Decoded",
+          "source": "libcore.so:secure_erase@000a5c64"
+        }
+      ]
     },
     {
       "name": "XCCRecovery_3A_DA",
@@ -8090,7 +9458,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00041a90; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00041a90; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "command handle",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_recovery.so.0.0.0:command_handle"
+        }
+      ]
     },
     {
       "name": "XCCStorage_3A_DB",
@@ -8125,7 +9505,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0006eea8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0006eea8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "command handle",
+          "request": "operation-specific body; framing remains unresolved after top-level handler decompilation",
+          "response": "operation-specific; unresolved",
+          "completionCodes": "operation-specific",
+          "effect": "mixed/unknown",
+          "evidence": "Decoded/contract-unresolved",
+          "source": "libmod_storage.so.0.0.0:command_handle"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_E0",
@@ -8214,7 +9606,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "SMM network management control",
+          "request": "1 byte; low 3 bits select 00,01,02,04",
+          "response": "selector 00 returns 1-byte network status; others empty",
+          "completionCodes": "cc selector",
+          "effect": "changes SMM network-management mode",
+          "evidence": "Decoded",
+          "source": "libmodules.so:set_network_mcontrol@0011c9e0"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_F2",
@@ -8267,7 +9671,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001a80f0, initialize@001b0418, initialize@001b9918; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@001a80f0, initialize@001b0418, initialize@001b9918; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..10",
+          "operation": "lockdown control",
+          "request": "first byte operation; selector-specific second byte and optional 8/32-byte tokens; includes status, forced-lockdown, intrusion, policy, key/nonce and local-control operations",
+          "response": "selector-dependent flags, strings, policy records, or empty",
+          "completionCodes": "c0 busy; c1/cc selector; c2 state; c7 framing; d5 channel/state; ff backend",
+          "effect": "mixed lockdown/security state read and mutation; several operations require local/KCS or token material",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:ipmi_ldm_control@001aead8,@001b7264,@001bfb0c"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_F3",
@@ -8297,7 +9713,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "SMM network IP method",
+          "request": "1 byte; low 3 bits must be 01,02,04",
+          "response": "empty",
+          "completionCodes": "cc selector",
+          "effect": "sends IP-method change to SMM",
+          "evidence": "Decoded",
+          "source": "libmodules.so:set_network_ip_method@0011c6d8"
+        }
+      ]
     },
     {
       "name": "XCCLogging_3A_F4",
@@ -8332,7 +9760,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..03",
+          "operation": "host screenshot capture",
+          "request": "exactly 1 selector byte 00..03 choosing capture source/path",
+          "response": "empty",
+          "completionCodes": "c7 length; c9 selector; ff capture command failure",
+          "effect": "invokes host screenshot capture command",
+          "evidence": "Decoded",
+          "source": "libmod_logging.so:oem_host_screen_shot@00038e50"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_F5",
@@ -8367,7 +9807,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00134aa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00134aa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..06",
+          "operation": "SMM-less device control",
+          "request": "01 node mode, 02 timeout, 03 reseat, 04 reset, 05 PSOC VPD read, 06 PSOC VPD write; selector-specific body; VPD window max 16 bytes within 0x400",
+          "response": "selector-dependent status byte and optional VPD bytes",
+          "completionCodes": "c9 range; cc selector; d4 privilege; d5 hardware; ff thread failure",
+          "effect": "mixed node reset/reseat/configuration and PSOC VPD read/write",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:oem_cmd_set_smmless_dev_ctrl@0013eb74"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_F6",
@@ -8402,7 +9854,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000703c4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000703c4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "SDSi configuration request",
+          "request": "exactly one byte 00",
+          "response": "1 status byte",
+          "completionCodes": "c7 length; c9 selector",
+          "effect": "writes LAC state and publishes SDSi event when host/state gates permit",
+          "evidence": "Decoded",
+          "source": "libmodules.so:sdsi_config_request@0008dddc"
+        }
+      ]
     },
     {
       "name": "XCCPcieswitch_3A_F7",
@@ -8620,7 +10084,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "power-supply AS mode",
+          "request": "exactly 1 byte 00 or 01",
+          "response": "empty",
+          "completionCodes": "c7 length; cc value; d5 unsupported/unavailable",
+          "effect": "persists and applies PSU AS mode",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:set_baidu_power_supply_AS_mode@00050e14 and platform variants"
+        }
+      ]
     }
   ]
 }
