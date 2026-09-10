@@ -91,6 +91,7 @@ COMP_CODE = {
 
 # IANA Enterprise Numbers used in this codebase.
 IANA = {
+    2:     "IBM",
     4542:  "ASF",        # ASF 2.0 / DSP0136
     674:   "Dell",
     10876: "Supermicro",

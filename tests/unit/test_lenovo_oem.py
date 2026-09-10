@@ -24,6 +24,13 @@ def test_lenovo_group_extension_prefix_is_wire_little_endian():
     assert command.runnable
 
 
+def test_xcc_device_manufacturer_is_ibm_pen():
+    from zipmi.consts import IANA
+    from zipmi.scapy_ipmi.oem.lenovo import LENOVO_DEVICE_IANA, LENOVO_GROUP_IANA
+    assert LENOVO_DEVICE_IANA == 2 and IANA[2] == "IBM"
+    assert LENOVO_GROUP_IANA == 0x4A66
+
+
 def test_lenovo_vendor_load_and_listing():
     import zipmi
     zipmi.load_vendor("xcc")
