@@ -16,6 +16,17 @@ def test_lenovo_parser_cast_recoveries_are_present():
     assert ("libmod_rf_usb.so.0.0.0", "initialize@00024fa8") in lookup(0x3A, 0xCE).registrations
 
 
+def test_lenovo_catalog_exposes_exact_decoded_handlers():
+    from zipmi.scapy_ipmi.oem.lenovo import lookup
+    assert lookup(0x3A, 0x0D).handler.startswith("board_info_device::get_board_info")
+    assert lookup(0x3A, 0x0D).side_effect == "likely-read-only"
+    assert lookup(0x3A, 0xC3).handler.startswith("bios_device::ipmi_bios_state")
+    assert lookup(0x3A, 0xC4).handler.startswith("properties_device::property_cmd")
+    assert lookup(0x2E, 0x90, bytes.fromhex("66 4a 00")).handler.startswith(
+        "planar_controller::datastore_access"
+    )
+
+
 def test_lenovo_group_extension_prefix_is_wire_little_endian():
     from zipmi.scapy_ipmi.oem.lenovo import lookup
     command = lookup(0x2E, 0x80, bytes.fromhex("66 4a 00"))

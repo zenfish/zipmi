@@ -25,7 +25,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "sys_pwr_device::get_chassis_status(sys_pwr_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -38,12 +38,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLed_00_04",
@@ -60,7 +60,7 @@
           "request_length": 0
         }
       ],
-      "handler": "led",
+      "handler": "identify_led_device::chassis_identify(identify_led_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -78,7 +78,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001fdc8"
+      "notes": "Registration owner(s): initialize@0001fdc8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_00_06",
@@ -95,7 +95,7 @@
           "request_length": 1
         }
       ],
-      "handler": "power",
+      "handler": "sys_pwr_device::CmdSetPowerRestorePolicy(sys_pwr_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -108,12 +108,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_06_07",
@@ -130,7 +130,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "sys_pwr_device::get_acpi_state_dcmi(sys_pwr_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -143,12 +143,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_0A_10",
@@ -165,7 +165,7 @@
           "request_length": 1
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::get_fru_inventory_area_info_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -178,12 +178,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_0A_11",
@@ -200,7 +200,7 @@
           "request_length": 4
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::read_fru_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -213,12 +213,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_0A_12",
@@ -235,7 +235,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::write_fru_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -248,12 +248,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_0A_5A",
@@ -270,7 +270,7 @@
           "request_length": 1
         }
       ],
-      "handler": "logging",
+      "handler": "virtual_gpio_logical_device::aux_log_cmd(virtual_gpio_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -288,7 +288,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_00_D0_51_00",
@@ -309,7 +309,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::get_blade_descriptor(amm_logical_device*, ipmi_message*) | cmm_logical_device::get_blade_descriptor(cmm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -329,12 +329,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754"
+      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_01_4D_4F_00",
@@ -355,7 +355,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::mfg_check_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -373,7 +373,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_01_66_4A_00",
@@ -394,7 +394,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::mfg_check_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -412,7 +412,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_02_66_4A_00",
@@ -433,7 +433,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "smm_logical_device::set_power_permission(smm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -446,12 +446,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_02_D0_51_00",
@@ -472,7 +472,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::set_power_permission(amm_logical_device*, ipmi_message*) | cmm_logical_device::set_power_permission(cmm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -492,12 +492,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754"
+      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_03_66_4A_00",
@@ -518,7 +518,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "smm_logical_device::get_power_permission(smm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -531,12 +531,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_03_D0_51_00",
@@ -557,7 +557,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "pwr_permission_device::get_power_permission(pwr_permission_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -570,12 +570,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00048f4c"
+      "notes": "Registration owner(s): initialize@00048f4c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_04_D0_51_00",
@@ -596,7 +596,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::set_kvm_mt(amm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -609,12 +609,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_07_D0_51_00",
@@ -635,7 +635,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::get_blade_system_info(amm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -648,12 +648,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_09_D0_51_00",
@@ -674,7 +674,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::vpd_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -692,7 +692,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_0A_D0_51_00",
@@ -713,7 +713,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::vpd_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -731,7 +731,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLed_2E_0B_D0_51_00",
@@ -752,7 +752,7 @@
           "request_length": 0
         }
       ],
-      "handler": "led",
+      "handler": "led_controller::led_set(led_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -765,12 +765,12 @@
       "purpose": "LED control and status",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLed_2E_0C_D0_51_00",
@@ -791,7 +791,7 @@
           "request_length": 0
         }
       ],
-      "handler": "led",
+      "handler": "led_controller::led_get(led_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -804,12 +804,12 @@
       "purpose": "LED control and status",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_15_D0_51_00",
@@ -830,7 +830,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "dem_logical_device::set_DEM_enable(dem_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -843,12 +843,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00102f9c"
+      "notes": "Registration owner(s): initialize@00102f9c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_16_D0_51_00",
@@ -869,7 +869,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "dem_logical_device::get_DEM_enable(dem_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -882,12 +882,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00102f9c"
+      "notes": "Registration owner(s): initialize@00102f9c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_2E_18_D0_51_00",
@@ -908,7 +908,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "virtual_gpio_logical_device::event_aux_info_cmd(virtual_gpio_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -926,7 +926,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_1A_D0_51_00",
@@ -947,7 +947,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "cmm_logical_device::set_service_location(cmm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -960,12 +960,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c"
+      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_20_D0_51_00",
@@ -986,7 +986,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_SetAcousticMode(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -999,12 +999,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_21_D0_51_00",
@@ -1025,7 +1025,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_GetAcousticMode(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -1038,12 +1038,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_22_D0_51_00",
@@ -1064,7 +1064,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_GetWattsUsage(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -1077,12 +1077,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_23_D0_51_00",
@@ -1103,7 +1103,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_GetThrottle(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -1116,12 +1116,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_24_D0_51_00",
@@ -1142,7 +1142,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_SetPresetWatts(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -1155,12 +1155,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_27_D0_51_00",
@@ -1181,7 +1181,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_GetWattInventory(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -1194,12 +1194,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_2E_29",
@@ -1247,7 +1247,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_SetThrottleOverride(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -1260,12 +1260,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_2E_2C_D0_51_00",
@@ -1286,7 +1286,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "ite_fpm_logical_device::fpm_ipmi_GetThrottleOverride(ite_fpm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -1299,12 +1299,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_30_D0_51_00",
@@ -1325,7 +1325,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::chassis_information(amm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -1343,7 +1343,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_2E_32_D0_51_00",
@@ -1364,7 +1364,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "properties_device::property_cmd(properties_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -1382,7 +1382,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0008fbd8"
+      "notes": "Registration owner(s): initialize@0008fbd8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_2E_41",
@@ -1430,7 +1430,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::get_port_configuration(amm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -1443,12 +1443,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_46_D0_51_00",
@@ -1469,7 +1469,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "cmm_logical_device::chassis_fan_status(cmm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -1482,12 +1482,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c"
+      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_2E_50",
@@ -1535,7 +1535,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::vpd_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -1553,7 +1553,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCInventory_2E_53_D0_51_00",
@@ -1574,7 +1574,7 @@
           "request_length": 0
         }
       ],
-      "handler": "inventory",
+      "handler": "vpdc_logical_device::get_vpd_counter(vpdc_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_inventory.so.0.0.0",
@@ -1587,12 +1587,12 @@
       "purpose": "platform inventory",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0002652c"
+      "notes": "Registration owner(s): initialize@0002652c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_61_D0_51_00",
@@ -1613,7 +1613,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "cmm_logical_device::get_redirection_token(cmm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -1626,12 +1626,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c"
+      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_80_02_00_00",
@@ -1652,7 +1652,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::find_firmware_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -1670,7 +1670,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_80_66_4A_00",
@@ -1691,7 +1691,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::find_firmware_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -1709,7 +1709,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCOpenbmc_2E_80_CF_C2_00",
@@ -1730,7 +1730,7 @@
           "request_length": 0
         }
       ],
-      "handler": "openbmc",
+      "handler": "openbmc_logical_device::blob_cmd(openbmc_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_openbmc.so.0.0.0",
@@ -1748,7 +1748,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00015e30"
+      "notes": "Registration owner(s): initialize@00015e30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_81_02_00_00",
@@ -1769,7 +1769,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::invoke_element_method_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -1787,7 +1787,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_81_66_4A_00",
@@ -1808,7 +1808,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::invoke_element_method_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -1826,7 +1826,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_82_02_00_00",
@@ -1847,7 +1847,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::find_firmware_instance_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -1865,7 +1865,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_82_66_4A_00",
@@ -1886,7 +1886,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::find_firmware_instance_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -1904,7 +1904,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_90_4D_4F_00",
@@ -1925,7 +1925,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::datastore_access(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -1943,7 +1943,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_90_66_4A_00",
@@ -1964,7 +1964,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::datastore_access(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -1982,7 +1982,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_2E_92_4D_4F_00",
@@ -2003,7 +2003,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "virtual_gpio_logical_device::vgpio_cmd(virtual_gpio_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -2021,7 +2021,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_2E_92_66_4A_00",
@@ -2042,7 +2042,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "virtual_gpio_logical_device::vgpio_cmd(virtual_gpio_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -2060,7 +2060,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_2E_93_4D_4F_00",
@@ -2081,7 +2081,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "virtual_gpio_logical_device::aux_log_cmd(virtual_gpio_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -2099,7 +2099,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_2E_93_66_4A_00",
@@ -2120,7 +2120,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "virtual_gpio_logical_device::aux_log_cmd(virtual_gpio_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -2138,7 +2138,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_2E_94_4D_4F_00",
@@ -2159,7 +2159,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "io_controller::vid_burst(io_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -2177,7 +2177,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): io_controller@0007014c"
+      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_2E_94_66_4A_00",
@@ -2198,7 +2198,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "io_controller::vid_burst(io_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -2216,7 +2216,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): io_controller@0007014c"
+      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFod_2E_95_4D_4F_00",
@@ -2237,7 +2237,7 @@
           "request_length": 0
         }
       ],
-      "handler": "fod",
+      "handler": "fod_device::oem_fod_cmd(fod_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fod.so.0.0.0",
@@ -2255,7 +2255,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): wait_for_system_ready@000268f4"
+      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFod_2E_95_66_4A_00",
@@ -2276,7 +2276,7 @@
           "request_length": 0
         }
       ],
-      "handler": "fod",
+      "handler": "fod_device::oem_fod_cmd(fod_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fod.so.0.0.0",
@@ -2294,7 +2294,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): wait_for_system_ready@000268f4"
+      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFod_2E_95_D0_51_00",
@@ -2315,7 +2315,7 @@
           "request_length": 0
         }
       ],
-      "handler": "fod",
+      "handler": "fod_device::oem_fod_cmd(fod_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fod.so.0.0.0",
@@ -2333,7 +2333,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): wait_for_system_ready@000268f4"
+      "notes": "Registration owner(s): wait_for_system_ready@000268f4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_96_4D_4F_00",
@@ -2354,7 +2354,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::sanitization_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -2372,7 +2372,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_2E_96_66_4A_00",
@@ -2393,7 +2393,7 @@
           "request_length": 0
         }
       ],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::sanitization_proc(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -2411,7 +2411,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_97_4D_4F_00",
@@ -2432,7 +2432,7 @@
           "request_length": 4
         }
       ],
-      "handler": "modules",
+      "handler": "tklm_logical_device::tklm_ipmi_command(tklm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -2450,7 +2450,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00157338"
+      "notes": "Registration owner(s): initialize@00157338; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_2E_97_66_4A_00",
@@ -2471,7 +2471,7 @@
           "request_length": 4
         }
       ],
-      "handler": "modules",
+      "handler": "tklm_logical_device::tklm_ipmi_command(tklm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -2489,7 +2489,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00157338"
+      "notes": "Registration owner(s): initialize@00157338; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCSysfw_2E_98_D0_51_00",
@@ -2510,7 +2510,7 @@
           "request_length": 0
         }
       ],
-      "handler": "sysfw",
+      "handler": "bios_device::ipmi_uefi_event(bios_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sysfw.so.0.0.0",
@@ -2528,7 +2528,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCmdTerminalSYS_2E_A0",
@@ -2576,7 +2576,7 @@
           "request_length": 0
         }
       ],
-      "handler": "led",
+      "handler": "led_controller::led_status(led_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -2589,12 +2589,12 @@
       "purpose": "LED control and status",
       "request": "Undecoded beyond the fixed prefix",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCmdOSAOEMCmdHandler_2E_CC_5E_2B_00",
@@ -3101,7 +3101,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "system_controller::get_firmware_version(system_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -3114,12 +3114,12 @@
       "purpose": "property database and core controller services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_01",
@@ -3136,7 +3136,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "system_controller::get_bmc_slave_addr(system_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -3149,12 +3149,12 @@
       "purpose": "property database and core controller services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_02",
@@ -3171,7 +3171,7 @@
           "request_length": 1
         }
       ],
-      "handler": "core",
+      "handler": "system_controller::set_bmc_slave_addr(system_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -3184,12 +3184,12 @@
       "purpose": "property database and core controller services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCmdSetSessionLessChannelPrivilege_3A_03",
@@ -3260,7 +3260,7 @@
           "request_length": 0
         }
       ],
-      "handler": "thermal",
+      "handler": "common_thermal_manager::debug_thermal(common_thermal_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libthermal.so",
@@ -3278,7 +3278,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001b451c"
+      "notes": "Registration owner(s): initialize@001b451c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCThermal_3A_07",
@@ -3295,7 +3295,7 @@
           "request_length": 0
         }
       ],
-      "handler": "thermal",
+      "handler": "common_thermal_manager::set_fan_speed(common_thermal_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libthermal.so",
@@ -3308,12 +3308,12 @@
       "purpose": "thermal, fan and power-limit services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001b451c"
+      "notes": "Registration owner(s): initialize@001b451c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLed_3A_08",
@@ -3330,7 +3330,7 @@
           "request_length": 2
         }
       ],
-      "handler": "led",
+      "handler": "led_controller::led_request(led_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -3348,7 +3348,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCIoModules_3A_09",
@@ -3365,7 +3365,7 @@
           "request_length": 0
         }
       ],
-      "handler": "io, modules",
+      "handler": "i2c_bus_tester::i2c_bus_test(i2c_bus_tester*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_io.so.0.0.0",
@@ -3390,7 +3390,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544"
+      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLed_3A_0A",
@@ -3402,7 +3402,7 @@
       "dispatch": "cpp_registration",
       "privilege": null,
       "requestLengthRules": [],
-      "handler": "led",
+      "handler": "led_controller::led_test(led_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -3420,7 +3420,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_0B",
@@ -3437,7 +3437,7 @@
           "request_length": 4
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::vpd_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -3455,7 +3455,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_0C",
@@ -3472,7 +3472,7 @@
           "request_length": 4
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::vpd_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -3490,7 +3490,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_0D",
@@ -3507,7 +3507,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "board_info_device::get_board_info(board_info_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -3520,12 +3520,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4",
+      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
       "liveEvidence": {
         "observed": "2026-09-10",
         "target": "Debby lenovo-xcc, XCC 6.92",
@@ -3545,7 +3545,7 @@
       "dispatch": "cpp_registration",
       "privilege": null,
       "requestLengthRules": [],
-      "handler": "led",
+      "handler": "led_controller::led_lit_count(led_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -3558,12 +3558,12 @@
       "purpose": "LED control and status",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCSysfw_3A_10",
@@ -3580,7 +3580,7 @@
           "request_length": 0
         }
       ],
-      "handler": "sysfw",
+      "handler": "bios_device::ipmi_uefi_performance(bios_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sysfw.so.0.0.0",
@@ -3598,7 +3598,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_13",
@@ -3615,7 +3615,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "system_controller::deactivate_userid(system_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -3628,12 +3628,12 @@
       "purpose": "property database and core controller services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_14",
@@ -3677,7 +3677,7 @@
           "request_length": 3
         }
       ],
-      "handler": "sysfw",
+      "handler": "bios_device::ipmi_media_control(bios_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sysfw.so.0.0.0",
@@ -3690,12 +3690,12 @@
       "purpose": "BIOS, UEFI, media and PCIe mailbox services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCSensors_3A_17",
@@ -3712,7 +3712,7 @@
           "request_length": 1
         }
       ],
-      "handler": "sensors",
+      "handler": "sensor_test_device::ipmi_sensor_test_control(sensor_test_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sensors.so.0.0.0",
@@ -3725,12 +3725,12 @@
       "purpose": "sensor test and control",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000142b0"
+      "notes": "Registration owner(s): initialize@000142b0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCReset_3A_19",
@@ -3747,7 +3747,7 @@
           "request_length": 0
         }
       ],
-      "handler": "reset",
+      "handler": "smi_device::ipmi_smi_state(smi_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_reset.so.0.0.0",
@@ -3765,7 +3765,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001b64c"
+      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCReset_3A_1A",
@@ -3782,7 +3782,7 @@
           "request_length": 0
         }
       ],
-      "handler": "reset",
+      "handler": "smi_device::ipmi_smi_enable(smi_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_reset.so.0.0.0",
@@ -3800,7 +3800,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001b64c"
+      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCReset_3A_1B",
@@ -3817,7 +3817,7 @@
           "request_length": 1
         }
       ],
-      "handler": "reset",
+      "handler": "smi_device::smi_timeout_action(smi_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_reset.so.0.0.0",
@@ -3835,7 +3835,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001b64c"
+      "notes": "Registration owner(s): initialize@0001b64c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCRecovery_3A_1C",
@@ -3852,7 +3852,7 @@
           "request_length": 1
         }
       ],
-      "handler": "recovery",
+      "handler": "arr_device::ipmi_arr_control(arr_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_recovery.so.0.0.0",
@@ -3865,12 +3865,12 @@
       "purpose": "IMM, secure-update and root-of-trust recovery",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00030178"
+      "notes": "Registration owner(s): initialize@00030178; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_3A_1D",
@@ -3887,7 +3887,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "sys_pwr_device::get_set_acpi_state(sys_pwr_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -3900,12 +3900,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_3A_1E",
@@ -3922,7 +3922,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "sys_pwr_device::get_set_ac_restore_options(sys_pwr_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -3935,12 +3935,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCpu_3A_20",
@@ -3957,7 +3957,7 @@
           "request_length": 2
         }
       ],
-      "handler": "cpu",
+      "handler": "cpu_controller::set_tcontrol(cpu_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_cpu.so.0.0.0",
@@ -3970,12 +3970,12 @@
       "purpose": "CPU management",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): cpu_controller@00017f10"
+      "notes": "Registration owner(s): cpu_controller@00017f10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_21",
@@ -3992,7 +3992,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "enm_logical_device::enm_ipmi_cmd(enm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -4010,7 +4010,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00145584"
+      "notes": "Registration owner(s): initialize@00145584; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_22",
@@ -4027,7 +4027,7 @@
           "request_length": 1
         }
       ],
-      "handler": "modules",
+      "handler": "bmc_authen_device::mfg_config(bmc_authen_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -4040,12 +4040,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0006ecd4"
+      "notes": "Registration owner(s): initialize@0006ecd4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_2A",
@@ -4089,7 +4089,7 @@
           "request_length": 0
         }
       ],
-      "handler": "io, modules",
+      "handler": "i2c_bus_tester::pcie_slot_i2c_master_read_write(i2c_bus_tester*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_io.so.0.0.0",
@@ -4109,12 +4109,12 @@
       "purpose": "planar and shared hardware modules; platform I/O",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544"
+      "notes": "Registration owner(s): initialize@0001e1e0, initialize@000d6544; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_30",
@@ -4131,7 +4131,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::query_chassis_info(amm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -4144,12 +4144,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_31",
@@ -4166,7 +4166,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "bmc_therm_history_logical_device::get_realtime_thermal_data(bmc_therm_history_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -4179,12 +4179,12 @@
       "purpose": "property database and core controller services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000fe340"
+      "notes": "Registration owner(s): initialize@000fe340; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCorePower_3A_32",
@@ -4201,7 +4201,7 @@
           "request_length": 1
         }
       ],
-      "handler": "core, power",
+      "handler": "power_apml_logical_device::pwrmgt_oemcmd_handle(power_apml_logical_device*, ipmi_message*) | zarkon_pwrmgt_logical_device::zarkon_pwrmgt_interface(zarkon_pwrmgt_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -4226,7 +4226,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001114b8, initialize@00132734"
+      "notes": "Registration owner(s): initialize@001114b8, initialize@00132734; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPanel_3A_33",
@@ -4243,7 +4243,7 @@
           "request_length": 1
         }
       ],
-      "handler": "panel",
+      "handler": "pong_lcd_fp_ldev::ipmi_function(pong_lcd_fp_ldev*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_panel.so.0.0.0",
@@ -4261,7 +4261,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00025424"
+      "notes": "Registration owner(s): initialize@00025424; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_34",
@@ -4278,7 +4278,7 @@
           "request_length": 1
         }
       ],
-      "handler": "core",
+      "handler": "bmc_therm_history_logical_device::get_realtime_thermal_data_deluxe(bmc_therm_history_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -4291,12 +4291,12 @@
       "purpose": "property database and core controller services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000fe340"
+      "notes": "Registration owner(s): initialize@000fe340; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_3A_37",
@@ -4313,7 +4313,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "sys_pwr_device::trigger_virtual_reseat(sys_pwr_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -4331,7 +4331,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000496a8"
+      "notes": "Registration owner(s): initialize@000496a8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCReset_3A_38",
@@ -4348,7 +4348,7 @@
           "request_length": 1
         }
       ],
-      "handler": "reset",
+      "handler": "nmi_state_sensor::ibmcmd_nmi(nmi_state_sensor*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_reset.so.0.0.0",
@@ -4366,7 +4366,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00018274"
+      "notes": "Registration owner(s): initialize@00018274; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCSysfw_3A_39",
@@ -4383,7 +4383,7 @@
           "request_length": 1
         }
       ],
-      "handler": "sysfw",
+      "handler": "bios_device::ac_decouple_control(bios_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sysfw.so.0.0.0",
@@ -4396,12 +4396,12 @@
       "purpose": "BIOS, UEFI, media and PCIe mailbox services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_49",
@@ -4472,7 +4472,7 @@
           "request_length": 1
         }
       ],
-      "handler": "logging",
+      "handler": "debug_logical_device::set_logging_flags(debug_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -4485,12 +4485,12 @@
       "purpose": "FFDC, diagnostics, VGPIO and account support",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_3A_4C",
@@ -4507,7 +4507,7 @@
           "request_length": 1
         }
       ],
-      "handler": "logging",
+      "handler": "debug_logical_device::debug_cmd(debug_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -4525,7 +4525,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_4D",
@@ -4569,7 +4569,7 @@
           "request_length": 0
         }
       ],
-      "handler": "ilma",
+      "handler": "ilma_device::config_bootpart(ilma_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_ilma.so.0.0.0",
@@ -4582,12 +4582,12 @@
       "purpose": "ILMA platform management",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00012acc"
+      "notes": "Registration owner(s): initialize@00012acc; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCIlma_3A_4F",
@@ -4604,7 +4604,7 @@
           "request_length": 0
         }
       ],
-      "handler": "ilma",
+      "handler": "ilma_device::shutdown_bmc(ilma_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_ilma.so.0.0.0",
@@ -4617,12 +4617,12 @@
       "purpose": "ILMA platform management",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00012acc"
+      "notes": "Registration owner(s): initialize@00012acc; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_50",
@@ -4639,7 +4639,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "board_info_device::query_build_info(board_info_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -4652,12 +4652,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4"
+      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCReset_3A_51",
@@ -4674,7 +4674,7 @@
           "request_length": 0
         }
       ],
-      "handler": "reset",
+      "handler": "reset_cause_logical_device::reset_cause_cmd(reset_cause_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_reset.so.0.0.0",
@@ -4687,12 +4687,12 @@
       "purpose": "virtual reset and reseat services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00018d04"
+      "notes": "Registration owner(s): initialize@00018d04; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPldm_3A_52",
@@ -4709,7 +4709,7 @@
           "request_length": 1
         }
       ],
-      "handler": "pldm",
+      "handler": "pldm_alert_device::ipmi_pldm_debug(pldm_alert_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_pldm.so.0.0.0",
@@ -4727,7 +4727,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00021090"
+      "notes": "Registration owner(s): initialize@00021090; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCStorage_3A_53",
@@ -4744,7 +4744,7 @@
           "request_length": 1
         }
       ],
-      "handler": "storage",
+      "handler": "raidlink_logical_device::raid_event_handler(raidlink_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_storage.so.0.0.0",
@@ -4762,7 +4762,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0002cf7c"
+      "notes": "Registration owner(s): initialize@0002cf7c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPldm_3A_54",
@@ -4779,7 +4779,7 @@
           "request_length": 1
         }
       ],
-      "handler": "pldm",
+      "handler": "monterey_logical_device::monterey_oem_ipmi_handler(monterey_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_pldm.so.0.0.0",
@@ -4797,7 +4797,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0002c7c0"
+      "notes": "Registration owner(s): initialize@0002c7c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_55",
@@ -4814,7 +4814,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "system_controller::hostname_cmd(system_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -4832,7 +4832,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_3A_56",
@@ -4849,7 +4849,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "debug_logical_device::perf_metrics_cmd(debug_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -4867,7 +4867,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_57",
@@ -4911,7 +4911,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "virtual_gpio_logical_device::vpdd_smbios_update(virtual_gpio_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -4924,12 +4924,12 @@
       "purpose": "FFDC, diagnostics, VGPIO and account support",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000767e4"
+      "notes": "Registration owner(s): initialize@000767e4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFlash_3A_59",
@@ -4946,7 +4946,7 @@
           "request_length": 1
         }
       ],
-      "handler": "flash",
+      "handler": "syncrep_device::syncrep_op(syncrep_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_flash.so.0.0.0",
@@ -4964,7 +4964,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00041648"
+      "notes": "Registration owner(s): initialize@00041648; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFlash_3A_5A",
@@ -4981,7 +4981,7 @@
           "request_length": 1
         }
       ],
-      "handler": "flash",
+      "handler": "syncrep_device::syncrep_init(syncrep_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_flash.so.0.0.0",
@@ -4999,7 +4999,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00041648"
+      "notes": "Registration owner(s): initialize@00041648; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCInventory_3A_5C",
@@ -5016,7 +5016,7 @@
           "request_length": 1
         }
       ],
-      "handler": "inventory",
+      "handler": "syslock_device::syslock_cmd(syslock_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_inventory.so.0.0.0",
@@ -5034,7 +5034,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00039148"
+      "notes": "Registration owner(s): initialize@00039148; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_60",
@@ -5078,7 +5078,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::lock_vpd_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -5096,7 +5096,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_63",
@@ -5113,7 +5113,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "planar_controller::mac_cmd(planar_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -5131,7 +5131,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_64",
@@ -5148,7 +5148,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "bmc_authen_device::private_account_request(bmc_authen_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -5161,12 +5161,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0006ecd4"
+      "notes": "Registration owner(s): initialize@0006ecd4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_65",
@@ -5318,7 +5318,7 @@
           "request_length": 0
         }
       ],
-      "handler": "fpga",
+      "handler": "fpga_logical_device::oem_read_fpga_rev_cmd(fpga_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fpga.so.0.0.0",
@@ -5331,12 +5331,12 @@
       "purpose": "FPGA register and revision services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000286b8"
+      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFpga_3A_6C",
@@ -5353,7 +5353,7 @@
           "request_length": 0
         }
       ],
-      "handler": "fpga",
+      "handler": "fpga_logical_device::oem_get_hardware_rev_cmd(fpga_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fpga.so.0.0.0",
@@ -5366,12 +5366,12 @@
       "purpose": "FPGA register and revision services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000286b8"
+      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPsoc_3A_6D",
@@ -5388,7 +5388,7 @@
           "request_length": 0
         }
       ],
-      "handler": "psoc",
+      "handler": "psoc_logical_device::oem_read_psoc_rev_cmd(psoc_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_psoc.so.0.0.0",
@@ -5401,12 +5401,12 @@
       "purpose": "PSoC management",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00014b20"
+      "notes": "Registration owner(s): initialize@00014b20; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCRecovery_3A_6E",
@@ -5423,7 +5423,7 @@
           "request_length": 0
         }
       ],
-      "handler": "recovery",
+      "handler": "pfr_logical_device::pfr_cmd(pfr_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_recovery.so.0.0.0",
@@ -5441,7 +5441,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00039528"
+      "notes": "Registration owner(s): initialize@00039528; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_70",
@@ -5647,7 +5647,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "aaa_device::configure_eddc(aaa_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -5660,12 +5660,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0006c8d4"
+      "notes": "Registration owner(s): initialize@0006c8d4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_79",
@@ -5709,7 +5709,7 @@
           "request_length": 0
         }
       ],
-      "handler": "flash",
+      "handler": "bmu_device::ipmi_bmu_app_ready(bmu_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_flash.so.0.0.0",
@@ -5722,12 +5722,12 @@
       "purpose": "flash, wipe, credential and replication services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001e70c"
+      "notes": "Registration owner(s): initialize@0001e70c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFlash_3A_7B",
@@ -5744,7 +5744,7 @@
           "request_length": 0
         }
       ],
-      "handler": "flash",
+      "handler": "bmu_device::ipmi_get_bmu_cred(bmu_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_flash.so.0.0.0",
@@ -5757,12 +5757,12 @@
       "purpose": "flash, wipe, credential and replication services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001e70c"
+      "notes": "Registration owner(s): initialize@0001e70c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_3A_7C",
@@ -5774,7 +5774,7 @@
       "dispatch": "cpp_registration",
       "privilege": null,
       "requestLengthRules": [],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::config_remote_pp(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -5787,12 +5787,12 @@
       "purpose": "BMC core, firmware and physical-presence services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCBmcEmerson_3A_7D",
@@ -5804,7 +5804,7 @@
       "dispatch": "cpp_registration",
       "privilege": null,
       "requestLengthRules": [],
-      "handler": "bmc_emerson",
+      "handler": "IPMI::assert_remote_pp(ipmi_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libbmc_emerson.so",
@@ -5817,12 +5817,12 @@
       "purpose": "BMC core, firmware and physical-presence services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): init@000415c0"
+      "notes": "Registration owner(s): init@000415c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_7E",
@@ -5839,7 +5839,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "next_boot_device::ipmi_next_boot_handler(next_boot_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -5857,7 +5857,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c8058"
+      "notes": "Registration owner(s): initialize@000c8058; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCSysfw_3A_7F",
@@ -5874,7 +5874,7 @@
           "request_length": 1
         }
       ],
-      "handler": "sysfw",
+      "handler": "uefi_progress_device::pcie_mbox_control(uefi_progress_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sysfw.so.0.0.0",
@@ -5887,12 +5887,12 @@
       "purpose": "BIOS, UEFI, media and PCIe mailbox services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00023598"
+      "notes": "Registration owner(s): initialize@00023598; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCmdOemGetSOLConfiguration_3A_88",
@@ -5963,7 +5963,7 @@
           "request_length": 3
         }
       ],
-      "handler": "fpga",
+      "handler": "fpga_logical_device::oem_read_fpga_data_cmd(fpga_logical_device*, ipmi_message*) | scm_fpga_logical_device::oem_read_fpga_data_cmd(scm_fpga_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fpga.so.0.0.0",
@@ -5983,12 +5983,12 @@
       "purpose": "FPGA register and revision services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8"
+      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFpga_3A_91",
@@ -6005,7 +6005,7 @@
           "request_length": 3
         }
       ],
-      "handler": "fpga",
+      "handler": "fpga_logical_device::oem_write_fpga_data_cmd(fpga_logical_device*, ipmi_message*) | scm_fpga_logical_device::oem_write_fpga_data_cmd(scm_fpga_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fpga.so.0.0.0",
@@ -6025,12 +6025,12 @@
       "purpose": "FPGA register and revision services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8"
+      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFpga_3A_92",
@@ -6047,7 +6047,7 @@
           "request_length": 3
         }
       ],
-      "handler": "fpga",
+      "handler": "fpga_logical_device::oem_read_fpga_data_cmd(fpga_logical_device*, ipmi_message*) | fpga_logical_device::oem_read_remote_fpga_data_cmd(fpga_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fpga.so.0.0.0",
@@ -6067,12 +6067,12 @@
       "purpose": "FPGA register and revision services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000286b8"
+      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCFpga_3A_93",
@@ -6089,7 +6089,7 @@
           "request_length": 3
         }
       ],
-      "handler": "fpga",
+      "handler": "fpga_logical_device::oem_write_fpga_data_cmd(fpga_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_fpga.so.0.0.0",
@@ -6102,12 +6102,12 @@
       "purpose": "FPGA register and revision services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000286b8"
+      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCmdOEMMasterWriteRead_3A_94",
@@ -6178,7 +6178,7 @@
           "request_length": 1
         }
       ],
-      "handler": "power",
+      "handler": "me_logical_device::me_update_cmd(me_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -6191,12 +6191,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0012cc2c"
+      "notes": "Registration owner(s): initialize@0012cc2c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_97",
@@ -6240,7 +6240,7 @@
           "request_length": 1
         }
       ],
-      "handler": "panel",
+      "handler": "fp_usb_port_ldev::fp_usb_port_control(fp_usb_port_ldev*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_panel.so.0.0.0",
@@ -6253,12 +6253,12 @@
       "purpose": "operator panel",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001f548"
+      "notes": "Registration owner(s): initialize@0001f548; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCSysfw_3A_99",
@@ -6275,7 +6275,7 @@
           "request_length": 1
         }
       ],
-      "handler": "sysfw",
+      "handler": "bios_device::ipmi_usb_reset(bios_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sysfw.so.0.0.0",
@@ -6288,12 +6288,12 @@
       "purpose": "BIOS, UEFI, media and PCIe mailbox services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_9A",
@@ -6310,7 +6310,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "board_info_device::retimer_control(board_info_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -6323,12 +6323,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4"
+      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCNICStatusWR_3A_9B",
@@ -6372,7 +6372,7 @@
           "request_length": 1
         }
       ],
-      "handler": "legoland_hv",
+      "handler": "hv_planar_logical_device::fpga_fast_throttle_callback(hv_planar_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "liblegoland_hv.so",
@@ -6390,7 +6390,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000328d0"
+      "notes": "Registration owner(s): initialize@000328d0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPanel_3A_A3",
@@ -6407,7 +6407,7 @@
           "request_length": 0
         }
       ],
-      "handler": "panel",
+      "handler": "front_panel_button_disable_logical_device::fp_button_power_permission(front_panel_button_disable_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_panel.so.0.0.0",
@@ -6425,7 +6425,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001d700"
+      "notes": "Registration owner(s): initialize@0001d700; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_A4",
@@ -6442,7 +6442,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "dp_logical_device::get_agentless_inventory_status(dp_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -6455,12 +6455,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000cdbb0"
+      "notes": "Registration owner(s): initialize@000cdbb0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCpu_3A_A5",
@@ -6477,7 +6477,7 @@
           "request_length": 0
         }
       ],
-      "handler": "cpu",
+      "handler": "disable_cpu_device::cpu_instance_control(disable_cpu_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_cpu.so.0.0.0",
@@ -6490,12 +6490,12 @@
       "purpose": "CPU management",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001a224"
+      "notes": "Registration owner(s): initialize@0001a224; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_A8",
@@ -6539,7 +6539,7 @@
           "request_length": 1
         }
       ],
-      "handler": "storage",
+      "handler": "rt_logical_device::ipmi_cmd_retimer_dbg_dump(rt_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_storage.so.0.0.0",
@@ -6557,7 +6557,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00076420"
+      "notes": "Registration owner(s): initialize@00076420; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_B0",
@@ -6574,7 +6574,7 @@
           "request_length": 1
         }
       ],
-      "handler": "modules",
+      "handler": "network_configuration_logical_device::config_bmc_service(network_configuration_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -6587,12 +6587,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000dc464"
+      "notes": "Registration owner(s): initialize@000dc464; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_B3",
@@ -6636,7 +6636,7 @@
           "request_length": 2
         }
       ],
-      "handler": "led",
+      "handler": "led_controller::led_status(led_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_led.so.0.0.0",
@@ -6649,12 +6649,12 @@
       "purpose": "LED control and status",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_C1",
@@ -6671,7 +6671,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "board_info_device::get_bmc_cap(board_info_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -6684,12 +6684,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4"
+      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_C2",
@@ -6706,7 +6706,7 @@
           "request_length": 2
         }
       ],
-      "handler": "modules",
+      "handler": "board_info_device::set_bios_cap(board_info_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -6719,12 +6719,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000e64b4"
+      "notes": "Registration owner(s): initialize@000e64b4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCSysfw_3A_C3",
@@ -6741,7 +6741,7 @@
           "request_length": 1
         }
       ],
-      "handler": "sysfw",
+      "handler": "bios_device::ipmi_bios_state(bios_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_sysfw.so.0.0.0",
@@ -6759,7 +6759,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001bbf8"
+      "notes": "Registration owner(s): initialize@0001bbf8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_C4",
@@ -6776,7 +6776,7 @@
           "request_length": 1
         }
       ],
-      "handler": "core",
+      "handler": "properties_device::property_cmd(properties_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -6794,7 +6794,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0008fbd8"
+      "notes": "Registration owner(s): initialize@0008fbd8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_C5",
@@ -6811,7 +6811,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "io_controller::vid_burst(io_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -6829,7 +6829,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): io_controller@0007014c"
+      "notes": "Registration owner(s): io_controller@0007014c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModulesPower_3A_C6",
@@ -6846,7 +6846,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules, power",
+      "handler": "cff3_pwrctrl_logical_device::get_power_supply_data(cff3_pwrctrl_logical_device*, ipmi_message*) | cff4_psu::cff4_pwrctrl_logical_device::get_power_supply_data(cff4_psu::cff4_pwrctrl_logical_device*, ipmi_message*) | cff5_psu::cff5_pwrctrl_logical_device::get_power_supply_data(cff5_psu::cff5_pwrctrl_logical_device*, ipmi_message*) | crps_psu::crps_pwrctrl_logical_device::get_power_supply_data(crps_psu::crps_pwrctrl_logical_device*, ipmi_message*) | smm_logical_device::get_power_supply_data(smm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -6887,12 +6887,12 @@
       "purpose": "planar and shared hardware modules; power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8, initialize@00111b30"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8, initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_C8",
@@ -6936,7 +6936,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "cff3_pwrctrl_logical_device::set_voltage_out(cff3_pwrctrl_logical_device*, ipmi_message*) | cff4_psu::cff4_pwrctrl_logical_device::set_voltage_out(cff4_psu::cff4_pwrctrl_logical_device*, ipmi_message*) | cff5_psu::cff5_pwrctrl_logical_device::set_voltage_out(cff5_psu::cff5_pwrctrl_logical_device*, ipmi_message*) | crps_psu::crps_pwrctrl_logical_device::set_voltage_out(crps_psu::crps_pwrctrl_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -6970,12 +6970,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_CD",
@@ -6992,7 +6992,7 @@
           "request_length": 1
         }
       ],
-      "handler": "modules",
+      "handler": "mem_register_logical_device::mem_register_interface(mem_register_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7010,7 +7010,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001a18c0"
+      "notes": "Registration owner(s): initialize@001a18c0; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCRfUsb_3A_CE",
@@ -7027,7 +7027,7 @@
           "request_length": 0
         }
       ],
-      "handler": "rf_usb",
+      "handler": "rf_usb_device_manager::rf_usb_oem_cmd(rf_usb_device_manager*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_rf_usb.so.0.0.0",
@@ -7045,7 +7045,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00024fa8"
+      "notes": "Registration owner(s): initialize@00024fa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_3A_CF",
@@ -7062,7 +7062,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "cff3_pwrctrl_logical_device::update_psu_fw(cff3_pwrctrl_logical_device*, ipmi_message*) | cff4_psu::cff4_pwrctrl_logical_device::update_psu_fw(cff4_psu::cff4_pwrctrl_logical_device*, ipmi_message*) | cff5_psu::cff5_pwrctrl_logical_device::update_psu_fw(cff5_psu::cff5_pwrctrl_logical_device*, ipmi_message*) | crps_psu::crps_pwrctrl_logical_device::update_psu_fw(crps_psu::crps_pwrctrl_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -7096,12 +7096,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_D0",
@@ -7118,7 +7118,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::rs485_legacy_packet(amm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7136,7 +7136,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_D1",
@@ -7153,7 +7153,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "amm_logical_device::rs485_BSC_response(amm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7171,7 +7171,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCCore_3A_D9",
@@ -7188,7 +7188,7 @@
           "request_length": 0
         }
       ],
-      "handler": "core",
+      "handler": "system_controller::secure_erase(system_controller*, ipmi_message*)",
       "registrations": [
         {
           "module": "libcore.so",
@@ -7201,12 +7201,12 @@
       "purpose": "property database and core controller services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): system_controller@000a6898"
+      "notes": "Registration owner(s): system_controller@000a6898; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCRecovery_3A_DA",
@@ -7223,7 +7223,7 @@
           "request_length": 0
         }
       ],
-      "handler": "recovery",
+      "handler": "rot_master_logical_device::command_handle(rot_master_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_recovery.so.0.0.0",
@@ -7241,7 +7241,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00041a90"
+      "notes": "Registration owner(s): initialize@00041a90; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCStorage_3A_DB",
@@ -7258,7 +7258,7 @@
           "request_length": 0
         }
       ],
-      "handler": "storage",
+      "handler": "gpu_logical_device::command_handle(gpu_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_storage.so.0.0.0",
@@ -7276,7 +7276,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0006eea8"
+      "notes": "Registration owner(s): initialize@0006eea8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_E0",
@@ -7347,7 +7347,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "smm_logical_device::set_network_mcontrol(smm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7360,12 +7360,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_F2",
@@ -7386,7 +7386,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "lockdown_device::ipmi_ldm_control(lockdown_device*, ipmi_message*) | lockdown_local_device::ipmi_ldm_control(lockdown_local_device*, ipmi_message*) | zarkon_lockdown_local_device::ipmi_ldm_control(zarkon_lockdown_local_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7413,12 +7413,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@001a80f0, initialize@001b0418, initialize@001b9918"
+      "notes": "Registration owner(s): initialize@001a80f0, initialize@001b0418, initialize@001b9918; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_F3",
@@ -7430,7 +7430,7 @@
       "dispatch": "cpp_registration",
       "privilege": null,
       "requestLengthRules": [],
-      "handler": "modules",
+      "handler": "smm_logical_device::set_network_ip_method(smm_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7443,12 +7443,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00111b30"
+      "notes": "Registration owner(s): initialize@00111b30; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCLogging_3A_F4",
@@ -7465,7 +7465,7 @@
           "request_length": 0
         }
       ],
-      "handler": "logging",
+      "handler": "debug_logical_device::oem_host_screen_shot(debug_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_logging.so.0.0.0",
@@ -7483,7 +7483,7 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000396c8"
+      "notes": "Registration owner(s): initialize@000396c8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_F5",
@@ -7500,7 +7500,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "smmless_logical_device::oem_cmd_set_smmless_dev_ctrl(smmless_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7513,12 +7513,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00134aa8"
+      "notes": "Registration owner(s): initialize@00134aa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCModules_3A_F6",
@@ -7535,7 +7535,7 @@
           "request_length": 0
         }
       ],
-      "handler": "modules",
+      "handler": "bmc_sdsi_device::sdsi_config_request(bmc_sdsi_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmodules.so.0.0.0",
@@ -7548,12 +7548,12 @@
       "purpose": "planar and shared hardware modules",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000703c4"
+      "notes": "Registration owner(s): initialize@000703c4; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPcieswitch_3A_F7",
@@ -7570,7 +7570,7 @@
           "request_length": 0
         }
       ],
-      "handler": "pcieswitch",
+      "handler": "pcieswitch_logical_device::oem_read_pcieswitch_version_cmd(pcieswitch_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_pcieswitch.so.0.0.0",
@@ -7583,12 +7583,12 @@
       "purpose": "PCIe switch management",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00012acc"
+      "notes": "Registration owner(s): initialize@00012acc; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCAvocentIpmiCommandProc_3A_FD",
@@ -7632,7 +7632,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "cff3_pwrctrl_logical_device::get_baidu_power_supply_AS_mode(cff3_pwrctrl_logical_device*, ipmi_message*) | cff4_psu::cff4_pwrctrl_logical_device::get_baidu_power_supply_AS_mode(cff4_psu::cff4_pwrctrl_logical_device*, ipmi_message*) | cff5_psu::cff5_pwrctrl_logical_device::get_baidu_power_supply_AS_mode(cff5_psu::cff5_pwrctrl_logical_device*, ipmi_message*) | crps_psu::crps_pwrctrl_logical_device::get_baidu_power_supply_AS_mode(crps_psu::crps_pwrctrl_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -7666,12 +7666,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "likely-read-only",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     },
     {
       "name": "XCCPower_3A_FF",
@@ -7688,7 +7688,7 @@
           "request_length": 0
         }
       ],
-      "handler": "power",
+      "handler": "cff3_pwrctrl_logical_device::set_baidu_power_supply_AS_mode(cff3_pwrctrl_logical_device*, ipmi_message*) | cff4_psu::cff4_pwrctrl_logical_device::set_baidu_power_supply_AS_mode(cff4_psu::cff4_pwrctrl_logical_device*, ipmi_message*) | cff5_psu::cff5_pwrctrl_logical_device::set_baidu_power_supply_AS_mode(cff5_psu::cff5_pwrctrl_logical_device*, ipmi_message*) | crps_psu::crps_pwrctrl_logical_device::set_baidu_power_supply_AS_mode(crps_psu::crps_pwrctrl_logical_device*, ipmi_message*)",
       "registrations": [
         {
           "module": "libmod_power.so.0.0.0",
@@ -7722,12 +7722,12 @@
       "purpose": "power, APML, Node Manager and PSU services",
       "request": "Undecoded",
       "response": "Undecoded",
-      "sideEffect": "unknown",
+      "sideEffect": "state-changing-or-control",
       "remoteRestriction": "unknown",
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8"
+      "notes": "Registration owner(s): initialize@00067034, initialize@0008a9bc, initialize@000a5788, initialize@000bfaa8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
     }
   ]
 }
