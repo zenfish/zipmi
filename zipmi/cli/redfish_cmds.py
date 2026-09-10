@@ -21,7 +21,7 @@ def _client(args: argparse.Namespace) -> RedfishClient:
         raise SystemExit(2)
     return RedfishClient(
         f"https://{args.host}:{args.redfish_port}", args.user, args.password,
-        args.timeout, args.verify_tls,
+        args.redfish_timeout, args.verify_tls,
     )
 
 
@@ -141,6 +141,8 @@ def cmd_redfish_action(args: argparse.Namespace) -> int:
 def add_redfish_parser(sub) -> None:
     parser = sub.add_parser("redfish", aliases=["rf"], help="native Redfish client and Lenovo XCC action catalog")
     parser.add_argument("--redfish-port", type=int, default=443, help="HTTPS port (default 443)")
+    parser.add_argument("--redfish-timeout", type=float, default=20.0,
+                        help="HTTPS response timeout in seconds (default 20; separate from UDP -t)")
     parser.add_argument("--verify-tls", action="store_true", help="verify the BMC TLS certificate")
     commands = parser.add_subparsers(dest="redfish_action", required=True)
 

@@ -74,3 +74,14 @@ def test_redfish_catalog_cli_is_host_independent(capsys):
     assert [a["name"] for a in result["actions"]] == [
         "#LenovoChassis.NodeVirtualReset"
     ]
+
+
+def test_redfish_cli_uses_https_specific_timeout():
+    import argparse
+    from zipmi.cli.redfish_cmds import _client
+
+    args = argparse.Namespace(
+        host="bmc.example", redfish_port=443, user="USERID", password="secret",
+        timeout=3.0, redfish_timeout=20.0, verify_tls=False,
+    )
+    assert _client(args).timeout == 20.0
