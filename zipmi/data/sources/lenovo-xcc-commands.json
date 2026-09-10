@@ -8,7 +8,7 @@
     "commands": 222,
     "cppRegistrations": 192,
     "legacyAdmissions": 175,
-    "decodedOperations": 33
+    "decodedOperations": 74
   },
   "commands": [
     {
@@ -255,7 +255,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "platform FRU read",
+          "request": "FRU device id, 16-bit little-endian offset, 1-byte count; device ff rejected and count must be nonzero",
+          "response": "requested FRU bytes; on one deferred-read path returns dc plus progress notification",
+          "completionCodes": "cc device; c7 zero count; c9 offset/count range; cb absent/read failure; 81 not initialized",
+          "effect": "read; may trigger deferred FRU refresh",
+          "evidence": "Decoded",
+          "source": "libmodules.so:read_fru_cmd@000e0344"
+        }
+      ]
     },
     {
       "name": "XCCModules_0A_12",
@@ -371,7 +383,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000ef87c, initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "blade descriptor",
+          "request": "IANA d0 51 00; handler consumes no request body",
+          "response": "platform-dependent descriptor, approximately 20 bytes; CMM variant may publish a discovery event",
+          "completionCodes": "",
+          "effect": "read with possible discovery side effect",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:get_blade_descriptor@000ef3d8,@001868e8"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_01_4D_4F_00",
@@ -702,7 +726,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00185754; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "blade system information",
+          "request": "IANA d0 51 00; handler consumes no request body",
+          "response": "5-byte platform system-information record",
+          "completionCodes": "",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:get_blade_system_info@00185ef4"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_09_D0_51_00",
@@ -741,7 +777,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "VPD write alias",
+          "request": "IANA d0 51 00, 16-bit little-endian offset, VPD device id, data",
+          "response": "empty",
+          "completionCodes": "c9 range; cb absent; d5 unavailable; 80 write protected",
+          "effect": "persistent VPD write and update event",
+          "evidence": "Decoded",
+          "source": "libmodules.so:vpd_cmd@000e16c8"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_0A_D0_51_00",
@@ -780,7 +828,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "VPD read alias",
+          "request": "IANA d0 51 00, 16-bit little-endian offset, VPD device id, 1-byte length (max f1)",
+          "response": "requested raw VPD bytes",
+          "completionCodes": "c9 range; cb absent/read failure; d5 unavailable",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:vpd_cmd@000e16c8"
+        }
+      ]
     },
     {
       "name": "XCCLed_2E_0B_D0_51_00",
@@ -948,7 +1008,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@00102f9c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@00102f9c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "DEM enabled state",
+          "request": "IANA d0 51 00 followed by one selector byte; bit 7 is ignored",
+          "response": "1 byte: 00 disabled or 01 enabled",
+          "completionCodes": "cc unavailable/invalid selector",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:get_DEM_enable@001064a8"
+        }
+      ]
     },
     {
       "name": "XCCLogging_2E_18_D0_51_00",
@@ -1104,7 +1176,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM acoustic mode",
+          "request": "IANA d0 51 00; trailing bytes accepted and ignored",
+          "response": "1 byte acoustic-mode flag",
+          "completionCodes": "c7 body shorter than IANA",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:fpm_ipmi_GetAcousticMode@000c15dc"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_22_D0_51_00",
@@ -1143,7 +1227,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM watts usage",
+          "request": "IANA prefix; handler requires request length at least 3 but consumes no additional payload",
+          "response": "3-byte aggregate prefix followed by 5 bytes per populated power entry; exact field identities partially decoded",
+          "completionCodes": "c7 short request; c1 unsupported; 01/02 transitional state; d2 data unavailable",
+          "effect": "read with internal telemetry refresh",
+          "evidence": "Decoded/partial",
+          "source": "libmod_power.so:fpm_ipmi_GetWattsUsage@000c761c"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_23_D0_51_00",
@@ -1182,7 +1278,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM throttle telemetry",
+          "request": "IANA d0 51 00; trailing bytes accepted and ignored",
+          "response": "4-byte header, variable per-PSU bytes, and 2-byte trailer",
+          "completionCodes": "c7 body shorter than IANA",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:fpm_ipmi_GetThrottle@000c1c68"
+        }
+      ]
     },
     {
       "name": "XCCPower_2E_24_D0_51_00",
@@ -1260,7 +1368,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM watt inventory",
+          "request": "IANA d0 51 00; trailing bytes accepted and ignored",
+          "response": "4-byte header, eight 16-bit watt entries, variable PSU bytes, and variable preset records",
+          "completionCodes": "c7 body shorter than IANA; c4 record count; d2 data unavailable",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:fpm_ipmi_GetWattInventory@000c0ca0"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_2E_29",
@@ -1365,7 +1485,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000c265c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "FPM throttle override",
+          "request": "IANA d0 51 00; handler has no local length check",
+          "response": "3 bytes: override status fields",
+          "completionCodes": "",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_power.so:fpm_ipmi_GetThrottleOverride@000c08a8"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_30_D0_51_00",
@@ -1443,7 +1575,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0008fbd8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0008fbd8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00..07",
+          "operation": "property protocol alias",
+          "request": "IANA d0 51 00 followed by the same operation, 16-bit length, and body as 3a/c4; declared length must exactly match",
+          "response": "same as 3a/c4 operation",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "mixed read/control",
+          "evidence": "Decoded",
+          "source": "libcore.so:property_cmd@00098734"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_2E_41",
@@ -1548,7 +1692,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "chassis fan control",
+          "request": "IANA d0 51 00 followed by mode 00 or 01; exactly 4 request bytes including IANA",
+          "response": "empty",
+          "completionCodes": "c7 length; c9 mode",
+          "effect": "writes chassis fan-control port",
+          "evidence": "Decoded",
+          "source": "libmodules.so:chassis_fan_status@000edf18"
+        }
+      ]
     },
     {
       "name": "XCCAvocentIpmiCommandProc_2E_50",
@@ -1614,7 +1770,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01 or 02",
+          "operation": "mapped VPD extension",
+          "request": "IANA d0 51 00, 16-bit offset, map mode 01/02, FRU/device id, transfer mode, 16-bit length, body",
+          "response": "mapped raw VPD data or delegated device-family response",
+          "completionCodes": "c9 range/map; cb absent; d5 unavailable; 80 write protected",
+          "effect": "read or persistent write according to transfer mode",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:vpd_cmd@000e16c8"
+        }
+      ]
     },
     {
       "name": "XCCInventory_2E_53_D0_51_00",
@@ -1653,7 +1821,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0002652c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0002652c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01",
+          "operation": "VPD master counter",
+          "request": "IANA d0 51 00 plus selector 01",
+          "response": "1-byte tag plus 32-bit native-width master counter",
+          "completionCodes": "cc selector",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_inventory.so:get_vpd_counter@00026944"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_61_D0_51_00",
@@ -1692,7 +1872,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000ef87c; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "redirection token",
+          "request": "IANA d0 51 00, 16-bit big-endian token type/id, then a nonempty length-delimited string; total post-IANA body length must equal string length plus 6",
+          "response": "length-delimited token string",
+          "completionCodes": "c7 framing; 01 token service failure",
+          "effect": "sensitive credential/token read",
+          "evidence": "Decoded/partial",
+          "source": "libmodules.so:get_redirection_token@000ef180"
+        }
+      ]
     },
     {
       "name": "XCCBmcEmerson_2E_80_02_00_00",
@@ -2004,7 +2196,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01..11,ff",
+          "operation": "datastore protocol alias",
+          "request": "IANA 4d 4f 00 followed by the same selector and body as Lenovo-IANA 2e/90",
+          "response": "same as Lenovo-IANA registration",
+          "completionCodes": "same as Lenovo-IANA registration",
+          "effect": "mixed read/control",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        }
+      ]
     },
     {
       "name": "XCCModules_2E_90_66_4A_00",
@@ -2043,7 +2247,109 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "01",
+          "operation": "datastore open",
+          "request": "IANA 66 4a 00, 01, flags, mode, 32-bit offset, privilege byte, timeout byte, path; at least 9 bytes after selector",
+          "response": "4-byte little-endian handle",
+          "completionCodes": "c9 framing; d4 privilege; negative datastore errno",
+          "effect": "allocates expiring handle",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "02",
+          "operation": "datastore read",
+          "request": "IANA 66 4a 00, 02, 32-bit handle, 32-bit offset, 16-bit little-endian length (max ef)",
+          "response": "16-bit little-endian returned length plus bytes",
+          "completionCodes": "c9 framing/range; cb handle; negative datastore errno",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "03",
+          "operation": "datastore write",
+          "request": "IANA 66 4a 00, 03, 32-bit handle, 32-bit offset, data",
+          "response": "16-bit little-endian written length",
+          "completionCodes": "c9 framing; d4 privilege; negative datastore errno",
+          "effect": "persistent write",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "04",
+          "operation": "datastore set default",
+          "request": "IANA 66 4a 00, 04, datastore path",
+          "response": "empty",
+          "completionCodes": "negative datastore errno",
+          "effect": "changes default datastore",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "05",
+          "operation": "datastore close",
+          "request": "IANA 66 4a 00, 05, 32-bit handle",
+          "response": "empty",
+          "completionCodes": "c9 framing; cb handle; negative datastore errno",
+          "effect": "closes handle",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "06",
+          "operation": "datastore query",
+          "request": "IANA 66 4a 00, 06, datastore path",
+          "response": "4-byte little-endian size",
+          "completionCodes": "negative datastore errno",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "07",
+          "operation": "datastore delete",
+          "request": "IANA 66 4a 00, 07, datastore path",
+          "response": "empty",
+          "completionCodes": "negative datastore errno",
+          "effect": "persistent delete",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "10",
+          "operation": "secured datastore open",
+          "request": "IANA 66 4a 00, 10, flags, mode, 32-bit offset, privilege byte, timeout byte, 32-bit security token, path; at least 13 bytes after selector",
+          "response": "4-byte little-endian handle",
+          "completionCodes": "c9 framing; d4 privilege; negative datastore errno",
+          "effect": "allocates expiring secured handle",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "11",
+          "operation": "secured datastore delete",
+          "request": "IANA 66 4a 00, 11, 32-bit security token, path",
+          "response": "empty",
+          "completionCodes": "c9 framing; negative datastore errno",
+          "effect": "persistent secured delete",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        },
+        {
+          "selector": "ff",
+          "operation": "datastore debug",
+          "request": "IANA 66 4a 00, ff, debug level",
+          "response": "empty",
+          "completionCodes": "",
+          "effect": "changes datastore debug level",
+          "evidence": "Decoded",
+          "source": "libmodules.so:datastore_access@000e5010"
+        }
+      ]
     },
     {
       "name": "XCCLogging_2E_92_4D_4F_00",
@@ -3192,7 +3498,15 @@
           "evidence": "Decoded",
           "source": "libcore.so:get_firmware_version@000a60d8"
         }
-      ]
+      ],
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0x00, empty payload",
+        "completionCode": 0,
+        "responseHex": "0692",
+        "repeatability": "success on attempt 2 after one transport timeout"
+      }
     },
     {
       "name": "XCCCore_3A_01",
@@ -3239,7 +3553,15 @@
           "evidence": "Decoded",
           "source": "libcore.so:get_bmc_slave_addr@000a5d28"
         }
-      ]
+      ],
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0x01, empty payload",
+        "completionCode": 0,
+        "responseHex": "20",
+        "repeatability": "success on attempt 1"
+      }
     },
     {
       "name": "XCCCore_3A_02",
@@ -3540,7 +3862,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "VPD read",
+          "request": "16-bit little-endian offset, VPD device id, 1-byte length",
+          "response": "requested raw VPD bytes",
+          "completionCodes": "c9 range; cb absent/read failure; d5 unavailable",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmodules.so:vpd_cmd@000e16c8"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_0C",
@@ -3575,7 +3909,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): planar_controller@000ddc10; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "VPD write",
+          "request": "16-bit little-endian offset, VPD device id, data",
+          "response": "empty",
+          "completionCodes": "c9 range; cb absent; d5 unavailable; 80 write protected",
+          "effect": "persistent VPD write and update event",
+          "evidence": "Decoded",
+          "source": "libmodules.so:vpd_cmd@000e16c8"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_0D",
@@ -3660,7 +4006,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "lit LED count",
+          "request": "2-byte LED id",
+          "response": "delegated device-specific count response; exact bytes unknown",
+          "completionCodes": "c7 length; c9 unknown LED; cb unavailable LED",
+          "effect": "read",
+          "evidence": "Decoded/partial",
+          "source": "libmod_led.so:led_lit_count@00023b7c"
+        }
+      ]
     },
     {
       "name": "XCCSysfw_3A_10",
@@ -4252,10 +4610,10 @@
           "selector": "",
           "operation": "chassis information",
           "request": "empty",
-          "response": "property-derived response ending in ec; exact preceding bytes unresolved",
+          "response": "1 byte: ec",
           "completionCodes": "",
-          "effect": "read",
-          "evidence": "Decoded/partial",
+          "effect": "read; probes six chassis properties before replying",
+          "evidence": "Decoded",
           "source": "libmodules.so:query_chassis_info@0018612c"
         }
       ]
@@ -5535,7 +5893,15 @@
           "evidence": "Decoded",
           "source": "libmod_fpga.so:oem_read_fpga_rev_cmd@00032b20"
         }
-      ]
+      ],
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0x6b, empty payload",
+        "completionCode": 206,
+        "responseHex": "",
+        "repeatability": "same completion code on two attempts"
+      }
     },
     {
       "name": "XCCFpga_3A_6C",
@@ -5582,7 +5948,15 @@
           "evidence": "Decoded",
           "source": "libmod_fpga.so:oem_get_hardware_rev_cmd@0002ce98"
         }
-      ]
+      ],
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0x6c, empty payload",
+        "completionCode": 206,
+        "responseHex": "",
+        "repeatability": "same completion code on two attempts"
+      }
     },
     {
       "name": "XCCPsoc_3A_6D",
@@ -5629,7 +6003,15 @@
           "evidence": "Decoded",
           "source": "libmod_psoc.so:oem_read_psoc_rev_cmd@00012fb4"
         }
-      ]
+      ],
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0x6d, empty payload",
+        "completionCode": 0,
+        "responseHex": "",
+        "repeatability": "success on attempt 1; no active PSoC records"
+      }
     },
     {
       "name": "XCCRecovery_3A_6E",
@@ -6255,7 +6637,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0001d140, initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "local FPGA data read",
+          "request": "normal: 16-bit selector plus 1-byte length (01..10); selector bits 11:4 are register byte, bits 3:0 block, bit 14 clear; ADI: selector with bit 14 set plus 16-bit offset",
+          "response": "normal: requested 1..16 bytes; ADI: 16 bytes",
+          "completionCodes": "c7 framing/length; ce FPGA read failure",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_fpga.so:oem_read_fpga_data_cmd@00020904,@0002e14c"
+        }
+      ]
     },
     {
       "name": "XCCFpga_3A_91",
@@ -6339,7 +6733,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@000286b8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "remote FPGA data read",
+          "request": "1-byte one-based remote target, 16-bit selector, 1-byte length (01..10); selector bits 11:4 are register byte, bits 3:0 block; bit 14 selects ADI",
+          "response": "requested 1..16 bytes",
+          "completionCodes": "c7 framing/length; cb remote target absent; ce FPGA read failure",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libmod_fpga.so:oem_read_remote_fpga_data_cmd@00029044"
+        }
+      ]
     },
     {
       "name": "XCCFpga_3A_93",
@@ -6749,7 +7155,15 @@
           "evidence": "Decoded",
           "source": "libmodules.so:get_agentless_inventory_status@000cdf34"
         }
-      ]
+      ],
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0xa4, empty payload",
+        "completionCode": 0,
+        "responseHex": "010101010101000000",
+        "repeatability": "success on attempt 1"
+      }
     },
     {
       "name": "XCCCpu_3A_A5",
@@ -6943,7 +7357,19 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): led_controller@00025304; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "",
+          "operation": "LED status",
+          "request": "2-byte LED id",
+          "response": "delegated device-specific status response; exact bytes unknown",
+          "completionCodes": "c7 length; c9 unknown LED; cb unavailable LED",
+          "effect": "read",
+          "evidence": "Decoded/partial",
+          "source": "libmod_led.so:led_status@0002366c"
+        }
+      ]
     },
     {
       "name": "XCCModules_3A_C1",
@@ -6990,7 +7416,15 @@
           "evidence": "Decoded",
           "source": "libmodules.so:get_bmc_cap@000e6a4c"
         }
-      ]
+      ],
+      "liveEvidence": {
+        "observed": "2026-09-10",
+        "target": "Debby lenovo-xcc, XCC 6.92",
+        "request": "netfn 0x3a cmd 0xc1, empty payload",
+        "completionCode": 0,
+        "responseHex": "451600",
+        "repeatability": "success on attempt 1"
+      }
     },
     {
       "name": "XCCModules_3A_C2",
@@ -7095,7 +7529,89 @@
       "evidenceState": "decoded",
       "confidence": "high",
       "source": "XCC 6.92 C++ IPMI::register_command static registration",
-      "notes": "Registration owner(s): initialize@0008fbd8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer"
+      "notes": "Registration owner(s): initialize@0008fbd8; handler identity decoded from R_ARM_GLOB_DAT member-function pointer",
+      "operations": [
+        {
+          "selector": "00",
+          "operation": "property get",
+          "request": "00, 16-bit payload length, TLV string property path",
+          "response": "missing: 03 00; found: 00, 16-bit value length, value TLV",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "read",
+          "evidence": "Decoded",
+          "source": "libcore.so:property_cmd@00098734"
+        },
+        {
+          "selector": "01",
+          "operation": "property get-multiple bundling",
+          "request": "01, 16-bit payload length, subselector 00, delegated body",
+          "response": "delegated bundled property records",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "read",
+          "evidence": "Decoded/partial",
+          "source": "libcore.so:property_cmd@00098734"
+        },
+        {
+          "selector": "02",
+          "operation": "property get-multiple all",
+          "request": "02, 16-bit payload length, subselector 00 or 01, delegated body",
+          "response": "delegated property records",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "read",
+          "evidence": "Decoded/partial",
+          "source": "libcore.so:property_cmd@00098734"
+        },
+        {
+          "selector": "03",
+          "operation": "property add",
+          "request": "03, 16-bit payload length, property type 00..03, encoded property",
+          "response": "2 status bytes",
+          "completionCodes": "c7 framing; cc type; d5 operation",
+          "effect": "state change",
+          "evidence": "Decoded",
+          "source": "libcore.so:property_cmd@00098734"
+        },
+        {
+          "selector": "04",
+          "operation": "property set-multiple bundling",
+          "request": "04, 16-bit payload length, subselector 00 or 01, delegated body",
+          "response": "delegated status",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "state change",
+          "evidence": "Decoded/partial",
+          "source": "libcore.so:property_cmd@00098734"
+        },
+        {
+          "selector": "05",
+          "operation": "property set-multiple group",
+          "request": "05, 16-bit payload length, subselector 00..03, delegated body",
+          "response": "delegated status",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "state change",
+          "evidence": "Decoded/partial",
+          "source": "libcore.so:property_cmd@00098734"
+        },
+        {
+          "selector": "06",
+          "operation": "property directory",
+          "request": "06, 16-bit payload length, subselector 00, delegated body",
+          "response": "delegated directory records",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "read",
+          "evidence": "Decoded/partial",
+          "source": "libcore.so:property_cmd@00098734"
+        },
+        {
+          "selector": "07",
+          "operation": "property delete",
+          "request": "07, 16-bit payload length, subselector 00, TLV string property path",
+          "response": "1-byte delete status",
+          "completionCodes": "c7 framing; cc subselector; d5 operation",
+          "effect": "state change",
+          "evidence": "Decoded",
+          "source": "libcore.so:property_cmd@00098734"
+        }
+      ]
     },
     {
       "name": "XCCCore_3A_C5",

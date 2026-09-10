@@ -124,3 +124,21 @@ def test_lenovo_json_listing_exposes_decoded_operations():
         "completionCodes": "", "effect": "read", "evidence": "Decoded",
         "source": "libmodules.so:get_board_info@000e87e4",
     }]
+
+
+def test_lenovo_second_tranche_and_live_evidence_are_exposed():
+    from zipmi.cli.oem_cmds import _vendor_listing_data
+    from zipmi.scapy_ipmi.oem.lenovo import LENOVO_COMMANDS, lookup
+
+    assert sum(len(c.operations) for c in LENOVO_COMMANDS) == 74
+    assert len(lookup(0x3A, 0xC4).operations) == 8
+    assert len(lookup(0x2E, 0x90, bytes.fromhex("66 4a 00")).operations) == 10
+    assert lookup(0x2E, 0x90, bytes.fromhex("4d 4f 00")).operations[0].operation == \
+        "datastore protocol alias"
+    assert lookup(0x3A, 0x30).operations[0].response == "1 byte: ec"
+
+    assert lookup(0x3A, 0x00).live_evidence["responseHex"] == "0692"
+    assert lookup(0x3A, 0x6C).live_evidence["completionCode"] == 0xCE
+    listing = _vendor_listing_data("lenovo")
+    firmware = next(c for c in listing["commands"] if c["netfn"] == 0x3A and c["cmd"] == 0x00)
+    assert firmware["liveEvidence"]["responseHex"] == "0692"

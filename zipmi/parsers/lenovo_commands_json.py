@@ -42,6 +42,7 @@ class LenovoCommand:
     source: str
     notes: str
     operations: tuple[LenovoOperation, ...]
+    live_evidence: dict[str, object] | None
 
 
 def parse_json(text: str) -> list[LenovoCommand]:
@@ -67,6 +68,7 @@ def parse_json(text: str) -> list[LenovoCommand]:
             side_effect=c["sideEffect"], remote_restriction=c["remoteRestriction"],
             evidence_state=c["evidenceState"], confidence=c["confidence"],
             source=c["source"], notes=c["notes"], operations=operations,
+            live_evidence=c.get("liveEvidence"),
         ))
     return out
 
@@ -87,7 +89,8 @@ def emit_module(entries: list[LenovoCommand], source: str) -> str:
         "    purpose: str", "    request: str", "    response: str",
         "    side_effect: str", "    remote_restriction: str", "    evidence_state: str",
         "    confidence: str", "    source: str", "    notes: str",
-        "    operations: tuple[LenovoOperation, ...]", "", "",
+        "    operations: tuple[LenovoOperation, ...]",
+        "    live_evidence: dict[str, object] | None", "", "",
         f"# Source: {source}", f"# Entries: {len(entries)}",
         "LENOVO_COMMANDS: list[LenovoCommand] = [",
     ]
@@ -102,7 +105,8 @@ def emit_module(entries: list[LenovoCommand], source: str) -> str:
             f"request={e.request!r}, response={e.response!r}, "
             f"side_effect={e.side_effect!r}, remote_restriction={e.remote_restriction!r}, "
             f"evidence_state={e.evidence_state!r}, confidence={e.confidence!r}, "
-            f"source={e.source!r}, notes={e.notes!r}, operations={e.operations!r}),"
+            f"source={e.source!r}, notes={e.notes!r}, operations={e.operations!r}, "
+            f"live_evidence={e.live_evidence!r}),"
         )
     lines += ["]", ""]
     return "\n".join(lines)

@@ -825,7 +825,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             rules = ", ".join(f"{kind} {length}" for kind, length in c.request_length_rules)
             out[key] = {
                 "name": c.name, "priv": PRIVS.get(c.privilege),
-                "desc": c.purpose, "live": None, "missing": False,
+                "desc": c.purpose, "live": c.live_evidence, "missing": False,
                 "prefix": c.prefix or None, "request": c.request,
                 "response": c.response, "security": f"side effects: {c.side_effect}",
                 "confidence": c.confidence, "lib": c.handler,
@@ -916,6 +916,8 @@ def _vendor_listing_data(vendor: str) -> dict:
                 }
                 for o in info["operations"]
             ]
+        if info.get("live"):
+            command["liveEvidence"] = info["live"]
         commands.append(command)
     return {"vendor": vendor, "verb": _display_verb(vendor),
             "named": named, "total": total, "commands": commands}
@@ -1313,7 +1315,16 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         if info.get("reservation_from"):
             print(f"  Reservation:  {info['reservation_from']}")
         if info.get("live"):
-            print(f"  Live status:  {info['live']}")
+            live = info["live"]
+            if isinstance(live, dict):
+                cc = live.get("completionCode")
+                cc_text = f"0x{cc:02x}" if isinstance(cc, int) else str(cc)
+                print(f"  Live status:  {live.get('observed')} {live.get('target')}; "
+                      f"CC {cc_text}; response {live.get('responseHex') or '(empty)'}")
+                if live.get("repeatability"):
+                    print(f"  Live repeats: {live['repeatability']}")
+            else:
+                print(f"  Live status:  {live}")
         if info.get("missing"):
             print(f"  Status:       (not present in this fw)")
         # Suggest example invocation.
