@@ -20,6 +20,24 @@ same as the ASMB787 column just added.
 
 ## Review — ASMB-787 OEM completion (2026-09-25)
 
+### Follow-up — reference overview (2026-09-26)
+
+- Added a generated top summary matching the Lenovo/Fujitsu references: 187 dispatch pairs,
+  462 handler-proven operations, 81 fixed-width codecs, 33 live-backed reads, and the
+  223-safe/239-state-changing-or-sensitive split.
+- Added explicit coverage and safety boundaries so closed dispatch coverage is not confused
+  with complete structured-codec coverage or runtime plugin reachability.
+- Generator sync and focused ASMB/Fujitsu tests pass; the complete suite passes 2,358 tests.
+
+## Review — Fujitsu decode follow-up and zipmi 0.6.2 (2026-09-26)
+
+- Refreshed the 232-operation iRMC catalog from the improved evidence: 102 decoded and 126
+  partial outer leaves, with no wholly unknown outer leaf.
+- Pinned the 50-case E0/04 maintenance table and 92-record backup/restore parameter table in
+  the packaged source hashes and linked both from zipmi's reference.
+- Built and installed the 0.6.2 wheel in an isolated environment; metadata reported 0.6.2 and
+  the installed catalog contained 128 top-level names, 232 operations, and all seven source pins.
+
 - Release version advanced to 0.3.4 after completing the 187/187 ASMB-787 operation surface and live read-only proof.
 - Fresh post-reboot live validation exercised all 32 read-only codecs with safely synthesized requests: 26 CC00 reads and 6 expected target rejections, with no transport failures. Exact request bytes and observed CC/data are embedded in the contract source; one earlier redirected-media read brings total live-backed operations to 33.
 - Exact-target core decompilation adds 210 selector operations across the remaining 79 pairs. The static denominator is now closed: all 187/187 dispatched commands have exact handler contracts, totaling 462 operations with 81 unambiguous codecs. `AMIGetFwVersion` preserves separate dispatcher and delegated-implementation hashes.

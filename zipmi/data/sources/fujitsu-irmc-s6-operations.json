@@ -3,10 +3,12 @@
   "librarySha256": "35839f7ab40993898666425d50e18654d68791c7dfe3bb5a3c3496e4daa23804",
   "tableSha256": "6c25538d508e398135855d59550148b3fd93cdcc045bc9556e4f79c335f72dfa",
   "sourceSha256": {
-    "f1-selector-contracts.json": "0cc199bf9ee6b3865ad517c111d2438e722aa3123d0a1fcb8ac07547840cc329",
-    "f5-selector-contracts.json": "f2cb165c8299bfd1c9c33df0a73116446b76c1f9f6fbbbc27c9bb3205a3fd147",
-    "scci-selector-contracts.json": "dc359731a4f108961a782b9003b2fdec78bf16ef31826d3588d161647ae16be0",
-    "c0d0-handler-audit.json": "b7bdf3356af354e03b9f42fd385ffc491e16d15809c40f378fe6737eb681d271",
+    "f1-selector-contracts.json": "496812c69ace4ab32eb4eb45e5cdd1ae68bb65580545a9d268a71f8930623b92",
+    "f5-selector-contracts.json": "c12e24ad896e2780419501c4018d7edb36fc9ec2be4d3909e323d34d4ae007a1",
+    "scci-selector-contracts.json": "ca1fbe70f959fa6cc4eb493ea4564ec9fd93baff1a34b0278c0a1e2ade78599f",
+    "e0-04-maintenance-subcommands.json": "92a871bb914a420c4357507a6350ceee011fd29c48dc92fe11ac430bdb166081",
+    "backup-restore-parameter-table.json": "2e3b44a93d3dbcdfdb71bd8cdd9c68c0b4bb0957b4f54d7c61b820a614d6da11",
+    "c0d0-handler-audit.json": "92e424a3f024cd89ba6dbfe5dfbd9086de8e3474498447482d50615bc51d4ecc",
     "standard-overrides.json": "896dfcc17d66dc9aa19104eb07de07d44a9a00717292524fcfebea4374c841da"
   },
   "topLevel": [
@@ -1114,9 +1116,9 @@
       "netfn": 52,
       "cmd": 32,
       "lun": 0,
-      "request": "byte0 mode: 00 disable; 01/02 select simple policy; 04 needs >=8 bytes and uses bytes1/3/5/6 at unchecked array index byte7; 05 needs >=7 bytes and consumes bytes1..4/6; 06 selects simple runtime mode; 03 is accepted only in active-mode equality path",
-      "response": "usually 3 bytes [cc,requested_mode,00], but mode 06 path returns 1 byte; C7 short mode-04/05 request, C9 unsupported mode, CE feature disabled",
-      "effect": "mutates runtime power-control state, persists/activates policy through FUN_00037680, and may clear active state on malformed mode-04/05 requests; mode 04 byte7 is unbounded index",
+      "request": "byte0 input mode 00 disables; 01/02 select simple policy; 03 only succeeds on an active-mode equality path; 04 needs >=8 bytes and uses bytes1/3/5/6 at unchecked seven-slot array index byte7; 05 needs >=7 bytes and consumes bytes1..4/6. Input 06 is rejected C9, though an internal mode-06 branch is reachable from input 05",
+      "response": "usually 3 bytes [00,requested_mode,00]; input 05's internal mode-06 branch returns 1 byte; C7 short mode-04/05 request, C9 unsupported mode, CE feature disabled. Config read/write and state-file helper results are ignored, so CC00 does not prove persistence",
+      "effect": "mutates runtime power-control state; FUN_00037454 loads current mode/parameter config and can write a 52-byte state file, while FUN_00037680 writes mode 0x1a00 and seven indexed parameter sets for mode 04 or five scalar records for mode 05; may clear active state on malformed mode-04/05 requests",
       "status": "partial",
       "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
       "source": "c0d0-handler-audit.json#0x34/0x20"
@@ -1126,8 +1128,8 @@
       "cmd": 33,
       "lun": 0,
       "request": ">=1 byte; byte0 policy index 0..6; trailing bytes ignored",
-      "response": "[00,mode] for stored config 0/1/2/6, or 8 bytes [00,mode,6 config bytes] for stored mode 4/5; stored mode4 is reported as mode3, stored mode5 as mode4, stored mode6 as mode5; C7 empty request, CC index>6, C9 unsupported stored mode, 80 config-read error, CE feature disabled",
-      "effect": "read stored power-control policy ID 0x1a00 and mode-specific parameter records selected by byte0",
+      "response": "[00,mode] for stored config 0/1/2/6, or 8 bytes [00,mode,6 config bytes] for stored mode 4/5; stored mode4 is reported as mode3, stored mode5 as mode4, stored mode6 as mode5; C7 empty request, CC index>6, C9 unsupported stored mode, 80 any config-read error, CE feature disabled",
+      "effect": "read persisted policy ID 0x1a00; stored mode 04 reads four records selected by requested index, with the final two-byte read overlapping response byte7 and writing byte8 beyond returned length; stored mode 05 reads four scalar records",
       "status": "partial",
       "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
       "source": "c0d0-handler-audit.json#0x34/0x21"
@@ -1247,8 +1249,8 @@
       "cmd": 56,
       "lun": 0,
       "request": "exactly 6 bytes [id_le16,sub_le16,page_le16]",
-      "response": "success 9..33 bytes [cc,id_le16,sub_le16,backend_meta_2,total_length_le16,page_data(0..24)]; cc 00 last page, CA more pages; CE disabled or page beyond length, C9 wrong request length, CB backend code 0x18, CC other backend/alloc failure",
-      "effect": "allocates parameter buffer, invokes spBackupiRMCParameter, returns page*24 slice of backed-up configuration parameter",
+      "response": "success 9..33 bytes [cc,id_le16,sub_le16,type_code,restore_restriction_flag,total_length_le16,page_data(0..24)]; type_code comes from table +0x0c (0 numeric, 1 or 2 other table classes); flag comes from +0x14 (0/1, with 1 rejecting ordinary restore); cc 00 last page, CA more pages; CE disabled or page beyond length, C9 wrong request length, CB backend code 0x18, CC other backend/alloc failure",
+      "effect": "allocates parameter buffer, invokes spBackupiRMCParameter, returns page*24 slice of backed-up configuration parameter. Backend searches a 92-record static table (ID 0 marker plus 91 distinct IDs), bounds-checks sub-ID against each record's exclusive limit, reads configuration or special parameter classes, and returns table type/restriction metadata. High-impact mapped IDs include 0x1452 user password, 0x197a LDAP auth password, 0x1273 SMTP auth password, 0x1981 SSL private key, 0x1982/0x1983 certificates, 0x1440-0x1442 network addresses, and 0xffff local encryption parameter; actual secret contents may depend on the configuration provider. Allocator gives 257 bytes normally, 1537 for key ID 0x1981, and 2561 for certificate IDs 0x1982/0x1983, smaller than their table-declared maxima",
       "status": "partial",
       "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
       "source": "c0d0-handler-audit.json#0x34/0x38"
@@ -1259,7 +1261,7 @@
       "lun": 0,
       "request": ">=8 bytes [id_le16,sub_le16,page_le16,total_le16,data...]; total<=24 calls backend directly with total bytes; larger total stages pages of 24 bytes (up to five concurrent staging slots), final page copies remaining total-page*24 bytes then commits",
       "response": "[cc]: 00 page staged/restore succeeded, C9 invalid page/sequence or exactly 8-byte request, FF buffer allocation/backend failure, CE feature disabled",
-      "effect": "stages and commits parameter restoration via spRestoreiRMCParameter; page 0 allocates total+1 and copies 24 bytes regardless supplied payload length; direct short-total path similarly passes request+8 without validating remaining data",
+      "effect": "stages and commits parameter restoration via spRestoreiRMCParameter; page 0 allocates total+1 and copies 24 bytes regardless supplied payload length; direct short-total path similarly passes request+8 without validating remaining data. Backend uses the same 92-record ID table, rejects sub-ID at or above a record's exclusive limit, rejects values longer than record maximum (or >4 bytes for type 0), converts type-0 negative 32-bit values to their declared 1/2-byte width, and writes via WriteConfigurationSpace with table-dependent sub-ID adjustment or IP-address text-to-binary conversion. The table's +0x14 restriction flag blocks restore for flagged IDs except 0xffff; flagged ordinary IDs include user, LDAP, and SMTP passwords",
       "status": "partial",
       "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
       "source": "c0d0-handler-audit.json#0x34/0x39"
@@ -2077,15 +2079,15 @@
       "privilege": 4,
       "request": {
         "accepted_total_bytes": 7,
-        "fields": "byte4 history kind (0,1,2), bytes5-6 index LE; kind 0 maps helper kind 3"
+        "fields": "byte4 history kind 0/1/2, bytes5-6 sample index LE16. Kind 0 maps helper ring 3 with index <0x5a1; kind 1 maps ring 1 with index <0x2e9; kind 2 maps ring 2 with index <= runtime max and helper bound"
       },
       "response": {
         "success_total_bytes": 17,
-        "fields": "byte4 length=12, bytes5-16 three 32-bit history values"
+        "fields": "byte4 length=12; bytes5-16 encoded cached sample: LE32 record field at offsets 0..3, LE16 at 4..5, LE16 at 6..7 with source bit14 cleared and bit15 preserved, then LE16 fields at 8..9 and 10..11. Physical units and producer are not proved"
       },
-      "effect": "read",
-      "status": "partial",
-      "activation": "isPowerHistorySupported; kind/index bounds; getPowerHistoryData",
+      "effect": "read of mutex-protected cached history ring; not a direct PSU measurement",
+      "status": "decoded",
+      "activation": "isPowerHistorySupported; libfts_util historyReadData uses three 14-byte-stride rings and copies 12 encoded bytes",
       "source": "scci-selector-contracts.json#09/40",
       "runnable": true,
       "requiresUnsafe": true,
@@ -2165,12 +2167,12 @@
         "fields": "byte4 subindex, bytes5-6 variable ID little-endian"
       },
       "response": {
-        "success_total_bytes": "5+returned length, except special variable 0x2300 path may differ",
+        "success_total_bytes": "5+returned length on ordinary path; blade callback can emit a separate response and cause this handler to return length zero",
         "fields": "byte4 returned length; bytes5.. value"
       },
       "effect": "read",
       "status": "partial",
-      "activation": "utBladeGetScheduleOnOffTime may intercept; ReadConfigurationSpaceExt; UDS session changes helper flag",
+      "activation": "utBladeGetScheduleOnOffTime intercepts only variable IDs 0xa0/0xa1 with subindex 0..6 when callback at util context +0x38 exists; a callback return of zero makes this handler return no response. Otherwise ReadConfigurationSpaceExt; UDS session changes helper flag",
       "source": "scci-selector-contracts.json#e0/01",
       "runnable": true,
       "requiresUnsafe": true,
@@ -2190,15 +2192,16 @@
       "privilege": 4,
       "request": {
         "accepted_total_bytes": "8+byte7 length (zero length is accepted by visible guard)",
+        "minimum_read_bytes": "10 for blade schedule variable IDs 0xa0/0xa1 and subindex 0..6; helper reads two payload bytes even when declared length is zero or one",
         "fields": "byte4 subindex, bytes5-6 variable ID LE, byte7 length, bytes8.. data"
       },
       "response": {
-        "success_total_bytes": 4,
-        "fields": "no body"
+        "success_total_bytes": "4 on ordinary path; blade callback can emit a separate response and cause this handler to return length zero",
+        "fields": "no ordinary-path body; blade callback response unresolved"
       },
-      "effect": "mutating",
-      "status": "decoded",
-      "activation": "utBladeSetScheduleOnOffTime may intercept; WriteConfigurationSpaceExt; variable DAT_00034dbc rejected",
+      "effect": "mutating; blade schedule helper may read beyond short accepted payload",
+      "status": "partial",
+      "activation": "utBladeSetScheduleOnOffTime intercepts only variable IDs 0xa0/0xa1 with subindex 0..6 when callback at util context +0x38 exists; otherwise WriteConfigurationSpaceExt. Variable DAT_00034dbc rejected",
       "source": "scci-selector-contracts.json#e0/02",
       "runnable": true,
       "requiresUnsafe": true,
@@ -2303,16 +2306,16 @@
       "privilege": 4,
       "request": {
         "accepted_total_bytes": ">11 by actual guard; coherent wire format needs at least 13 plus chunk, but no safe lower-bound or declared-total check is proved",
-        "minimum_read_bytes": 13,
+        "minimum_read_bytes": "13 for chunk header; 15 when blade schedule helper intercepts variable IDs 0xa0/0xa1, because it reads two bytes at chunk start regardless of chunk length",
         "fields": "byte4 version=1, byte5 subindex, bytes6-7 variable ID LE, byte8=0, bytes9-10 total size LE, bytes11-12 offset LE, bytes13.. chunk. A 12-byte request passes the guard but computes unsigned chunk length total-13 = 0xffffffff before memcpy"
       },
       "response": {
-        "success_total_bytes": 4,
-        "fields": "no body; error path may append helper bytes"
+        "success_total_bytes": "4 on ordinary path; blade callback may return a separate response and cause this handler to return length zero",
+        "fields": "no ordinary-path body; error path may append helper bytes; callback response unresolved"
       },
-      "effect": "mutating; malformed short requests can trigger oversized cache copy before final write",
+      "effect": "mutating; malformed short requests can trigger oversized cache copy before final write or blade helper out-of-bounds read",
       "status": "partial",
-      "activation": "WriteConfigurationSpaceExt on final chunk; per-session chunk cache; UDS session flag; no live malformed-length probe",
+      "activation": "utBladeSetScheduleOnOffTime intercepts IDs 0xa0/0xa1 with subindex 0..6 when callback registered; otherwise WriteConfigurationSpaceExt on final chunk. Per-session chunk cache and UDS session flag; no live malformed-length probe",
       "source": "scci-selector-contracts.json#e0/08",
       "runnable": true,
       "requiresUnsafe": true,
@@ -2335,12 +2338,12 @@
         "fields": "byte4 subindex, bytes5-6 variable ID LE"
       },
       "response": {
-        "success_total_bytes": "5+returned length; special 0x2300 path differs",
+        "success_total_bytes": "5+returned length on ordinary path; blade callback can emit a separate response and cause this handler to return length zero",
         "fields": "byte4 length, bytes5.. default value"
       },
       "effect": "read",
       "status": "partial",
-      "activation": "ConfigurationSpaceStatus(5,...), utBladeGetScheduleOnOffTime may intercept, ReadConfigurationSpaceDefaultExt",
+      "activation": "ConfigurationSpaceStatus(5,...); utBladeGetScheduleOnOffTime intercepts only variable IDs 0xa0/0xa1 with subindex 0..6 when callback at util context +0x38 exists; callback zero return makes handler return no response; otherwise ReadConfigurationSpaceDefaultExt",
       "source": "scci-selector-contracts.json#e0/09",
       "runnable": true,
       "requiresUnsafe": true,
@@ -2652,11 +2655,11 @@
         "payload": "16-byte system GUID at bytes 4..19"
       },
       "response": {
-        "success_total_bytes": null,
-        "payload": null
+        "success_total_bytes": 4,
+        "payload": "none"
       },
       "effect": "mutating",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/11",
       "runnable": true,
@@ -3697,10 +3700,10 @@
       },
       "response": {
         "success_total_bytes": null,
-        "payload": null
+        "payload": "none; no CC00 branch in this leaf"
       },
       "effect": "mutating",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/40",
       "runnable": true,
@@ -3783,8 +3786,8 @@
         "payload": "byte 5 selects the PCIe AIC; byte 4 is not consumed in the traced branch"
       },
       "response": {
-        "success_total_bytes": null,
-        "payload": null
+        "success_total_bytes": "8+name length in normal path; upper bound unproved",
+        "payload": "connectivity byte, form-factor byte, bifurcation byte, name length byte, then name bytes (?Unknown? fallback)"
       },
       "effect": "read",
       "status": "partial",
@@ -4388,15 +4391,15 @@
       "privilege": 4,
       "request": {
         "shared_minimum_total_bytes": 4,
-        "selector_specific_length": "at least 5",
-        "payload": "all bytes from offset 4 onward passed intact to ftsCpuS3mSet with length (request length - 4)"
+        "selector_specific_length": "5+9*N bytes, N=1..8 (14..77 total)",
+        "payload": "version byte 0, followed by N records of slot index 0..7 and two little-endian 32-bit values"
       },
       "response": {
         "success_total_bytes": 4,
         "payload": "none"
       },
       "effect": "mutating",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/6a",
       "runnable": true,
@@ -4421,11 +4424,11 @@
         "payload": "none"
       },
       "response": {
-        "success_total_bytes": null,
-        "payload": null
+        "success_total_bytes": "5+9*N, N=0..8 (5..77 total)",
+        "payload": "version byte 0, followed by each present slot index 0..7 and two little-endian 32-bit values"
       },
       "effect": "read",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/6b",
       "runnable": true,
@@ -4541,7 +4544,7 @@
         "payload": "none"
       },
       "effect": "mutating",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/d3",
       "runnable": true,
@@ -5230,13 +5233,13 @@
       "request": {
         "prefix_hex": "8028000b",
         "length_check_at_entry": "not established at entry",
-        "payload": "nested flash selector at offset4; five-byte form with 0x80 starts BIOS TFTP flash, six-byte form has additional flash-control flags"
+        "payload": "If prerequisite shared flag is 1: exact total length 5 chooses byte-4 flash selector; byte4=0x80 initiates BIOS TFTP flash, while other byte-4 values 0x00..0x05 or 0xff can queue ordinary TFTP firmware update (other values rejected by StartTFTPFWUpdate). Exact total length 6 reads byte4 and flags byte5; byte4=0x81 takes examineFlashParameter; otherwise byte5 bit4 must be set, then low bits feed FlashOverHTI. Other lengths reject."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "branch-specific; backend-generated status"
+        "body": "Completion-only immediate reply. The success reply acknowledges scheduling/starting update work, not completed flashing; backend status/progress is separate."
       },
-      "effect": "can start BIOS/TFTP firmware update or modify flash override state",
+      "effect": "HIGH RISK: length-5 non-0x80 path reads configured TFTP server/file, sets firmware configuration and enqueues firmware upload via PostPendTask; length-5 0x80 path reads BIOS TFTP settings and creates detached pthTftpBiosFlash worker; length-6 HTI path prepares flash area, creates detached iRMCFWVerifyFlashThread_HTI worker, and can verify and start image flashing. tflashSetOverride updates per-selector shared override state.",
       "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/0b",
@@ -6390,7 +6393,7 @@
       "request": {
         "prefix_hex": "80280070",
         "length_check_at_entry": "cmp\tr6, #9",
-        "payload": "total request length >=10. Bytes 4-5 are little-endian SEL record ID; byte 6 must be 0x02 when the linked global flag at +0x70 is zero; bytes 7-8 are a little-endian field and byte 9 is another field. Later decoding path remains unresolved."
+        "payload": "total request length >=10. Bytes 4-5 are little-endian SEL record ID; byte 6 must be 0x02 when the linked global flag at +0x70 is zero; bytes 7-8 are a little-endian field and byte 9 is another field. GetSelRecordFromId constructs a 6-byte GetSELEntry request with reservation 0, this record ID, and offset 0xff00; on success it obtains a 16-byte SEL record and next-record ID. The later error-decoding fields remain unresolved."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
@@ -6419,14 +6422,14 @@
       "request": {
         "prefix_hex": "80280071",
         "length_check_at_entry": "cmp\tr6, #4",
-        "payload": "total request length >=5. Byte 4 is the text-cache entry selector."
+        "payload": "total request length >=5. Byte 4 is the one-byte text-cache entry ID. Additional request bytes are ignored by this handler."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "Calls istTextCacheRead(selector, 0, response+7, 50, output-struct, -1). On success response offsets 4-5 contain little-endian total text length, offset 6 chunk length, and offset 7+ returned text bytes; body length = 3 + chunk length. Exact cache namespace and content are backend-defined."
+        "body": "After istTextCacheRead copies up to 50 bytes from the entry's current cursor, response offsets 4-5 contain little-endian bytes remaining (not total text length), offset 6 is copied chunk length, and offsets 7+ are the chunk bytes. Body length is 3 + copied chunk length."
       },
-      "effect": "reads cached text and calls istTextCacheDelete(selector,-1) when reported total text length is zero; therefore not a pure read",
-      "status": "partial",
+      "effect": "stateful text-cache read: advances the cache entry's read cursor and refreshes its access timestamp; if no bytes remain after a nonempty chunk, calls istTextCacheDelete(entry ID,-1) to unlink that entry",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/71",
       "runnable": true,
@@ -6448,7 +6451,7 @@
       "request": {
         "prefix_hex": "80280072",
         "length_check_at_entry": "cmp\tr6, #6",
-        "payload": "total request length >=7. Byte 4 must equal 0x02 when linked global flag at +0x70 is zero; bytes 5-6 are little-endian SEL record ID."
+        "payload": "total request length >=7. Byte 4 must equal 0x02 when linked global flag at +0x70 is zero; bytes 5-6 are little-endian SEL record ID. GetSelRecordFromId constructs a 6-byte GetSELEntry request with reservation 0, this ID, and offset 0xff00; on success it obtains the next-record ID and 16-byte SEL record."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
@@ -6477,13 +6480,13 @@
       "request": {
         "prefix_hex": "80280073",
         "length_check_at_entry": "cmp\tr6, #13",
-        "payload": "at least 10 bytes after selector (total length >13); includes 32-bit event identifier at offsets4-7, additional fields through offset13"
+        "payload": "total request length >=14. Bytes 4-7 are a little-endian 32-bit error/event identifier; bytes 8-9 form a little-endian 16-bit field; byte 10 is a type/mode field (0x02 is specially gated by linked global flag); bytes 11-12 form another little-endian 16-bit field; byte 13 is an additional field. Exact parameter semantics still depend on the text-generator backend."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "text-cache/error-code text; exact framing and branches unresolved"
+        "body": "A cache-hit branch reads up to 50 text bytes using istTextCacheRead and responds with two-byte length at offsets 4-5, chunk length at offset 6, and chunk bytes at offset 7+; it deletes the cache entry when exhausted. Miss branch generates text via istGetTextFromErrorcode; its wire packing and other branches remain unresolved."
       },
-      "effect": "none proved; calls istGetTextCacheReqId and istGetTextFromErrorcode",
+      "effect": "looks up cached generated error text, refreshes cache entry timestamp and may consume/delete it; cache miss invokes text generation from error-code metadata",
       "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/73",
@@ -6709,13 +6712,13 @@
       "request": {
         "prefix_hex": "80280085",
         "length_check_at_entry": "cmp\tr6, #11",
-        "payload": "total request length >=12. Bytes 4-5, 6-7 and 8-9 are three little-endian 16-bit fields; bytes 10 and 11 are single-byte fields; bytes 12+ are a variable event payload. The exact field meanings and backend limits remain unresolved."
+        "payload": "total request length >=12. Bytes 4-5 supply a 16-bit field to iELAddEntry arg1; bytes 6-7 supply a signed 16-bit value whose low byte becomes arg0; bytes 8-9 initialize the in/out 16-bit entry-ID slot. Bytes 10 and 11 are flag bytes; bytes 12+ are the event payload and its byte count is arg2. Exact semantic names of the 16-bit fields are not proved."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
         "body": "On iELAddEntry success returns little-endian created entry ID in response offsets 4-5; error response contains no proved data body."
       },
-      "effect": "adds an iEL entry through iELAddEntry (persistent event-log mutation)",
+      "effect": "persistent iEL add request: iELAddEntry validates the in/out pointer and requires a payload pointer only when payload length is nonzero, builds a timestamped IPC message, sends it to the iEL daemon with sigwrap_msgsnd, waits for iELgetResponse, and returns the daemon-created entry ID on success; failure can occur before storage",
       "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/85",
@@ -6738,13 +6741,13 @@
       "request": {
         "prefix_hex": "80280086",
         "length_check_at_entry": "cmp\tr6, #17",
-        "payload": "total request length >=18. Bytes 4-17 are copied as a 14-byte SEL record and supplied to iELAddEntryFromSelData."
+        "payload": "total request length >=18. Bytes 4-17 are a 14-byte SEL record; iELAddEntryFromSelData first derives an error code using istGetErrorCodeOnlyFromSEL, chooses an event-data layout according to record byte 2, and passes the normalized payload to the same timestamped IPC add-entry path as selector 85."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
         "body": "On helper success returns little-endian created iEL entry ID at response offsets 4-5; backend failure packing is shared with selector 85."
       },
-      "effect": "adds an iEL entry derived from SEL data (persistent event-log mutation)",
+      "effect": "persistent iEL add request derived from supplied SEL record; the provider decodes the SEL error, sends a timestamped IPC message to the iEL daemon, waits for acknowledgement and returns the created entry ID on success",
       "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/86",
@@ -6767,14 +6770,14 @@
       "request": {
         "prefix_hex": "80280087",
         "length_check_at_entry": "cmp\tr6, #4",
-        "payload": "total request length >=5. Byte 4=0x80 invokes clear-all. Byte 4=0x00 requires total length >=7 and uses bytes 5-6 as a little-endian entry ID for clear-one. Other byte-4 values route to utLogUserInfoiEL then return an error."
+        "payload": "total request length >=5. Byte 4=0x80 invokes clear-all with any length >=5. Byte 4=0x00 requires total length >=7 and treats bytes 5-6 as little-endian entry ID for clear-one. Other byte-4 values are invalid, but call utLogUserInfoiEL(0xc7,session) before returning 0xce."
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "No data body proved; completion-only reply on clear helper result."
+        "body": "Completion-only response (no data body)."
       },
-      "effect": "DESTRUCTIVE: byte 4=0x80 calls iELclearAllEntries; byte 4=0 calls iELclearEntry for one ID. Other modes invoke utLogUserInfoiEL before returning 0xce.",
-      "status": "partial",
+      "effect": "byte 4=0x80 sends an iEL clear-all IPC message (opcode 4), waits for the daemon response and sends a notification on success. Byte 4=0x00 calls iELclearEntry, but this provider's implementation is a stub returning 12, so individual deletion is not performed in this firmware. Invalid modes log user info.",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/87",
       "runnable": true,
@@ -6916,9 +6919,9 @@
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "For mode 0, successful getNvmeData returns 45 body bytes (total reply length 49): data drawn from backend offsets +39, +40..41, +44..63 (20 bytes), +12..27 (16 bytes), +36..38 (3 bytes), with some additional packing. Mode-1 response is unresolved."
+        "body": "Mode 0 succeeds with exactly 45 body bytes (total reply length 49): offset 4 = backend struct byte +39; offsets 5-7 = zero; offsets 8-9 = backend little-endian field +40; offsets 10-29 = 20 bytes from +44; offsets 30-45 = 16 bytes from +12; offsets 46-48 = bytes +36..38. Mode 1 uses InterfaceControl(0x80000002,0x80000000) to acquire a callback, calls it with operation 2 and an 8-byte argument structure containing the NVMe index, and on success returns 3 callback output bytes at offsets 4-6; callback and InterfaceControl failure return 0xcb. Callback semantics remain unresolved."
       },
-      "effect": "mode 0 reads NVMe data; mode 1 invokes InterfaceControl and may mutate interface state, exact effect unresolved",
+      "effect": "mode 0 reads NVMe monitor state through getNvmeData/getNvmeMonitorData; mode 1 queries an InterfaceControl callback but terminal semantics and possible side effects are unresolved",
       "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/8d",
@@ -8050,7 +8053,7 @@
       },
       "effect": "mutating",
       "status": "partial",
-      "activation": "blade system, DAT_0003da90 != 0, InterfaceControl(0x80000002,0x80000002,1) available",
+      "activation": "blade system, DAT_0003da90 != 0; InterfaceControl(0x80000002,0x80000002,1) resolves via libfts_if fts_hal_get_interface_control to a registered HAL callback at interface state +0x18, only when enabled byte +0x10 is nonzero; callback operation 7 remains unproved",
       "source": "scci-selector-contracts.json#f8/20",
       "runnable": true,
       "requiresUnsafe": true,
@@ -8079,7 +8082,7 @@
       },
       "effect": "read",
       "status": "partial",
-      "activation": "blade system, DAT_0003da90 != 0, InterfaceControl available",
+      "activation": "blade system, DAT_0003da90 != 0; InterfaceControl resolves via libfts_if fts_hal_get_interface_control to registered HAL callback at interface state +0x18 when enabled byte +0x10 is nonzero; callback operation 7 remains unproved",
       "source": "scci-selector-contracts.json#f8/21",
       "runnable": true,
       "requiresUnsafe": true,

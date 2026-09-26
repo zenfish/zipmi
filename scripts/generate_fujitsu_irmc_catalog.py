@@ -35,10 +35,14 @@ def build(source: Path) -> dict:
         "f1": evidence / "f1-selector-contracts.json",
         "f5": evidence / "f5-selector-contracts.json",
         "scci": evidence / "scci-selector-contracts.json",
+        "e004": evidence / "e0-04-maintenance-subcommands.json",
+        "backup": evidence / "backup-restore-parameter-table.json",
         "c0d0": evidence / "c0d0-handler-audit.json",
         "standard": evidence / "standard-overrides.json",
     }
     data = {key: load(path) for key, path in files.items()}
+    assert len(data["e004"]["subcommands"]) == 50
+    assert len(data["backup"]["records"]) == 92
     with (evidence / "irmc-s6-command-tables.tsv").open(newline="") as stream:
         table = [row for row in csv.DictReader(stream, delimiter="\t")
                  if row["table"] and not row["table"].startswith("#")

@@ -68,6 +68,9 @@ def test_generated_html_contains_every_exact_operation():
     assert reference.count("<td class='p-2 font-mono'>0x") == 462 + 187
     assert "462 operations across 187 command pairs" in reference
     assert "structured fixed-width codecs for 81 operations" in reference
+    assert "462</strong><div>handler-proven operations" in reference
+    assert "381 remain raw-exact" in reference
+    assert "33</strong><div>live-backed operations" in reference
     assert "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2" in reference
 
 
