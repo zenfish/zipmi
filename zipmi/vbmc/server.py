@@ -400,15 +400,25 @@ class VBMC(asyncio.DatagramProtocol):
         return [self._wrap_outside_session(0x15, bytes(r4))]
 
     def _handle_in_session(self, pkt, sess: IPMI20_Session) -> list[bytes]:
+        raw_layer = sess.getlayer(Raw)
+        if raw_layer is None:
+            return []
+        body = bytes(raw_layer.load)[: sess.payload_length]
+        if sess.session_id == 0:
+            # Get Channel Cipher Suites is the one IPMI payload this vBMC
+            # accepts in an RMCP+ wrapper before session establishment.
+            if len(body) < 7 or ((body[1] >> 2) & 0x3F, body[5]) != (0x06, 0x54):
+                return []
+            response = _ipmb_resp(
+                body[0], (body[4] >> 2) & 0x3F, body[4] & 3, body[3],
+                0x06, 0x54, 0, bytes([body[6] & 0x0F, 0xC0, 0x03, 0x01, 0x41, 0x81]),
+            )
+            return [self._wrap_outside_session(0x00, response)]
         s20 = self.state.sessions_20.get(sess.session_id)
         if s20 is None:
             return []
         cs = CIPHER_SUITES.get(s20.cipher_id, CIPHER_SUITES[0])
         # Decrypt body.
-        raw_layer = sess.getlayer(Raw)
-        if raw_layer is None:
-            return []
-        body = bytes(raw_layer.load)[: sess.payload_length]
         if sess.encrypted and cs.conf_alg == 1:
             ipmb_bytes = aes_decrypt(s20.k2, body)
         elif sess.encrypted and cs.conf_alg in (2, 3):
