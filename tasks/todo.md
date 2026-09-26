@@ -27,6 +27,12 @@ same as the ASMB787 column just added.
 - Corrected the swapped privilege/request-length interpretation and withdrew the false ASMB unauthenticated/backdoor claims. YAFU no longer advertises universal availability or privilege.
 - Proof: generator sync check passed; focused OEM/CLI suite passed (18 tests); repository doc sync passed after refreshing generated statistics.
 
+## Review — OEM coverage table and 0.3.3 version (2026-09-25)
+
+- Replaced the stale zero-command OEM summary with the live 2,176-command vendor inventory while retaining the useful iDRAC6 NetFn breakdown.
+- Extended the existing stats updater and doc-sync gate to cover both aggregate markers and every vendor row.
+- Bumped the single package-version source from 0.3.2 to 0.3.3; verification recorded in the commit handoff.
+
 ---
 
 # Task: OpenBMC support for zipmi (2026-06-12)
