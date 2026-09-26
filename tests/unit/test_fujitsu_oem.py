@@ -39,10 +39,14 @@ def test_irmc_named_execution_is_fail_closed_without_wire_contract(capsys) -> No
     listing = _vendor_listing("fujitsu")
     assert len(listing) == 367
     assert listing[(0x2E, 0x01, 0x80, 0x28, 0x00, 0x15)]["requires_unsafe"] is False
+    nvram = listing[(0x2E, 0xE0, 0x80, 0x28, 0x00, 0x04)]
+    assert nvram["requires_unsafe"] is True
+    assert "IDPROM" in nvram["security"]
     assert "page_size" in listing[(0x34, 0x46)]["request"].lower()
     assert "host power" in listing[(0x00, 0x02)]["security"].lower()
     assert listing[(0x2E, 0xF1)]["runnable"] is False
     assert listing[(0x2C, 0x02, 0x52, 0xA5)]["runnable"] is False
+    assert "any other selector" in listing[(0x2C, 0x02, 0x52, 0xA5)]["request"]
     assert _cmd_oem_help("fujitsu", listing[(0x2C, 0x02, 0x52, 0xA5)]["name"]) == 0
     help_text = capsys.readouterr().out
     assert "not runnable over LAN" in help_text
