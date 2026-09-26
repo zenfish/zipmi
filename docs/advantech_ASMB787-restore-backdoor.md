@@ -1,8 +1,9 @@
 # ASMB-787 — `raw 0x32 0x66` restore-defaults: full execution chain
 
-What actually happens when the ASUS-style factory-reset command hits the
-Advantech ASMB-787 BMC (AMI MegaRAC SP-X 4.0 / AST2600). Traced statically in
-Ghidra + the unpacked rootfs.
+> **Superseded/corrected:** the former “backdoor” and unauthenticated-reachability conclusion came from swapped dispatch fields. The command is Administrator (`0x04`) with a zero-byte dispatcher constraint. Use the corrected [HTML note](advantech_ASMB787-restore-factory-defaults.html) and [canonical CSV](../zipmi/data/sources/advantech-asmb787-oem-dispatch.csv).
+
+Evidence around the factory-reset command in the Advantech ASMB-787 BMC
+(AMI MegaRAC SP-X 4.0 / AST2600), from static analysis and vBMC observations.
 
 ```
 ipmitool raw 0x32 0x66            NetFn 0x32 (g_AMI), Cmd 0x66
@@ -10,7 +11,7 @@ ipmitool raw 0x32 0x66            NetFn 0x32 (g_AMI), Cmd 0x66
         ▼
 [1] dispatch gate      FUN_0002b0f0 (libipmimsghndlr.so)
         │  GetMsgHndlrMap(0x32) → g_AMI table ; GetCmdHndlr(0x66) → entry
-        │  entry.Priv (+8) == 0x00  → not 0xff, compared to session priv
+        │  entry.Priv (+1) == 0x04  → Administrator required
         │  priv OK → call entry.Handler (+4) as a direct C call
         ▼
 [2] handler            AMIRestoreDefaults @ 0x3c150 (libipmimsghndlr.so)
@@ -18,8 +19,8 @@ ipmitool raw 0x32 0x66            NetFn 0x32 (g_AMI), Cmd 0x66
         │  PostPendTask(0x3f, 0, 0, priv&0xf, channel)
         │  *cc = 0x00   ← returns SUCCESS immediately (async)
         ▼
-[3] pending-task worker (task id 0x3f, libipmimsghndlr.so — imports popen + execv)
-        │  runs the restore script on the BMC Linux OS
+[3] pending-task path (task id 0x3f; exact script call site not recovered)
+        │  firmware also contains the restore script and exec imports
         ▼
 [4] /etc/restoredefaults.sh restore
              rm -rf /conf/*
@@ -33,8 +34,7 @@ dispatch loop `FUN_0002b0f0`:
 
 ```c
 // local_30 = matched CmdHndlr_T entry
-if ((*(byte *)(local_30 + 8) != 0xff) &&                    // entry.Priv, sentinel check
-   ((uint)*(byte *)(local_30 + 8) != *(uint *)(param_1 + 0x68))) {
+if (/* corrected dispatch privilege at local_30 + 1 is insufficient */) {
     *cc = 0xC7; return;                                     // priv mismatch
 }
 ...
@@ -43,16 +43,9 @@ if ((*(byte *)(local_30 + 8) != 0xff) &&                    // entry.Priv, senti
 iVar5 = (**(code **)(local_30 + 4))(...);                   // call entry.Handler (+4)
 ```
 
-Two facts fall out, and both were open questions until now:
-
-- **`0xff` is a real sentinel.** The gate literally tests `entry.Priv != 0xff`
-  *before* comparing. A `0xff` priv byte **skips the dispatcher check** and lets
-  the handler self-enforce (this is why `AMIResetPassword`/`AMISetRootPassword`
-  carry `0xff`). It is not "requires impossibly-high privilege."
-- **`0x00` has no floor.** `AMIRestoreDefaults` carries `Priv = 0x00`, so it
-  passes the gate at the lowest privilege. On the **KCS / system interface**
-  (host-side, no session, no RMCP+ auth) a local OS-admin issues it with **zero
-  BMC credentials** — the ASUS "run as administrator" note.
+The corrected registration entry carries privilege `0x04` (Administrator) at
+offset +1 and request length `0x00` at offset +8. The old analysis reversed
+those meanings and does not establish an authentication bypass on KCS or LAN.
 
 The handler is invoked as a **direct C function pointer** (`entry+4`) inside the
 IPMI daemon. Nothing is exec'd *at dispatch time*.
@@ -78,11 +71,10 @@ the wipe runs asynchronously as pending task **0x3f**.
 ## [3]–[4] The async task runs a root shell script
 
 `libipmimsghndlr.so` imports **`popen`** and **`execv`** and carries the string
-`restoredefaults.sh` (@ `0x9b184`) plus `/conf` in its `.rodata`. The task-0x3f
-worker uses them to run the script below. (The exact call site is obscured by
-PIC/GOT indirection in the stripped binary, but the script name + the exec
-imports + the shim's `PostPendTask(0x3f)` live in this one library and nowhere
-else.)
+`restoredefaults.sh` (@ `0x9b184`) plus `/conf` in its `.rodata`. These facts
+support a likely link to pending task 0x3f, but the exact call site is obscured
+by PIC/GOT indirection and was not recovered. The script behavior below is
+independently established; the command-to-script edge remains inferred.
 
 ### The script — two copies on the BMC filesystem
 
@@ -129,9 +121,9 @@ identity and security state:
 - **Services / policy:** `snmpcfg.conf`, `ntp.conf`, `dcmi.conf`, `hpm.conf`,
   `rsyslog.conf`, `hosts.allow` / `hosts.deny`, SDR data
 
-So `raw 0x32 0x66` is a **full factory wipe of users, passwords, network, and
-service config** — reverting the BMC to shipped defaults (default creds, DHCP,
-etc.), executed as **root via a shell script** on the BMC OS.
+The script is a **full factory wipe of users, passwords, network, and service
+config** when its guard permits execution. The vBMC command path did not reach
+that wipe, so end-to-end command-to-wipe execution is not dynamically proved.
 
 ### Preserve-configuration caveat
 
@@ -140,17 +132,18 @@ MegaRAC has a "preserve configuration" feature (`PreserveFlag`,
 `preservecfg` binary) that can exempt selected `/conf` domains from the wipe.
 The bare `restoredefaults.sh restore` shown above is unconditional; whether the
 task-0x3f path consults the preserve mask first is the one open detail. Either
-way the command is reachable at `Priv = 0x00`.
+way the command remains destructive when its operational preconditions hold.
+Its corrected dispatch entry requires Administrator privilege.
 
 ## Bottom line
 
 | Question | Answer |
 |----------|--------|
-| Reachable unauthenticated? | Yes on KCS/host-side (`Priv=0x00`, `iface=all`). LAN still needs a session; floor is 0. |
+| Reachable unauthenticated? | Not established. The corrected entry requires Administrator (`0x04`); LAN requires an Administrator session. |
 | Does it run a script on the BMC OS? | **Yes** — `/etc/restoredefaults.sh restore`, as root. |
 | What does the script do? | `rm -rf /conf/*` then `cp -Rp /etc/defconfig/* /conf`. |
 | Blocking? | No — handler returns CC 0x00 immediately; reset runs as async task 0x3f. |
-| Advantech-specific? | No — `g_AMI`/`AMIRestoreDefaults` is stock AMI MegaRAC (cross-vendor lineage analysis in the author's private research library); expected AMI-wide. |
+| Advantech-specific? | This result is bound to the ASMB-787 firmware. Other AMI products require their own dispatch evidence. |
 
 ## Dynamic confirmation (live vBMC, 2026-08-14)
 
@@ -167,9 +160,10 @@ Observed, in order:
 
 1. **CC 0x00 returned instantly** — confirms the async shim: the handler
    answers success before any reset happens.
-2. **Task 0x3f fired a full re-provision storm** — redis, stunnel, and the VM
+2. **A full re-provision storm followed** — redis, stunnel, and the VM
    app restarted; config services re-read `/conf`; the serial session was reset
-   to a `login:` prompt. The restore pathway definitively executed.
+   to a `login:` prompt. This is consistent with the pending-task pathway, but
+   no process trace directly tied the storm to `restoredefaults.sh`.
 3. **The `rm -rf /conf/*` did NOT run over the IPMI path.** `/conf` stayed at
    102 entries, the sentinel survived. Cause, confirmed on the box:
 
@@ -203,16 +197,14 @@ Observed, in order:
    `mtdflash-run.bin`): `/conf` back to 101, root login OK, IPMI `Get Device ID`
    answers again.
 
-**Takeaways.** The command is accepted and returns success async (verified). The
-destructive `rm -rf /conf/*` is real (verified) but sits behind a
-`flasher.initcomplete` safety that only a fully-flashed/operational unit
-satisfies — on production hardware that marker exists, so the IPMI path wipes;
-on a half-provisioned box it is skipped. Worth checking on real hardware whether
-that guard is the only thing standing between `raw 0x32 0x66` and a live wipe.
+**Takeaways.** The command is accepted and returns success asynchronously on
+the vBMC. The destructive script behavior is independently verified, but the
+vBMC command path skipped the wipe because the marker was absent. Production
+marker state and end-to-end command-to-wipe behavior remain untested.
 
 ## Provenance
 
 - Binary: `usr/local/lib/libipmimsghndlr.so.13.22.0` (ARM32, stripped-ish, AMI MegaRAC SP-X 4.0)
 - Ghidra project `asmb787`; functions `FUN_0002b0f0` (gate), `AMIRestoreDefaults` @ `0x3c150`
 - Scripts: `/etc/restoredefaults.sh`, `/usr/local/lib/restoredefaults.sh` in the unpacked rootfs
-- Full command/priv catalog: [advantech_ASMB787-command-table.md](advantech_ASMB787-command-table.md)
+- Canonical command/privilege catalog: [advantech_ASMB787-command-reference.html](advantech_ASMB787-command-reference.html)

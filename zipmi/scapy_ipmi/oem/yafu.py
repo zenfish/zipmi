@@ -1,13 +1,10 @@
 """zipmi.scapy_ipmi.oem.yafu — AMI YAFU flash + memory protocol (NetFn 0x32).
 
 WHAT     YAFU is AMI's "Yet Another Firmware Updater" IPMI protocol, the
-         firmware-flash and BMC-side memory R/W command family that ships in
-         every AMI-derived BMC stack (MegaRAC SP-X, Supermicro X10-X13,
-         Advantech ASMB, HPE/HPE XD670, Quanta / GIGABYTE MegaRAC relabels).
-         NOT a per-vendor OEM set — it's a *shared protocol family*, source-
-         compiled from `links/libipmi/data/libipmi_AMIOEM.c` (path leaked in
-         debug strings of every vendor's libipmi.so). Same NetFn + cmd bytes
-         across every AMI-lineage BMC.
+         firmware-flash and BMC-side memory R/W command family observed in
+         several AMI-derived BMC stacks. It is a shared protocol family, but
+         command presence, request layout, privilege, and activation vary by
+         product and firmware. Use a target-specific catalog when available.
 
 WIRE     NetFn 0x32. Cmd block 0x01–0x60 = YAFU proper (info / mode / flash-I/O
          / memory / boot / device-mgmt). Cmds 0x66–0xEF = privileged AMI OEM
@@ -15,8 +12,9 @@ WIRE     NetFn 0x32. Cmd block 0x01–0x60 = YAFU proper (info / mode / flash-I/
          fwupdate, SetRootPassword, ReplaceSignedImageKey, ManageBMCConfig,
          SetSSLCert, ...). Anomaly: `RunInitAgent` is 0x0A/0x2C (Storage NetFn,
          not 0x32) — deliberate obscuring or a routing bug (see protocol.html).
-         All handlers require Administrator privilege (BMC-side dispatch table
-         priv byte 0x04, confirmed on ASMB-787 libipmimsghndlr.so g_AMI_CmdHndlr).
+         This cross-platform catalog does not assert privilege. Corrected
+         ASMB-787 decoding places privilege at CmdHndlr_T +1 and request length
+         at +8; that target has Admin, User, Operator, and special raw values.
 
 TRANSPORT-AGNOSTIC. Same NetFn 0x32 cmds ride FOUR transports (yafuflash-4.55.5
          source, Common/ComLine.c + main.c):
@@ -45,7 +43,7 @@ STATE    OPCODES + wire framing from static RE of the AMI YAFU protocol:
          Client-side names  = SMCIPMITool 2.30.0 (build 250915) Java decomp,
                               cross-checked with each vendor's libipmi.so
                               IPMICMD_AMI* wrappers. Names + arg lists match
-                              across every AMI-lineage sample.
+                              across the AMI-lineage samples examined.
          Wire lens          = LIBIPMI_Send_RAW_IPMI2_0_Command dwReqLen /
                               respLen immediates (protocol.html §4).
 
@@ -91,10 +89,10 @@ MUTATES = "mutates"          # bounded BMC state change
 DESTRUCTIVE = "destructive"  # flash write / reset / fw kickoff / cred change
 
 
-# Canonical AMI YAFU catalog. Every AMI-lineage BMC uses these bytes.
+# AMI-family YAFU catalog. Target presence and policy vary by firmware.
 # Key: (netfn, cmd)  — no sub-command byte at this layer.
-# Priv: 'Admin' throughout (BMC dispatch table priv byte 0x04); one
-# exception noted per-entry if BMC-side dispatch decode ever proves otherwise.
+# Literal entries retain client-family annotations, but exported privilege is
+# cleared below because a family catalog cannot prove target dispatcher policy.
 YAFU_COMMANDS: dict[tuple[int, int], dict] = {
 
     # ------------------------------------------------------------------
@@ -496,6 +494,9 @@ YAFU_COMMANDS: dict[tuple[int, int], dict] = {
         "response": "2B",
     },
 }
+
+# Privilege is firmware-specific. Do not expose the old blanket-Admin claim.
+YAFU_COMMANDS = {key: {**entry, "priv": None} for key, entry in YAFU_COMMANDS.items()}
 
 
 # (netfn, cmd) → name — for _registry.register().

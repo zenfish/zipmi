@@ -44,6 +44,10 @@ def emit(args, data):
 # `blurb` is a one-line description; cmd counts come from _vendor_stats()
 # at print time so listing and catalogue can never drift apart.
 VENDORS: dict[str, dict] = {
+    "advantech-asmb787": {
+        "iana": 10297,
+        "blurb": "Advantech ASMB-787 — 187 firmware-proven NetFn/Cmd pairs",
+    },
     "idrac6": {
         "iana": 674,
         "blurb": "Dell PowerEdge / iDRAC6 (RE'd from iDRAC6 fullfw)",
@@ -75,11 +79,9 @@ VENDORS: dict[str, dict] = {
     },
     "yafu": {
         # YAFU is AMI's shared firmware-flash + memory-R/W protocol on NetFn
-        # 0x32. Cross-vendor: same cmd bytes on every AMI-lineage BMC (MegaRAC
-        # SP-X, Supermicro X10-X13, Advantech ASMB, HPE Cray XD670, Quanta /
-        # GIGABYTE / ByteBmc relabels). Registered as a pseudo-vendor so the
-        # catalog is vendor-agnostic — `zipmi oem yafu <cmd>` runs against ANY
-        # host, BMC replies CC 0xC1 if not implemented / not AMI-lineage.
+        # 0x32. Availability and privilege vary by firmware. This remains a
+        # family research catalog; prefer a target-specific catalog when one
+        # exists (for example advantech-asmb787).
         # Source-of-truth: `libipmi_AMIOEM.h` (ASUS ASMB9 GPL SP-X drop).
         "iana": None,
         "blurb": "AMI YAFU flash + memory protocol (NetFn 0x32) — cross-vendor AMI-lineage",
@@ -179,8 +181,8 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "lenovo":
         from ..scapy_ipmi.oem.lenovo import LENOVO_COMMANDS, LENOVO_CMD_NAMES
         return len(LENOVO_COMMANDS), len(LENOVO_CMD_NAMES)
-    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14",
-                  "megarac", "yafu"):
+    if vendor in ("advantech-asmb787", "supermicro", "supermicro-x11",
+                  "supermicro-x14", "megarac", "yafu"):
         listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if VENDORS.get(vendor, {}).get("cmd_names") is not None:
@@ -787,6 +789,39 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             for key, e in MEGARAC_COMMANDS.items()
         }
         return _normalize_listing(out, "megarac")
+    if vendor == "advantech-asmb787":
+        from ..scapy_ipmi.oem.advantech_asmb787 import ASMB787_COMMANDS
+        out = {}
+        for key, e in ASMB787_COMMANDS.items():
+            activation = e["activation_status"]
+            if activation == "statically registered in owning dispatcher table":
+                active = "statically registered"
+            elif "explicitly enabled" in activation:
+                active = "feature enabled; runtime registration unproved"
+            else:
+                active = "feature absent; runtime registration unproved"
+            out[key] = {
+                "name": e["handler"],
+                "priv": e["privilege"],
+                "desc": f"{e['module']}; {active}",
+                "live": None,
+                "missing": False,
+                "prefix": None,
+                "request": (f"dispatcher +8 constraint: {e['request_length_semantics']}; "
+                            f"{e['request_semantics']}"),
+                "response": e["response_semantics"],
+                "confidence": f"{e['confidence']}; {e['semantic_confidence']}",
+                "lib": e["module"],
+                "tier": e["safety_tier"],
+                "req_len_raw": e["request_length_raw"],
+                "semantic_confidence": e["semantic_confidence"],
+                "requires_unsafe": (
+                    e["safety_tier"] in {"destructive", "mutates", "unknown"}
+                    or e["request_length_raw"] == "0xff"
+                    or e["semantic_confidence"] == "unknown"
+                ),
+            }
+        return _normalize_listing(out, "advantech-asmb787")
     if vendor == "yafu":
         from ..scapy_ipmi.oem.yafu import YAFU_COMMANDS, YAFU_BLOCKS
         out: dict = {}
@@ -1023,7 +1058,7 @@ def _print_legend(vendor: str) -> None:
     print("#   subsystem column = which Java class in SMCIPMITool dispatches")
     print("#     this cmd. Hint at attack surface (Intel NM, Raritan KVM,")
     print("#     AMI YAFU flash, MicroBlade chassis, ...).")
-    print(f"# Run a command:  zipmi -H <host> -U <u> -P <p> "
+    print(f"# Run a command:  zipmi -H <host> -U <u> -P <p> oem "
           f"{_display_verb(vendor)} <name> [data ...]")
     print(f"# Per-cmd detail: zipmi oem {_display_verb(vendor)} <name> help")
 
@@ -1191,7 +1226,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     hits = _find_cmd(listing, cmd_name)
     if not hits:
         _msg.error(f"no {vendor} command matches {cmd_name!r}")
-        print(f"# Run `zipmi {_display_verb(vendor)}` to see the catalogue.",
+        print(f"# Run `zipmi oem {_display_verb(vendor)}` to see the catalogue.",
               file=sys.stderr)
         return 1
     if len(hits) > 1:
@@ -1225,6 +1260,22 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
         print(f"#   zipmi -H <bmc> raw 0x06 0x42 0x0e   # Get Channel Info",
               file=sys.stderr)
         return 2
+
+    if vendor == "advantech-asmb787":
+        raw_len = int(info["req_len_raw"], 0)
+        payload_len = len(data_bytes) - len(prefix)
+        if raw_len != 0xFF and payload_len != raw_len:
+            _msg.error(
+                f"{info['name']} requires exactly {raw_len} payload bytes; "
+                f"got {payload_len} (ASMB-787 dispatcher +8 constraint)"
+            )
+            return 2
+        if info["requires_unsafe"] and not getattr(args, "unsafe", False):
+            _msg.error(
+                f"{info['name']} is state-changing or has an unproved payload "
+                "schema; add --unsafe to acknowledge named raw execution"
+            )
+            return 2
 
     # Send. Imports kept inside to avoid module-load-time circular imports.
     import zipmi
@@ -1330,7 +1381,8 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         # Suggest example invocation.
         prefix_args = " ".join(f"0x{b:02x}" for b in prefix)
         print(f"\n  Invoke:")
-        print(f"    zipmi -H <bmc> -U <user> -P <pw> {vendor} "
+        unsafe = " --unsafe" if vendor == "advantech-asmb787" and info.get("requires_unsafe") else ""
+        print(f"    zipmi -H <bmc> -U <user> -P <pw> oem {vendor}{unsafe} "
               f"{info['name']} <args...>")
         if prefix_args:
             print(f"    zipmi -H <bmc> -U <user> -P <pw> raw "
@@ -1380,9 +1432,9 @@ def _suggest_for_cc(cc: int, netfn: int, cmd: int,
             "supermicro-x11": "X11 uses the AMI/smcipmi stack (NetFn 0x30/0x3e); some "
                               "cmds are board-fw specific.",
             "supermicro-x14": "X14 is AST2600 OpenBMC — the X11 smcipmi cmds are absent.",
-            "yafu": "YAFU rides NetFn 0x32 on AMI-lineage BMCs (MegaRAC / "
-                    "Supermicro X10-X13 / Advantech ASMB / HPE Cray XD670). "
-                    "Non-AMI BMCs (OpenBMC / Dell iDRAC / X14) either lack it "
+            "yafu": "YAFU commands occur on several AMI-lineage BMCs, but "
+                    "availability and privilege are firmware-specific. "
+                    "Non-AMI BMCs (OpenBMC / Dell iDRAC / X14) generally lack it "
                     "or reuse 0x32 for something else.",
         }.get(vendor)
         if note:
@@ -1409,6 +1461,11 @@ def _add_vendor_parser(
     looks up (defaults to parser_name)."""
     vendor_key = vendor_key or parser_name
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
+    if vendor_key == "advantech-asmb787":
+        sp.add_argument(
+            "--unsafe", action="store_true",
+            help="acknowledge state-changing or schema-unknown named raw execution",
+        )
     sp.add_argument("cmd_name", nargs="?",
                     help=f"{cmd_noun} name (substring match; omit to list)")
     sp.add_argument("data", nargs="*",
@@ -1436,6 +1493,7 @@ def _add_all_vendor_parsers(parent_sub) -> None:
     (aliases don't add catalog entries — the original de-clutter intent)."""
     obmc = set(_openbmc_vendor_keys())
     _extra_aliases = {
+        "advantech-asmb787": ["advantech", "asmb787"],
         "megarac": ["ami"],
         "supermicro-x11": ["supermicro"],  # legacy `oem supermicro` → X11
         "lenovo": ["xcc", "imm"],

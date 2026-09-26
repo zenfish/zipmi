@@ -1,5 +1,7 @@
 # Advantech ASMB-787 — IPMI/OEM handler catalog
 
+> **Superseded:** this historical broad table used a swapped `CmdHndlr_T` field layout. Use the generated 187-entry dispatch reference in [HTML](advantech_ASMB787-command-reference.html) or [Markdown](advantech_ASMB787-command-reference.md), backed by the [canonical CSV](../zipmi/data/sources/advantech-asmb787-oem-dispatch.csv). They distinguish static registration from plugin eligibility and do not claim complete payload semantics or structured codecs.
+
 Static reverse-engineering of the ASMB-787 BMC firmware (**AMI MegaRAC SP-X 4.0 / ASPEED AST2600**, Linux 5.4.11-ami, ARM32 EABI5). Every `g_*_CmdHndlr` dispatch table was parsed out of the OEM `.so` set with pyelftools; NetFn bindings and the privilege model were confirmed in Ghidra (`libipmimsghndlr.so`: `GetMsgHndlrMap`, `GetCmdHndlr`, `SetSessionPrivLevel`).
 
 **Tables: 50 · Commands: 369** across ~30 libraries. Unlike the iDRAC9 catalog (name-only), every entry here carries its real Cmd byte, privilege floor, and supported-interface mask.
@@ -8,26 +10,18 @@ Static reverse-engineering of the ASMB-787 BMC firmware (**AMI MegaRAC SP-X 4.0 
 
 ```
 +0  u8  Cmd
-+1  u8  ReqLen (min request length)
++1  u8  Priv (privilege value)
 +4  ptr Handler (R_ARM_ABS32 → named symbol)
-+8  u8  Priv  (privilege floor)
++8  u8  ReqLen (request-length constraint)
 +10 u16 0xAAAA (poison / sentinel)
 +12 u16 SuppIface (channel bitmask; 0xFFFF = all)
 ```
 
-`GetCmdHndlr` matches on the **Cmd byte only** (no priv logic). The privilege gate is the dispatch loop `FUN_0002b0f0` in `libipmimsghndlr.so` (confirmed in Ghidra): it reads the matched entry's Priv byte (+8), and if it is **not** `0xff` compares it against the session privilege; a mismatch returns completion code **0xD4** (insufficient privilege). On success it calls the handler through the entry's +4 pointer as a **direct C call in the IPMI daemon** — no shell, no fork, at dispatch time.
+The earlier interpretation swapped the bytes at +1 and +8. Privilege and request-length conclusions in the historical tables below are therefore not authoritative; the generated reference rebuilds every remote vendor row from the corrected layout.
 
-## Privilege model
+## Corrected privilege model
 
-| Priv byte | Meaning |
-|-----------|---------|
-| `0x00` | **No minimum** — callable at any level, including the host-side KCS system interface where there is *no session and no auth*. |
-| `0x01`–`0x05` | IPMI level: Callback / User / Operator / Administrator / OEM (`SetSessionPrivLevel` uses the 1–5 scale; OEM=5 gated behind a feature flag). |
-| `0xff` (`self*`) | **Confirmed sentinel** — `FUN_0002b0f0` explicitly tests `entry.Priv != 0xff` before comparing, so `0xff` **bypasses the dispatcher priv check**; the handler enforces its own privilege (AMI convention). Used by the password handlers. |
-
-> **KCS caveat:** a `0x00`-floor command reachable on the system interface is issuable by any local OS-admin with zero BMC credentials. This is exactly the ASUS ASMB9 `ipmitool raw 0x32 0x66` factory-reset note.
-
-> **What `0x32/0x66` actually executes** — full chain (dispatch → async task → root shell script `rm -rf /conf/*`) is written up in [advantech_ASMB787-restore-backdoor.md](advantech_ASMB787-restore-backdoor.md).
+The 187 remote vendor rows contain 108 Administrator, 59 User, 15 Operator, four special/raw `0x81`, and one special/raw `0x82` privilege values. The corrected [factory-default execution note](advantech_ASMB787-restore-factory-defaults.html) withdraws the former unauthenticated-backdoor claim.
 
 ## NetFn → table map
 
@@ -279,7 +273,7 @@ The ~30 AMI OEM feature libraries below register their NetFn dynamically at plug
 
 ## AMI OEM — NetFn 0x32 (`g_AMI_CmdHndlr`)
 
-The AMI MegaRAC OEM command set. **This is the ASUS-style backdoor surface.**
+The historical AMI MegaRAC table below has swapped privilege/request-length columns. Use the generated reference for command-level facts.
 
 ### `g_AMI_CmdHndlr` — libipmimsghndlr.so.13.22.0  · NetFn 0x32  · 85 cmds
 
@@ -328,8 +322,8 @@ The AMI MegaRAC OEM command set. **This is the ASUS-style backdoor surface.**
 | 0x64 | 0x41? | all | 4 | `AMISetEmailForUser` |  |
 | 0x81 | Callback | all | 2 | `AMIGetEmailFormatUser` |  |
 | 0x82 | 0x41? | all | 4 | `AMISetEmailFormatUser` |  |
-| 0x65 | self* | all | 2 | `AMIResetPassword` | Reset a user password (self-gated, priv=0xff). |
-| 0x66 | — none | all | 4 | `AMIRestoreDefaults` | **Factory reset** → async restore task 0x3f. priv=0 = the ASUS `raw 0x32 0x66` backdoor. |
+| 0x65 | User | all | variable | `AMIResetPassword` | Reset a user password. |
+| 0x66 | Admin | all | 0 | `AMIRestoreDefaults` | Factory reset → async restore task 0x3f. Administrator required. |
 | 0x67 | — none | all | 2 | `AMIGetLogConf` |  |
 | 0x68 | self* | all | 4 | `AMISetLogConf` |  |
 | 0xe9 | Operator | all | 2 | `AMIGetReleaseNote` |  |
@@ -340,7 +334,7 @@ The AMI MegaRAC OEM command set. **This is the ASUS-style backdoor surface.**
 | 0x72 | Operator | none | 3 | `AMIGetIfaceState` |  |
 | 0x71 | self* | none | 4 | `AMISetIfaceState` |  |
 | 0x80 | Callback | none | 2 | `AMIGetFruDetails` |  |
-| 0x90 | — none | all | 3 | `AMIGetRootUserAccess` | Read root user access — **priv=0, unauth-readable**. |
+| 0x90 | Operator | all | 0 | `AMIGetRootUserAccess` | Read root user access. |
 | 0x91 | self* | all | 4 | `AMISetRootPassword` | Set root/admin password (self-gated). |
 | 0x92 | Callback | all | 3 | `AMIGetUserShelltype` |  |
 | 0x93 | User | all | 4 | `AMISetUserShelltype` |  |
@@ -363,7 +357,7 @@ The AMI MegaRAC OEM command set. **This is the ASUS-style backdoor surface.**
 | 0xec | self* | all | 4 | `AMISetSSLCert` |  |
 | 0xb4 | Callback | all | 2 | `AMIGetFwVersion` |  |
 | 0xc2 | self* | all | 3 | `AMIGetFeatureStatus` |  |
-| 0xe6 | — none | all | 4 | `AMIRestartWebService` | **Restart the web server — priv=0, unauth DoS/restart.** |
+| 0xe6 | Admin | all | 0 | `AMIRestartWebService` | Restart the web server. Administrator required. |
 | 0xe7 | Admin | all | 3 | `AMIGetPendStatus` |  |
 | 0xee | Callback | all | 4 | `AMISwitchMUX` |  |
 | 0x2b | Callback | all | 4 | `AMISetPswdChangeStatus` |  |
@@ -382,7 +376,7 @@ The AMI MegaRAC OEM command set. **This is the ASUS-style backdoor surface.**
 | 0x01 | User | all | 4 | `ControlMEUpdate` | Intel ME firmware update control. |
 | 0x02 | Callback | all | 4 | `LockInputs` | Lock front-panel / input controls. |
 | 0x03 | Callback | all | 2 | `ControlSysErrLED` | Drive the system error LED. |
-| 0x04 | — none | all | 4 | `GetPlatformID` | Advantech platform ID — **priv=0, unauth fingerprint**. |
+| 0x04 | Admin | all | 0 | `GetPlatformID` | Advantech platform ID. |
 | 0x05 | Callback | all | 2 | `AMIPingFeature` | Feature-presence ping. |
 
 ### `g_Oem_ASMB260_CmdHndlr` — libipmipdkcmds.so.6.0.0  · NetFn 0x3a  · 2 cmds
@@ -688,9 +682,9 @@ The AMI MegaRAC OEM command set. **This is the ASUS-style backdoor surface.**
 
 ---
 
-## Security rollup — priv 0x00 (no-minimum) handlers
+## Invalid historical privilege rollup
 
-Callable with no privilege floor. On the KCS/system interface these need no BMC credentials at all.
+This section was derived from the request-length byte and is retained only as provenance for the corrected audit. It must not be used as a privilege or authentication claim.
 
 | Table | Cmd | Iface | Handler |
 |-------|-----|-------|---------|

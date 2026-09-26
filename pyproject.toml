@@ -55,6 +55,7 @@ zipmi = [
     "data/zmap-ipmi-decode/tuple_map.json",
     "data/zmap-ipmi-decode/kb/*.json",
     "data/sources/*.json",
+    "data/sources/*.csv",
     "data/sources/*.md",
 ]
 

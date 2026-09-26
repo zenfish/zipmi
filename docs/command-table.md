@@ -34,7 +34,7 @@ and per-platform live test results.
 > **ASMB787 column is different** — it is *not* live-tested. It is **static
 > ground truth** from firmware RE: ✓ = a handler for that (NetFn, cmd) is
 > present in the ASMB-787's real dispatch tables, ✗ = absent. See
-> [advantech_ASMB787-command-table.md](advantech_ASMB787-command-table.md) for
+> [advantech_ASMB787-command-table.html](advantech_ASMB787-command-table.html) for
 > the full OEM handler catalog. (Cross-vendor OEM handler-lineage analysis lives
 > in the author's private research library, not this repo.)
 

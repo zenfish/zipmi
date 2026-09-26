@@ -83,6 +83,9 @@ _VENDOR_ALIAS: dict[str, str] = {
     "ami": "megarac",
     "xcc": "lenovo",
     "imm": "lenovo",
+    "advantech": "advantech_asmb787",
+    "advantech-asmb787": "advantech_asmb787",
+    "asmb787": "advantech_asmb787",
     # Supermicro split: X11 (AMI+smcipmitool) vs X14 (AST2600 OpenBMC + SMC OEM).
     "supermicro-x11": "supermicro",
     "supermicro-x14": "supermicro_x14",

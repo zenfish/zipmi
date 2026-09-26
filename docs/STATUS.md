@@ -30,7 +30,7 @@ play-by-play; this doc is the bird's-eye view.
 ```
 $ pytest tests/unit -q
 ..................................................................       [100%]
-2131 unit checks successful in 7.40s
+2163 unit checks successful
 ```
 
 The suite collects 2,150 checks: 2,131 unit and 19 integration checks covering RMCP / ASF / IPMI 1.5

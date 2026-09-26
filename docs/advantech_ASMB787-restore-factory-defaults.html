@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASMB-787 restore-defaults execution chain</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-950 text-slate-100"><main class="mx-auto max-w-4xl p-6">
+<h1 class="text-3xl font-bold">ASMB-787 restore-defaults execution chain</h1>
+<p class="mt-4">The ASMB-787 firmware registers <code>NetFn 0x32 / Cmd 0x66</code> as <code>AMIRestoreDefaults</code>. Correct decoding of <code>CmdHndlr_T</code> gives privilege <strong>Administrator (0x04)</strong> at offset +1 and request length <strong>0 bytes</strong> at offset +8.</p>
+<p class="mt-3">Earlier documentation swapped those fields and incorrectly called the command privilege 0, remotely unauthenticated, and a backdoor. Those claims are withdrawn. A LAN caller must establish an Administrator IPMI session. The static entry alone does not prove unauthenticated KCS reachability.</p>
+<h2 class="mt-6 text-xl font-semibold">Execution behavior</h2>
+<p class="mt-2">Static analysis shows the handler queues pending task <code>0x3f</code> and returns completion code 0 before the task finishes. The firmware carries <code>restoredefaults.sh</code>, whose destructive branch replaces <code>/conf</code> from <code>/etc/defconfig</code>, but the exact pending-task-to-script call site was not recovered. On the emulated image, the raw command was accepted and a reprovision storm followed, while <code>/conf</code> remained intact because <code>/var/flasher.initcomplete</code> was absent. Running the script separately with that guard satisfied reduced <code>/conf</code> from 102 entries to the 72-entry factory skeleton.</p>
+<p class="mt-3">This proves the script is destructive and the command invokes an asynchronous path. It does not prove end-to-end command-to-wipe execution on the vBMC or production hardware, and it does not support the former authentication-bypass claim.</p>
+<h2 class="mt-6 text-xl font-semibold">Evidence boundary</h2>
+<ul class="mt-2 list-disc space-y-1 pl-6"><li>Dispatch identity, privilege, request-length constraint, and interface field: high confidence from the ASMB-787 registration entry.</li><li>Asynchronous task invocation: static analysis plus vBMC acceptance and subsequent reprovision activity.</li><li>Script destructive behavior: independently executed with its guard satisfied.</li><li>Exact task-to-script edge and production-hardware completion: not proved.</li></ul>
+<p class="mt-6 text-slate-400">See the <a class="text-cyan-300 underline" href="advantech_ASMB787-command-reference.html">canonical generated command reference</a>.</p>
+</main></body></html>

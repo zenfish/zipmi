@@ -9,14 +9,23 @@ real dispatch tables (static ground truth: ✓ handler present / ✗ absent),
 same as the ASMB787 column just added.
 
 - Source of truth per stack:
-  - ASMB787 (AMI) — `docs/advantech_ASMB787-command-table.md` (DONE, column added)
+  - ASMB787 (AMI) — `docs/advantech_ASMB787-command-reference.html` (DONE; corrected 187-row firmware dispatch catalog)
   - iDRAC9 — `docs/idrac9-command-table.md` (name-only; needs NetFn/cmd bytes
     from `G_asOEMIPMIReqeustHandleTable` — not yet cracked)
   - iDRAC6 — `docs/dell-command-table.md` (has NetFn/cmd — ready to columnize)
   - OpenBMC vendors — from `oem/*.py` (netfn,cmd) maps
-- Also: pull a **Supermicro/Tyan AMI-MegaRAC** firmware and re-run
-  `oem-handler-lineage.md` to test whether `raw 0x32 0x66` restore-defaults is
-  an AMI-wide backdoor (see that doc's open follow-up).
+- Also: compare a **Supermicro/Tyan AMI-MegaRAC** firmware against its own
+  dispatcher. ASMB-787 `raw 0x32 0x66` is Administrator-gated; the former
+  AMI-wide unauthenticated-backdoor claim came from swapped struct fields.
+
+## Review — ASMB-787 OEM completion (2026-09-25)
+
+- Canonical CSV contains 187 unique vendor NetFn/Cmd rows with exact firmware evidence, explicit semantic unknowns, confidence, and activation status.
+- Native `advantech-asmb787` catalog exposes the complete named raw surface; aliases `advantech` and `asmb787` resolve to it; IANA 10297 is registered. Structured codecs are not claimed.
+- Named execution enforces fixed dispatcher request lengths and requires `--unsafe` for destructive, variable-length, or schema-unknown commands; raw execution remains available.
+- Generated HTML and Markdown references document every row: 92 static registrations, 85 feature-enabled plugin declarations with runtime registration unproved, and 10 feature-absent declarations. Type-8 secondary selector values remain explicitly unknown.
+- Corrected the swapped privilege/request-length interpretation and withdrew the false ASMB unauthenticated/backdoor claims. YAFU no longer advertises universal availability or privilege.
+- Proof: generator sync check passed; focused OEM/CLI suite passed (18 tests); repository doc sync passed after refreshing generated statistics.
 
 ---
 
