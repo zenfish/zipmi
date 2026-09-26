@@ -65,3 +65,27 @@ def test_dell_prochot_packet_round_trip():
 
     req = DellPROCHOTThrottleReq(subcommand=0x01)
     assert bytes(req) == b"\x01"
+
+
+def test_payload_lookup_is_vendor_scoped_and_prefers_selector():
+    from scapy.packet import Packet
+    from zipmi.scapy_ipmi.oem._registry import lookup_payload, register
+
+    class Generic(Packet):
+        fields_desc = []
+
+    class Selected(Packet):
+        fields_desc = []
+
+    class OtherVendor(Packet):
+        fields_desc = []
+
+    register("test-a", None, {}, {
+        (0x30, 0x01): (Generic, Generic),
+        (0x30, 0x01, 0x42): (Selected, Selected),
+    })
+    register("test-b", None, {}, {(0x30, 0x01): (OtherVendor, OtherVendor)})
+
+    assert lookup_payload("test-a", 0x30, 0x01, b"\x42\x00") == (Selected, Selected)
+    assert lookup_payload("test-a", 0x30, 0x01, b"\x41") == (Generic, Generic)
+    assert lookup_payload("test-b", 0x30, 0x01, b"\x42") == (OtherVendor, OtherVendor)

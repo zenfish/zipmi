@@ -25,7 +25,12 @@ from scapy.packet import Packet
 OEM_CMD_NAMES: dict[tuple[int, int], str] = {}
 
 # (netfn_request, cmd) → (RequestPacket | None, ResponsePacket | None).
-OEM_PAYLOADS: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet] | None]] = {}
+PayloadPair = tuple[type[Packet] | None, type[Packet] | None]
+OEM_PAYLOADS: dict[tuple[int, ...], PayloadPair] = {}
+
+# Vendor-scoped payloads are authoritative.  OEM_PAYLOADS remains as a
+# compatibility view for callers that loaded exactly one vendor.
+OEM_PAYLOADS_BY_VENDOR: dict[str, dict[tuple[int, ...], PayloadPair]] = {}
 
 # IANA Enterprise Number → human-readable vendor key registered.
 ENTERPRISE_IDS: dict[int, str] = {}
@@ -35,7 +40,7 @@ def register(
     vendor: str,
     iana: int | None,
     cmds: dict[tuple[int, int], str],
-    payloads: dict[tuple[int, int], tuple[type[Packet] | None, type[Packet] | None]] | None = None,
+    payloads: dict[tuple[int, ...], PayloadPair] | None = None,
 ) -> None:
     """Add a vendor's commands to the registry. Idempotent on re-import.
 
@@ -64,3 +69,16 @@ def register(
             OEM_CMD_NAMES.setdefault((key[0], key[1]), name)
     if payloads:
         OEM_PAYLOADS.update(payloads)
+        OEM_PAYLOADS_BY_VENDOR.setdefault(vendor, {}).update(payloads)
+
+
+def lookup_payload(
+    vendor: str, netfn: int, cmd: int, data: bytes = b"",
+) -> PayloadPair | None:
+    """Return the most-specific vendor payload codec for a wire request."""
+    payloads = OEM_PAYLOADS_BY_VENDOR.get(vendor, {})
+    matches = (
+        (key, value) for key, value in payloads.items()
+        if key[:2] == (netfn & 0xFE, cmd) and data.startswith(bytes(key[2:]))
+    )
+    return next((value for _, value in sorted(matches, key=lambda item: len(item[0]), reverse=True)), None)

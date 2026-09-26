@@ -100,6 +100,27 @@ def test_named_restore_requires_explicit_unsafe_acknowledgement(capsys):
     assert "add --unsafe" in capsys.readouterr().err
 
 
+def test_sibling_header_schema_still_requires_unsafe_acknowledgement(capsys):
+    from zipmi.cli.oem_cmds import _vendor_listing, cmd_oem_run
+
+    listing = _vendor_listing("advantech-asmb787")
+    row = next(row for row in listing.values()
+               if row["tier"] == "safe"
+               and row["semantic_confidence"].startswith("medium"))
+    data = ["0"] * int(row["req_len_raw"], 0)
+    args = argparse.Namespace(cmd_name=row["name"], data=data, unsafe=False)
+    assert cmd_oem_run(args, "advantech-asmb787") == 2
+    assert "add --unsafe" in capsys.readouterr().err
+
+
+def test_named_raw_rejects_out_of_range_bytes(capsys):
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    args = argparse.Namespace(cmd_name="ControlMEUpdate", data=["256", "0"], unsafe=True)
+    assert cmd_oem_run(args, "advantech-asmb787") == 2
+    assert "between 0 and 255" in capsys.readouterr().err
+
+
 def test_fixed_dispatcher_request_length_is_enforced(capsys):
     from zipmi.cli.oem_cmds import cmd_oem_run
 

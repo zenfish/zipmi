@@ -818,7 +818,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "requires_unsafe": (
                     e["safety_tier"] in {"destructive", "mutates", "unknown"}
                     or e["request_length_raw"] == "0xff"
-                    or e["semantic_confidence"] == "unknown"
+                    or e["semantic_confidence"] != "target-proven"
                 ),
             }
         return _normalize_listing(out, "advantech-asmb787")
@@ -1248,12 +1248,16 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     prefix = info.get("prefix") or b""
     raw_data = list(getattr(args, "data", None) or [])
     try:
-        data_bytes = prefix + bytes(int(b, 0) & 0xFF for b in raw_data)
+        values = [int(b, 0) for b in raw_data]
+        data_bytes = prefix + bytes(values)
     except ValueError:
         bad = next((b for b in raw_data
                     if not _is_int_literal(b)), None)
-        _msg.error(f"data byte {bad!r} is not numeric "
-                   f"(use hex 0xNN or decimal)")
+        if bad is None:
+            _msg.error("data bytes must be between 0 and 255")
+        else:
+            _msg.error(f"data byte {bad!r} is not numeric "
+                       f"(use hex 0xNN or decimal)")
         print(f"# Hint: if you mean a user/channel ID, look it up first:",
               file=sys.stderr)
         print(f"#   zipmi -H <bmc> user list", file=sys.stderr)
@@ -1263,7 +1267,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
 
     if vendor == "advantech-asmb787":
         raw_len = int(info["req_len_raw"], 0)
-        payload_len = len(data_bytes) - len(prefix)
+        payload_len = len(data_bytes)
         if raw_len != 0xFF and payload_len != raw_len:
             _msg.error(
                 f"{info['name']} requires exactly {raw_len} payload bytes; "

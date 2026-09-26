@@ -45,7 +45,8 @@ def clean_oem_registry():
     pollution nor disturbs later tests.
     """
     from zipmi.scapy_ipmi.oem import _registry as reg
-    names = ("OEM_CMD_NAMES", "OEM_PAYLOADS", "ENTERPRISE_IDS")
+    names = ("OEM_CMD_NAMES", "OEM_PAYLOADS", "OEM_PAYLOADS_BY_VENDOR",
+             "ENTERPRISE_IDS")
     saved = {n: dict(getattr(reg, n)) for n in names}
     for n in names:
         getattr(reg, n).clear()
