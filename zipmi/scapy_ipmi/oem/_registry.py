@@ -82,3 +82,21 @@ def lookup_payload(
         if key[:2] == (netfn & 0xFE, cmd) and data.startswith(bytes(key[2:]))
     )
     return next((value for _, value in sorted(matches, key=lambda item: len(item[0]), reverse=True)), None)
+
+
+def decode_payload_response(
+    vendor: str, netfn: int, cmd: int, request_data: bytes, cc: int, data: bytes,
+) -> Packet | None:
+    """Decode an OEM response while tolerating completion-code-only errors."""
+    entry = lookup_payload(vendor, netfn, cmd, request_data)
+    if entry is None or entry[1] is None:
+        return None
+    response_type = entry[1]
+    raw = bytes([cc]) + data
+    try:
+        return response_type(raw)
+    except Exception:
+        response = response_type()
+        if hasattr(response, "completion_code"):
+            response.completion_code = cc
+        return response

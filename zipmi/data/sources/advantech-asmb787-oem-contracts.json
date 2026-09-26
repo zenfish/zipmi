@@ -1,0 +1,1999 @@
+{
+  "schema_version": 1,
+  "target": "advantech-asmb787",
+  "firmware": {
+    "name": "encrypted_ASMB-787_20220912.ima_enc",
+    "artifact_uuid": "379c676d-4d49-52ea-a268-541c391a69ca",
+    "sha256": "3e9916fd633babe11c208c0982330f8677e4f3b05029653a56ffe4230dea1cbd"
+  },
+  "operations": [
+    {
+      "id": "ControlMEUpdate.action_0",
+      "command": [
+        48,
+        1
+      ],
+      "request": {
+        "layout": "0x30; action=0",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;gpio_state",
+        "length_including_cc": "2"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "mutates",
+      "side_effects": "GPIO callback +0x20 pin30",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:ControlMEUpdate@1c90",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; callback meaning unknown"
+    },
+    {
+      "id": "ControlMEUpdate.action_1",
+      "command": [
+        48,
+        1
+      ],
+      "request": {
+        "layout": "0x30; action=1",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;gpio_state",
+        "length_including_cc": "2"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "mutates",
+      "side_effects": "GPIO callback +0x1c pin30",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:ControlMEUpdate@1c90",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; callback meaning unknown"
+    },
+    {
+      "id": "ControlMEUpdate.query",
+      "command": [
+        48,
+        1
+      ],
+      "request": {
+        "layout": "0x30; action=2",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;gpio_state",
+        "length_including_cc": "2"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads GPIO pin30",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:ControlMEUpdate@1c90",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "LockInputs.action_f0",
+      "command": [
+        48,
+        2
+      ],
+      "request": {
+        "layout": "action=f0",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;locked_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "f0",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "mutates",
+      "side_effects": "GPIO callback +0x1c pin33",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:LockInputs@1d14",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; callback meaning unknown"
+    },
+    {
+      "id": "LockInputs.action_f1",
+      "command": [
+        48,
+        2
+      ],
+      "request": {
+        "layout": "action=f1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;locked_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "f1",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "mutates",
+      "side_effects": "GPIO callback +0x20 pin33",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:LockInputs@1d14",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; callback meaning unknown"
+    },
+    {
+      "id": "LockInputs.query",
+      "command": [
+        48,
+        2
+      ],
+      "request": {
+        "layout": "action=f2",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;locked_bool=(get==0)",
+        "length_including_cc": "2"
+      },
+      "selectors": "f2",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads GPIO pin33",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:LockInputs@1d14",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "ControlSysErrLED.action_0",
+      "command": [
+        48,
+        3
+      ],
+      "request": {
+        "layout": "action=0",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;gpio_state",
+        "length_including_cc": "2"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "mutates",
+      "side_effects": "GPIO callback +0x20 pin34",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:ControlSysErrLED@1d9c",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; callback meaning unknown"
+    },
+    {
+      "id": "ControlSysErrLED.action_1",
+      "command": [
+        48,
+        3
+      ],
+      "request": {
+        "layout": "action=1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;gpio_state",
+        "length_including_cc": "2"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "mutates",
+      "side_effects": "GPIO callback +0x1c pin34",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:ControlSysErrLED@1d9c",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; callback meaning unknown"
+    },
+    {
+      "id": "ControlSysErrLED.query",
+      "command": [
+        48,
+        3
+      ],
+      "request": {
+        "layout": "action=2",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;gpio_state",
+        "length_including_cc": "2"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads GPIO pin34",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:ControlSysErrLED@1d9c",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetPlatformID",
+      "command": [
+        48,
+        4
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;platform_id",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "reads PlatformID",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:GetPlatformID@18a8",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "00"
+      }
+    },
+    {
+      "id": "AMIPingFeature.disable",
+      "command": [
+        48,
+        5
+      ],
+      "request": {
+        "layout": "action=a0",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;status=0",
+        "length_including_cc": "2"
+      },
+      "selectors": "a0",
+      "completion_codes": [
+        "00",
+        "80",
+        "c7",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "iptables ACCEPT->DROP;restart",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:AMIPingFeature@18c8",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPingFeature.enable",
+      "command": [
+        48,
+        5
+      ],
+      "request": {
+        "layout": "action=a1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;status=1",
+        "length_including_cc": "2"
+      },
+      "selectors": "a1",
+      "completion_codes": [
+        "00",
+        "80",
+        "c7",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "iptables DROP->ACCEPT;restart",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:AMIPingFeature@18c8",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPingFeature.query",
+      "command": [
+        48,
+        5
+      ],
+      "request": {
+        "layout": "action=a2",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "a2",
+      "completion_codes": [
+        "00",
+        "80",
+        "c7",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "reads rules but truncates temp file/leaks stream",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:AMIPingFeature@18c8",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; firmware bug"
+    },
+    {
+      "id": "PDK_SDRGetNominalReading",
+      "command": [
+        58,
+        1
+      ],
+      "request": {
+        "layout": "sensor",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;nominal",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "reads sensor table;no existence check",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:PDK_SDRGetNominalReading@1e14",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "00"
+      }
+    },
+    {
+      "id": "PDK_SDRGetAnalogFlags",
+      "command": [
+        58,
+        2
+      ],
+      "request": {
+        "layout": "sensor",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;analog_flags",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads SDR;predicate mismatch leaks uninitialized byte",
+      "evidence": {
+        "location": "libipmipdkcmds.so.6.0.0:PDK_SDRGetAnalogFlags@1f9c",
+        "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
+      },
+      "confidence": "high; firmware bug"
+    },
+    {
+      "id": "AMIGetRMediaCfg.retry_count",
+      "command": [
+        50,
+        24
+      ],
+      "request": {
+        "layout": "selector=0",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;retry_count",
+        "length_including_cc": "2"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "83",
+        "85"
+      ],
+      "effect": "safe",
+      "side_effects": "reads retry_count",
+      "evidence": {
+        "location": "libipmiamioemris.so.13.0.0:AMIGetRMediaCfg@2df0",
+        "module_sha256": "d2c1214242afb3e65bba48de4c6db15d2f139ef96b59e744cc97ac09b7895847"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "03"
+      }
+    },
+    {
+      "id": "AMIGetRMediaCfg.retry_interval",
+      "command": [
+        50,
+        24
+      ],
+      "request": {
+        "layout": "selector=1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;retry_interval",
+        "length_including_cc": "2"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "83",
+        "85"
+      ],
+      "effect": "safe",
+      "side_effects": "reads retry_interval",
+      "evidence": {
+        "location": "libipmiamioemris.so.13.0.0:AMIGetRMediaCfg@2df0",
+        "module_sha256": "d2c1214242afb3e65bba48de4c6db15d2f139ef96b59e744cc97ac09b7895847"
+      },
+      "confidence": "high; default10 vs setter15..30",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "0f"
+      }
+    },
+    {
+      "id": "AMISetRMediaCfg.retry_count",
+      "command": [
+        50,
+        25
+      ],
+      "request": {
+        "layout": "selector=0;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0;value3..6",
+      "completion_codes": [
+        "00",
+        "80",
+        "91",
+        "a6",
+        "c1",
+        "83",
+        "85"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists retry_count",
+      "evidence": {
+        "location": "libipmiamioemris.so.13.0.0:AMISetRMediaCfg@2f50;libvmedia Validate@e628",
+        "module_sha256": "d2c1214242afb3e65bba48de4c6db15d2f139ef96b59e744cc97ac09b7895847"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRMediaCfg.retry_interval",
+      "command": [
+        50,
+        25
+      ],
+      "request": {
+        "layout": "selector=1;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1;value15..30",
+      "completion_codes": [
+        "00",
+        "80",
+        "92",
+        "a6",
+        "c1",
+        "83",
+        "85"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists retry_interval",
+      "evidence": {
+        "location": "libipmiamioemris.so.13.0.0:AMISetRMediaCfg@2f50;libvmedia Validate@e628",
+        "module_sha256": "d2c1214242afb3e65bba48de4c6db15d2f139ef96b59e744cc97ac09b7895847"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetImgSize",
+      "command": [
+        50,
+        30
+      ],
+      "request": {
+        "layout": "byte0;byte1",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "stores bytes into YAFU globals",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetImgSize@27d88",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high shape;labels medium"
+    },
+    {
+      "id": "AMIAccessRedisDB.db0",
+      "command": [
+        50,
+        42
+      ],
+      "request": {
+        "layout": "db0;start_index;command@2",
+        "length": "variable>=3 recommended"
+      },
+      "response": {
+        "layout": "cc;type;typed_body",
+        "length_including_cc": "variable<=251"
+      },
+      "selectors": "db=0",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ce",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "arbitrary Redis DB0 command;format string",
+      "evidence": {
+        "location": "libipmiamioemaccessredis.so.13.1.0:AMIAccessRedisDB@095c",
+        "module_sha256": "600f442db2ce9989fcba1fe6e84805d3b030222eb3a7b7c932130c030c8cbfec"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIAccessRedisDB.db1",
+      "command": [
+        50,
+        42
+      ],
+      "request": {
+        "layout": "db1;start_index;command@2",
+        "length": "variable>=3 recommended"
+      },
+      "response": {
+        "layout": "cc;type;typed_body",
+        "length_including_cc": "variable<=251"
+      },
+      "selectors": "db=1",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ce",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "arbitrary Redis DB1 command;format string",
+      "evidence": {
+        "location": "libipmiamioemaccessredis.so.13.1.0:AMIAccessRedisDB@095c",
+        "module_sha256": "600f442db2ce9989fcba1fe6e84805d3b030222eb3a7b7c932130c030c8cbfec"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetPswdChangeStatus",
+      "command": [
+        50,
+        43
+      ],
+      "request": {
+        "layout": "user_id",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "sets PasswordChangedAtFirstLogin=1",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetPswdChangeStatus@32394",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetPTPCfg",
+      "command": [
+        50,
+        54
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;mode;transport;delay_mechanism;two_step;domain[6]",
+        "length_including_cc": "11"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads ptpd configuration",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMIGetPTPCfg@10b78",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high; field labels inferred from configuration strings",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "00010000000005000001"
+      }
+    },
+    {
+      "id": "AMISetPTPCfg",
+      "command": [
+        50,
+        55
+      ],
+      "request": {
+        "layout": "mode;transport;delay_mechanism;two_step;domain[6]",
+        "length": "10"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "mode0..1;transport=1;delay=0;two_step0..1",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "writes ptpd configuration",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMISetPTPCfg@10c98",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetPTPInt",
+      "command": [
+        50,
+        56
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;interface[10]",
+        "length_including_cc": "11"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads PTP interface string",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMIGetPTPInt@10de0",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "00000000000000000000"
+      }
+    },
+    {
+      "id": "AMISetPTPInt",
+      "command": [
+        50,
+        57
+      ],
+      "request": {
+        "layout": "interface[10]",
+        "length": "10"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "writes PTP interface",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMISetPTPInt@10e28",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetPTPUnicastip",
+      "command": [
+        50,
+        58
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;ipv4_text[15]",
+        "length_including_cc": "16"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads PTP unicast IP text",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMIGetPTPUnicastip@10e50",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "000000000000000000000000000000"
+      }
+    },
+    {
+      "id": "AMISetPTPUnicastip",
+      "command": [
+        50,
+        59
+      ],
+      "request": {
+        "layout": "ipv4_text[15]",
+        "length": "15"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "writes PTP unicast IP text",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMISetPTPUnicastip@10e98",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPTPCtrl.start",
+      "command": [
+        50,
+        60
+      ],
+      "request": {
+        "layout": "action=0",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "starts ptpd",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMIPTPCtrl@10ec0",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPTPCtrl.stop",
+      "command": [
+        50,
+        60
+      ],
+      "request": {
+        "layout": "action=1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "stops ptpd",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMIPTPCtrl@10ec0",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPTPCtrl.restart",
+      "command": [
+        50,
+        60
+      ],
+      "request": {
+        "layout": "action=2",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "restarts ptpd",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMIPTPCtrl@10ec0",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPTPCtrl.status",
+      "command": [
+        50,
+        60
+      ],
+      "request": {
+        "layout": "action=3",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;running_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "runs status helper and reads status file",
+      "evidence": {
+        "location": "libipmiamioemptp.so.13.1.0:AMIPTPCtrl@10ec0",
+        "module_sha256": "58390c888a12d6738d62ecbba389dd1eba2634fc97d1ac1a95d2c55aad9c0e0f"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "00"
+      }
+    },
+    {
+      "id": "AMIGetBMCInterfaceStatus",
+      "command": [
+        50,
+        61
+      ],
+      "request": {
+        "layout": "magic=1;reserved=0;mask",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;kcs_status;lan_status;usb_status",
+        "length_including_cc": "4"
+      },
+      "selectors": "mask bits0..2;mask<=7",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads enabled/running state and marker files",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetBMCInterfaceStatus@41ce8",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "070707"
+      }
+    },
+    {
+      "id": "AMIGetKCSLANIfcSupport.kcs",
+      "command": [
+        50,
+        62
+      ],
+      "request": {
+        "layout": "selector=01",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "01",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads KCS interface support for current channel",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetKCSLANIfcSupport@41e9c",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "01"
+      }
+    },
+    {
+      "id": "AMIGetKCSLANIfcSupport.lan",
+      "command": [
+        50,
+        62
+      ],
+      "request": {
+        "layout": "selector=0f",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "0f",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads LAN interface support for current channel",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetKCSLANIfcSupport@41e9c",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "01"
+      }
+    },
+    {
+      "id": "AMISetKCSLANIfcSupport.kcs",
+      "command": [
+        50,
+        63
+      ],
+      "request": {
+        "layout": "selector=01;enabled",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "01;enabled0..1",
+      "completion_codes": [
+        "00",
+        "c1",
+        "cc",
+        "d6"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists KCS support;disabling closes active KCS sessions",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetKCSLANIfcSupport@41f2c",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetKCSLANIfcSupport.lan",
+      "command": [
+        50,
+        63
+      ],
+      "request": {
+        "layout": "selector=0f;enabled",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0f;enabled0..1",
+      "completion_codes": [
+        "00",
+        "c1",
+        "cc",
+        "d6"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists LAN support",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetKCSLANIfcSupport@41f2c",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISensorThresholdAcrossResets.clear",
+      "command": [
+        50,
+        74
+      ],
+      "request": {
+        "layout": "action=0",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "clears threshold-across-reset state flag",
+      "evidence": {
+        "location": "libipmiamioemsensorthresholdacrossresets.so.13.0.0:AMISensorThresholdAcrossResets@10e0c",
+        "module_sha256": "10755aee60cdc8828bec02cb4d78b5c8087d15f00af5fe7fc8d04d81d88db2bd"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISensorThresholdAcrossResets.persist",
+      "command": [
+        50,
+        74
+      ],
+      "request": {
+        "layout": "action=1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "handler-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists live sensor thresholds across reset",
+      "evidence": {
+        "location": "libipmiamioemsensorthresholdacrossresets.so.13.0.0:AMISensorThresholdAcrossResets@10e0c",
+        "module_sha256": "10755aee60cdc8828bec02cb4d78b5c8087d15f00af5fe7fc8d04d81d88db2bd"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISensorThresholdAcrossResets.restore",
+      "command": [
+        50,
+        74
+      ],
+      "request": {
+        "layout": "action=2",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "copies saved SDR and fully reinitializes sensors",
+      "evidence": {
+        "location": "libipmiamioemsensorthresholdacrossresets.so.13.0.0:AMISensorThresholdAcrossResets@10e0c",
+        "module_sha256": "10755aee60cdc8828bec02cb4d78b5c8087d15f00af5fe7fc8d04d81d88db2bd"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRESTinterface.start",
+      "command": [
+        50,
+        92
+      ],
+      "request": {
+        "layout": "flags bit0;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length": "12+chunk;chunk<=51200;total>=chunk"
+      },
+      "response": {
+        "layout": "cc;flags;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length_including_cc": "13+data;data<=16384"
+      },
+      "selectors": "flags&01",
+      "completion_codes": [
+        "00",
+        "82",
+        "83",
+        "85",
+        "86",
+        "c3",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "allocates transaction and relays arbitrary Redfish request",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIRESTinterface@11afc",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRESTinterface.continue",
+      "command": [
+        50,
+        92
+      ],
+      "request": {
+        "layout": "flags=00;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length": "12+chunk;chunk<=51200;total>=chunk"
+      },
+      "response": {
+        "layout": "cc;flags;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length_including_cc": "13+data;data<=16384"
+      },
+      "selectors": "flags=00",
+      "completion_codes": [
+        "00",
+        "82",
+        "83",
+        "85",
+        "86",
+        "c3",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "appends request chunk or retrieves response chunk",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIRESTinterface@11afc",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRESTinterface.final",
+      "command": [
+        50,
+        92
+      ],
+      "request": {
+        "layout": "flags bit1;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length": "12+chunk;chunk<=51200;total>=chunk"
+      },
+      "response": {
+        "layout": "cc;flags;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length_including_cc": "13+data;data<=16384"
+      },
+      "selectors": "flags&02",
+      "completion_codes": [
+        "00",
+        "82",
+        "83",
+        "85",
+        "86",
+        "c3",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "finalizes and submits arbitrary Redfish request",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIRESTinterface@11afc",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRESTinterface.resend",
+      "command": [
+        50,
+        92
+      ],
+      "request": {
+        "layout": "flags bit2;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length": "12+chunk;chunk<=51200;total>=chunk"
+      },
+      "response": {
+        "layout": "cc;flags;txid;total_u32le;chunk_u16le;checksum_u32le;data",
+        "length_including_cc": "13+data;data<=16384"
+      },
+      "selectors": "flags&04",
+      "completion_codes": [
+        "00",
+        "82",
+        "83",
+        "85",
+        "86",
+        "c3",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "requests retransmission of response data",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIRESTinterface@11afc",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRESTinterface.complete",
+      "command": [
+        50,
+        92
+      ],
+      "request": {
+        "layout": "flags=08;txid;zero header remainder",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;flags;txid;zeroes",
+        "length_including_cc": "13"
+      },
+      "selectors": "08",
+      "completion_codes": [
+        "00",
+        "83",
+        "85",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "frees completed transaction",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIRESTinterface@11afc",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRESTinterface.cancel",
+      "command": [
+        50,
+        92
+      ],
+      "request": {
+        "layout": "flags bit4;txid;zero header remainder",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;flags;txid;zeroes",
+        "length_including_cc": "13"
+      },
+      "selectors": "flags&10",
+      "completion_codes": [
+        "00",
+        "83",
+        "85",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "cancels and frees transaction",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIRESTinterface@11afc",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRESTinterface.capability",
+      "command": [
+        50,
+        92
+      ],
+      "request": {
+        "layout": "flags=03;remaining header zero",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;flags=03;txid=0;max_chunk_u32le=16384;zeroes",
+        "length_including_cc": "13"
+      },
+      "selectors": "03",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "advertises maximum response chunk size",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIRESTinterface@11afc",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGeneratePassword.create_firmware",
+      "command": [
+        50,
+        93
+      ],
+      "request": {
+        "layout": "operation=1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;username_len;password_len;username;password",
+        "length_including_cc": "3+username_len+password_len"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "85",
+        "86",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "deletes prior firmware session and asynchronously creates credentials",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIGeneratePassword@13548",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high; firmware/OS labels inferred from session IDs"
+    },
+    {
+      "id": "AMIGeneratePassword.create_os",
+      "command": [
+        50,
+        93
+      ],
+      "request": {
+        "layout": "operation=2",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;username_len;password_len;username;password",
+        "length_including_cc": "3+username_len+password_len"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "85",
+        "86",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "deletes prior OS session and asynchronously creates credentials",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIGeneratePassword@13548",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high; firmware/OS labels inferred from session IDs"
+    },
+    {
+      "id": "AMIGeneratePassword.delete_firmware",
+      "command": [
+        50,
+        93
+      ],
+      "request": {
+        "layout": "operation=4",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "83",
+        "85",
+        "87"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "deletes firmware host-interface user session and Redis state",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIGeneratePassword@13548",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high; firmware/OS labels inferred from session IDs"
+    },
+    {
+      "id": "AMIGeneratePassword.delete_os",
+      "command": [
+        50,
+        93
+      ],
+      "request": {
+        "layout": "operation=8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "85",
+        "87"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "deletes OS host-interface user session",
+      "evidence": {
+        "location": "libipmiamioemrestiface.so.13.4.0:AMIGeneratePassword@13548",
+        "module_sha256": "d946d007917baeb820db977522f8322b16b68e0e141255fe7cb06e694d4ad21a"
+      },
+      "confidence": "high; firmware/OS labels inferred from session IDs"
+    },
+    {
+      "id": "AMIRestoreDefaults",
+      "command": [
+        50,
+        102
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "queues task 0x3f; worker runs preservecfg or restoredefaults and may mark factory restore",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIRestoreDefaults@3c150;worker@7cac8",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.query_device_identifiers",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=01;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response",
+        "length_including_cc": "265"
+      },
+      "selectors": "01",
+      "completion_codes": [
+        "PLDM-defined",
+        "unsupported returns zero transport length"
+      ],
+      "effect": "safe",
+      "side_effects": "returns fixed QueryDeviceIdentifiers response",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high shape; exact handler; module skipped by absent feature token"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.request_update",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=10;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response length4",
+        "length_including_cc": "4"
+      },
+      "selectors": "10",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "sets and updates PLDM update state",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high shape; exact handler; module skipped by absent feature token"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.pass_component_table",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=13;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response length3",
+        "length_including_cc": "3"
+      },
+      "selectors": "13",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "advances PLDM component-table state",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high shape; exact handler; module skipped by absent feature token"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.update_component",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=14;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response length9",
+        "length_including_cc": "9"
+      },
+      "selectors": "14",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "destructive",
+      "side_effects": "enters component update helper",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4;helper@11370",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high shape; side effects inferred from standard command"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.activate_firmware",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=1a;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response length3",
+        "length_including_cc": "3"
+      },
+      "selectors": "1a",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "destructive",
+      "side_effects": "runs activation command;updates status;restarts with new firmware",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high; exact handler; module skipped by absent feature token"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.get_status",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=1b;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response length11",
+        "length_including_cc": "11"
+      },
+      "selectors": "1b",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "safe",
+      "side_effects": "reads PLDM update status",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high; exact handler; module skipped by absent feature token"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.cancel_update_component",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=1c;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response length1",
+        "length_including_cc": "1"
+      },
+      "selectors": "1c",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "returns one byte without explicit initialization",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high shape; firmware bug"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.cancel_update",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=1d;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "PLDM response length10",
+        "length_including_cc": "10"
+      },
+      "selectors": "1d",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "returns ten bytes without explicit population in top-level handler",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "high shape; firmware bug"
+    },
+    {
+      "id": "AMIPLDMFIRMWAREMsg.command_1e",
+      "command": [
+        50,
+        214
+      ],
+      "request": {
+        "layout": "PLDM header(type=5);command=1e;payload",
+        "length": "variable>=3;also accepts redundant d6 prefix"
+      },
+      "response": {
+        "layout": "helper-defined response",
+        "length_including_cc": "helper-defined"
+      },
+      "selectors": "1e",
+      "completion_codes": [
+        "PLDM-defined"
+      ],
+      "effect": "destructive",
+      "side_effects": "invokes firmware-update helper",
+      "evidence": {
+        "location": "libpldmfwupdate.so.13.2.0:AMIPLDMFIRMWAREMsg@115d4;helper@114d4",
+        "module_sha256": "e1085d45cacbcbaef987d0df4a0b5711915f23b7961db5d793cfee0c7414ecd8"
+      },
+      "confidence": "medium; operation name not recovered"
+    },
+    {
+      "id": "AMIGetRedirectedMediaInfo.cd",
+      "command": [
+        50,
+        220
+      ],
+      "request": {
+        "layout": "media_type=1;index_or_ff",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;entries[N] each 0x142 bytes",
+        "length_including_cc": "1+N*322"
+      },
+      "selectors": "1;index0..count-1 or ff",
+      "completion_codes": [
+        "00",
+        "80",
+        "91",
+        "92",
+        "93",
+        "95",
+        "9e",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads redirected CD media session metadata",
+      "evidence": {
+        "location": "libipmiamioemmedia.so.13.4.0:AMIGetRedirectedMediaInfo@1399c",
+        "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
+      },
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "9e",
+        "response_data_hex": ""
+      }
+    },
+    {
+      "id": "AMIGetRedirectedMediaInfo.hd",
+      "command": [
+        50,
+        220
+      ],
+      "request": {
+        "layout": "media_type=4;index_or_ff",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;entries[N] each 0x142 bytes",
+        "length_including_cc": "1+N*322"
+      },
+      "selectors": "4;index0..count-1 or ff",
+      "completion_codes": [
+        "00",
+        "80",
+        "91",
+        "92",
+        "93",
+        "95",
+        "9e",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads redirected hard-disk media session metadata",
+      "evidence": {
+        "location": "libipmiamioemmedia.so.13.4.0:AMIGetRedirectedMediaInfo@1399c",
+        "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSSHConf.ssh_enabled",
+      "command": [
+        50,
+        17
+      ],
+      "request": {
+        "layout": "selector=0",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "handler-defined"
+      ],
+      "effect": "safe",
+      "side_effects": "reads SSH enabled setting",
+      "evidence": {
+        "location": "libipmiamioemsshconf.so.13.0.0:AMIGetSSHConf@11024",
+        "module_sha256": "39237c9123274fb25d1f7ced15722fb674cf65e328fd1f15bb392d3183299ff2"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSSHConf.password_auth",
+      "command": [
+        50,
+        17
+      ],
+      "request": {
+        "layout": "selector=1",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled_bool",
+        "length_including_cc": "2"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "handler-defined"
+      ],
+      "effect": "safe",
+      "side_effects": "reads SSH password-auth setting",
+      "evidence": {
+        "location": "libipmiamioemsshconf.so.13.0.0:AMIGetSSHConf@11024",
+        "module_sha256": "39237c9123274fb25d1f7ced15722fb674cf65e328fd1f15bb392d3183299ff2"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetSSHConf.ssh_enabled",
+      "command": [
+        50,
+        18
+      ],
+      "request": {
+        "layout": "selector=0;enabled",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0;enabled0..1",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "handler-defined"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "persists SSH enabled setting and restarts SSH service",
+      "evidence": {
+        "location": "libipmiamioemsshconf.so.13.0.0:AMISetSSHConf@10f34",
+        "module_sha256": "39237c9123274fb25d1f7ced15722fb674cf65e328fd1f15bb392d3183299ff2"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetSSHConf.password_auth",
+      "command": [
+        50,
+        18
+      ],
+      "request": {
+        "layout": "selector=1;enabled",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1;enabled0..1",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "handler-defined"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "persists SSH password-auth setting and restarts SSH service",
+      "evidence": {
+        "location": "libipmiamioemsshconf.so.13.0.0:AMISetSSHConf@10f34",
+        "module_sha256": "39237c9123274fb25d1f7ced15722fb674cf65e328fd1f15bb392d3183299ff2"
+      },
+      "confidence": "high"
+    }
+  ]
+}

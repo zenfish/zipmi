@@ -790,7 +790,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
         }
         return _normalize_listing(out, "megarac")
     if vendor == "advantech-asmb787":
-        from ..scapy_ipmi.oem.advantech_asmb787 import ASMB787_COMMANDS
+        from ..scapy_ipmi.oem.advantech_asmb787 import ASMB787_COMMANDS, ASMB787_OPERATIONS
         out = {}
         for key, e in ASMB787_COMMANDS.items():
             activation = e["activation_status"]
@@ -820,10 +820,31 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "req_len_raw": e["request_length_raw"],
                 "semantic_confidence": e["semantic_confidence"],
                 "requires_unsafe": (
-                    e["safety_tier"] in {"destructive", "mutates", "unknown"}
+                    e["safety_tier"] in {
+                        "destructive", "mutates", "security-sensitive", "unknown"}
                     or e["request_length_raw"] == "0xff"
                     or e["semantic_confidence"] != "target-proven"
                 ),
+            }
+        for operation in ASMB787_OPERATIONS:
+            prefix = operation.get("prefix")
+            if prefix is None:
+                continue
+            netfn, cmd = operation["command"]
+            base = out[(netfn, cmd)]
+            out[(netfn, cmd, *prefix)] = {
+                **base,
+                "name": operation["id"],
+                "desc": operation["side_effects"],
+                "prefix": bytes(prefix),
+                "request": operation["request"]["layout"],
+                "response": operation["response"]["layout"],
+                "confidence": operation["confidence"],
+                "tier": operation["effect"],
+                "req_len_raw": hex(len(prefix)) if operation["request"]["length"].isdigit()
+                and int(operation["request"]["length"]) == len(prefix) else base["req_len_raw"],
+                "semantic_confidence": "target-proven",
+                "requires_unsafe": operation["effect"] != "safe",
             }
         return _normalize_listing(out, "advantech-asmb787")
     if vendor == "yafu":

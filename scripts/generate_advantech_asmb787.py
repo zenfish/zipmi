@@ -7,6 +7,7 @@ import argparse
 import csv
 import html
 import io
+import json
 import pprint
 import re
 import sys
@@ -16,6 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-oem-dispatch.csv"
 ACTIVATION_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-module-activation.csv"
+CONTRACTS_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-oem-contracts.json"
 MODULE = ROOT / "zipmi/scapy_ipmi/oem/advantech_asmb787_generated.py"
 DOC = ROOT / "docs/advantech_ASMB787-command-reference.html"
 DOC_MD = ROOT / "docs/advantech_ASMB787-command-reference.md"
@@ -85,7 +87,9 @@ def read_rows(path: Path) -> list[dict[str, str]]:
             if row["semantic_confidence"] not in {
                     "unknown",
                     "medium for AMI-family context; exact ASMB applicability unverified",
-            } or row["safety_tier"] not in {"safe", "mutates", "destructive", "unknown"}:
+                    "target-proven",
+            } or row["safety_tier"] not in {
+                    "safe", "mutates", "security-sensitive", "destructive", "unknown"}:
                 raise SystemExit(f"bad semantic enum in {row['netfn']}/{row['cmd']}")
         if not all(row[name] for name in ("handler", "module", "table", "confidence",
                                           "activation_status", "selector_status")):
@@ -155,6 +159,124 @@ def apply_activation(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     return rows
 
 
+def operation_prefix(layout: str) -> list[int] | None:
+    """Return only exact, leading handler-proven discriminator bytes."""
+    prefix = []
+    for token in (part.strip() for part in layout.split(";")):
+        if re.fullmatch(r"0x[0-9a-fA-F]{2}", token):
+            prefix.append(int(token, 16))
+            continue
+        match = re.fullmatch(
+            r"(?:action|selector|operation|media_type|flags|magic|reserved)=([0-9a-fA-F]{1,2})",
+            token,
+        )
+        if match:
+            prefix.append(int(match.group(1), 16))
+            continue
+        match = re.fullmatch(r"db([01])", token)
+        if match:
+            prefix.append(int(match.group(1)))
+            continue
+        break
+    return prefix or None
+
+
+def field_descriptors(layout: str, expected_length: str) -> list[dict] | None:
+    """Flatten the fixed-width subset of recovered packed wire layouts."""
+    if not expected_length.isdigit() or any(marker in layout for marker in (
+            "PLDM", "helper-defined", "typed_body", "entries[N]", "username;password",
+            "chunk_u16le", "zero header", "remaining header", "data")):
+        return None
+    if layout == "empty":
+        return [] if expected_length == "0" else None
+    fields = []
+    for index, token in enumerate(part.strip() for part in layout.split(";")):
+        if token == "cc":
+            fields.append({"name": "completion_code", "kind": "u8"})
+            continue
+        if re.fullmatch(r"0x[0-9a-fA-F]{2}", token):
+            fields.append({"name": f"constant_{index}", "kind": "u8",
+                           "constant": int(token, 16)})
+            continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)=([0-9a-fA-F]{1,2})", token)
+        if match:
+            fields.append({"name": match.group(1), "kind": "u8",
+                           "constant": int(match.group(2), 16)})
+            continue
+        match = re.fullmatch(r"db([01])", token)
+        if match:
+            fields.append({"name": "database", "kind": "u8",
+                           "constant": int(match.group(1))})
+            continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)\[(\d+)\]", token)
+        if match:
+            fields.append({"name": match.group(1), "kind": "bytes",
+                           "length": int(match.group(2))})
+            continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)_(u16le|u32le)", token)
+        if match:
+            fields.append({"name": match.group(1), "kind": match.group(2)})
+            continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)(?:=\([^)]*\))?", token)
+        if match:
+            fields.append({"name": match.group(1), "kind": "u8"})
+            continue
+        return None
+    widths = {"u8": 1, "u16le": 2, "u32le": 4}
+    size = sum(field.get("length", widths.get(field["kind"], 0)) for field in fields)
+    return fields if size == int(expected_length) else None
+
+
+def apply_contracts(rows: list[dict[str, str]]) -> list[dict]:
+    document = json.loads(CONTRACTS_SOURCE.read_text())
+    operations = document.get("operations", [])
+    if document.get("schema_version") != 1 or len(operations) != 68:
+        raise SystemExit("expected ASMB contract schema v1 with 68 operations")
+    by_key = {(int(row["netfn"], 0), int(row["cmd"], 0)): row for row in rows}
+    ids = set()
+    keys = set()
+    for operation in operations:
+        op_id = operation["id"]
+        key = tuple(operation["command"])
+        if op_id in ids or key not in by_key:
+            raise SystemExit(f"duplicate or unknown ASMB operation: {op_id}")
+        ids.add(op_id)
+        row = by_key[key]
+        if operation["evidence"]["module_sha256"] != row["module_sha256"]:
+            raise SystemExit(f"contract SHA-256 mismatch for {op_id}")
+        prefix = operation_prefix(operation["request"]["layout"])
+        operation["prefix"] = prefix
+        request_fields = field_descriptors(
+            operation["request"]["layout"], operation["request"]["length"])
+        response_fields = field_descriptors(
+            operation["response"]["layout"], operation["response"]["length_including_cc"])
+        operation["request"]["fields"] = request_fields
+        operation["response"]["fields"] = response_fields
+        operation["codec_state"] = (
+            "verified" if request_fields is not None and response_fields is not None else "raw-exact"
+        )
+        if prefix is not None:
+            op_key = key + tuple(prefix)
+            if op_key in keys:
+                raise SystemExit(f"duplicate ASMB operation prefix: {op_key}")
+            keys.add(op_key)
+    if len({tuple(operation["command"]) for operation in operations}) != 30:
+        raise SystemExit("expected exact contracts for 30 ASMB command pairs")
+    rank = {"safe": 0, "mutates": 1, "security-sensitive": 2, "destructive": 3}
+    for key, row in by_key.items():
+        matching = [operation for operation in operations if tuple(operation["command"]) == key]
+        if not matching:
+            continue
+        row["request_semantics"] = "; ".join(dict.fromkeys(
+            operation["request"]["layout"] for operation in matching))
+        row["response_semantics"] = "; ".join(dict.fromkeys(
+            operation["response"]["layout"] for operation in matching))
+        row["semantic_source"] = "exact ASMB-787 handler decompilation"
+        row["semantic_confidence"] = "target-proven"
+        row["safety_tier"] = max((operation["effect"] for operation in matching), key=rank.get)
+    return operations
+
+
 def source_text(rows: list[dict[str, str]]) -> str:
     fields = [k for k in rows[0] if k not in SEMANTIC_FIELDS] + list(SEMANTIC_FIELDS)
     stream = io.StringIO(newline="")
@@ -164,7 +286,7 @@ def source_text(rows: list[dict[str, str]]) -> str:
     return stream.getvalue()
 
 
-def module_text(rows: list[dict[str, str]]) -> str:
+def module_text(rows: list[dict[str, str]], operations: list[dict]) -> str:
     commands = {
         (int(r["netfn"], 0), int(r["cmd"], 0)): dict(r)
         for r in rows
@@ -176,7 +298,9 @@ def module_text(rows: list[dict[str, str]]) -> str:
         "ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = "
         + pprint.pformat(commands, width=100, sort_dicts=True)
         + "\n\nASMB787_CMD_NAMES = {key: row['handler'] for key, row in ASMB787_COMMANDS.items()}\n"
-        + "\n__all__ = ['ASMB787_COMMANDS', 'ASMB787_CMD_NAMES']\n"
+        + "\nASMB787_OPERATIONS = "
+        + pprint.pformat(operations, width=100, sort_dicts=True)
+        + "\n\n__all__ = ['ASMB787_COMMANDS', 'ASMB787_CMD_NAMES', 'ASMB787_OPERATIONS']\n"
     )
 
 
@@ -194,7 +318,7 @@ def activation_label(value: str) -> str:
     raise SystemExit(f"unknown activation status: {value}")
 
 
-def doc_text(rows: list[dict[str, str]]) -> str:
+def doc_text(rows: list[dict[str, str]], operations: list[dict]) -> str:
     esc = lambda value: html.escape(str(value), quote=True)
     body = []
     for row in rows:
@@ -214,6 +338,33 @@ def doc_text(rows: list[dict[str, str]]) -> str:
         )
     registered = sum(row["activation_status"].startswith("runtime registered:") for row in rows)
     skipped = sum(row["activation_status"].startswith("not runtime registered:") for row in rows)
+    operation_body = []
+    for operation in operations:
+        netfn, cmd = operation["command"]
+        prefix = operation.get("prefix")
+        wire = f"0x{netfn:02x}/0x{cmd:02x}"
+        if prefix is not None:
+            wire += " " + " ".join(f"{byte:02x}" for byte in prefix)
+        live = operation.get("live_evidence")
+        live_text = "not live-tested"
+        if live:
+            live_text = (
+                f"run {live['run_id']}; CC {live['completion_code']}; "
+                f"data {live['response_data_hex'] or '(empty)'}"
+            )
+        operation_body.append(
+            "<tr class='border-b border-slate-800 align-top'>"
+            f"<td class='p-2 font-mono'>{esc(wire)}</td>"
+            f"<th scope='row' class='p-2 text-left font-normal'>{esc(operation['id'])}</th>"
+            f"<td class='p-2'>{esc(operation['request']['layout'])}<br><span class='text-slate-400'>length {esc(operation['request']['length'])}</span></td>"
+            f"<td class='p-2'>{esc(operation['response']['layout'])}<br><span class='text-slate-400'>length incl. CC {esc(operation['response']['length_including_cc'])}</span></td>"
+            f"<td class='p-2 font-mono'>{esc(', '.join(operation['completion_codes']))}</td>"
+            f"<td class='p-2'>{esc(operation['effect'])}<br><span class='text-slate-400'>{esc(operation['side_effects'])}</span></td>"
+            f"<td class='p-2'>{esc(operation['codec_state'])}</td>"
+            f"<td class='p-2'>{esc(operation['evidence']['location'])}<br><span class='text-slate-400'>{esc(operation['confidence'])}</span></td>"
+            f"<td class='p-2'>{esc(live_text)}</td>"
+            "</tr>"
+        )
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Advantech ASMB-787 OEM IPMI command reference</title><script src="https://cdn.tailwindcss.com"></script></head>
@@ -221,7 +372,12 @@ def doc_text(rows: list[dict[str, str]]) -> str:
 <h1 class="text-3xl font-bold">Advantech ASMB-787 OEM IPMI command reference</h1>
 <p class="mt-3 text-slate-300">Complete 187-entry firmware dispatch catalog and zipmi named raw surface for unique vendor NetFn/Cmd pairs. Evidence separates 92 statically registered core/platform rows, {registered} runtime-registered plugin rows, and {skipped} plugin rows skipped because their exact feature token is absent. The CmdHndlr_T layout is <code>cmd@+0</code>, <code>privilege@+1</code>, <code>handler@+4</code>, the one-byte dispatcher request-length constraint at <code>+8</code>, and <code>interface@+12</code>. Earlier documentation swapped privilege and request length.</p>
 <p class="mt-2 text-slate-300">A named command means zipmi can emit its exact NetFn/Cmd bytes. It does not claim a structured codec, complete request/response semantics, or runtime reachability. The +8 value proves only the dispatcher constraint shown; payload fields remain explicitly unknown unless AMI client/header material supplies labelled context. Type-8 secondary selector hooks exist, but their selector values remain unknown.</p>
+<section class="mt-8"><h2 class="text-2xl font-semibold">Exact-target operation contracts</h2>
+<p class="mt-2 text-slate-300">Exact handler decompilation currently proves {len(operations)} operations across 30 command pairs. zipmi generates structured fixed-width codecs for {sum(operation['codec_state'] == 'verified' for operation in operations)} operations; the remaining {sum(operation['codec_state'] != 'verified' for operation in operations)} retain exact raw contracts because their variable, union, checksum, or overlapping-bitmask framing needs a dedicated codec. The analyzed firmware is artifact <code>379c676d-4d49-52ea-a268-541c391a69ca</code>.</p>
+<div class="mt-4 overflow-x-auto"><table class="w-full text-sm"><caption class="pb-3 text-left text-slate-300">Handler-proven selector operations, effects, codecs, and live evidence.</caption><thead class="bg-slate-900 text-left"><tr><th class="p-2">Wire / prefix</th><th class="p-2">Operation</th><th class="p-2">Request</th><th class="p-2">Response</th><th class="p-2">CCs</th><th class="p-2">Effect</th><th class="p-2">Codec</th><th class="p-2">Evidence</th><th class="p-2">Live</th></tr></thead><tbody>{''.join(operation_body)}</tbody></table></div></section>
+<section class="mt-8"><h2 class="text-2xl font-semibold">Top-level firmware dispatch</h2>
 <div class="mt-6 overflow-x-auto"><table class="w-full text-sm"><caption class="pb-3 text-left text-slate-300">All 187 unique ASMB-787 vendor NetFn/Cmd catalog entries and their evidence boundaries.</caption><thead class="sticky top-0 bg-slate-900 text-left"><tr><th scope="col" class="p-2">Wire</th><th scope="col" class="p-2">Handler / module</th><th scope="col" class="p-2">Privilege</th><th scope="col" class="p-2">Request</th><th scope="col" class="p-2">Response</th><th scope="col" class="p-2">Interface</th><th scope="col" class="p-2">Activation</th><th scope="col" class="p-2">Evidence / confidence</th></tr></thead><tbody>""" + "".join(body) + """</tbody></table></div>
+</section>
 <p class="mt-6 text-slate-400">Generated from <code>zipmi/data/sources/advantech-asmb787-oem-dispatch.csv</code> by <code>scripts/generate_advantech_asmb787.py</code>.</p>
 </main></body></html>
 """
@@ -279,9 +435,10 @@ def main() -> int:
     else:
         rows = read_rows(SOURCE)
     rows = apply_activation(rows)
+    operations = apply_contracts(rows)
     ok = emit(SOURCE, source_text(rows), args.check)
-    ok &= emit(MODULE, module_text(rows), args.check)
-    ok &= emit(DOC, doc_text(rows), args.check)
+    ok &= emit(MODULE, module_text(rows, operations), args.check)
+    ok &= emit(DOC, doc_text(rows, operations), args.check)
     ok &= emit(DOC_MD, markdown_text(rows), args.check)
     if args.check and not ok:
         print("ASMB-787 generated files are stale", file=sys.stderr)

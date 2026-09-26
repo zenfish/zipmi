@@ -7,6 +7,8 @@ import csv
 from contextlib import contextmanager
 from pathlib import Path
 
+import pytest
+
 
 def test_catalog_has_every_unique_firmware_dispatch_pair():
     from zipmi.scapy_ipmi.oem.advantech_asmb787 import ASMB787_COMMANDS
@@ -39,6 +41,15 @@ def test_generated_markdown_contains_every_canonical_row():
     assert len(rows) == 187
     assert any("`0x32/0x66`" in line and "`AMIRestoreDefaults`" in line
                for line in rows)
+
+
+def test_generated_html_contains_every_exact_operation():
+    reference = (Path(__file__).parents[2] / "docs/"
+                 "advantech_ASMB787-command-reference.html").read_text()
+    assert reference.count("<td class='p-2 font-mono'>0x") == 68 + 187
+    assert "68 operations across 30 command pairs" in reference
+    assert "structured fixed-width codecs for 46 operations" in reference
+    assert "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2" in reference
 
 
 def test_corrected_cmd_handler_layout_values():
@@ -149,6 +160,29 @@ def test_unsafe_named_restore_emits_exact_empty_request(monkeypatch):
     assert sent == [(0x32, 0x66, b"")]
 
 
+def test_safe_exact_operation_emits_full_proven_prefix_without_unsafe(monkeypatch):
+    from zipmi.cli import zipmi as cli
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    sent = []
+
+    class Session:
+        def send_raw(self, netfn, cmd, data):
+            sent.append((netfn, cmd, data))
+            return 0, b"\x00"
+
+    @contextmanager
+    def fake_open_session(_args):
+        yield Session()
+
+    monkeypatch.setattr(cli, "_open_session", fake_open_session)
+    args = argparse.Namespace(
+        cmd_name="ControlMEUpdate.query", data=[], unsafe=False, json=False,
+    )
+    assert cmd_oem_run(args, "advantech-asmb787") == 0
+    assert sent == [(0x30, 0x01, b"\x30\x02")]
+
+
 def test_help_prints_valid_oem_invocation(capsys):
     from zipmi.cli.oem_cmds import _cmd_oem_help
 
@@ -174,6 +208,68 @@ def test_advantech_alias_and_iana_registration():
     zipmi.load_vendor("asmb787")
     assert ENTERPRISE_IDS[10297] == "advantech-asmb787"
     assert OEM_CMD_NAMES[(0x32, 0x66)] == "AMIRestoreDefaults"
+
+
+def test_exact_operation_contracts_and_codecs_are_generated():
+    import zipmi
+    zipmi.load_vendor("advantech-asmb787")
+    from zipmi.scapy_ipmi.oem.advantech_asmb787 import (
+        ASMB787_OPERATIONS, ASMB787_PAYLOADS,
+    )
+
+    assert len(ASMB787_OPERATIONS) == 68
+    assert len({tuple(row["command"]) for row in ASMB787_OPERATIONS}) == 30
+    assert sum(row["codec_state"] == "verified" for row in ASMB787_OPERATIONS) == 46
+    assert len(ASMB787_PAYLOADS) == 46
+
+    req_type, resp_type = ASMB787_PAYLOADS[(0x32, 0x18, 0x00)]
+    assert bytes(req_type()) == b"\x00"
+    response = resp_type(b"\x00\x03")
+    assert (response.completion_code, response.retry_count) == (0, 3)
+
+    for operation in ASMB787_OPERATIONS:
+        if operation["codec_state"] != "verified":
+            continue
+        key = tuple(operation["command"] + (operation.get("prefix") or []))
+        request_type, response_type = ASMB787_PAYLOADS[key]
+        values = {}
+        for field in operation["request"]["fields"]:
+            if "constant" in field:
+                continue
+            values[field["name"]] = (
+                b"\0" * field["length"] if field["kind"] == "bytes" else 0)
+        assert len(bytes(request_type(**values))) == int(operation["request"]["length"])
+        response_length = int(operation["response"]["length_including_cc"])
+        assert isinstance(response_type(b"\0" * response_length), response_type)
+
+
+def test_mutating_codec_requires_fields_and_preserves_constants():
+    import zipmi
+    zipmi.load_vendor("advantech-asmb787")
+    from zipmi.scapy_ipmi.oem.advantech_asmb787 import ASMB787_PAYLOADS
+
+    req_type, _ = ASMB787_PAYLOADS[(0x32, 0x37)]
+    with pytest.raises(ValueError, match="missing required fields"):
+        bytes(req_type())
+    packet = req_type(mode=1, transport=1, delay_mechanism=0,
+                      two_step=1, domain=b"\0" * 6)
+    assert bytes(packet) == b"\x01\x01\x00\x01" + b"\0" * 6
+
+    selected_type, _ = ASMB787_PAYLOADS[(0x32, 0x18, 0x00)]
+    with pytest.raises(ValueError, match="constant fields changed"):
+        bytes(selected_type(selector=1))
+
+
+def test_oem_error_response_decode_tolerates_truncation():
+    import zipmi
+    zipmi.load_vendor("advantech-asmb787")
+    from zipmi.scapy_ipmi.oem._registry import decode_payload_response
+
+    response = decode_payload_response(
+        "advantech-asmb787", 0x32, 0x36, b"", 0xC1, b"",
+    )
+    assert response is not None
+    assert response.completion_code == 0xC1
 
 
 def test_yafu_does_not_claim_universal_privilege():
