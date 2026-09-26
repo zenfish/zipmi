@@ -3602,6 +3602,4821 @@
         "module_sha256": "185edab3b605d061132b61a234916e658ab8c38eeb60bf91b2aa9779f3362bac"
       },
       "confidence": "high"
+    },
+    {
+      "id": "AMIGetServiceConf",
+      "command": [
+        50,
+        105
+      ],
+      "request": {
+        "layout": "service_id_bit_u32le",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;service_id_u32le;enabled;interface[17];nonsecure_port_u32le;secure_port_u32le;timeout_u32le;max_sessions;active_sessions;min_timeout_u32le;max_timeout_u32le",
+        "length_including_cc": "45"
+      },
+      "selectors": "service_id exactly one enabled bit (IDs 0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80)",
+      "completion_codes": [
+        "00",
+        "93",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads one service configuration and active-session count",
+      "evidence": {
+        "location": "libipmiamioemserviceconf.so.13.1.0:AMIGetServiceConf@1828",
+        "module_sha256": "a62799d9a4788c8b4c60e5d7fea057ff44ba6a63bda26cfb50b313928dcc8af7"
+      },
+      "confidence": "high; service-ID names remain platform table data"
+    },
+    {
+      "id": "AMISetServiceConf",
+      "command": [
+        50,
+        106
+      ],
+      "request": {
+        "layout": "service_id_bit_u32le;enabled;interface[17];nonsecure_port_u32le;secure_port_u32le;timeout_u32le;max_sessions;current_sessions",
+        "length": "36"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "service_id exactly one enabled bit",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "84",
+        "87",
+        "93",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "persists service listener configuration; may restart/stop SSH, VNC, web and media services",
+      "evidence": {
+        "location": "libipmiamioemserviceconf.so.13.1.0:AMISetServiceConf@2090",
+        "module_sha256": "a62799d9a4788c8b4c60e5d7fea057ff44ba6a63bda26cfb50b313928dcc8af7"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosCode.current.page0",
+      "command": [
+        50,
+        115
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;bios_code[0:min(size,256)]",
+        "length_including_cc": "1..257"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "07",
+        "80",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads current/previous BIOS POST-code buffer",
+      "evidence": {
+        "location": "libipmiamioembioscode.so.13.1.0:AMIGetBiosCode@0758",
+        "module_sha256": "c8848fd18f87107f68281837370e9979a91068d058a821d90d9e6cdff7938e9a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosCode.previous.page0",
+      "command": [
+        50,
+        115
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;bios_code[0:min(size,256)]",
+        "length_including_cc": "1..257"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "07",
+        "80",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads current/previous BIOS POST-code buffer",
+      "evidence": {
+        "location": "libipmiamioembioscode.so.13.1.0:AMIGetBiosCode@0758",
+        "module_sha256": "c8848fd18f87107f68281837370e9979a91068d058a821d90d9e6cdff7938e9a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosCode.current.page1",
+      "command": [
+        50,
+        115
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;bios_code[256:size]",
+        "length_including_cc": "1..257"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "07",
+        "80",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads current/previous BIOS POST-code buffer",
+      "evidence": {
+        "location": "libipmiamioembioscode.so.13.1.0:AMIGetBiosCode@0758",
+        "module_sha256": "c8848fd18f87107f68281837370e9979a91068d058a821d90d9e6cdff7938e9a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosCode.previous.page1",
+      "command": [
+        50,
+        115
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;bios_code[256:size]",
+        "length_including_cc": "1..257"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "07",
+        "80",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads current/previous BIOS POST-code buffer",
+      "evidence": {
+        "location": "libipmiamioembioscode.so.13.1.0:AMIGetBiosCode@0758",
+        "module_sha256": "c8848fd18f87107f68281837370e9979a91068d058a821d90d9e6cdff7938e9a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosCode.current.size",
+      "command": [
+        50,
+        115
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;size_u32le",
+        "length_including_cc": "5"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "07",
+        "80",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads current/previous BIOS POST-code buffer",
+      "evidence": {
+        "location": "libipmiamioembioscode.so.13.1.0:AMIGetBiosCode@0758",
+        "module_sha256": "c8848fd18f87107f68281837370e9979a91068d058a821d90d9e6cdff7938e9a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosCode.previous.size",
+      "command": [
+        50,
+        115
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;size_u32le",
+        "length_including_cc": "5"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "07",
+        "80",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "reads current/previous BIOS POST-code buffer",
+      "evidence": {
+        "location": "libipmiamioembioscode.so.13.1.0:AMIGetBiosCode@0758",
+        "module_sha256": "c8848fd18f87107f68281837370e9979a91068d058a821d90d9e6cdff7938e9a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetPamOrder",
+      "command": [
+        50,
+        122
+      ],
+      "request": {
+        "layout": "module_sequence[GetPamCount];zero-pad-to-4",
+        "length": "GetPamCount (<=4)"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "each module index exactly once",
+      "completion_codes": [
+        "00",
+        "90",
+        "c1",
+        "c7",
+        "cc"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "rewrites PAM/NSS authentication order and queues reload",
+      "evidence": {
+        "location": "libipmiamioempamreorder.so.13.1.0:AMISetPamOrder@1f88",
+        "module_sha256": "c00a49b406d699a9da3a024f9d20bf185d0bcb2517063ef3d7f5a682404ec82e"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetPamOrder",
+      "command": [
+        50,
+        123
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;module_sequence[GetPamCount]",
+        "length_including_cc": "1..5"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads PAM authentication-module order",
+      "evidence": {
+        "location": "libipmiamioempamreorder.so.13.1.0:AMIGetPamOrder@1de4",
+        "module_sha256": "c00a49b406d699a9da3a024f9d20bf185d0bcb2517063ef3d7f5a682404ec82e"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSNMPConf",
+      "command": [
+        50,
+        124
+      ],
+      "request": {
+        "layout": "user_id",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;user_id;enabled;access_type;auth_type;privacy_type",
+        "length_including_cc": "6"
+      },
+      "selectors": "user_id 1..configured maximum",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads SNMP settings for existing named user",
+      "evidence": {
+        "location": "libipmiamioemsnmp.so.13.0.0:AMIGetSNMPConf@1014",
+        "module_sha256": "6f7f217e35ea69304decc2c874fd970ea0d01e79a05aff480e386a6b8fce600b"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetSNMPConf",
+      "command": [
+        50,
+        125
+      ],
+      "request": {
+        "layout": "user_id;enabled;access_type;auth_type;privacy_type",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "enabled0..1; access/auth/privacy validated by SNMP library",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "enables/disables per-user SNMP access and restarts SNMP service",
+      "evidence": {
+        "location": "libipmiamioemsnmp.so.13.0.0:AMISetSNMPConf@0b10",
+        "module_sha256": "6f7f217e35ea69304decc2c874fd970ea0d01e79a05aff480e386a6b8fce600b"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetUBootMemtest",
+      "command": [
+        50,
+        156
+      ],
+      "request": {
+        "layout": "enabled",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "enabled0..1",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists U-Boot memory-test enable flag",
+      "evidence": {
+        "location": "libipmiamioemubootmemtest.so.13.0.0:AMISetUBootMemtest@07a4",
+        "module_sha256": "d323b32db44e08307ae12903cb7425c68164ae265d39cadfd8d4b722b2f234ab"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUBootMemtestStatus",
+      "command": [
+        50,
+        157
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;memtest_status(0=other,1=done,2=running);enabled",
+        "length_including_cc": "3"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads U-Boot memory-test status and enable flag",
+      "evidence": {
+        "location": "libipmiamioemubootmemtest.so.13.0.0:AMIGetUBootMemtestStatus@0810",
+        "module_sha256": "d323b32db44e08307ae12903cb7425c68164ae265d39cadfd8d4b722b2f234ab"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTimeZone",
+      "command": [
+        50,
+        165
+      ],
+      "request": {
+        "layout": "nonempty_zone_name[1..64]",
+        "length": "1..64"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "NUL-free within supplied length",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes /conf/localtime/default timezone and signals time-sync integration",
+      "evidence": {
+        "location": "libipmiamioemtimezone.so.13.3.0:AMISetTimeZone@0da4",
+        "module_sha256": "364298a9533af2f149451d227dfb992b0dc0fca981b47189678a96ff1e18fe5e"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTimeZone",
+      "command": [
+        50,
+        166
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;zone_name[0..64]",
+        "length_including_cc": "1..65"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads BMC-instance timezone string",
+      "evidence": {
+        "location": "libipmiamioemtimezone.so.13.3.0:AMIGetTimeZone@0f64",
+        "module_sha256": "364298a9533af2f149451d227dfb992b0dc0fca981b47189678a96ff1e18fe5e"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetNTPCfg",
+      "command": [
+        50,
+        167
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;status(0=manual,1=auto,2=fail);primary[128];secondary[128]",
+        "length_including_cc": "258"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1",
+        "d5",
+        "f1",
+        "f2",
+        "f3"
+      ],
+      "effect": "safe",
+      "side_effects": "reads NTP status and server strings",
+      "evidence": {
+        "location": "libipmiamioemntp.so.13.1.0:AMIGetNTPCfg@0bc8",
+        "module_sha256": "7d7112d6e01809cb8eff40cda692e4204d4aaf9aa35d0ce340c122a99760d516"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetNTPCfg.stage_primary",
+      "command": [
+        50,
+        168
+      ],
+      "request": {
+        "layout": "param=1;server[128]",
+        "length": "129"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1; valid server string or empty",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "84",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "f2",
+        "f3",
+        "f4"
+      ],
+      "effect": "mutates",
+      "side_effects": "stages primary server per IPMI session",
+      "evidence": {
+        "location": "libipmiamioemntp.so.13.1.0:AMISetNTPCfg@0e34",
+        "module_sha256": "7d7112d6e01809cb8eff40cda692e4204d4aaf9aa35d0ce340c122a99760d516"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetNTPCfg.stage_secondary",
+      "command": [
+        50,
+        168
+      ],
+      "request": {
+        "layout": "param=2;server[128]",
+        "length": "129"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2; valid server string or empty",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "84",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "f2",
+        "f3",
+        "f4"
+      ],
+      "effect": "mutates",
+      "side_effects": "stages secondary server per IPMI session",
+      "evidence": {
+        "location": "libipmiamioemntp.so.13.1.0:AMISetNTPCfg@0e34",
+        "module_sha256": "7d7112d6e01809cb8eff40cda692e4204d4aaf9aa35d0ce340c122a99760d516"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetNTPCfg.stage_status",
+      "command": [
+        50,
+        168
+      ],
+      "request": {
+        "layout": "param=3;status",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "3;status0..1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "84",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "f2",
+        "f3",
+        "f4"
+      ],
+      "effect": "mutates",
+      "side_effects": "stages manual/automatic status per IPMI session",
+      "evidence": {
+        "location": "libipmiamioemntp.so.13.1.0:AMISetNTPCfg@0e34",
+        "module_sha256": "7d7112d6e01809cb8eff40cda692e4204d4aaf9aa35d0ce340c122a99760d516"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetNTPCfg.commit",
+      "command": [
+        50,
+        168
+      ],
+      "request": {
+        "layout": "param=4",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "84",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "f2",
+        "f3",
+        "f4"
+      ],
+      "effect": "mutates",
+      "side_effects": "applies staged servers/status; resolves names; restarts NTP asynchronously",
+      "evidence": {
+        "location": "libipmiamioemntp.so.13.1.0:AMISetNTPCfg@0e34",
+        "module_sha256": "7d7112d6e01809cb8eff40cda692e4204d4aaf9aa35d0ce340c122a99760d516"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetAllActiveSessions.type_0",
+      "command": [
+        50,
+        176
+      ],
+      "request": {
+        "layout": "session_type_selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count;session_id_u32le[count]",
+        "length_including_cc": "2+4*count"
+      },
+      "selectors": "0;record_type 0 or 1; count<=20",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "enumerates active session IDs filtered by internal service type",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIGetAllActiveSessions@0ad8",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high shape/filter; human service label not recovered"
+    },
+    {
+      "id": "AMIGetAllActiveSessions.type_1",
+      "command": [
+        50,
+        176
+      ],
+      "request": {
+        "layout": "session_type_selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count;session_id_u32le[count]",
+        "length_including_cc": "2+4*count"
+      },
+      "selectors": "1;record_type 5; count<=20",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "enumerates active session IDs filtered by internal service type",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIGetAllActiveSessions@0ad8",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high shape/filter; human service label not recovered"
+    },
+    {
+      "id": "AMIGetAllActiveSessions.type_2",
+      "command": [
+        50,
+        176
+      ],
+      "request": {
+        "layout": "session_type_selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count;session_id_u32le[count]",
+        "length_including_cc": "2+4*count"
+      },
+      "selectors": "2;record_type 7 or 10; count<=20",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "enumerates active session IDs filtered by internal service type",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIGetAllActiveSessions@0ad8",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high shape/filter; human service label not recovered"
+    },
+    {
+      "id": "AMIGetAllActiveSessions.type_3",
+      "command": [
+        50,
+        176
+      ],
+      "request": {
+        "layout": "session_type_selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count;session_id_u32le[count]",
+        "length_including_cc": "2+4*count"
+      },
+      "selectors": "3;record_type 8 or 11; count<=20",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "enumerates active session IDs filtered by internal service type",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIGetAllActiveSessions@0ad8",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high shape/filter; human service label not recovered"
+    },
+    {
+      "id": "AMIGetAllActiveSessions.type_4",
+      "command": [
+        50,
+        176
+      ],
+      "request": {
+        "layout": "session_type_selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count;session_id_u32le[count]",
+        "length_including_cc": "2+4*count"
+      },
+      "selectors": "4;record_type 9 or 12; count<=20",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "enumerates active session IDs filtered by internal service type",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIGetAllActiveSessions@0ad8",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high shape/filter; human service label not recovered"
+    },
+    {
+      "id": "AMIGetAllActiveSessions.type_5",
+      "command": [
+        50,
+        176
+      ],
+      "request": {
+        "layout": "session_type_selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count;session_id_u32le[count]",
+        "length_including_cc": "2+4*count"
+      },
+      "selectors": "5;record_type 3; count<=20",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "enumerates active session IDs filtered by internal service type",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIGetAllActiveSessions@0ad8",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high shape/filter; human service label not recovered"
+    },
+    {
+      "id": "AMIGetAllActiveSessions.type_6",
+      "command": [
+        50,
+        176
+      ],
+      "request": {
+        "layout": "session_type_selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count;session_id_u32le[count]",
+        "length_including_cc": "2+4*count"
+      },
+      "selectors": "6;record_type 2; count<=20",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "enumerates active session IDs filtered by internal service type",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIGetAllActiveSessions@0ad8",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high shape/filter; human service label not recovered"
+    },
+    {
+      "id": "AMIActiveSessionClose",
+      "command": [
+        50,
+        177
+      ],
+      "request": {
+        "layout": "session_id_u32le",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "81",
+        "c1"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "disconnects selected active session; also kills SOL process/removes marker for record types 2/3",
+      "evidence": {
+        "location": "libipmiamioemsessionmgmt.so.13.0.0:AMIActiveSessionClose@10a4",
+        "module_sha256": "44d82c9264ed8f7d2d7b5ce1529fb4f89143792b6236f7ed85bdcea634cd0a4e"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRunTimeSinglePortStatus",
+      "command": [
+        50,
+        183
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;enabled",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c7",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads runtime single-port mode via PDK callback",
+      "evidence": {
+        "location": "libipmiamioemsingleport.so.13.0.0:AMIGetRunTimeSinglePortStatus@06bc",
+        "module_sha256": "0ea161e64902751a8432a21de8695c279ef1d58b34e83d88338664bfdceb6d1a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRunTimeSinglePortStatus",
+      "command": [
+        50,
+        184
+      ],
+      "request": {
+        "layout": "enabled",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "enabled0..1",
+      "completion_codes": [
+        "00",
+        "c1",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes runtime single-port mode and invokes PDK network callbacks",
+      "evidence": {
+        "location": "libipmiamioemsingleport.so.13.0.0:AMISetRunTimeSinglePortStatus@0744",
+        "module_sha256": "0ea161e64902751a8432a21de8695c279ef1d58b34e83d88338664bfdceb6d1a"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRemoteKVMCfg.mouse_mode",
+      "command": [
+        50,
+        192
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value",
+        "length_including_cc": "2"
+      },
+      "selectors": "0;mouse_mode 1..3",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-KVM mouse mode",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMIGetRemoteKVMCfg@0a68",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRemoteKVMCfg.mouse_mode",
+      "command": [
+        50,
+        193
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0;mouse_mode 1..3",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes remote-KVM mouse mode and persists adviser configuration",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMISetRemoteKVMCfg@0c9c",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRemoteKVMCfg.keyboard_layout",
+      "command": [
+        50,
+        192
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value[5]",
+        "length_including_cc": "6"
+      },
+      "selectors": "1;ASCII layout[5]",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-KVM keyboard layout",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMIGetRemoteKVMCfg@0a68",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRemoteKVMCfg.keyboard_layout",
+      "command": [
+        50,
+        193
+      ],
+      "request": {
+        "layout": "selector;value[5]",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1;ASCII layout[5]",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes remote-KVM keyboard layout and persists adviser configuration",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMISetRemoteKVMCfg@0c9c",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRemoteKVMCfg.host_lock",
+      "command": [
+        50,
+        192
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value",
+        "length_including_cc": "2"
+      },
+      "selectors": "2;enabled0..1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-KVM host lock",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMIGetRemoteKVMCfg@0a68",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRemoteKVMCfg.host_lock",
+      "command": [
+        50,
+        193
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2;enabled0..1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes remote-KVM host lock and persists adviser configuration",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMISetRemoteKVMCfg@0c9c",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRemoteKVMCfg.auto_lock",
+      "command": [
+        50,
+        192
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value",
+        "length_including_cc": "2"
+      },
+      "selectors": "3;enabled0..1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-KVM auto lock",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMIGetRemoteKVMCfg@0a68",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRemoteKVMCfg.auto_lock",
+      "command": [
+        50,
+        193
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "3;enabled0..1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes remote-KVM auto lock and persists adviser configuration",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMISetRemoteKVMCfg@0c9c",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRemoteKVMCfg.encryption",
+      "command": [
+        50,
+        192
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value",
+        "length_including_cc": "2"
+      },
+      "selectors": "4;enabled0..1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-KVM encryption",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMIGetRemoteKVMCfg@0a68",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRemoteKVMCfg.encryption",
+      "command": [
+        50,
+        193
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4;enabled0..1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes remote-KVM encryption and persists adviser configuration",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMISetRemoteKVMCfg@0c9c",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRemoteKVMCfg.retry_count",
+      "command": [
+        50,
+        192
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value",
+        "length_including_cc": "2"
+      },
+      "selectors": "5;value1..20",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-KVM retry count",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMIGetRemoteKVMCfg@0a68",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRemoteKVMCfg.retry_count",
+      "command": [
+        50,
+        193
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "5;value1..20",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes remote-KVM retry count and persists adviser configuration",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMISetRemoteKVMCfg@0c9c",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRemoteKVMCfg.retry_interval",
+      "command": [
+        50,
+        192
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value",
+        "length_including_cc": "2"
+      },
+      "selectors": "6;value5..30",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-KVM retry interval",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMIGetRemoteKVMCfg@0a68",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRemoteKVMCfg.retry_interval",
+      "command": [
+        50,
+        193
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "6;value5..30",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes remote-KVM retry interval and persists adviser configuration",
+      "evidence": {
+        "location": "libipmiamioemremotekvm.so.13.2.0:AMISetRemoteKVMCfg@0c9c",
+        "module_sha256": "fa47591142d4fadd0e867f1fc6b77a37803318d3985512849624c20f403f9d23"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRadiusConf.status",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;status",
+        "length_including_cc": "2"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS status",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.status",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0; block selector0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS status configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRadiusConf.ip_address",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;ip_address[256]",
+        "length_including_cc": "257"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS ip address",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.ip_address",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "block0=3;block1=66;block2=66;block3=66;block4=65"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1; block selector0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS ip address configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRadiusConf.port",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;port_u16le",
+        "length_including_cc": "3"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS port",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.port",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2; block selector0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS port configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRadiusConf.secret",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;secret[32]",
+        "length_including_cc": "33"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS secret",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.secret",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "34"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "3; block selector0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS secret configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRadiusConf.timeout",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;timeout_u32le",
+        "length_including_cc": "5"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS timeout",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.timeout",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4; block selector0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS timeout configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRadiusConf.privilege",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;privilege_u32le",
+        "length_including_cc": "5"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS privilege",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.privilege",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "5; block selector0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS privilege configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRadiusConf.extended_privilege",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;extended_privilege_u32le",
+        "length_including_cc": "5"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS extended privilege",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.extended_privilege",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "6; block selector0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS extended privilege configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRadiusConf.vendor_data",
+      "command": [
+        50,
+        198
+      ],
+      "request": {
+        "layout": "selector;access_level",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;vendor_data[256]",
+        "length_including_cc": "257"
+      },
+      "selectors": "7;access_level0..5",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RADIUS vendor data",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRadiusConf.vendor_data",
+      "command": [
+        50,
+        199
+      ],
+      "request": {
+        "layout": "selector;block_selector;selector_data",
+        "length": "block0=3;block1=67;block2=66"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "7; block selector0..4; vendor access-level/block protocol",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "stages/persists RADIUS vendor data configuration",
+      "evidence": {
+        "location": "libipmiamioemradius.so.13.1.0:AMISetRadiusConf@0d84",
+        "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
+      },
+      "confidence": "high selector/length/control flow; staged block payload labels medium"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_controller_count",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x01; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_controller_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x02; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_physical_device_count",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x03; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_physical_device_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x04; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_logical_device_count",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x05; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_logical_device_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x06; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_bbu_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x07; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_event_repository_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x08; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_event_record",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x09; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_all_event_records",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x0a; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.clear_event_log",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x0b; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.make_physical_drive_offline",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x0c; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.make_physical_drive_online",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x0d; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.prepare_drive_for_removal",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x0e; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.undo_drive_removal",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x0f; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.make_global_hotspare",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x10; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.remove_hotspare",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x11; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.clear_configuration",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x12; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "storage destructive/configuration action",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.add_configuration",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x13; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.delete_virtual_drive",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x14; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "storage destructive/configuration action",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_raid_level_strip_sizes",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x15; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_raid_level_pd_count",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x16; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.manage_controller_properties",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x17; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.initialize_virtual_disk",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x18; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "storage destructive/configuration action",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.consistency_check",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "10"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x19; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.patrol_read",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "8"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x1a; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.patrol_read_properties",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x1b; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.make_dedicated_hotspare",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x1c; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.locate_device",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x1d; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.set_physical_drive_state",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "10"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x1e; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.manage_logical_drive_properties",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x1f; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_logical_drive_progress",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x20; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_controller_health",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x21; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_array_count",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x22; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_array_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x23; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.manage_controller_array",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x24; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.manage_controller_spare_drive",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x25; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_ses_enclosure_list",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x26; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_ses_enclosure_status",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x27; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.clear_foreign_device",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x28; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_dedicated_hotspare_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x29; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.manage_raid_personality",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x2a; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.create_lu_cache",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x2b; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_logical_drive_lun",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "variable>=3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x2c; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_topology",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x2d; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_controller_count",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x80; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_controller_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x81; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_physical_device_count",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x82; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_physical_device_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x83; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_topology",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x84; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_enclosure_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x85; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_enclosure_status",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "9"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x86; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_temperature_sensor",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "10"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x87; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.set_sasit_power_supply",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x88; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.set_sasit_temperature_sensor",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x89; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.set_sasit_cooling",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x8a; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.set_sasit_alarm",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x8b; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_event_repository_info",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x8c; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_event_record",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x8d; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_all_sasit_event_records",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x8e; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.clear_sasit_event_log",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;empty_data",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x8f; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.locate_sasit_device",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x90; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes RAID/SAS state or starts an operation",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMIGetRAIDInfo.get_sasit_health",
+      "command": [
+        50,
+        239
+      ],
+      "request": {
+        "layout": "param;set_selector;block_selector;selector_specific_data",
+        "length": "7"
+      },
+      "response": {
+        "layout": "cc;selector_specific_response",
+        "length_including_cc": "selector-specific"
+      },
+      "selectors": "param=0x91; set_selector/block_selector validated per operation",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "85",
+        "86",
+        "87",
+        "88",
+        "89",
+        "8a",
+        "8b",
+        "8c",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads RAID/SAS inventory or progress",
+      "evidence": {
+        "location": "libipmiamioemraidinfo.so.13.0.0:AMIGetRAIDInfo@85bc",
+        "module_sha256": "6c2614b5973a68023d963402089f85ac41adf8930bfa6dd3a9f542e8be3b5ace"
+      },
+      "confidence": "high selector/length/safety path; selector-specific field schema medium from sibling header and callee identity"
+    },
+    {
+      "id": "AMISetPwdEncryptionKey",
+      "command": [
+        50,
+        155
+      ],
+      "request": {
+        "layout": "new_blowfish_key[1..56]",
+        "length": "1..56"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c7",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "rotates the BMC password-encryption key; decrypts and re-encrypts local-user, LDAP and AD secrets; restores a 4-KiB IPMI snapshot on failure",
+      "evidence": {
+        "location": "libipmiamioempwdenc.so.13.0.0:AMISetPwdEncryptionKey@0c94",
+        "module_sha256": "7071b262a2b6ff7ad075265019b1c8115ea110e9e557715b3c37f1561680b2ef"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIVirtualDeviceSetStatus",
+      "command": [
+        50,
+        170
+      ],
+      "request": {
+        "layout": "status",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "status=0 disables USB virtual devices for power saving; status=1 enables them",
+      "completion_codes": [
+        "00",
+        "80",
+        "c0",
+        "c1",
+        "c7",
+        "cc"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes USB gadget/virtual-device availability after refusing active virtual-media/KVM/local-media sessions; persists power-consumption mode",
+      "evidence": {
+        "location": "libipmiamioempwrcons.so.13.1.0:AMIVirtualDeviceSetStatus@0e14",
+        "module_sha256": "89a3ef496529ab0c9fb112edab89bc74b8e5c3a997ff24058834ce8127c9ed26"
+      },
+      "confidence": "high; 0xc0 may be returned verbatim by the lower callback"
+    },
+    {
+      "id": "AMIVirtualDeviceGetStatus",
+      "command": [
+        50,
+        171
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;status",
+        "length_including_cc": "2"
+      },
+      "selectors": "status0..1",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads persisted power-consumption/virtual-device mode",
+      "evidence": {
+        "location": "libipmiamioempwrcons.so.13.1.0:AMIVirtualDeviceGetStatus@0f58",
+        "module_sha256": "89a3ef496529ab0c9fb112edab89bc74b8e5c3a997ff24058834ce8127c9ed26"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPLDMBIOSMsg.get_bios_table",
+      "command": [
+        50,
+        213
+      ],
+      "request": {
+        "layout": "instance/request_header;pldm_type=3;command=01;transfer_handle_u32le;transfer_op(0=next,1=first);table_type(0..2)",
+        "length": "9"
+      },
+      "response": {
+        "layout": "transport_cc;instance;type=3;command=01;pldm_cc;next_handle_u32le;transfer_flag;table_data",
+        "length_including_cc": "5 or 10+data"
+      },
+      "selectors": "command=01; transfer_op0..1; table_type0..2",
+      "completion_codes": [
+        "transport:00",
+        "c7",
+        "ff | PLDM:00",
+        "01",
+        "02",
+        "03",
+        "04",
+        "20",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads BIOS string/attribute/value table from NVR backing file",
+      "evidence": {
+        "location": "libipmiamioempldmcmds.so.13.4.0:AMIPLDMBIOSMsg@165c",
+        "module_sha256": "d86d9acdb6947f84323928ffb17be2fe16535d26a8b86a90a340c49e0397f318"
+      },
+      "confidence": "high; feature gate absent, runtime registration unproved; handler accepts undersized 3..8-byte requests and reads past supplied length"
+    },
+    {
+      "id": "AMIPLDMBIOSMsg.set_bios_table",
+      "command": [
+        50,
+        213
+      ],
+      "request": {
+        "layout": "instance/request_header;pldm_type=3;command=02;transfer_handle_u32le;transfer_flag(1=start,2=middle,4=end,5=start+end);table_type(0..2);table_data",
+        "length": ">=9"
+      },
+      "response": {
+        "layout": "transport_cc;instance;type=3;command=02;pldm_cc;next_handle_u32le",
+        "length_including_cc": "5 or 9"
+      },
+      "selectors": "command=02; transfer_flag1,2,4,5; table_type0..2",
+      "completion_codes": [
+        "transport:00",
+        "c7",
+        "ff | PLDM:00",
+        "01",
+        "02",
+        "03",
+        "04",
+        "20",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "writes BIOS table chunks to NVR temporary storage and installs completed table",
+      "evidence": {
+        "location": "libipmiamioempldmcmds.so.13.4.0:AMIPLDMBIOSMsg@165c",
+        "module_sha256": "d86d9acdb6947f84323928ffb17be2fe16535d26a8b86a90a340c49e0397f318"
+      },
+      "confidence": "high; feature gate absent, runtime registration unproved; handler only enforces >=3 and can read past undersized requests"
+    },
+    {
+      "id": "AMIPLDMBIOSMsg.update_bios_table_unsupported",
+      "command": [
+        50,
+        213
+      ],
+      "request": {
+        "layout": "instance/request_header;pldm_type=3;command=03;payload",
+        "length": ">=3"
+      },
+      "response": {
+        "layout": "transport_cc;instance;type=3;command=03;pldm_cc=02",
+        "length_including_cc": "5"
+      },
+      "selectors": "command=03",
+      "completion_codes": [
+        "transport:00",
+        "c7",
+        "ff | PLDM:00",
+        "01",
+        "02",
+        "03",
+        "04",
+        "20",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "no update performed; exact target returns PLDM invalid-data/unsupported value 02",
+      "evidence": {
+        "location": "libipmiamioempldmcmds.so.13.4.0:AMIPLDMBIOSMsg@165c",
+        "module_sha256": "d86d9acdb6947f84323928ffb17be2fe16535d26a8b86a90a340c49e0397f318"
+      },
+      "confidence": "high; feature gate absent, runtime registration unproved"
+    },
+    {
+      "id": "AMIPLDMBIOSMsg.get_bios_table_tags",
+      "command": [
+        50,
+        213
+      ],
+      "request": {
+        "layout": "instance/request_header;pldm_type=3;command=04;count;table_type[count]",
+        "length": "4+count"
+      },
+      "response": {
+        "layout": "transport_cc;instance;type=3;command=04;pldm_cc;reserved_or_handle_u32le;table_tag_u32le[count]",
+        "length_including_cc": "9+4*returned_count"
+      },
+      "selectors": "command=04; count>0; table_type0..2",
+      "completion_codes": [
+        "transport:00",
+        "c7",
+        "ff | PLDM:00",
+        "01",
+        "02",
+        "20",
+        "86",
+        "87"
+      ],
+      "effect": "safe",
+      "side_effects": "reads stored CRC/table tags for requested BIOS table types",
+      "evidence": {
+        "location": "libipmiamioempldmcmds.so.13.4.0:AMIPLDMBIOSMsg@165c",
+        "module_sha256": "d86d9acdb6947f84323928ffb17be2fe16535d26a8b86a90a340c49e0397f318"
+      },
+      "confidence": "high lengths/control; four response bytes before tags are present in exact return length but semantic label is medium; feature gate absent"
+    },
+    {
+      "id": "AMIPLDMBIOSMsg.set_bios_table_tags",
+      "command": [
+        50,
+        213
+      ],
+      "request": {
+        "layout": "instance/request_header;pldm_type=3;command=05;count;records[count]{table_type;table_tag_u32le}",
+        "length": "4+5*count"
+      },
+      "response": {
+        "layout": "transport_cc;instance;type=3;command=05;pldm_cc",
+        "length_including_cc": "5"
+      },
+      "selectors": "command=05; count>0; table_type0..2",
+      "completion_codes": [
+        "transport:00",
+        "c7",
+        "ff | PLDM:00",
+        "01",
+        "20",
+        "86",
+        "87"
+      ],
+      "effect": "mutates",
+      "side_effects": "creates or updates persistent BIOS table-tag records",
+      "evidence": {
+        "location": "libipmiamioempldmcmds.so.13.4.0:AMIPLDMBIOSMsg@165c",
+        "module_sha256": "d86d9acdb6947f84323928ffb17be2fe16535d26a8b86a90a340c49e0397f318"
+      },
+      "confidence": "high; feature gate absent, runtime registration unproved"
     }
   ]
 }

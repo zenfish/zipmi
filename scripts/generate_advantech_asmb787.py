@@ -231,8 +231,8 @@ def field_descriptors(layout: str, expected_length: str) -> list[dict] | None:
 def apply_contracts(rows: list[dict[str, str]]) -> list[dict]:
     document = json.loads(CONTRACTS_SOURCE.read_text())
     operations = document.get("operations", [])
-    if document.get("schema_version") != 1 or len(operations) != 120:
-        raise SystemExit("expected ASMB contract schema v1 with 120 operations")
+    if document.get("schema_version") != 1 or len(operations) != 252:
+        raise SystemExit("expected ASMB contract schema v1 with 252 operations")
     by_key = {(int(row["netfn"], 0), int(row["cmd"], 0)): row for row in rows}
     ids = set()
     keys = set()
@@ -261,8 +261,17 @@ def apply_contracts(rows: list[dict[str, str]]) -> list[dict]:
             if op_key in keys:
                 raise SystemExit(f"duplicate ASMB operation prefix: {op_key}")
             keys.add(op_key)
-    if len({tuple(operation["command"]) for operation in operations}) != 82:
-        raise SystemExit("expected exact contracts for 82 ASMB command pairs")
+    unprefixed = {}
+    for operation in operations:
+        if operation["codec_state"] == "verified" and operation["prefix"] is None:
+            key = tuple(operation["command"])
+            unprefixed[key] = unprefixed.get(key, 0) + 1
+    for operation in operations:
+        key = tuple(operation["command"])
+        if operation["prefix"] is None and unprefixed.get(key, 0) > 1:
+            operation["codec_state"] = "raw-exact"
+    if len({tuple(operation["command"]) for operation in operations}) != 108:
+        raise SystemExit("expected exact contracts for 108 ASMB command pairs")
     rank = {"safe": 0, "mutates": 1, "security-sensitive": 2, "destructive": 3}
     for key, row in by_key.items():
         matching = [operation for operation in operations if tuple(operation["command"]) == key]

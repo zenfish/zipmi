@@ -65,9 +65,9 @@ def test_generated_markdown_contains_every_canonical_row():
 def test_generated_html_contains_every_exact_operation():
     reference = (Path(__file__).parents[2] / "docs/"
                  "advantech_ASMB787-command-reference.html").read_text()
-    assert reference.count("<td class='p-2 font-mono'>0x") == 120 + 187
-    assert "120 operations across 82 command pairs" in reference
-    assert "structured fixed-width codecs for 70 operations" in reference
+    assert reference.count("<td class='p-2 font-mono'>0x") == 252 + 187
+    assert "252 operations across 108 command pairs" in reference
+    assert "structured fixed-width codecs for 80 operations" in reference
     assert "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2" in reference
 
 
@@ -236,10 +236,13 @@ def test_exact_operation_contracts_and_codecs_are_generated():
         ASMB787_OPERATIONS, ASMB787_PAYLOADS,
     )
 
-    assert len(ASMB787_OPERATIONS) == 120
-    assert len({tuple(row["command"]) for row in ASMB787_OPERATIONS}) == 82
-    assert sum(row["codec_state"] == "verified" for row in ASMB787_OPERATIONS) == 70
-    assert len(ASMB787_PAYLOADS) == 70
+    assert len(ASMB787_OPERATIONS) == 252
+    assert len({tuple(row["command"]) for row in ASMB787_OPERATIONS}) == 108
+    assert sum(row["codec_state"] == "verified" for row in ASMB787_OPERATIONS) == 80
+    assert len(ASMB787_PAYLOADS) == 80
+    assert all(row["codec_state"] == "raw-exact" for row in ASMB787_OPERATIONS
+               if row["id"].startswith("AMISetNTPCfg."))
+    assert (0x32, 0xA8) not in ASMB787_PAYLOADS
 
     req_type, resp_type = ASMB787_PAYLOADS[(0x32, 0x18, 0x00)]
     assert bytes(req_type()) == b"\x00"
