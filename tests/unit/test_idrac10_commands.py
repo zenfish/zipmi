@@ -233,6 +233,29 @@ def test_every_existing_liboemcmds_operation_has_audited_safety():
     assert sum(c.selector_offset == 1 for c in rows) == 78
 
 
+def test_misc_and_dcmi_operations_have_audited_contracts():
+    from collections import Counter
+
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
+
+    misc = [c for c in IDRAC10_COMMANDS if c.lib == "libmisccmd"]
+    assert len(misc) == 90
+    assert Counter(c.effect for c in misc) == {
+        "safe": 42,
+        "mutates": 20,
+        "security-sensitive": 26,
+        "destructive": 2,
+    }
+    dcmi = [c for c in IDRAC10_COMMANDS if c.lib == "libdcmi"]
+    assert len(dcmi) == 60
+    assert Counter(c.effect for c in dcmi) == {
+        "safe": 8,
+        "mutates": 8,
+        "unknown": 44,
+    }
+    assert all(c.codec_state == "raw-exact" and c.evidence for c in misc + dcmi)
+
+
 def test_offset_one_selector_is_identity_not_auto_prefix(monkeypatch):
     from zipmi.cli import zipmi as cli
     from zipmi.cli.oem_cmds import _vendor_listing, cmd_oem_run
