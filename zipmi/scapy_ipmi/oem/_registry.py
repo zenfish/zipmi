@@ -19,6 +19,9 @@ RELATED  zipmi/__init__.py:load_vendor, zipmi/scapy_ipmi/oem/dell.py
 
 from __future__ import annotations
 
+import re
+
+from scapy.fields import ByteField, LEIntField, LEShortField, StrFixedLenField
 from scapy.packet import Packet
 
 # (netfn_request, cmd) → human-readable name.
@@ -34,6 +37,41 @@ OEM_PAYLOADS_BY_VENDOR: dict[str, dict[tuple[int, ...], PayloadPair]] = {}
 
 # IANA Enterprise Number → human-readable vendor key registered.
 ENTERPRISE_IDS: dict[int, str] = {}
+
+
+def build_fixed_packet_class(
+    name: str,
+    fields: list[dict],
+    *,
+    require_fields: bool = False,
+) -> type[Packet]:
+    """Build a fixed-width OEM packet class from contract field descriptors."""
+    field_types = {
+        "u8": lambda field: ByteField(field["name"], field.get("constant")),
+        "u16le": lambda field: LEShortField(field["name"], field.get("constant")),
+        "u32le": lambda field: LEIntField(field["name"], field.get("constant")),
+        "bytes": lambda field: StrFixedLenField(
+            field["name"], b"\x00" * field["length"], field["length"]),
+    }
+    class_name = re.sub(r"\W+", "_", name).strip("_")
+    required = tuple(field["name"] for field in fields if "constant" not in field)
+    constants = {field["name"]: field["constant"] for field in fields if "constant" in field}
+
+    def post_build(self, packet, payload):
+        missing = [field for field in required if field not in self.fields]
+        if require_fields and missing:
+            raise ValueError(f"missing required fields: {', '.join(missing)}")
+        changed = [field for field, value in constants.items() if getattr(self, field) != value]
+        if changed:
+            raise ValueError(f"constant fields changed: {', '.join(changed)}")
+        return packet + payload
+
+    return type(class_name, (Packet,), {
+        "name": name,
+        "fields_desc": [field_types[field["kind"]](field) for field in fields],
+        "post_build": post_build,
+        "extract_padding": lambda self, data: (b"", data),
+    })
 
 
 def register(
