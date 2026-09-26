@@ -2,7 +2,7 @@
 zipmi.parsers.idrac10_commands_json — build the iDRAC10 OEM command catalog.
 
 WHAT     Reads the reverse-engineered iDRAC10 command catalog
-         (idrac10-commands.json, 447 commands) and emits a Python module
+         (idrac10-commands.json) and emits a Python module
          with a frozen `IDrac10Command` dataclass and the full list of
          entries. Sibling to `idrac10_dispatch_md.py`: the dispatch parser
          gives (NetFn, cmd) → handler-symbol from the ELF dispatch tables;
@@ -17,8 +17,7 @@ WHY      The dispatch tables name the wire surface but say nothing about
 USAGE    python -m zipmi.parsers.idrac10_commands_json \
              [idrac10-commands.json] \
              > zipmi/scapy_ipmi/oem/idrac10_commands_generated.py
-SUCCESS  Regeneration is idempotent (byte-for-byte identical output) and
-         the emitted module imports with len(IDRAC10_COMMANDS) == 447.
+SUCCESS  Regeneration is idempotent (byte-for-byte identical output).
 TARGET   iDRAC10 firmware 1.30.10.50 (aarch64), Dell IANA 674.
 RELATED  iDRAC10 firmware reverse-engineering notes (idrac10-commands.json),
          zipmi/scapy_ipmi/oem/idrac10.py (consumer),
@@ -47,6 +46,8 @@ class IDrac10Command:
     security: str
     confidence: str
     lib: str
+    prefix: bytes
+    live: dict | None
 
 
 def _hex_or_none(s: str) -> int | None:
@@ -66,15 +67,25 @@ def _hex_or_none(s: str) -> int | None:
     return val
 
 
+def _prefix(c: dict, subcmd: int | None) -> bytes:
+    explicit = (c.get("prefix") or "").strip()
+    if explicit:
+        return bytes(int(token, 16) for token in explicit.split())
+    if subcmd is None:
+        return b""
+    return subcmd.to_bytes(max(1, (subcmd.bit_length() + 7) // 8), "big")
+
+
 def parse_json(text: str) -> list[IDrac10Command]:
     data = json.loads(text)
     out: list[IDrac10Command] = []
     for c in data["commands"]:
+        subcmd = _hex_or_none(c["subcmd"])
         out.append(IDrac10Command(
             name=c["name"],
             netfn=_hex_or_none(c["netfn"]),
             cmd=_hex_or_none(c["cmd"]),
-            subcmd=_hex_or_none(c["subcmd"]),
+            subcmd=subcmd,
             priv=c["priv"],
             purpose=c["purpose"],
             request=c["request"],
@@ -84,6 +95,8 @@ def parse_json(text: str) -> list[IDrac10Command]:
             security=c["security"],
             confidence=c["confidence"],
             lib=c["lib"],
+            prefix=_prefix(c, subcmd),
+            live=c.get("live"),
         ))
     return out
 
@@ -125,6 +138,8 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
         "    security: str",
         "    confidence: str",
         "    lib: str",
+        "    prefix: bytes",
+        "    live: dict | None",
         "",
         "",
         "IDRAC10_COMMANDS: list[IDrac10Command] = [",
@@ -144,7 +159,9 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
             f"backend_deps={e.backend_deps!r}, "
             f"security={e.security!r}, "
             f"confidence={e.confidence!r}, "
-            f"lib={e.lib!r}),"
+            f"lib={e.lib!r}, "
+            f"prefix={e.prefix!r}, "
+            f"live={e.live!r}),"
         )
     lines.append("]")
     lines.append("")
@@ -153,10 +170,12 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
-    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "idrac10-commands.json")
+    src_path = Path(__file__).resolve().parent.parent / "data" / "sources" / "idrac10-commands.json"
+    src = "iDRAC10 command catalog JSON (bundled: zipmi/data/sources/)"
     if len(args) > 1:
-        src = args[1]
-    with open(src) as f:
+        src_path = Path(args[1])
+        src = str(src_path)
+    with open(src_path) as f:
         text = f.read()
     entries = parse_json(text)
     sys.stdout.write(emit_module(entries, src))

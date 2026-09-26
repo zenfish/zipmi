@@ -34,7 +34,7 @@ _PINNED_CMDS = {
 def test_every_command_wellformed(c):
     """One case per catalog entry — a dropped/fabricated/malformed command fails loudly."""
     assert c.name and c.name.strip(), "empty name"
-    # netfn/cmd: int in byte range or None (the single undetermined entry).
+    # netfn/cmd: every catalog row has a firmware-proven byte identity.
     for f in (c.netfn, c.cmd):
         assert f is None or (isinstance(f, int) and 0 <= f <= 0xFF)
     # subcmd: int (multi-byte folded, may exceed 0xff) or None.
@@ -90,8 +90,41 @@ def test_hex_fields_parsed_to_int():
         assert c.cmd is None or isinstance(c.cmd, int)
         assert c.subcmd is None or isinstance(c.subcmd, int)
         assert isinstance(c.in_band_only, bool)
-    # Exactly one entry had an undetermined NetFn/cmd in the source doc.
-    assert sum(1 for c in IDRAC10_COMMANDS if c.netfn is None) == 1
+    assert all(c.netfn is not None and c.cmd is not None for c in IDRAC10_COMMANDS)
+
+
+def test_wire_prefixes_preserve_colliding_handlers_and_live_evidence():
+    """Alternate handlers at the same pair remain separately addressable."""
+    keys = [(c.netfn, c.cmd, c.prefix) for c in IDRAC10_COMMANDS]
+    assert len(keys) == len(set(keys)) == 446
+    assert {
+        (c.name, c.prefix) for c in IDRAC10_COMMANDS
+        if (c.netfn, c.cmd) == (0x2c, 0x01)
+    } == {
+        ("CmdDcmiGetDcmiCapabilityInfo", b"\xdc"),
+        ("DellCmdGetMgrCertFingerprint", b"R\x01"),
+    }
+    assert {
+        (c.name, c.prefix) for c in IDRAC10_COMMANDS
+        if (c.netfn, c.cmd) == (0x2c, 0x02)
+    } == {
+        ("CmdDcmiGetPowerReading", b"\xdc"),
+        ("DellCmdGetBootstrapCredentials", b"R"),
+    }
+    assert sum(c.live is not None for c in IDRAC10_COMMANDS) == 445
+
+
+def test_cli_keeps_every_exact_wire_operation():
+    from zipmi.cli.oem_cmds import _vendor_listing
+
+    rows = _vendor_listing("idrac10")
+    assert len(rows) == 446
+    assert rows[(0x2c, 0x01, 0xdc)]["name"] == "CmdDcmiGetDcmiCapabilityInfo"
+    assert rows[(0x2c, 0x01, 0x52, 0x01)]["name"] == "DellCmdGetMgrCertFingerprint"
+    assert rows[(0x2c, 0x02, 0xdc)]["name"].startswith("CmdDcmiGetPowerReading")
+    assert rows[(0x2c, 0x02, 0x52)]["name"] == "DellCmdGetBootstrapCredentials"
+    assert rows[(0x06, 0x33)]["name"].startswith("DellCmdNodeMgrDebugInfo")
+    assert sum(row["live"] is not None for row in rows.values()) == 445
 
 
 def test_load_vendor_idrac10_registers():

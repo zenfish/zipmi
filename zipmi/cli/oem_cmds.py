@@ -666,20 +666,13 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
         for c in IDRAC10_COMMANDS:
             if c.netfn is None or c.cmd is None:
                 continue  # RE couldn't pin the wire bytes; not CLI-runnable
-            if c.subcmd is None:
-                key: tuple = (c.netfn, c.cmd)
-                prefix = None
-            else:
-                # subcmd is folded big-endian (single or multi byte).
-                sb = c.subcmd.to_bytes(
-                    max(1, (c.subcmd.bit_length() + 7) // 8), "big")
-                key = (c.netfn, c.cmd) + tuple(sb)
-                prefix = sb
+            prefix = c.prefix or None
+            key: tuple = (c.netfn, c.cmd, *c.prefix)
             out[key] = {
                 "name": c.name,
                 "priv": c.priv or None,
                 "desc": c.purpose,
-                "live": None,
+                "live": c.live,
                 "missing": False,
                 "prefix": prefix,
                 # Rich doc fields surfaced by `<name> help` (see _cmd_oem_help).

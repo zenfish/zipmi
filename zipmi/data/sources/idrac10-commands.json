@@ -1,21 +1,29 @@
 {
  "generated": "2026-07-05",
  "source": "wf_d2eb2cf5-5e6 Synthesize",
+ "target": {
+  "model": "Dell iDRAC10 YP95X A00",
+  "version": "1.30.10.50",
+  "internalVersion": "1.30.10.50.11943 build 1319",
+  "releaseDate": "2026-03-03",
+  "dupSha256": "372c49cf8fc167aaff0acc03925a782698937bddba21cbca57146a7c8d722ca9",
+  "rootfsSha256": "6296648530890a3d8a12b78b730c8bcb78c023d119be41db14733f7ec370eb2f"
+ },
  "count": 446,
  "commands": [
   {
    "name": "DellCmdNodeMgrDebugInfo",
-   "netfn": "undetermined",
-   "cmd": "undetermined",
+   "netfn": "0x06",
+   "cmd": "0x33",
    "subcmd": "",
-   "priv": "undetermined",
-   "purpose": "Claimed SECOND dispatch registration of the DellCmdNodeMgrDebugInfo stub (previously asserted as App netfn 0x06 cmd 0x33). CORRECTED: only ONE handler body exists (single function @0x0011aba0); no dispatch/registration table is present in the decompiled corpus, and the authoritative per-command doc (libmisccmd.so.9.9.9-5.json) lists this stub only at netfn 0x2e cmd 0xe0. The 0x06/0x33 netfn/cmd was not observed in any decompiled artifact and is treated as undetermined. If a second registration exists, its handler body would be identical: log one debug line, return CC=0xc1.",
+   "priv": "Admin (4)",
+   "purpose": "Second static registration of DellCmdNodeMgrDebugInfo at App netfn 0x06 cmd 0x33. The same sole handler body is also registered at 0x2e/0xe0; it logs one debug line and returns CC=0xc1 unconditionally.",
    "request": "any (not parsed)",
    "response": "none; CC=0xc1 unconditionally (identical handler body)",
    "inBandOnly": false,
    "backendDeps": "",
    "security": "",
-   "confidence": "low",
+   "confidence": "high",
    "lib": "libmisccmd"
   },
   {
@@ -507,6 +515,7 @@
    "netfn": "0x2c",
    "cmd": "0x01",
    "subcmd": "",
+   "prefix": "0xdc",
    "priv": "undetermined",
    "purpose": "DCMI Get Capability Info (DCMI spec section 6.1). Returns DCMI conformance version and platform capability data for one of five capability selectors (data[1] = 1..5). Requires the DCMI group extension identifier (0xDC) as data[0]. All selectors prepend a fixed 4-byte header (0xDC, 0x01, 0x05, 0x02 in little-endian = group ID + DCMI spec version 1.5 rev 2) to the selector-specific payload. No privilege required.",
    "request": "Minimum 2 data bytes (req+8 and req+9). byte[0] (req+8): DCMI Group Extension Identifier, must be 0xDC (=0xdc = -0x24 in signed byte); any other value \u2192 CC=0xcc (invalid data field). byte[1] (req+9): Capability selector, must be in range 1..5; value 0 or >5 \u2192 CC=0xcc. No further bytes used for the request.",
@@ -529,6 +538,7 @@
    "netfn": "0x2c",
    "cmd": "0x01",
    "subcmd": "",
+   "prefix": "0x52 0x01",
    "priv": "Admin (0x04)",
    "purpose": "Returns the SHA-256 fingerprint of the iDRAC TLS certificate as 32 binary bytes. Allows an in-band BIOS/OS agent to pin-validate the iDRAC TLS channel. Only available when Bootstrap Credential Provisioning is enabled.",
    "request": "req+7=0x02 (data length); req+8=0x52 ('R', required magic); req+9=0x01 (version/subtype selector)",
@@ -551,6 +561,7 @@
    "netfn": "0x2c",
    "cmd": "0x02",
    "subcmd": "",
+   "prefix": "0xdc",
    "priv": "User",
    "purpose": "DCMI Get Power Reading (DCMI spec section 6.6.1). Returns current, minimum, maximum, and average power consumption in watts, plus a timestamp and measurement period. Reads data from Dell shared memory segment 6 (Dell_shm_memread). Supports two modes: mode 1 = system power (instantaneous statistics window), mode 2 = rolling average over a caller-specified time window. Requires DCMI group extension identifier 0xDC as data[0] and platform support (FUN_00104500 feature check). User privilege sufficient.",
    "request": "Minimum 4 data bytes. byte[0] (req+8): DCMI Group Extension Identifier, must be 0xDC; any other value \u2192 CC=0xcc. byte[1] (req+9): Mode \u2014 0x01=system power (instantaneous/cumulative window), 0x02=rolling average. byte[2] (req+10): Rolling average time duration (mode 2 only; ignored for mode 1, must be 0x00). Valid durations for mode 2: 0x00 (same as mode 1 window), 0x81 (1-hour window), 0xC1 (1-day window), 0xC7 (7-day / weekly window); other values \u2192 CC=0xcc. byte[3] (req+11): Reserved, must be 0x00; non-zero \u2192 CC=0xcc.",
@@ -573,6 +584,7 @@
    "netfn": "0x2c",
    "cmd": "0x02",
    "subcmd": "",
+   "prefix": "0x52",
    "priv": "Admin (0x04)",
    "purpose": "Returns the IPMI Bootstrap Credentials (32-byte username+password blob) provisioned via iDRAC's Bootstrap Credential Provisioning feature. Unless req+9 equals the keep-enabled sentinel 0xa5, the provisioning flag is auto-cleared after delivery (one-shot semantic).",
    "request": "req+7=0x02 (data length); req+8=0x52 ('R', required magic); req+9=0xa5 keeps provisioning enabled after read, any other value triggers CfgSetAttributeInt to disable IPMIBootstrapCredentialProvisioning",
@@ -9811,8 +9823,12 @@
  ],
  "live_sweep": {
   "host": "10.0.9.10",
-  "probed": 443,
-  "confirmed_real": 402,
-  "results": "results.jsonl"
+  "records": 445,
+  "legacyUniqueWireKeys": 443,
+  "confirmedByResponse": 402,
+  "gated": 17,
+  "absent": 26,
+  "results": "idrac10-live-sweep-results.jsonl",
+  "provenance": "Historical sweep lacks timestamp, firmware hash, run ID, exact request bytes, and raw-log pointer; results are retained as target observations, not firmware-wide activation proof."
  }
 }
