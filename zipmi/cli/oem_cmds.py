@@ -683,6 +683,19 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "inband": c.in_band_only,
                 "lib": c.lib,
                 "backend_deps": c.backend_deps,
+                "tier": c.effect,
+                "side_effects": c.side_effects,
+                "request_min": c.request_length[0],
+                "request_max": c.request_length[1],
+                "response_min": c.response_length[0],
+                "response_max": c.response_length[1],
+                "completion_codes": c.completion_codes,
+                "activation": c.activation,
+                "codec_state": c.codec_state,
+                "evidence": c.evidence,
+                "requires_unsafe": (
+                    c.effect != "safe" or c.request_length == (None, None)
+                ),
             }
         return _normalize_listing(out, vendor)
     if vendor == "supermicro-x14":
@@ -1292,7 +1305,20 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
                 f"got {payload_len} (ASMB-787 dispatcher +8 constraint)"
             )
             return 2
-        if info["requires_unsafe"] and not getattr(args, "unsafe", False):
+
+    if vendor == "idrac10":
+        payload_len = len(data_bytes)
+        req_min = info.get("request_min")
+        req_max = info.get("request_max")
+        if req_min is not None and payload_len < req_min:
+            _msg.error(f"{info['name']} requires at least {req_min} payload bytes; got {payload_len}")
+            return 2
+        if req_max is not None and payload_len > req_max:
+            _msg.error(f"{info['name']} accepts at most {req_max} payload bytes; got {payload_len}")
+            return 2
+
+    if vendor in ("advantech-asmb787", "idrac10"):
+        if info.get("requires_unsafe") and not getattr(args, "unsafe", False):
             _msg.error(
                 f"{info['name']} is state-changing or has an unproved payload "
                 "schema; add --unsafe to acknowledge named raw execution"
@@ -1403,7 +1429,7 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         # Suggest example invocation.
         prefix_args = " ".join(f"0x{b:02x}" for b in prefix)
         print(f"\n  Invoke:")
-        unsafe = " --unsafe" if vendor == "advantech-asmb787" and info.get("requires_unsafe") else ""
+        unsafe = " --unsafe" if info.get("requires_unsafe") else ""
         print(f"    zipmi -H <bmc> -U <user> -P <pw> oem {vendor}{unsafe} "
               f"{info['name']} <args...>")
         if prefix_args:
@@ -1483,7 +1509,7 @@ def _add_vendor_parser(
     looks up (defaults to parser_name)."""
     vendor_key = vendor_key or parser_name
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
-    if vendor_key == "advantech-asmb787":
+    if vendor_key in ("advantech-asmb787", "idrac10"):
         sp.add_argument(
             "--unsafe", action="store_true",
             help="acknowledge state-changing or schema-unknown named raw execution",

@@ -17,7 +17,7 @@ RELATED  zipmi/parsers/idrac10_dispatch_md.py (codegen),
 """
 from __future__ import annotations
 
-from ._registry import OEM_CMD_NAMES, register
+from ._registry import OEM_CMD_NAMES, build_fixed_packet_class, register
 from .idrac10_commands_generated import IDRAC10_COMMANDS, IDrac10Command
 from .idrac10_dispatch_generated import IDRAC10_DISPATCH, IDrac10DispatchEntry
 
@@ -102,8 +102,23 @@ for _c in IDRAC10_COMMANDS:
 # name a slot keeps it, matching the documented iDRAC9 non-clobber rule.
 _claimed = set(OEM_CMD_NAMES)
 _IDRAC10_NAMES = {**IDRAC10_CMD_NAMES, **IDRAC10_COMMAND_NAMES}
-register("idrac10", DELL_IANA,
-         {k: v for k, v in _IDRAC10_NAMES.items() if k not in _claimed})
+IDRAC10_PAYLOADS = {}
+for _command in IDRAC10_COMMANDS:
+    if _command.codec_state != "verified":
+        continue
+    _key = (_command.netfn, _command.cmd, *_command.prefix)
+    _request = build_fixed_packet_class(
+        f"{_command.name} Request", _command.request_fields, require_fields=True)
+    _response = build_fixed_packet_class(
+        f"{_command.name} Response", _command.response_fields)
+    IDRAC10_PAYLOADS[_key] = (_request, _response)
+
+register(
+    "idrac10",
+    DELL_IANA,
+    {k: v for k, v in _IDRAC10_NAMES.items() if k not in _claimed},
+    IDRAC10_PAYLOADS,
+)
 
 
 def lookup(netfn: int, cmd: int,
@@ -128,6 +143,7 @@ __all__ = [
     "IDRAC10_COMMANDS_BY_KEY",
     "IDRAC10_COMMAND_NAMES",
     "IDRAC10_DISPATCH",
+    "IDRAC10_PAYLOADS",
     "IDRAC10_PRIV",
     "IDrac10Command",
     "lookup",

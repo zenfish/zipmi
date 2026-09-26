@@ -12,6 +12,9 @@ WHY      The catalog is generated from idrac10-commands.json (446 RE'd +
 """
 from __future__ import annotations
 
+import argparse
+from contextlib import contextmanager
+
 import pytest
 
 from zipmi.scapy_ipmi.oem.idrac10_commands_generated import IDRAC10_COMMANDS
@@ -125,6 +128,48 @@ def test_cli_keeps_every_exact_wire_operation():
     assert rows[(0x2c, 0x02, 0x52)]["name"] == "DellCmdGetBootstrapCredentials"
     assert rows[(0x06, 0x33)]["name"].startswith("DellCmdNodeMgrDebugInfo")
     assert sum(row["live"] is not None for row in rows.values()) == 445
+
+
+def test_unclassified_named_operation_requires_unsafe(capsys):
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    args = argparse.Namespace(
+        cmd_name="DellCmdNodeMgrDebugInfo_06_33", data=[], unsafe=False,
+    )
+    assert cmd_oem_run(args, "idrac10") == 2
+    assert "add --unsafe" in capsys.readouterr().err
+
+
+def test_explicit_prefix_is_sent_once(monkeypatch):
+    from zipmi.cli import zipmi as cli
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    sent = []
+
+    class Session:
+        def send_raw(self, netfn, cmd, data):
+            sent.append((netfn, cmd, data))
+            return 0, b""
+
+    @contextmanager
+    def fake_open_session(_args):
+        yield Session()
+
+    monkeypatch.setattr(cli, "_open_session", fake_open_session)
+    args = argparse.Namespace(
+        cmd_name="DellCmdGetMgrCertFingerprint", data=[], unsafe=True, json=False,
+    )
+    assert cmd_oem_run(args, "idrac10") == 0
+    assert sent == [(0x2c, 0x01, b"R\x01")]
+
+
+def test_cli_parser_accepts_idrac10_unsafe():
+    from zipmi.cli.zipmi import parse_cli
+
+    args = parse_cli([
+        "oem", "idrac10", "--unsafe", "DellCmdGetMgrCertFingerprint",
+    ])
+    assert args.unsafe is True
 
 
 def test_load_vendor_idrac10_registers():

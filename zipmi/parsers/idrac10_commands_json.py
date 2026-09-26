@@ -48,6 +48,16 @@ class IDrac10Command:
     lib: str
     prefix: bytes
     live: dict | None
+    effect: str
+    side_effects: str
+    request_length: tuple[int | None, int | None]
+    response_length: tuple[int | None, int | None]
+    completion_codes: str
+    activation: str
+    request_fields: list[dict]
+    response_fields: list[dict]
+    codec_state: str
+    evidence: str
 
 
 def _hex_or_none(s: str) -> int | None:
@@ -76,6 +86,14 @@ def _prefix(c: dict, subcmd: int | None) -> bytes:
     return subcmd.to_bytes(max(1, (subcmd.bit_length() + 7) // 8), "big")
 
 
+def _length_range(value) -> tuple[int | None, int | None]:
+    if isinstance(value, int):
+        return value, value
+    if isinstance(value, dict):
+        return value.get("min"), value.get("max")
+    return None, None
+
+
 def parse_json(text: str) -> list[IDrac10Command]:
     data = json.loads(text)
     out: list[IDrac10Command] = []
@@ -97,6 +115,16 @@ def parse_json(text: str) -> list[IDrac10Command]:
             lib=c["lib"],
             prefix=_prefix(c, subcmd),
             live=c.get("live"),
+            effect=c.get("effect", "unknown"),
+            side_effects=c.get("sideEffects", "not yet classified"),
+            request_length=_length_range(c.get("requestLength")),
+            response_length=_length_range(c.get("responseLength")),
+            completion_codes=c.get("completionCodes", "not yet normalized"),
+            activation=c.get("activation", "not yet classified"),
+            request_fields=c.get("requestFields", []),
+            response_fields=c.get("responseFields", []),
+            codec_state=c.get("codecState", "raw-exact"),
+            evidence=c.get("evidence", ""),
         ))
     return out
 
@@ -140,6 +168,16 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
         "    lib: str",
         "    prefix: bytes",
         "    live: dict | None",
+        "    effect: str",
+        "    side_effects: str",
+        "    request_length: tuple[int | None, int | None]",
+        "    response_length: tuple[int | None, int | None]",
+        "    completion_codes: str",
+        "    activation: str",
+        "    request_fields: list[dict]",
+        "    response_fields: list[dict]",
+        "    codec_state: str",
+        "    evidence: str",
         "",
         "",
         "IDRAC10_COMMANDS: list[IDrac10Command] = [",
@@ -161,7 +199,17 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
             f"confidence={e.confidence!r}, "
             f"lib={e.lib!r}, "
             f"prefix={e.prefix!r}, "
-            f"live={e.live!r}),"
+            f"live={e.live!r}, "
+            f"effect={e.effect!r}, "
+            f"side_effects={e.side_effects!r}, "
+            f"request_length={e.request_length!r}, "
+            f"response_length={e.response_length!r}, "
+            f"completion_codes={e.completion_codes!r}, "
+            f"activation={e.activation!r}, "
+            f"request_fields={e.request_fields!r}, "
+            f"response_fields={e.response_fields!r}, "
+            f"codec_state={e.codec_state!r}, "
+            f"evidence={e.evidence!r}),"
         )
     lines.append("]")
     lines.append("")
