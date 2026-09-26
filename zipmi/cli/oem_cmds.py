@@ -667,7 +667,12 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             if c.netfn is None or c.cmd is None:
                 continue  # RE couldn't pin the wire bytes; not CLI-runnable
             prefix = c.prefix or None
-            key: tuple = (c.netfn, c.cmd, *c.prefix)
+            if c.subcmd is not None:
+                identity = c.subcmd.to_bytes(
+                    max(1, (c.subcmd.bit_length() + 7) // 8), "big")
+            else:
+                identity = c.prefix
+            key: tuple = (c.netfn, c.cmd, *identity)
             out[key] = {
                 "name": c.name,
                 "priv": c.priv or None,
@@ -675,6 +680,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "live": c.live,
                 "missing": False,
                 "prefix": prefix,
+                "selector_offset": c.selector_offset,
                 # Rich doc fields surfaced by `<name> help` (see _cmd_oem_help).
                 "request": c.request,
                 "response": c.response,
@@ -694,7 +700,10 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "codec_state": c.codec_state,
                 "evidence": c.evidence,
                 "requires_unsafe": (
-                    c.effect != "safe" or c.request_length == (None, None)
+                    c.effect != "safe"
+                    or c.request_length[0] is None
+                    or c.request_length[1] is None
+                    or c.request_length[0] != c.request_length[1]
                 ),
             }
         return _normalize_listing(out, vendor)
@@ -961,7 +970,7 @@ def _vendor_listing_data(vendor: str) -> dict:
     commands = []
     for key, info in sorted(listing.items()):
         netfn, cmd = key[0], key[1]
-        prefix = key[2:]
+        prefix = info.get("prefix") or b""
         command = {
             "netfn": netfn, "cmd": cmd,
             "prefix": [b for b in prefix] if prefix else [],
@@ -972,6 +981,9 @@ def _vendor_listing_data(vendor: str) -> dict:
             "src": info.get("src") or "",
             "missing": bool(info.get("missing")),
         }
+        if info.get("selector_offset") is not None:
+            command["selector"] = list(key[2:])
+            command["selectorOffset"] = info["selector_offset"]
         if info.get("operations"):
             command["operations"] = [
                 {
@@ -1365,12 +1377,17 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         print(f"# {len(hits)} matches for {query!r}; listing each:")
     for key, info in hits:
         netfn, cmd = key[0], key[1]
-        prefix = key[2:]
+        identity = key[2:]
+        prefix = info.get("prefix") or b""
         prefix_s = " ".join(f"0x{b:02x}" for b in prefix) or "(none)"
         print(f"\n## {info['name']}")
         print(f"  NetFn:        0x{netfn:02x}")
         print(f"  Cmd:          0x{cmd:02x}")
         print(f"  Data prefix:  {prefix_s}   (auto-prepended on name-resolve)")
+        if info.get("selector_offset") is not None:
+            selector_s = " ".join(f"0x{b:02x}" for b in identity)
+            print(f"  Selector:     {selector_s} at request byte "
+                  f"{info['selector_offset']}")
         if info.get("priv"):
             print(f"  Privilege:    {info['priv']}")
         if info.get("tier"):

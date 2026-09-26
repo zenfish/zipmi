@@ -98,7 +98,10 @@ def test_hex_fields_parsed_to_int():
 
 def test_wire_prefixes_preserve_colliding_handlers_and_live_evidence():
     """Alternate handlers at the same pair remain separately addressable."""
-    keys = [(c.netfn, c.cmd, c.prefix) for c in IDRAC10_COMMANDS]
+    keys = [
+        (c.netfn, c.cmd, c.subcmd if c.subcmd is not None else c.prefix)
+        for c in IDRAC10_COMMANDS
+    ]
     assert len(keys) == len(set(keys)) == 456
     assert {
         (c.name, c.prefix) for c in IDRAC10_COMMANDS
@@ -190,6 +193,85 @@ def test_toolset_and_recreate_contracts_are_selector_exact():
     assert bytes(request) == b"\x05\x01\x00\x1e\x00\x00\x00"
     response = resp_type(b"\x00\x00\x34\x12\x00")
     assert response.marker_handle == 0x1234
+
+
+def test_every_maser_operation_has_explicit_safety_and_evidence():
+    from collections import Counter
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
+
+    maser = [c for c in IDRAC10_COMMANDS if c.lib == "libmaser"]
+    assert len(maser) == 141
+    assert Counter(c.effect for c in maser) == {
+        "safe": 32,
+        "mutates": 44,
+        "security-sensitive": 57,
+        "destructive": 8,
+    }
+    assert all(c.side_effects != "not yet classified" for c in maser)
+    assert all(c.activation != "not yet classified" for c in maser)
+    assert all(c.evidence for c in maser)
+    audited = [c for c in maser if isinstance(c.evidence, dict)]
+    assert len(audited) == 131
+    assert {c.evidence["binarySha256"] for c in audited} == {
+        "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+    }
+
+
+def test_every_existing_liboemcmds_operation_has_audited_safety():
+    from collections import Counter
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
+
+    rows = [c for c in IDRAC10_COMMANDS if c.lib == "liboemcmds"]
+    assert len(rows) == 120
+    assert Counter(c.effect for c in rows) == {
+        "safe": 50,
+        "mutates": 26,
+        "security-sensitive": 25,
+        "unknown": 19,
+    }
+    assert all(c.evidence for c in rows)
+    assert sum(c.selector_offset == 1 for c in rows) == 78
+
+
+def test_offset_one_selector_is_identity_not_auto_prefix(monkeypatch):
+    from zipmi.cli import zipmi as cli
+    from zipmi.cli.oem_cmds import _vendor_listing, cmd_oem_run
+
+    listing = _vendor_listing("idrac10")
+    row = listing[(0x30, 0xce, 0x00)]
+    assert row["selector_offset"] == 1
+    assert row["prefix"] is None
+
+    sent = []
+
+    class Session:
+        def send_raw(self, netfn, cmd, data):
+            sent.append((netfn, cmd, data))
+            return 0, b""
+
+    @contextmanager
+    def fake_open_session(_args):
+        yield Session()
+
+    monkeypatch.setattr(cli, "_open_session", fake_open_session)
+    args = argparse.Namespace(
+        cmd_name=row["name"], data=["1", "0", "0", "0", "0", "0", "0"],
+        unsafe=True, json=False,
+    )
+    assert cmd_oem_run(args, "idrac10") == 0
+    assert sent == [(0x30, 0xce, b"\x01\x00\x00\x00\x00\x00\x00")]
+
+
+def test_offset_one_selector_json_distinguishes_identity_from_wire_prefix():
+    from zipmi.cli.oem_cmds import _vendor_listing_data
+
+    row = next(
+        command for command in _vendor_listing_data("idrac10")["commands"]
+        if command["netfn"] == 0x30 and command["cmd"] == 0xce
+        and command.get("selector") == [0]
+    )
+    assert row["prefix"] == []
+    assert row["selectorOffset"] == 1
 
 
 def test_safe_exact_toolset_status_runs_without_unsafe(monkeypatch):

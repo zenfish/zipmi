@@ -47,17 +47,18 @@ class IDrac10Command:
     confidence: str
     lib: str
     prefix: bytes
+    selector_offset: int | None
     live: dict | None
     effect: str
     side_effects: str
     request_length: tuple[int | None, int | None]
     response_length_including_cc: tuple[int | None, int | None]
-    completion_codes: str
-    activation: str
+    completion_codes: str | list[dict]
+    activation: str | dict
     request_fields: list[dict]
     response_fields: list[dict]
     codec_state: str
-    evidence: str
+    evidence: str | dict
 
 
 def _hex_or_none(s: str) -> int | None:
@@ -82,6 +83,8 @@ def _prefix(c: dict, subcmd: int | None) -> bytes:
     if explicit:
         return bytes(int(token, 16) for token in explicit.split())
     if subcmd is None:
+        return b""
+    if "selectorOffset" in c and c["selectorOffset"] != 0:
         return b""
     return subcmd.to_bytes(max(1, (subcmd.bit_length() + 7) // 8), "big")
 
@@ -114,6 +117,7 @@ def parse_json(text: str) -> list[IDrac10Command]:
             confidence=c["confidence"],
             lib=c["lib"],
             prefix=_prefix(c, subcmd),
+            selector_offset=c.get("selectorOffset", 0 if subcmd is not None else None),
             live=c.get("live"),
             effect=c.get("effect", "unknown"),
             side_effects=c.get("sideEffects", "not yet classified"),
@@ -167,17 +171,18 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
         "    confidence: str",
         "    lib: str",
         "    prefix: bytes",
+        "    selector_offset: int | None",
         "    live: dict | None",
         "    effect: str",
         "    side_effects: str",
         "    request_length: tuple[int | None, int | None]",
         "    response_length_including_cc: tuple[int | None, int | None]",
-        "    completion_codes: str",
-        "    activation: str",
+        "    completion_codes: str | list[dict]",
+        "    activation: str | dict",
         "    request_fields: list[dict]",
         "    response_fields: list[dict]",
         "    codec_state: str",
-        "    evidence: str",
+        "    evidence: str | dict",
         "",
         "",
         "IDRAC10_COMMANDS: list[IDrac10Command] = [",
@@ -199,6 +204,7 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
             f"confidence={e.confidence!r}, "
             f"lib={e.lib!r}, "
             f"prefix={e.prefix!r}, "
+            f"selector_offset={e.selector_offset!r}, "
             f"live={e.live!r}, "
             f"effect={e.effect!r}, "
             f"side_effects={e.side_effects!r}, "
