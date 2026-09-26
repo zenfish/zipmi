@@ -65,9 +65,9 @@ def test_generated_markdown_contains_every_canonical_row():
 def test_generated_html_contains_every_exact_operation():
     reference = (Path(__file__).parents[2] / "docs/"
                  "advantech_ASMB787-command-reference.html").read_text()
-    assert reference.count("<td class='p-2 font-mono'>0x") == 252 + 187
-    assert "252 operations across 108 command pairs" in reference
-    assert "structured fixed-width codecs for 80 operations" in reference
+    assert reference.count("<td class='p-2 font-mono'>0x") == 462 + 187
+    assert "462 operations across 187 command pairs" in reference
+    assert "structured fixed-width codecs for 81 operations" in reference
     assert "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2" in reference
 
 
@@ -127,15 +127,16 @@ def test_named_restore_requires_explicit_unsafe_acknowledgement(capsys):
     assert "add --unsafe" in capsys.readouterr().err
 
 
-def test_sibling_header_schema_still_requires_unsafe_acknowledgement(capsys):
+def test_variable_length_safe_command_still_requires_unsafe_acknowledgement(capsys):
     from zipmi.cli.oem_cmds import _vendor_listing, cmd_oem_run
 
     listing = _vendor_listing("advantech-asmb787")
     row = next(row for row in listing.values()
                if row["tier"] == "safe"
-               and row["semantic_confidence"].startswith("medium"))
-    data = ["0"] * int(row["req_len_raw"], 0)
-    args = argparse.Namespace(cmd_name=row["name"], data=data, unsafe=False)
+               and row["semantic_confidence"] == "target-proven"
+               and row["req_len_raw"] == "0xff"
+               and row["prefix"] is None)
+    args = argparse.Namespace(cmd_name=row["name"], data=[], unsafe=False)
     assert cmd_oem_run(args, "advantech-asmb787") == 2
     assert "add --unsafe" in capsys.readouterr().err
 
@@ -233,16 +234,19 @@ def test_exact_operation_contracts_and_codecs_are_generated():
     import zipmi
     zipmi.load_vendor("advantech-asmb787")
     from zipmi.scapy_ipmi.oem.advantech_asmb787 import (
-        ASMB787_OPERATIONS, ASMB787_PAYLOADS,
+        ASMB787_COMMANDS, ASMB787_OPERATIONS, ASMB787_PAYLOADS,
     )
 
-    assert len(ASMB787_OPERATIONS) == 252
-    assert len({tuple(row["command"]) for row in ASMB787_OPERATIONS}) == 108
-    assert sum(row["codec_state"] == "verified" for row in ASMB787_OPERATIONS) == 80
-    assert len(ASMB787_PAYLOADS) == 80
+    assert len(ASMB787_OPERATIONS) == 462
+    assert {tuple(row["command"]) for row in ASMB787_OPERATIONS} == set(ASMB787_COMMANDS)
+    assert sum(row["codec_state"] == "verified" for row in ASMB787_OPERATIONS) == 81
+    assert len(ASMB787_PAYLOADS) == 81
     assert all(row["codec_state"] == "raw-exact" for row in ASMB787_OPERATIONS
                if row["id"].startswith("AMISetNTPCfg."))
     assert (0x32, 0xA8) not in ASMB787_PAYLOADS
+    fw_version = next(row for row in ASMB787_OPERATIONS if row["id"] == "AMIGetFwVersion")
+    assert fw_version["evidence"]["module_sha256"].startswith("1bee4dbf")
+    assert fw_version["evidence"]["dispatch_module_sha256"].startswith("23e5b17b")
 
     req_type, resp_type = ASMB787_PAYLOADS[(0x32, 0x18, 0x00)]
     assert bytes(req_type()) == b"\x00"

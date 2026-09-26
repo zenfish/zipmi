@@ -8417,6 +8417,6169 @@
         "module_sha256": "d86d9acdb6947f84323928ffb17be2fe16535d26a8b86a90a340c49e0397f318"
       },
       "confidence": "high; feature gate absent, runtime registration unproved"
+    },
+    {
+      "id": "AMIYAFUGetFlashInfo",
+      "command": [
+        50,
+        1
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);flash_size:u32le;flash_addr:u32le;erase_block:u32le;product_id:u16le;width:u8;fmh_compliance:u8;reserved:u16le;erase_blocks:u16le",
+        "length_including_cc": "33"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetFlashInfo@0x3017c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetFirmwareInfo",
+      "command": [
+        50,
+        2
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);major:u8;minor:u8;aux:u16le;build:u32le;reserved:u32le;name:bytes[8];size:u32le;product_id:u32le",
+        "length_including_cc": "41"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetFirmwareInfo@0x30358; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetFMHInfo",
+      "command": [
+        50,
+        3
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);reserved:u16le;fmh_count:u16le;FlashMH[fmh_count]",
+        "length_including_cc": "17+64*n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetFMHInfo@0x3066c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetStatus",
+      "command": [
+        50,
+        4
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);last_status:u16le;state:u16le;mode:u16le;reserved:u16le;message:bytes[65]",
+        "length_including_cc": "86"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetStatus@0x3080c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUActivateFlashMode",
+      "command": [
+        50,
+        16
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mode:u16le",
+        "length": "14"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);delay:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "d1",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUActivateFlashMode@0x310c0; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUAllocateMemory",
+      "command": [
+        50,
+        32
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);size:u32le",
+        "length": "16"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);allocated_addr:u32le",
+        "length_including_cc": "17"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUAllocateMemory@0x31968; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUFreeMemory",
+      "command": [
+        50,
+        33
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);addr:u32le",
+        "length": "16"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUFreeMemory@0x31e48; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUReadFlash",
+      "command": [
+        50,
+        34
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);flash_offset:u32le;width:u8;size:u32le",
+        "length": "21"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);data:bytes[data_len]",
+        "length_including_cc": "13+n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUReadFlash@0x32008; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUWriteFlash",
+      "command": [
+        50,
+        35
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);flash_offset:u32le;width:u8;data:bytes[data_len-5]",
+        "length": "17+n"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);size_written:u16le",
+        "length_including_cc": "15"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUWriteFlash@0x32510; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUEraseFlash",
+      "command": [
+        50,
+        36
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);block:u32le",
+        "length": "16"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUEraseFlash@0x3285c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUProtectFlash",
+      "command": [
+        50,
+        37
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);block:u32le;protect:u8",
+        "length": "17"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUProtectFlash@0x32b20; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUEraseCopyFlash",
+      "command": [
+        50,
+        38
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mem_offset:u32le;flash_offset:u32le;size:u32le",
+        "length": "24"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);size_copied:u32le",
+        "length_including_cc": "17"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "14"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUEraseCopyFlash@0x33630; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUVerifyFlash",
+      "command": [
+        50,
+        39
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mem_offset:u32le;flash_offset:u32le;size:u32le",
+        "length": "24"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mismatch_offset:u32le",
+        "length_including_cc": "17"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "17"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUVerifyFlash@0x34130; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetECFStatus",
+      "command": [
+        50,
+        40
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u32le;progress:u16le",
+        "length_including_cc": "19"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetECFStatus@0x33e6c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetVerifyStatus",
+      "command": [
+        50,
+        41
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u32le;offset:u32le;progress:u16le",
+        "length_including_cc": "23"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetVerifyStatus@0x34600; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUReadMemory",
+      "command": [
+        50,
+        48
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mem_offset:u32le;width:u8;size:u16le",
+        "length": "19"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);data:bytes[data_len]",
+        "length_including_cc": "13+n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUReadMemory@0x349b4; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUWriteMemory",
+      "command": [
+        50,
+        49
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mem_offset:u32le;width:u8;data:bytes[data_len-5]",
+        "length": "17+n"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);size_written:u16le",
+        "length_including_cc": "15"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUWriteMemory@0x34c40; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUCopyMemory",
+      "command": [
+        50,
+        50
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);src:u32le;dst:u32le;size:u32le",
+        "length": "24"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);size_copied:u32le",
+        "length_including_cc": "17"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUCopyMemory@0x34f94; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUCompareMemory",
+      "command": [
+        50,
+        51
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);offset1:u32le;offset2:u32le;size:u32le",
+        "length": "24"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mismatch_offset:u32le",
+        "length_including_cc": "17"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUCompareMemory@0x35258; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUClearMemory",
+      "command": [
+        50,
+        52
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);offset:u32le;size:u32le",
+        "length": "20"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);size_cleared:u32le",
+        "length_including_cc": "17"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUClearMemory@0x3558c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUCompareMeVersion",
+      "command": [
+        50,
+        53
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);mem_offset:u32le;image_size:u32le",
+        "length": "20"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);current_status:u8;current_version:4B;compare_status:u8;new_version:4B",
+        "length_including_cc": "23"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUCompareMeVersion@0x37b60; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetBootConfig",
+      "command": [
+        50,
+        64
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);var_name:bytes[65]",
+        "length": "77"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8;value:bytes[data_len-1]",
+        "length_including_cc": "14+n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetBootConfig@0x35838; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUSetBootConfig",
+      "command": [
+        50,
+        65
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);var_name:bytes[65];value:bytes[data_len-65]",
+        "length": "77+n"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUSetBootConfig@0x35a90; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUGetBootVars",
+      "command": [
+        50,
+        66
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);var_count:u8;vars:bytes[data_len-1]",
+        "length_including_cc": "14+n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUGetBootVars@0x35ca8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUDeactivateFlash",
+      "command": [
+        50,
+        80
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length": "12"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUDeactivateFlash@0x35e64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUResetDevice",
+      "command": [
+        50,
+        81
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);wait_seconds:u16le",
+        "length": "14"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUResetDevice@0x36570; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUSwitchFlashDevice",
+      "command": [
+        50,
+        82
+      ],
+      "request": {
+        "layout": "flash_device:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;status:u8",
+        "length_including_cc": "1|2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "05"
+      ],
+      "effect": "destructive",
+      "side_effects": "switch active flash device; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUSwitchFlashDevice@0x2fcdc; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFURestoreFlashDevice",
+      "command": [
+        50,
+        83
+      ],
+      "request": {
+        "layout": "flash_device:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;status:u8",
+        "length_including_cc": "1|2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "05"
+      ],
+      "effect": "destructive",
+      "side_effects": "restore flash device; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFURestoreFlashDevice@0x2fef8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUDualImgSup",
+      "command": [
+        50,
+        84
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);preserve_conf:u8;reserved:3B",
+        "length": "16"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le)",
+        "length_including_cc": "13"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c1",
+        "cc"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUDualImgSup@0x31850; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUFWSelectFlash",
+      "command": [
+        50,
+        85
+      ],
+      "request": {
+        "layout": "YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);flash_select:u8",
+        "length": "13"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status:u8",
+        "length_including_cc": "14"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUFWSelectFlash@0x36820; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUActivateFlashDevice",
+      "command": [
+        50,
+        86
+      ],
+      "request": {
+        "layout": "flash_device:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;status:u8",
+        "length_including_cc": "1|2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "destructive",
+      "side_effects": "activate flash device; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUActivateFlashDevice@0x2fd74; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFileUpload",
+      "command": [
+        50,
+        87
+      ],
+      "request": {
+        "layout": "packet_type:u8(bit0 first,bit1 last);opcode:u8;packet_len:u16le;transaction_id:u8;opcode_request_len:u8;reserved:bytes[2]=0;offset:u32le;reserved1:u32le=0;checksum:u32le;opcode_request:bytes[rq_len];chunk:bytes[packet_len-rq_len]",
+        "length": "20+packet_len"
+      },
+      "response": {
+        "layout": "cc;transaction_id:u8",
+        "length_including_cc": "1|2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "82",
+        "83",
+        "84",
+        "85",
+        "86",
+        "87",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "write uploaded file/chunk; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFileUpload@0x43280; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFileDownload",
+      "command": [
+        50,
+        88
+      ],
+      "request": {
+        "layout": "opcode:u8;transaction_id:u8;requested_len:u16le;offset:u32le;opcode_request:bytes[...] only when transaction_id=0 and offset=0",
+        "length": "8|8+n(initial opcode request)"
+      },
+      "response": {
+        "layout": "cc;FileHdr{packet_type:u8;opcode:u8;packet_len:u16le;transaction_id:u8;request_len:u8;reserved:2B;next_offset:u32le;reserved1:u32le;checksum:u32le};chunk:bytes[packet_len]",
+        "length_including_cc": "1|21+packet_len"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "82",
+        "83",
+        "84",
+        "85",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "read file/chunk; potentially sensitive; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFileDownload@0x43c0c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUMiscellaneousInfo",
+      "command": [
+        50,
+        89
+      ],
+      "request": {
+        "layout": "preserve_flag:u8;reserved:u16le[8]",
+        "length": "17"
+      },
+      "response": {
+        "layout": "cc;reserved:u16le[4]",
+        "length_including_cc": "9"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUMiscellaneousInfo@0x3498c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetNMChNum",
+      "command": [
+        50,
+        96
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;channel:u8",
+        "length_including_cc": "1|2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetNMChNum@0x36998; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetEthIndex",
+      "command": [
+        50,
+        98
+      ],
+      "request": {
+        "layout": "channel:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;eth_index:u8",
+        "length_including_cc": "2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetEthIndex@0x36a34; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetEmailForUser",
+      "command": [
+        50,
+        99
+      ],
+      "request": {
+        "layout": "user_id:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;email:bytes[64]",
+        "length_including_cc": "1|65"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetEmailForUser@0x3ae04; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetEmailForUser",
+      "command": [
+        50,
+        100
+      ],
+      "request": {
+        "layout": "user_id:u8;email:bytes[64]",
+        "length": "65"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update user email; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetEmailForUser@0x3aa68; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIResetPassword",
+      "command": [
+        50,
+        101
+      ],
+      "request": {
+        "layout": "user_id:u8;password:bytes[1..]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "reset user password; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIResetPassword@0x3afd0; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetLogConf",
+      "command": [
+        50,
+        103
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;mode:u8;rotation/settings and one or two 65-byte syslog endpoint blocks",
+        "length_including_cc": "3|8|72|140"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetLogConf@0x3c258; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetLogConf",
+      "command": [
+        50,
+        104
+      ],
+      "request": {
+        "layout": "remote_enable:u8;local_enable:u8;server/port/protocol fields (variable)",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update syslog configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetLogConf@0x3c3d0; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.host_name",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "66"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.register_dns",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "variable"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.domain_settings",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "5"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.domain_name",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "65"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.dns_settings",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "4"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.dns_ip",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "5|17"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.dns_restart",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "1"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.tsig_upload",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "1"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.dns_enable",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "2"
+      },
+      "selectors": "9",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDNSConf.reserved_10",
+      "command": [
+        50,
+        107
+      ],
+      "request": {
+        "layout": "param:u8;block:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;DNSConf union selected by param",
+        "length_including_cc": "1"
+      },
+      "selectors": "10",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetDNSConf@0x3d114; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.selector_0",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.host_name",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.register_dns",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.domain_settings",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.domain_name",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.dns_settings",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.dns_ip",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.dns_restart",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.tsig_upload",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetDNSConf.dns_enable",
+      "command": [
+        50,
+        108
+      ],
+      "request": {
+        "layout": "param:u8;block:u8;DNSConf union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "9",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "update DNS configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetDNSConf@0x3d3f8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMILinkDownResilent",
+      "command": [
+        50,
+        112
+      ],
+      "request": {
+        "layout": "enable:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8",
+        "length_including_cc": "2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "change link-down resilience; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMILinkDownResilent@0x3e9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.ethernet_state",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.bond_state",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.bond_enabled",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.interface_count",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.interface_channel",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.interface_name",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.bond_active_slave",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.bond_vlan_enabled",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetIfaceState.active_interface_count",
+      "command": [
+        50,
+        113
+      ],
+      "request": {
+        "layout": "param:u8;IfaceConfig union selected by param",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "85",
+        "86",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update interface/bond/VLAN state; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetIfaceState@0x3ed8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.ethernet_state",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "3"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.bond_state",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "8"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.bond_enabled",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "3"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.interface_count",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "17"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.interface_channel",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "2"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.interface_name",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "17"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.bond_active_slave",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "3"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.bond_vlan_enabled",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "2"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIfaceState.active_interface_count",
+      "command": [
+        50,
+        114
+      ],
+      "request": {
+        "layout": "param:u8;set_selector:u8;block_selector:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;IfaceConfig union selected by param",
+        "length_including_cc": "7"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIfaceState@0x3f9d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.smtp_enable",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.server_ipv4",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "8"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.username",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.password",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.destination_count",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.user_id",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.subject",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.message",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.sender",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.hostname",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "9",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.port",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "10",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.auth_enable",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "11",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.server_ipv6",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "20"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "12",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.smtp2_enable",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "13",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.server2_ipv4",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "8"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "14",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.username2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "15",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.password2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "16",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.sender2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "17",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.hostname2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "18",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.port2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "19",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.auth2_enable",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "20",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.server2_ipv6",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "20"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "21",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.starttls",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "22",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.starttls2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "23",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.ssltls",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "24",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.ssltls2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "25",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.secure_port",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "26",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.secure_port2",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "6"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "27",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.reserved_28",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "28",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetSMTPConfigParams.reserved_29",
+      "command": [
+        50,
+        120
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8;config block",
+        "length": "4+block_length"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "29",
+      "completion_codes": [
+        "00",
+        "81",
+        "82",
+        "88",
+        "9d",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update SMTP configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:SetSMTPConfigParams@0x38a64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.smtp_enable",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.server_ipv4",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "5"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.username",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.password",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.destination_count",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.user_id",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.subject",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.message",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.sender",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.hostname",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "9",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.port",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "3"
+      },
+      "selectors": "10",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.auth_enable",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "11",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.server_ipv6",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "17"
+      },
+      "selectors": "12",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.smtp2_enable",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "13",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.server2_ipv4",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "5"
+      },
+      "selectors": "14",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.username2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "15",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.password2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "16",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.sender2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "17",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.hostname2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "18",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.port2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "3"
+      },
+      "selectors": "19",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.auth2_enable",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "20",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.server2_ipv6",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "17"
+      },
+      "selectors": "21",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.starttls",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "22",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.starttls2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "23",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.ssltls",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "24",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.ssltls2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "2"
+      },
+      "selectors": "25",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.secure_port",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "3"
+      },
+      "selectors": "26",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.secure_port2",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "3"
+      },
+      "selectors": "27",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.reserved_28",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "28",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSMTPConfigParams.reserved_29",
+      "command": [
+        50,
+        121
+      ],
+      "request": {
+        "layout": "channel:u8;parameter:u8;set_selector:u8;block_selector:u8",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;config block",
+        "length_including_cc": "1+block_length"
+      },
+      "selectors": "29",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSELPolicy",
+      "command": [
+        50,
+        126
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;sel_policy:u8",
+        "length_including_cc": "2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSELPolicy@0x403ac; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetSELPolicy",
+      "command": [
+        50,
+        127
+      ],
+      "request": {
+        "layout": "sel_policy:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "change SEL rollover policy; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetSELPolicy@0x404b0; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetFruDetails",
+      "command": [
+        50,
+        128
+      ],
+      "request": {
+        "layout": "fru_index:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;total_fru:u8;device_no:u8;name:bytes[16]",
+        "length_including_cc": "1|19"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c9"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetFruDetails@0x36a5c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetEmailFormatUser",
+      "command": [
+        50,
+        129
+      ],
+      "request": {
+        "layout": "user_id:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;email_format:bytes[64]",
+        "length_including_cc": "1|65"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetEmailFormatUser@0x3ba1c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetEmailFormatUser",
+      "command": [
+        50,
+        130
+      ],
+      "request": {
+        "layout": "user_id:u8;email_format:bytes[64]",
+        "length": "65"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "update email format; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetEmailFormatUser@0x3b770; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSELEntires",
+      "command": [
+        50,
+        133
+      ],
+      "request": {
+        "layout": "start_index:u32le",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;count:u32le;last_record_id:u16le;status:u8;sel_records:bytes[18*count]",
+        "length_including_cc": "1|8+18*n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "85",
+        "86",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSELEntires@0x405f0; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSenforInfo",
+      "command": [
+        50,
+        134
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;sensor_count:u16le;sensor_info:variable records",
+        "length_including_cc": "1|3+n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "87",
+        "88",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSenforInfo@0x40940; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetIPMISessionTimeOut",
+      "command": [
+        50,
+        141
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;ipmi_session_timeout:u8",
+        "length_including_cc": "2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c7"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetIPMISessionTimeOut@0x412d0; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSInfo",
+      "command": [
+        50,
+        142
+      ],
+      "request": {
+        "layout": "session_ip:bytes[16]",
+        "length": "16"
+      },
+      "response": {
+        "layout": "cc;channel:u8;channel_type:u8;bmc_instance:u8",
+        "length_including_cc": "1|4"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSInfo@0x4131c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRootUserAccess",
+      "command": [
+        50,
+        144
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;root_access_state:u8",
+        "length_including_cc": "2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetRootUserAccess@0x3bc28; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRootPassword",
+      "command": [
+        50,
+        145
+      ],
+      "request": {
+        "layout": "operation:u8;password:NUL-terminated bytes",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "80",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "enable/disable root or change root password; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetRootPassword@0x3bca0; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUserShelltype",
+      "command": [
+        50,
+        146
+      ],
+      "request": {
+        "layout": "user_id:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;shell_type:u8",
+        "length_including_cc": "1|2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUserShelltype@0x3bdf4; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetUserShelltype",
+      "command": [
+        50,
+        147
+      ],
+      "request": {
+        "layout": "user_id:u8;shell_type:u8",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "change user shell; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetUserShelltype@0x3bf64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_2",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_3",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_4",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_5",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_6",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_7",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_8",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_9",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "9",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetTriggerEvent.selector_10",
+      "command": [
+        50,
+        148
+      ],
+      "request": {
+        "layout": "trigger_param:u8;enable:u8;time:u32le",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "10",
+      "completion_codes": [
+        "00",
+        "93",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "update trigger-event configuration; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetTriggerEvent@0x36b64; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_1",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_2",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_3",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_4",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_5",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_6",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_7",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_8",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_9",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "9",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_10",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "10",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTriggerEvent.selector_11",
+      "command": [
+        50,
+        149
+      ],
+      "request": {
+        "layout": "trigger_param:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled:u8;time:u32le when applicable",
+        "length_including_cc": "2|6"
+      },
+      "selectors": "11",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetTriggerEvent@0x36f38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSolConf",
+      "command": [
+        50,
+        150
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;sol_timeout:u8;sol_port:bytes[16]",
+        "length_including_cc": "18"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSolConf@0x37198; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetLoginAuditConfig",
+      "command": [
+        50,
+        151
+      ],
+      "request": {
+        "layout": "web:u8;ipmi:u8;telnet:u8;ssh:u8;kvm:u8",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "change login audit flags; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetLoginAuditConfig@0x37284; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetLoginAuditConfig",
+      "command": [
+        50,
+        152
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;web:u8;ipmi:u8;telnet:u8;ssh:u8;kvm:u8",
+        "length_including_cc": "6"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c7"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetLoginAuditConfig@0x37368; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetAllIPv6Address",
+      "command": [
+        50,
+        153
+      ],
+      "request": {
+        "layout": "channel:u8;index:u8;count:u8",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;ipv6:bytes[16*count];prefix:u8[count]",
+        "length_including_cc": "1|1+17*n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetAllIPv6Address@0x373d4; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSSessionInfo.session_counts",
+      "command": [
+        50,
+        154
+      ],
+      "request": {
+        "layout": "uds_param:u8;handle/id/index:bytes[0|4]",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;selector-specific UDS session data",
+        "length_including_cc": "3"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ce"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSSessionInfo@0x4142c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSSessionInfo.session_by_id",
+      "command": [
+        50,
+        154
+      ],
+      "request": {
+        "layout": "uds_param:u8;handle/id/index:bytes[0|4]",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc;selector-specific UDS session data",
+        "length_including_cc": "19"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ce"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSSessionInfo@0x4142c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSSessionInfo.session_by_handle",
+      "command": [
+        50,
+        154
+      ],
+      "request": {
+        "layout": "uds_param:u8;handle/id/index:bytes[0|4]",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc;selector-specific UDS session data",
+        "length_including_cc": "19"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ce"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSSessionInfo@0x4142c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSSessionInfo.session_by_index",
+      "command": [
+        50,
+        154
+      ],
+      "request": {
+        "layout": "uds_param:u8;handle/id/index:bytes[0|4]",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc;selector-specific UDS session data",
+        "length_including_cc": "19"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ce"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSSessionInfo@0x4142c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSSessionInfo.session_by_user",
+      "command": [
+        50,
+        154
+      ],
+      "request": {
+        "layout": "uds_param:u8;handle/id/index:bytes[0|4]",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc;selector-specific UDS session data",
+        "length_including_cc": "19"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ce"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSSessionInfo@0x4142c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSSessionInfo.process_thread_ids",
+      "command": [
+        50,
+        154
+      ],
+      "request": {
+        "layout": "uds_param:u8;handle/id/index:bytes[0|4]",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc;selector-specific UDS session data",
+        "length_including_cc": "9"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ce"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSSessionInfo@0x4142c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetUDSSessionInfo.active_indices",
+      "command": [
+        50,
+        154
+      ],
+      "request": {
+        "layout": "uds_param:u8;handle/id/index:bytes[0|4]",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;selector-specific UDS session data",
+        "length_including_cc": "1+n"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "c7",
+        "cc",
+        "ce"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetUDSSessionInfo@0x4142c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIYAFUReplaceSignedImageKey",
+      "command": [
+        50,
+        169
+      ],
+      "request": {
+        "layout": "YAFU signed-key packet: YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);key data:bytes[data_len]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;YafuHeader(seq:u32le,yafu_cmd:u16le,data_len:u16le,crc32:u32le);status",
+        "length_including_cc": "variable"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "replace firmware signing key; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIYAFUReplaceSignedImageKey@0x377bc; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetFwVersion",
+      "command": [
+        50,
+        180
+      ],
+      "request": {
+        "layout": "device_node:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;count:u8;records[count]{id:u8;instance:u8;name:bytes[8];major:u8;minor:u8;aux:bytes[6];device:u8}",
+        "length_including_cc": "1|2+19*n"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "81",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libversionmgt.so.13.1.0:AMIGetFwVersion@0x10cdc; exact Ghidra decompile; dispatch relocation in libipmimsghndlr.so.13.22.0; ASUS ipmi_dev-3.177.0 header",
+        "module_sha256": "1bee4dbfd84d1618462d74bb32dde0a3d10e3ebf6c714a501dbf894499236a8d",
+        "dispatch_module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetChannelType",
+      "command": [
+        50,
+        190
+      ],
+      "request": {
+        "layout": "channel:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;echoed_channel:u8;channel_type:u8",
+        "length_including_cc": "3"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetChannelType@0x418b4; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetFeatureStatus",
+      "command": [
+        50,
+        194
+      ],
+      "request": {
+        "layout": "feature_name/appcode:bytes[1..]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;feature_status:u8",
+        "length_including_cc": "2"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c7"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetFeatureStatus@0x37730; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSSLCertStatus.certificate_status",
+      "command": [
+        50,
+        195
+      ],
+      "request": {
+        "layout": "cert_type:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;selector-specific validity/status bytes",
+        "length_including_cc": "2"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "80",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSSLCertStatus@0x42508; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSSLCertStatus.certificate_info",
+      "command": [
+        50,
+        195
+      ],
+      "request": {
+        "layout": "cert_type:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;selector-specific validity/status bytes",
+        "length_including_cc": "127"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSSLCertStatus@0x42508; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSSLCertStatus.private_key_info",
+      "command": [
+        50,
+        195
+      ],
+      "request": {
+        "layout": "cert_type:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;selector-specific validity/status bytes",
+        "length_including_cc": "127"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSSLCertStatus@0x42508; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetSSLCertStatus.certificate_details",
+      "command": [
+        50,
+        195
+      ],
+      "request": {
+        "layout": "cert_type:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;SSL_Config_T:bytes[1548] (version, serial, algorithms, issuer/subject, validity; exact binary buffer size)",
+        "length_including_cc": "1549"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "80",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetSSLCertStatus@0x42508; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRestartWebService",
+      "command": [
+        50,
+        230
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "mutates",
+      "side_effects": "queue web service restart; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIRestartWebService@0x41a38; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetPendStatus",
+      "command": [
+        50,
+        231
+      ],
+      "request": {
+        "layout": "operation:u32le",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;pending_status:u8;error_code:u16le when status not idle/pending",
+        "length_including_cc": "2|4"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "80"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=Operator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetPendStatus@0x3c1d8; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.set_update_mode",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "0",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "firmware-update state/query depending subcommand; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.get_images_info",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "1",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none/query firmware update state; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.set_network_share",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "2",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "firmware-update state/query depending subcommand; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.get_network_share",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "3",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none/query firmware update state; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.set_share_operation",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "firmware-update state/query depending subcommand; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.set_update_component",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "5",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "firmware-update state/query depending subcommand; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.get_component_status",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "6",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none/query firmware update state; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.get_component_for_bios",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "7",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none/query firmware update state; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.set_status_by_bios",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "8",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "firmware-update state/query depending subcommand; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.get_component_name",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "9",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none/query firmware update state; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.cancel_component_update",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "10",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "firmware-update state/query depending subcommand; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.validate_bundle",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "11",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none/query firmware update state; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIFirmwareCommand.rearm_firmware_timer",
+      "command": [
+        50,
+        232
+      ],
+      "request": {
+        "layout": "subcommand:u8;command_data:bytes[0..256]",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc;subcommand response data",
+        "length_including_cc": "variable"
+      },
+      "selectors": "12",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "84",
+        "a0",
+        "a1",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "firmware-update state/query depending subcommand; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIFirmwareCommand@0x44214; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetReleaseNote",
+      "command": [
+        50,
+        233
+      ],
+      "request": {
+        "layout": "device_type:u8;offset:u16le",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;next_offset:u16le;data_len:u16le;chunk:bytes[data_len<=128]",
+        "length_including_cc": "133"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "none; dispatcher privilege=User",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMIGetReleaseNote@0x44a0c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetSSLCert",
+      "command": [
+        50,
+        236
+      ],
+      "request": {
+        "layout": "certificate_type:u8;chunk metadata + DER/PEM bytes",
+        "length": "variable"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "80",
+        "c7",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "replace SSL certificate; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISetSSLCert@0x427a4; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISwitchMUX",
+      "command": [
+        50,
+        238
+      ],
+      "request": {
+        "layout": "mux_select:u8",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "mutates",
+      "side_effects": "switch hardware MUX; dispatcher privilege=Administrator",
+      "evidence": {
+        "location": "libipmimsghndlr.so.13.22.0:AMISwitchMUX@0x41b00; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
+        "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
+      },
+      "confidence": "high"
     }
   ]
 }
