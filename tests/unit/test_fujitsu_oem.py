@@ -3,7 +3,7 @@ from collections import Counter
 from hashlib import sha256
 from importlib.resources import files
 
-from zipmi.scapy_ipmi.oem.fujitsu import FUJITSU_RECORDS
+from zipmi.scapy_ipmi.oem.fujitsu import FUJITSU_CMD_NAMES, FUJITSU_RECORDS
 
 
 def test_pinned_irmc_s6_dispatch_table() -> None:
@@ -21,3 +21,4 @@ def test_pinned_irmc_s6_dispatch_table() -> None:
         0x2C: 2, 0x2E: 20, 0x30: 58, 0x34: 46,
     }
     assert sum(r.lun == 3 for r in FUJITSU_RECORDS) == 3
+    assert len(FUJITSU_CMD_NAMES) == 135

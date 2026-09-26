@@ -10,6 +10,8 @@ import csv
 from dataclasses import dataclass
 from importlib.resources import files
 
+from ._registry import register
+
 
 @dataclass(frozen=True)
 class FujitsuRecord:
@@ -49,6 +51,12 @@ def _load_records() -> tuple[FujitsuRecord, ...]:
 
 
 FUJITSU_RECORDS = _load_records()
+FUJITSU_CMD_NAMES = {
+    (row.netfn, row.cmd): row.handler
+    for row in FUJITSU_RECORDS
+    if row.lun == 0 and row.scope != "MSMM callback"
+}
+register("fujitsu", 10368, FUJITSU_CMD_NAMES)
 
 
-__all__ = ["FujitsuRecord", "FUJITSU_RECORDS"]
+__all__ = ["FujitsuRecord", "FUJITSU_RECORDS", "FUJITSU_CMD_NAMES"]
