@@ -73,7 +73,7 @@ IDRAC10_PRIV: dict[tuple[int, int], int] = {
 }
 
 
-# --- Rich per-command catalog (idrac10-commands.json, 447 entries) ----------
+# --- Rich per-command catalog (idrac10-commands.json) -----------------------
 # The dispatch tables above name the wire surface; the catalog adds the
 # human doc (purpose/request/response/security). Entries with an
 # undetermined NetFn or cmd (RE couldn't pin them) are kept in the flat

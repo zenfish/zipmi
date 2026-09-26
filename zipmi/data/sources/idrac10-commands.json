@@ -9,7 +9,7 @@
   "dupSha256": "372c49cf8fc167aaff0acc03925a782698937bddba21cbca57146a7c8d722ca9",
   "rootfsSha256": "6296648530890a3d8a12b78b730c8bcb78c023d119be41db14733f7ec370eb2f"
  },
- "count": 446,
+ "count": 456,
  "commands": [
   {
    "name": "DellCmdNodeMgrDebugInfo",
@@ -9819,6 +9819,120 @@
     "host": "10.0.9.10",
     "catalog": "idrac10-commands.json"
    }
+  },
+  {
+   "name": "CmdOEMRecreateMASER",
+   "netfn": "0x30",
+   "cmd": "0xac",
+   "subcmd": "",
+   "priv": "User (2)",
+   "purpose": "Recreate a Lifecycle Controller MASER image selected by a little-endian image ID.",
+   "request": "Exactly 2 bytes: image_id:u16le. ID 0 selects the default image; 1..255 selects mas001..mas255; larger IDs are rejected.",
+   "response": "Two zero data bytes. CC 0x00 accepted/completed; 0x01 non-KCS; 0x02 recreate already in progress; 0x06 invalid image; 0x07 MASER session active; 0x09 manufacturing mode required.",
+   "inBandOnly": true,
+   "backendDeps": "validate/force root helpers, lcllibtest, LifecycleControllerState configuration",
+   "security": "KCS- and manufacturing-gated but destructive: rebuilds the MASER/Lifecycle Controller image and changes persistent LC state.",
+   "confidence": "high",
+   "lib": "libmaser",
+   "effect": "destructive",
+   "sideEffects": "Recreates MASER image, creates/removes force-create markers, launches lcllibtest, and writes LifecycleControllerState.",
+   "requestLength": 2,
+   "responseLengthIncludingCc": 3,
+   "completionCodes": "00,01,02,06,07,09",
+   "activation": "statically registered in liboemcmds G_asOEMRequestHandleTable",
+   "requestFields": [{"name":"image_id","kind":"u16le"}],
+   "responseFields": [{"name":"completion_code","kind":"u8"},{"name":"reserved","kind":"bytes","length":2}],
+   "codecState": "verified",
+   "evidence": "liboemcmds row 0x4ee90; libmaser CmdOEMRecreateMASER@0x11df54; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/ExposeExecs",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x00", "priv": "User (2)",
+   "purpose": "Expose ToolSet executables and a dynamic partition to the host.",
+   "request": "10 bytes: selector=0, version, session timeout/handle LE16, dynamic partition size LE16, toolset, mode, watchdog bytes[2].",
+   "response": "Three data bytes: operation status followed by two reserved bytes.",
+   "inBandOnly": true, "backendDeps": "MASER session, watchdog timer, GP task queue", "security": "KCS-only host software exposure path.", "confidence": "high", "lib": "libmaser",
+   "effect": "mutates", "sideEffects": "Creates or reuses a MASER session, arms a watchdog, and queues executable/partition exposure.",
+   "requestLength": 10, "responseLengthIncludingCc": 4, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 0 of statically registered CmdOEMToolSet",
+   "requestFields": [{"name":"selector","kind":"u8","constant":0},{"name":"version","kind":"u8"},{"name":"session_timeout","kind":"u16le"},{"name":"dynamic_partition_size","kind":"u16le"},{"name":"toolset","kind":"u8"},{"name":"mode","kind":"u8"},{"name":"watchdog","kind":"bytes","length":2}],
+   "responseFields": [{"name":"completion_code","kind":"u8"},{"name":"status","kind":"u8"},{"name":"reserved","kind":"bytes","length":2}], "codecState": "verified",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 0; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/HideExecs",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x01", "priv": "User (2)",
+   "purpose": "Hide ToolSet executables from the host.",
+   "request": "14 bytes: selector=1, version, session handle LE16, message ID[8], trailing reserved[2].", "response": "Three data bytes: status and two reserved bytes.",
+   "inBandOnly": true, "backendDeps": "MASER session and GP task queue", "security": "KCS-only ToolSet state transition.", "confidence": "high", "lib": "libmaser",
+   "effect": "mutates", "sideEffects": "Captures the message ID, queues the hide task, and changes ToolSet state.",
+   "requestLength": 14, "responseLengthIncludingCc": 4, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 1 of statically registered CmdOEMToolSet",
+   "requestFields": [{"name":"selector","kind":"u8","constant":1},{"name":"version","kind":"u8"},{"name":"session_handle","kind":"u16le"},{"name":"message_id","kind":"bytes","length":8},{"name":"reserved","kind":"bytes","length":2}],
+   "responseFields": [{"name":"completion_code","kind":"u8"},{"name":"status","kind":"u8"},{"name":"reserved","kind":"bytes","length":2}], "codecState": "verified",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 1; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/GetStatus",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x02", "priv": "User (2)",
+   "purpose": "Read ToolSet operation status for one of the supported status targets.",
+   "request": "5 bytes: selector=2, version, status target, reserved[2].", "response": "Up to 21 data bytes; target-dependent status union.",
+   "inBandOnly": true, "backendDeps": "ToolSet global operation state", "security": "Read-only KCS status query.", "confidence": "high", "lib": "libmaser",
+   "effect": "safe", "sideEffects": "none", "requestLength": 5, "responseLengthIncludingCc": {"min":2,"max":22}, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 2 of statically registered CmdOEMToolSet",
+   "requestFields": [], "responseFields": [], "codecState": "raw-exact",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 2; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/CollectData",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x03", "priv": "User (2)",
+   "purpose": "Start ToolSet data collection.", "request": "5 bytes: selector=3, version, flags, reserved[2].", "response": "Four status data bytes.",
+   "inBandOnly": true, "backendDeps": "ToolSet collection GP task", "security": "KCS-only collection control.", "confidence": "high", "lib": "libmaser",
+   "effect": "mutates", "sideEffects": "Queues collection and writes collection state and flags.", "requestLength": 5, "responseLengthIncludingCc": 5, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 3 of statically registered CmdOEMToolSet", "requestFields": [], "responseFields": [], "codecState": "raw-exact",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 3; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/GetDataInfo",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x04", "priv": "User (2)",
+   "purpose": "Queue retrieval of ToolSet collection data information.", "request": "4 bytes: selector=4, version, reserved[2].", "response": "Eight status data bytes.",
+   "inBandOnly": true, "backendDeps": "ToolSet GP task", "security": "Named like a read but changes asynchronous operation state.", "confidence": "high", "lib": "libmaser",
+   "effect": "mutates", "sideEffects": "Queues a GP task and changes operation state.", "requestLength": 4, "responseLengthIncludingCc": 9, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 4 of statically registered CmdOEMToolSet", "requestFields": [], "responseFields": [], "codecState": "raw-exact",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 4; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/BeginMarker",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x05", "priv": "User (2)",
+   "purpose": "Begin a ToolSet marker session.", "request": "7 bytes: selector=5, version, toolset, timeout LE16, reserved[2].", "response": "Four data bytes: status, marker handle LE16, zero.",
+   "inBandOnly": true, "backendDeps": "ToolSet marker watchdog", "security": "KCS-only marker-session state change.", "confidence": "high", "lib": "libmaser",
+   "effect": "mutates", "sideEffects": "Creates and arms a marker watchdog and begins a marker session.", "requestLength": 7, "responseLengthIncludingCc": 5, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 5 of statically registered CmdOEMToolSet",
+   "requestFields": [{"name":"selector","kind":"u8","constant":5},{"name":"version","kind":"u8"},{"name":"toolset","kind":"u8"},{"name":"timeout","kind":"u16le"},{"name":"reserved","kind":"bytes","length":2}],
+   "responseFields": [{"name":"completion_code","kind":"u8"},{"name":"status","kind":"u8"},{"name":"marker_handle","kind":"u16le"},{"name":"reserved","kind":"u8","constant":0}], "codecState": "verified",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 5; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/EndMarker",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x06", "priv": "User (2)",
+   "purpose": "End a ToolSet marker session.", "request": "17 bytes: selector=6, version, marker handle LE16, toolset, flags LE16, message ID[8], reserved[2].", "response": "Three status data bytes.",
+   "inBandOnly": true, "backendDeps": "ToolSet marker GP task", "security": "KCS-only marker-session state change.", "confidence": "high", "lib": "libmaser",
+   "effect": "mutates", "sideEffects": "Queues end-marker work and writes message/global state.", "requestLength": 17, "responseLengthIncludingCc": 4, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 6 of statically registered CmdOEMToolSet",
+   "requestFields": [{"name":"selector","kind":"u8","constant":6},{"name":"version","kind":"u8"},{"name":"marker_handle","kind":"u16le"},{"name":"toolset","kind":"u8"},{"name":"flags","kind":"u16le"},{"name":"message_id","kind":"bytes","length":8},{"name":"reserved","kind":"bytes","length":2}],
+   "responseFields": [{"name":"completion_code","kind":"u8"},{"name":"status","kind":"u8"},{"name":"reserved","kind":"bytes","length":2}], "codecState": "verified",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 6; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/UpdateMarker",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x07", "priv": "User (2)",
+   "purpose": "Update ToolSet marker progress and optional message data.", "request": "18 bytes: selector=7, version, marker handle LE16, toolset, flags LE16, percentage, message ID[8], reserved[2].", "response": "Three status data bytes.",
+   "inBandOnly": true, "backendDeps": "ToolSet marker GP task", "security": "KCS-only marker-session state change.", "confidence": "high", "lib": "libmaser",
+   "effect": "mutates", "sideEffects": "Queues marker update work and writes progress/message state.", "requestLength": 18, "responseLengthIncludingCc": 4, "completionCodes": "00,01,cc; response status 0..7", "activation": "selector 7 of statically registered CmdOEMToolSet",
+   "requestFields": [{"name":"selector","kind":"u8","constant":7},{"name":"version","kind":"u8"},{"name":"marker_handle","kind":"u16le"},{"name":"toolset","kind":"u8"},{"name":"flags","kind":"u16le"},{"name":"percentage","kind":"u8"},{"name":"message_id","kind":"bytes","length":8},{"name":"reserved","kind":"bytes","length":2}],
+   "responseFields": [{"name":"completion_code","kind":"u8"},{"name":"status","kind":"u8"},{"name":"reserved","kind":"bytes","length":2}], "codecState": "verified",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 7; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+  },
+  {
+   "name": "CmdOEMToolSet/SystemErase",
+   "netfn": "0x30", "cmd": "0xa7", "subcmd": "0x08", "priv": "User (2)",
+   "purpose": "Schedule, update, query, retime, or cancel a system-erase job.", "request": "Exactly 16 bytes. selector=8; bytes 1..2 must be zero; operation is data[5] in range 0..4; timer operations use the overlapping LE16 value at data[4..5].", "response": "Three status data bytes.",
+   "inBandOnly": true, "backendDeps": "SystemEraseJobSchedule, /var/tmp job files, /var/run/jsyserase.pid, signals", "security": "Destructive KCS-only system erase control; SEKM and SPI-shadow gates apply.", "confidence": "high", "lib": "libmaser",
+   "effect": "destructive", "sideEffects": "Schedules or changes system erase jobs, writes job files, signals the erase process, and updates global state.", "requestLength": 16, "responseLengthIncludingCc": 4, "completionCodes": "00,01,14,cc; response status 0..7", "activation": "selector 8 of statically registered CmdOEMToolSet", "requestFields": [], "responseFields": [], "codecState": "raw-exact",
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 8; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
   }
  ],
  "live_sweep": {

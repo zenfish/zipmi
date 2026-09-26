@@ -2,10 +2,10 @@
 test_idrac10_commands.py — verify the iDRAC10 rich-command catalog codegen.
 
 WHAT     Loads idrac10_commands_generated.py + the idrac10.py consumer and
-         asserts the catalog imports, has all 446 entries, that
+         asserts the catalog imports with its pinned count, that
          load_vendor("idrac10") still registers, and spot-checks specific
          commands round-trip with correct NetFn/cmd/subcmd/priv.
-WHY      The catalog is generated from idrac10-commands.json (446 RE'd +
+WHY      The catalog is generated from idrac10-commands.json (RE'd +
          adversarially verified commands). A regression that drops entries
          or mis-parses hex NetFn/cmd/subcmd should fail loudly. Mirror of
          test_idrac9_dispatch.py.
@@ -81,7 +81,7 @@ def test_catalog_imports_all():
         IDRAC10_COMMANDS, IDrac10Command,
     )
     assert isinstance(IDRAC10_COMMANDS, list)
-    assert len(IDRAC10_COMMANDS) == 446
+    assert len(IDRAC10_COMMANDS) == 456
     assert all(isinstance(c, IDrac10Command) for c in IDRAC10_COMMANDS)
 
 
@@ -99,7 +99,7 @@ def test_hex_fields_parsed_to_int():
 def test_wire_prefixes_preserve_colliding_handlers_and_live_evidence():
     """Alternate handlers at the same pair remain separately addressable."""
     keys = [(c.netfn, c.cmd, c.prefix) for c in IDRAC10_COMMANDS]
-    assert len(keys) == len(set(keys)) == 446
+    assert len(keys) == len(set(keys)) == 456
     assert {
         (c.name, c.prefix) for c in IDRAC10_COMMANDS
         if (c.netfn, c.cmd) == (0x2c, 0x01)
@@ -121,7 +121,7 @@ def test_cli_keeps_every_exact_wire_operation():
     from zipmi.cli.oem_cmds import _vendor_listing
 
     rows = _vendor_listing("idrac10")
-    assert len(rows) == 446
+    assert len(rows) == 456
     assert rows[(0x2c, 0x01, 0xdc)]["name"] == "CmdDcmiGetDcmiCapabilityInfo"
     assert rows[(0x2c, 0x01, 0x52, 0x01)]["name"] == "DellCmdGetMgrCertFingerprint"
     assert rows[(0x2c, 0x02, 0xdc)]["name"].startswith("CmdDcmiGetPowerReading")
@@ -170,6 +170,50 @@ def test_cli_parser_accepts_idrac10_unsafe():
         "oem", "idrac10", "--unsafe", "DellCmdGetMgrCertFingerprint",
     ])
     assert args.unsafe is True
+
+
+def test_toolset_and_recreate_contracts_are_selector_exact():
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS, IDRAC10_PAYLOADS
+
+    toolset = [c for c in IDRAC10_COMMANDS if (c.netfn, c.cmd) == (0x30, 0xa7)]
+    assert len(toolset) == 9
+    assert {c.prefix for c in toolset} == {bytes([selector]) for selector in range(9)}
+    assert next(c for c in toolset if c.prefix == b"\x02").effect == "safe"
+    assert next(c for c in toolset if c.prefix == b"\x08").effect == "destructive"
+    recreate = next(c for c in IDRAC10_COMMANDS if c.name == "CmdOEMRecreateMASER")
+    assert recreate.request_length == (2, 2)
+    assert recreate.effect == "destructive"
+    assert len(IDRAC10_PAYLOADS) == 6
+
+    req_type, resp_type = IDRAC10_PAYLOADS[(0x30, 0xa7, 0x05)]
+    request = req_type(version=1, toolset=0, timeout=30, reserved=b"\0\0")
+    assert bytes(request) == b"\x05\x01\x00\x1e\x00\x00\x00"
+    response = resp_type(b"\x00\x00\x34\x12\x00")
+    assert response.marker_handle == 0x1234
+
+
+def test_safe_exact_toolset_status_runs_without_unsafe(monkeypatch):
+    from zipmi.cli import zipmi as cli
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    sent = []
+
+    class Session:
+        def send_raw(self, netfn, cmd, data):
+            sent.append((netfn, cmd, data))
+            return 0, b"\x00"
+
+    @contextmanager
+    def fake_open_session(_args):
+        yield Session()
+
+    monkeypatch.setattr(cli, "_open_session", fake_open_session)
+    args = argparse.Namespace(
+        cmd_name="CmdOEMToolSet/GetStatus", data=["1", "3", "0", "0"],
+        unsafe=False, json=False,
+    )
+    assert cmd_oem_run(args, "idrac10") == 0
+    assert sent == [(0x30, 0xa7, b"\x02\x01\x03\x00\x00")]
 
 
 def test_load_vendor_idrac10_registers():

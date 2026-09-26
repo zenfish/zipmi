@@ -51,7 +51,7 @@ class IDrac10Command:
     effect: str
     side_effects: str
     request_length: tuple[int | None, int | None]
-    response_length: tuple[int | None, int | None]
+    response_length_including_cc: tuple[int | None, int | None]
     completion_codes: str
     activation: str
     request_fields: list[dict]
@@ -118,7 +118,7 @@ def parse_json(text: str) -> list[IDrac10Command]:
             effect=c.get("effect", "unknown"),
             side_effects=c.get("sideEffects", "not yet classified"),
             request_length=_length_range(c.get("requestLength")),
-            response_length=_length_range(c.get("responseLength")),
+            response_length_including_cc=_length_range(c.get("responseLengthIncludingCc")),
             completion_codes=c.get("completionCodes", "not yet normalized"),
             activation=c.get("activation", "not yet classified"),
             request_fields=c.get("requestFields", []),
@@ -171,7 +171,7 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
         "    effect: str",
         "    side_effects: str",
         "    request_length: tuple[int | None, int | None]",
-        "    response_length: tuple[int | None, int | None]",
+        "    response_length_including_cc: tuple[int | None, int | None]",
         "    completion_codes: str",
         "    activation: str",
         "    request_fields: list[dict]",
@@ -203,7 +203,7 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
             f"effect={e.effect!r}, "
             f"side_effects={e.side_effects!r}, "
             f"request_length={e.request_length!r}, "
-            f"response_length={e.response_length!r}, "
+            f"response_length_including_cc={e.response_length_including_cc!r}, "
             f"completion_codes={e.completion_codes!r}, "
             f"activation={e.activation!r}, "
             f"request_fields={e.request_fields!r}, "
