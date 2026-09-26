@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# what: regenerate the OEM command-count in README.md from the live registry.
+# what: regenerate documented OEM command-counts from the live registry.
 # why: the count drifts as OEM dispatch tables grow; hardcoding it rots (same
 #      trap the `zipmi oem` vendor blurbs fell into). Compute it, don't type it.
-# success: exit 0; README marker updated (or already current). Non-zero on error.
+# success: exit 0; every OEM-COUNT marker updated. Non-zero on error.
 # run: python scripts/update_readme_stats.py   (or `make readme-stats`)
 # related: zipmi.cli.oem_cmds.oem_command_totals, scripts/check_doc_sync.py
-"""Rewrite the <!--OEM-COUNT-->N<!--/OEM-COUNT--> marker in README.md with the
+"""Rewrite <!--OEM-COUNT-->N<!--/OEM-COUNT--> markers in user-facing docs with the
 live `known` OEM-command total — every discovered dispatch slot (idrac9 counted
 by all 349 known slots, incl. the 72 nameless runtime-bound ones). Computed by
 zipmi.cli.oem_cmds.oem_command_totals(), the same code path behind `zipmi oem`,
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-README = ROOT / "README.md"
+TARGETS = (ROOT / "README.md", ROOT / "docs/command-table.md")
 MARKER = re.compile(r"(<!--OEM-COUNT-->)(\d+)(<!--/OEM-COUNT-->)")
 
 
@@ -25,18 +25,19 @@ def main() -> int:
     from zipmi.cli.oem_cmds import oem_command_totals
 
     known, _named = oem_command_totals()
-    text = README.read_text()
-    m = MARKER.search(text)
-    if not m:
-        print("update_readme_stats: OEM-COUNT marker not found in README.md",
-              file=sys.stderr)
-        return 1
-    old = m.group(2)
-    if old == str(known):
-        print(f"update_readme_stats: already current ({known})")
-        return 0
-    README.write_text(MARKER.sub(rf"\g<1>{known}\g<3>", text))
-    print(f"update_readme_stats: {old} -> {known}")
+    changed = []
+    for path in TARGETS:
+        text = path.read_text()
+        if not MARKER.search(text):
+            print(f"update_readme_stats: OEM-COUNT marker not found in {path.relative_to(ROOT)}",
+                  file=sys.stderr)
+            return 1
+        updated = MARKER.sub(rf"\g<1>{known}\g<3>", text)
+        if updated != text:
+            path.write_text(updated)
+            changed.append(str(path.relative_to(ROOT)))
+    detail = f"updated {', '.join(changed)}" if changed else "already current"
+    print(f"update_readme_stats: {detail} ({known})")
     return 0
 
 

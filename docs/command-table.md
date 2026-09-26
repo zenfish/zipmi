@@ -363,17 +363,34 @@ specifically. Listed here for completeness.
 
 ## OEM NetFn (0x30) and Group OEM (0x2E)
 
-**0 commands · 0 done by zipmi** — ✓ 0 decoded, ⚡ 0 raw · ✗ 0 not implemented.
-Done: _none_
-
-
 OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
 explicit `zipmi.load_vendor("<vendor>")`.
 
-**Full Dell iDRAC6 dispatch table is in [dell-command-table.md](dell-command-table.md)**
-— 192 entries auto-generated from the fullfw RE markdown
-(from a full-firmware IPMI command dump — author's private firmware-RE corpus, not in this repo) by
+**<!--OEM-COUNT-->2176<!--/OEM-COUNT--> known commands · 2099 named commands**
+across 9 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
+firmware/source catalogs; a catalog entry does not imply live-hardware testing.
+
+| CLI vendor | IANA | Known | Named | Catalog / source |
+|------------|------|------:|------:|------------------|
+| `advantech-asmb787` | 10297 | 187 | 187 | [ASMB-787 firmware dispatch reference](advantech_ASMB787-command-reference.html) |
+| `idrac6` | 674 | 192 | 192 | [iDRAC6 dispatch table](dell-command-table.md) |
+| `idrac9` | 674 | 349 | 277 | [iDRAC9 handler catalog](idrac9-command-table.md) |
+| `idrac10` | 674 | 443 | 443 | `zipmi/data/sources/idrac10-commands.json` |
+| `supermicro-x11` | 10876 | 477 | 477 | firmware/JAR-derived catalog |
+| `supermicro-x14` | — | 39 | 39 | OpenBMC + SMC OEM catalog |
+| `megarac` | — | 95 | 95 | [MegaRAC command table](megarac-command-table.md) |
+| `yafu` | — | 42 | 42 | AMI YAFU NetFn 0x32 catalog |
+| `lenovo` | 2 | 222 | 217 | `zipmi/data/sources/lenovo-xcc-commands.json` |
+| `openbmc` | mixed | 130 | 130 | 9 flavors: Intel, Meta, Google, Ampere, OpenPOWER, Inspur, Foxconn, Wistron, Nvidia |
+
+Counts use the same `_vendor_stats()` path as `zipmi oem`; run
+`python scripts/update_readme_stats.py` after catalog changes. The doc-sync
+check verifies every row against the live registries.
+
+### iDRAC6 breakdown by NetFn
+
+The 192-entry table is auto-generated from the fullfw RE markdown with
 `python -m zipmi.parsers.md_table --markdown`.
 
 By NetFn:
@@ -389,8 +406,6 @@ By NetFn:
 | 0x2E | Group OEM | 8 | 5 | 0 |
 | 0x30 | Dell OEM | 67 | 28 | 8 |
 | **Total** | | **192** | **67** | **8** |
-
-Supermicro: stub only (4 names) until X11SSZ is back online to live-test.
 
 ---
 

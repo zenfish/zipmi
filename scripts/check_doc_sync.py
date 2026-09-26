@@ -159,28 +159,44 @@ def check_cli_fields_documented() -> list[str]:
 
 
 def check_oem_count() -> list[str]:
-    """README's <!--OEM-COUNT-->N<!--/OEM-COUNT--> must match the live OEM total.
+    """Documented OEM totals and vendor rows must match the live registries.
 
     The count drifts as vendor dispatch tables grow. Regenerate with
     `make readme-stats` (scripts/update_readme_stats.py).
     """
-    readme = (ROOT / "README.md").read_text()
-    m = re.search(r"<!--OEM-COUNT-->(\d+)<!--/OEM-COUNT-->", readme)
-    if not m:
-        return ["README.md: OEM-COUNT marker missing — "
-                "wrap the OEM total in <!--OEM-COUNT-->N<!--/OEM-COUNT-->"]
     sys.path.insert(0, str(ROOT))
     try:
-        from zipmi.cli.oem_cmds import oem_command_totals  # type: ignore
+        from zipmi.cli.oem_cmds import (  # type: ignore
+            VENDORS, _openbmc_vendor_keys, _vendor_stats, oem_command_totals,
+        )
         known, _named = oem_command_totals()
     except Exception as e:
         return [f"could not compute OEM totals: {e}"]
     finally:
         sys.path.pop(0)
-    if int(m.group(1)) != known:
-        return [f"README.md OEM-COUNT is {m.group(1)} but live total is {known} "
-                f"— run `make readme-stats`"]
-    return []
+    errs = []
+    for path in (ROOT / "README.md", ROOT / "docs/command-table.md"):
+        counts = re.findall(r"<!--OEM-COUNT-->(\d+)<!--/OEM-COUNT-->", path.read_text())
+        if not counts:
+            errs.append(f"{path.relative_to(ROOT)}: OEM-COUNT marker missing")
+        elif any(int(count) != known for count in counts):
+            errs.append(f"{path.relative_to(ROOT)} OEM-COUNT is stale; live total is {known} "
+                        f"— run `make readme-stats`")
+
+    table = (ROOT / "docs/command-table.md").read_text()
+    openbmc = set(_openbmc_vendor_keys())
+    expected = {vendor: _vendor_stats(vendor)
+                for vendor in VENDORS if vendor not in openbmc}
+    expected["openbmc"] = tuple(sum(values) for values in
+                                zip(*(_vendor_stats(vendor) for vendor in openbmc)))
+    for vendor, (vendor_known, vendor_named) in expected.items():
+        match = re.search(rf"^\| `{re.escape(vendor)}` \| [^|]+ \| (\d+) \| (\d+) \|", table, re.M)
+        if not match:
+            errs.append(f"docs/command-table.md: missing OEM row for {vendor}")
+        elif (int(match.group(1)), int(match.group(2))) != (vendor_known, vendor_named):
+            errs.append(f"docs/command-table.md: {vendor} row is {match.group(1)}/{match.group(2)} "
+                        f"but live counts are {vendor_known}/{vendor_named}")
+    return errs
 
 
 def main() -> int:
