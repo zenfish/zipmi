@@ -1999,6 +1999,1609 @@
         "module_sha256": "39237c9123274fb25d1f7ced15722fb674cf65e328fd1f15bb392d3183299ff2"
       },
       "confidence": "high"
+    },
+    {
+      "id": "AMISetInvenoryInfo",
+      "command": [
+        50,
+        90
+      ],
+      "request": {
+        "layout": "selector;set_selector;block_selector;data",
+        "length": "selector0,3 variable>=6;selector4,5 exactly35"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "00 system;03 indexed set1..3;04 UUID[32];05 device_id[32]",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "84",
+        "86",
+        "87",
+        "88",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists system inventory; selectors04/05 replace 32-byte identity files",
+      "evidence": {
+        "location": "libipmiamioeminventory.so.13.0.0:AMISetInvenoryInfo@000108cc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "cb7cade868834ffaa8bb75d1696892fe1f9f3cdd694f7572c8650de3df4a2fa4"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetInvenoryInfo",
+      "command": [
+        50,
+        91
+      ],
+      "request": {
+        "layout": "selector;set_selector;block_selector",
+        "length": "3"
+      },
+      "response": {
+        "layout": "cc;selector-dependent inventory bytes",
+        "length_including_cc": "variable;selectors04/05 exactly33"
+      },
+      "selectors": "00,02 set0/block0;01,03 set1..3;04 UUID[32];05 device_id[32]",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "84",
+        "86",
+        "87",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads system inventory or 32-byte identity files",
+      "evidence": {
+        "location": "libipmiamioeminventory.so.13.0.0:AMIGetInvenoryInfo@00010afc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "cb7cade868834ffaa8bb75d1696892fe1f9f3cdd694f7572c8650de3df4a2fa4"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetFirewall",
+      "command": [
+        50,
+        118
+      ],
+      "request": {
+        "layout": "selector;enable_or_action;selector-dependent rule",
+        "length": "selector-dependent 1..76"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "00 enable_ipv4;01..07 IPv4 rules;08 flush;09 block_all;0a unblock_all;0b..1c timed IPv4 controls;13 timed_block;14 timed_unblock;40,42 IPv6 ranges;41,43..47 IPv6 rules",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "82",
+        "83",
+        "c7",
+        "c9",
+        "cc"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "adds/removes/flushes IPv4/IPv6 firewall rules or queues timed block tasks",
+      "evidence": {
+        "location": "libipmiamioemfirewall.so.13.0.0:AMISetFirewall@00010ed8; sibling AMI header corroborated against exact handler",
+        "module_sha256": "5f0a2a7fde9fbe542ff948a4c516daeb29ce04349a395aa727aac3bdfca858cc"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetFirewall",
+      "command": [
+        50,
+        119
+      ],
+      "request": {
+        "layout": "selector[;entry_no]",
+        "length": "selector0,2,3,5=1;selector1,4=2"
+      },
+      "response": {
+        "layout": "cc;selector-dependent value",
+        "length_including_cc": "2 or 2+entry_size"
+      },
+      "selectors": "00 IPv4 count;01 IPv4 entry;02 block-all;03 IPv6 count;04 IPv6 entry;05 timeout-block state",
+      "completion_codes": [
+        "00",
+        "80",
+        "c7",
+        "cc",
+        "d5"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "reads firewall rules and block state",
+      "evidence": {
+        "location": "libipmiamioemfirewall.so.13.0.0:AMIGetFirewall@00011668; sibling AMI header corroborated against exact handler",
+        "module_sha256": "5f0a2a7fde9fbe542ff948a4c516daeb29ce04349a395aa727aac3bdfca858cc"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetPreserveConfStatus",
+      "command": [
+        50,
+        131
+      ],
+      "request": {
+        "layout": "selector;enabled",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "enabled=0..1;selector<200 or platform callback",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "changes one restore-default preservation bit",
+      "evidence": {
+        "location": "libipmiamioemprsvconf.so.13.0.0:AMISetPreserveConfStatus@00010a04; sibling AMI header corroborated against exact handler",
+        "module_sha256": "82657f8c973c35832722a5a7dac246bedfb7ccb6708fab2dfb1837fbfe5761a2"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetPreserveConfStatus",
+      "command": [
+        50,
+        132
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled",
+        "length_including_cc": "2"
+      },
+      "selectors": "selector<200 or platform callback",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads one restore-default preservation bit",
+      "evidence": {
+        "location": "libipmiamioemprsvconf.so.13.0.0:AMIGetPreserveConfStatus@000108d4; sibling AMI header corroborated against exact handler",
+        "module_sha256": "82657f8c973c35832722a5a7dac246bedfb7ccb6708fab2dfb1837fbfe5761a2"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIStartTFTPFwUpdate",
+      "command": [
+        50,
+        135
+      ],
+      "request": {
+        "layout": "preserve_cfg;reset_bmc_must_be_0",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "reset_bmc=0",
+      "completion_codes": [
+        "00",
+        "81",
+        "c1",
+        "cc",
+        "d1",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "queues firmware-update task 0x1f and enters flash mode",
+      "evidence": {
+        "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMIStartTFTPFwUpdate@00010dd8; sibling AMI header corroborated against exact handler",
+        "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetTftpProgressStatus",
+      "command": [
+        50,
+        136
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;progress;overall",
+        "length_including_cc": "3"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads TFTP firmware-update progress",
+      "evidence": {
+        "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMIGetTftpProgressStatus@00010fb8; sibling AMI header corroborated against exact handler",
+        "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetFWCfg",
+      "command": [
+        50,
+        137
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "selector-dependent:201 for 1,2;2 for 3,4"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1=host[200];2=path[200];3=retry_u8;4=fw_select_u8",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c7",
+        "c9",
+        "cc",
+        "d1",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists firmware-update endpoint/path/retry/image selection; selector4 also changes marker file",
+      "evidence": {
+        "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMISetFWCfg@00011044; sibling AMI header corroborated against exact handler",
+        "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetFWCfg",
+      "command": [
+        50,
+        138
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value",
+        "length_including_cc": "selector-dependent:201 for 1,2;2 for 3,4"
+      },
+      "selectors": "1=host[200];2=path[200];3=retry_u8;4=fw_select_u8",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c9",
+        "d1"
+      ],
+      "effect": "safe",
+      "side_effects": "reads firmware-update endpoint/path/retry/image selection",
+      "evidence": {
+        "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMIGetFWCfg@00011278; sibling AMI header corroborated against exact handler",
+        "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetFWProtocol",
+      "command": [
+        50,
+        139
+      ],
+      "request": {
+        "layout": "protocol",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "protocol=0..1",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c9",
+        "d1"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists firmware-update protocol",
+      "evidence": {
+        "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMISetFWProtocol@000113a0; sibling AMI header corroborated against exact handler",
+        "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetFWProtocol",
+      "command": [
+        50,
+        140
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;protocol",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "reads firmware-update protocol",
+      "evidence": {
+        "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMIGetFWProtocol@00011458; sibling AMI header corroborated against exact handler",
+        "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRISConf",
+      "command": [
+        50,
+        158
+      ],
+      "request": {
+        "layout": "media_mask(one bit);selector",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;media_mask;selector;value",
+        "length_including_cc": "selector-dependent:4..259"
+      },
+      "selectors": "media bits map to configured slots;00 image;01 path;02 host<=63;03 user;04 password<=32;05 share_type<=6;06 domain;07 retry;08 interval;09 mounted;0a service_status",
+      "completion_codes": [
+        "00",
+        "80",
+        "91",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads remote-image configuration or service status",
+      "evidence": {
+        "location": "libipmiamioemris.so.13.0.0:AMIGetRISConf@00011644; sibling AMI header corroborated against exact handler",
+        "module_sha256": "d2c1214242afb3e65bba48de4c6db15d2f139ef96b59e744cc97ac09b7895847"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRISConf",
+      "command": [
+        50,
+        159
+      ],
+      "request": {
+        "layout": "media_mask(one bit);selector;block_or_value;value",
+        "length": "selector-dependent 2..259"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "00 image(blocked);01 path(blocked);02 host;03 user(blocked);04 password;05 share_type;06 domain(blocked);0a service;0c readiness probe;0d clear; media 08=all/default",
+      "completion_codes": [
+        "00",
+        "82",
+        "83",
+        "91",
+        "92",
+        "93",
+        "94",
+        "95",
+        "96",
+        "97",
+        "98",
+        "99",
+        "9a",
+        "9b",
+        "9c",
+        "9d",
+        "9e",
+        "9f",
+        "a0",
+        "c7",
+        "cc",
+        "ff",
+        "service-defined"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "persists RIS credentials/endpoints, clears defaults, changes service state, and may stop active redirection",
+      "evidence": {
+        "location": "libipmiamioemris.so.13.0.0:AMISetRISConf@00011cc4; sibling AMI header corroborated against exact handler",
+        "module_sha256": "d2c1214242afb3e65bba48de4c6db15d2f139ef96b59e744cc97ac09b7895847"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIRISStartStop",
+      "command": [
+        50,
+        160
+      ],
+      "request": {
+        "layout": "media_mask(one bit);state",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "state=0..1;required config must be populated",
+      "completion_codes": [
+        "00",
+        "91",
+        "94",
+        "97",
+        "c1",
+        "c7",
+        "ff",
+        "service-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "starts or stops remote-image redirection",
+      "evidence": {
+        "location": "libipmiamioemris.so.13.0.0:AMIRISStartStop@00012c40; sibling AMI header corroborated against exact handler",
+        "module_sha256": "d2c1214242afb3e65bba48de4c6db15d2f139ef96b59e744cc97ac09b7895847"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIControlDebugMsg",
+      "command": [
+        50,
+        161
+      ],
+      "request": {
+        "layout": "enabled",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;enabled",
+        "length_including_cc": "2"
+      },
+      "selectors": "enabled=0 removes marker;1 creates marker",
+      "completion_codes": [
+        "00",
+        "c1",
+        "cc"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "enables/disables debug logging via marker file",
+      "evidence": {
+        "location": "libipmiamioemctldbg.so.13.0.0:AMIControlDebugMsg@000106cc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "805d81c7f81a3fb82795b3a951c1d99975af0b1c2b3e51b4532b71260336abf8"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetDebugMsgStatus",
+      "command": [
+        50,
+        162
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;enabled",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1"
+      ],
+      "effect": "safe",
+      "side_effects": "tests debug-log marker file",
+      "evidence": {
+        "location": "libipmiamioemctldbg.so.13.0.0:AMIGetDebugMsgStatus@0001077c; sibling AMI header corroborated against exact handler",
+        "module_sha256": "805d81c7f81a3fb82795b3a951c1d99975af0b1c2b3e51b4532b71260336abf8"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetExtendedPrivilege",
+      "command": [
+        50,
+        163
+      ],
+      "request": {
+        "layout": "user_id;flags_u32le",
+        "length": "5"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "user_id 1..max;only flags bits0..1 accepted",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "replaces user extended-privilege flags, updates group membership, and flushes user database",
+      "evidence": {
+        "location": "libipmiamioemextpriv.so.13.0.0:AMISetExtendedPrivilege@000108cc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "3d992269dc6b7886a0602f5a5febd88ea51185463889e665e138bfe9c2347ce1"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetExtendedPrivilege",
+      "command": [
+        50,
+        164
+      ],
+      "request": {
+        "layout": "user_id",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;flags_u32le",
+        "length_including_cc": "5"
+      },
+      "selectors": "user_id 1..max",
+      "completion_codes": [
+        "00",
+        "cc"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "reads per-user extended-privilege flags",
+      "evidence": {
+        "location": "libipmiamioemextpriv.so.13.0.0:AMIGetExtendedPrivilege@00010b34; sibling AMI header corroborated against exact handler",
+        "module_sha256": "3d992269dc6b7886a0602f5a5febd88ea51185463889e665e138bfe9c2347ce1"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetHostLockFeatureStatus",
+      "command": [
+        50,
+        174
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;enabled=(config_bit0)",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c7",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads host-lock feature bit",
+      "evidence": {
+        "location": "libipmiamioemhostlock.so.13.0.0:AMIGetHostLockFeatureStatus@0001080c; sibling AMI header corroborated against exact handler",
+        "module_sha256": "fdaccdd0e34b6f1b7fea5418b1da218eb027ce5ada06cf0add9a6ae68bfeeb55"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetHostLockFeatureStatus",
+      "command": [
+        50,
+        175
+      ],
+      "request": {
+        "layout": "enabled",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "enabled=0..1",
+      "completion_codes": [
+        "00",
+        "81",
+        "c1",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes host-lock feature bit and queues persistence task 0x1e",
+      "evidence": {
+        "location": "libipmiamioemhostlock.so.13.0.0:AMISetHostLockFeatureStatus@000108a8; sibling AMI header corroborated against exact handler",
+        "module_sha256": "fdaccdd0e34b6f1b7fea5418b1da218eb027ce5ada06cf0add9a6ae68bfeeb55"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetAllPreserveConfStatus",
+      "command": [
+        50,
+        186
+      ],
+      "request": {
+        "layout": "status_u16le",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "status bit15 must be clear",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "replaces all restore-default preservation bits",
+      "evidence": {
+        "location": "libipmiamioemprsvconf.so.13.0.0:AMISetAllPreserveConfStatus@00010b78; sibling AMI header corroborated against exact handler",
+        "module_sha256": "82657f8c973c35832722a5a7dac246bedfb7ccb6708fab2dfb1837fbfe5761a2"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetAllPreserveConfStatus",
+      "command": [
+        50,
+        187
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;reserved;status_u16le;enabled_status_u16le",
+        "length_including_cc": "6"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads all restore-default preservation bits",
+      "evidence": {
+        "location": "libipmiamioemprsvconf.so.13.0.0:AMIGetAllPreserveConfStatus@00010acc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "82657f8c973c35832722a5a7dac246bedfb7ccb6708fab2dfb1837fbfe5761a2"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetHostAutoLockStatus",
+      "command": [
+        50,
+        188
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;enabled=(config_bit1)",
+        "length_including_cc": "2"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c7",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads host auto-lock configuration bit",
+      "evidence": {
+        "location": "libipmiamioemautohostlock.so.13.0.0:AMIGetHostAutoLockStatus@00010814; sibling AMI header corroborated against exact handler",
+        "module_sha256": "3db0eeb58554bcd8cf7ca4d36508b881b9e46d0ed7f4b18ef301fbe8461ead24"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetHostAutoLockStatus",
+      "command": [
+        50,
+        189
+      ],
+      "request": {
+        "layout": "enabled",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "enabled=0..1",
+      "completion_codes": [
+        "00",
+        "82",
+        "c1",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "changes host auto-lock bit and queues persistence task 0x1e",
+      "evidence": {
+        "location": "libipmiamioemautohostlock.so.13.0.0:AMISetHostAutoLockStatus@000108b4; sibling AMI header corroborated against exact handler",
+        "module_sha256": "3db0eeb58554bcd8cf7ca4d36508b881b9e46d0ed7f4b18ef301fbe8461ead24"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetADConf",
+      "command": [
+        50,
+        196
+      ],
+      "request": {
+        "layout": "selector[;role_id;role_field]",
+        "length": "selector0..9=1;selector10=3"
+      },
+      "response": {
+        "layout": "cc;selector-dependent value",
+        "length_including_cc": "selector-dependent 2..257"
+      },
+      "selectors": "00 enable;01 ssl;02 timeout_u32le;03 domain;04 mode;05..07 servers;08 username;09 password;0a role-group field1..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "reads AD configuration including stored bind credentials",
+      "evidence": {
+        "location": "libipmiamioemad.so.13.1.0:AMIGetADConf@00010b58; sibling AMI header corroborated against exact handler",
+        "module_sha256": "be77947605e05f92f43374b59428cf6a88c47dafdebec4753620b35094e6ebcc"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetADConf",
+      "command": [
+        50,
+        197
+      ],
+      "request": {
+        "layout": "selector;block;selector-dependent value",
+        "length": "selector/table-dependent 3..259"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "selectors 00..0a;block sequencing for strings;role fields 0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "90",
+        "93",
+        "96",
+        "99",
+        "9d",
+        "a5",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "persists AD endpoints, bind credentials, and role mappings",
+      "evidence": {
+        "location": "libipmiamioemad.so.13.1.0:AMISetADConf@00010f3c; sibling AMI header corroborated against exact handler",
+        "module_sha256": "be77947605e05f92f43374b59428cf6a88c47dafdebec4753620b35094e6ebcc"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetLDAPConf",
+      "command": [
+        50,
+        200
+      ],
+      "request": {
+        "layout": "selector[;role_id;role_field]",
+        "length": "selector0..10,12=1;selector11=3"
+      },
+      "response": {
+        "layout": "cc;selector-dependent value",
+        "length_including_cc": "selector-dependent 2..257"
+      },
+      "selectors": "00 enable;01 ssl;02 port_u16le;03 timeout_u16le;04 server;05 bind_dn;06 password;07 search_base;08 user_attribute;09 ca_cert;0b role-group field1..4;0c auth_type",
+      "completion_codes": [
+        "00",
+        "80",
+        "83",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "reads LDAP configuration including stored bind credentials",
+      "evidence": {
+        "location": "libipmiamioemldap.so.13.1.0:AMIGetLDAPConf@00010fc8; sibling AMI header corroborated against exact handler",
+        "module_sha256": "566690183af4ec56edcd885d0d534f990f64b65b1f41af334ae5635d6c666c3d"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetLDAPConf",
+      "command": [
+        50,
+        201
+      ],
+      "request": {
+        "layout": "selector;block;selector-dependent value",
+        "length": "selector/table-dependent 3..259"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "selectors 00..09,0b,0c;block sequencing for strings;role fields 0..4",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "90",
+        "93",
+        "9d",
+        "a5",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "persists LDAP endpoints, bind credentials, CA data, and role mappings",
+      "evidence": {
+        "location": "libipmiamioemldap.so.13.1.0:AMISetLDAPConf@0001144c; sibling AMI header corroborated against exact handler",
+        "module_sha256": "566690183af4ec56edcd885d0d534f990f64b65b1f41af334ae5635d6c666c3d"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetVmediaCfg",
+      "command": [
+        50,
+        202
+      ],
+      "request": {
+        "layout": "selector",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;value_u8",
+        "length_including_cc": "2"
+      },
+      "selectors": "00 local_cd_instances;02 local_hd_instances;03 local_floppy_enable;04 remote_cd_instances;06 remote_hd_instances;07 local_cd_enable;08 local_hd_enable;09 encryption;0b secure_mode;0c redirected_cd_instances;0e redirected_hd_instances",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "93",
+        "c1",
+        "c7",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads virtual-media configuration",
+      "evidence": {
+        "location": "libipmiamioemmedia.so.13.4.0:AMIGetVmediaCfg@00011b68; sibling AMI header corroborated against exact handler",
+        "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetVmediaCfg",
+      "command": [
+        50,
+        203
+      ],
+      "request": {
+        "layout": "selector;value",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "00 local_cd_instances;02 local_hd_instances;03 local_floppy_enable;04 remote_cd_instances;06 remote_hd_instances;07 local_cd_enable;08 local_hd_enable;09 encryption;0b secure_mode;0c redirected_cd_instances;0e redirected_hd_instances;0a refresh",
+      "completion_codes": [
+        "00",
+        "80",
+        "81",
+        "83",
+        "93",
+        "c1",
+        "c7",
+        "cc",
+        "d5",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists virtual-media configuration asynchronously; refuses most changes while redirection runs",
+      "evidence": {
+        "location": "libipmiamioemmedia.so.13.4.0:AMISetVmediaCfg@00011e30; sibling AMI header corroborated against exact handler",
+        "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIAddExtendSelEntries",
+      "command": [
+        50,
+        204
+      ],
+      "request": {
+        "layout": "16B system_event_record_header(record_type must df);extended_data[0..124]",
+        "length": "20..144"
+      },
+      "response": {
+        "layout": "cc;record_id_u16le",
+        "length_including_cc": "3"
+      },
+      "selectors": "record_type=df",
+      "completion_codes": [
+        "00",
+        "80",
+        "83",
+        "c7",
+        "d7",
+        "ff",
+        "SEL-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "adds SEL record and stores extended payload file",
+      "evidence": {
+        "location": "libipmiamioemextendedsel.so.13.2.0:AMIAddExtendSelEntries@000113d4; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8963fde4415c05318814d290f49843986d3dc6d31ca7430a4c22efbe40e4ea0b"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGETExtendSelData",
+      "command": [
+        50,
+        205
+      ],
+      "request": {
+        "layout": "record_id_u16le",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;data_size;extended_data[data_size]",
+        "length_including_cc": "2+data_size;data_size<=256"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "83",
+        "85",
+        "c4",
+        "cb"
+      ],
+      "effect": "safe",
+      "side_effects": "reads extended SEL payload by record ID",
+      "evidence": {
+        "location": "libipmiamioemextendedsel.so.13.2.0:AMIGETExtendSelData@00011a44; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8963fde4415c05318814d290f49843986d3dc6d31ca7430a4c22efbe40e4ea0b"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISendToBios",
+      "command": [
+        50,
+        206
+      ],
+      "request": {
+        "layout": "sequence;action;data_len;data[data_len]",
+        "length": "3+data_len;data_len<=200"
+      },
+      "response": {
+        "layout": "cc;sequence",
+        "length_including_cc": "2"
+      },
+      "selectors": "data_len==request_length-3",
+      "completion_codes": [
+        "00",
+        "c7",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "replaces shared BIOS-command mailbox and invokes BIOS notification callback",
+      "evidence": {
+        "location": "libipmiamioembiosremotecontrol.so.13.0.0:AMISendToBios@00010b30; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8690123032e5928a21e5983dc72b64c41579a8b5fa274366f8fe4acaaf0e99ce"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosCommand",
+      "command": [
+        50,
+        207
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;sequence;action;data_len;data[data_len]",
+        "length_including_cc": "4+data_len;data_len<=200"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "c7"
+      ],
+      "effect": "safe",
+      "side_effects": "reads shared BIOS-command mailbox",
+      "evidence": {
+        "location": "libipmiamioembiosremotecontrol.so.13.0.0:AMIGetBiosCommand@00010cc8; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8690123032e5928a21e5983dc72b64c41579a8b5fa274366f8fe4acaaf0e99ce"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetBiosResponse",
+      "command": [
+        50,
+        209
+      ],
+      "request": {
+        "layout": "sequence;data_len;data[data_len]",
+        "length": "2+data_len;data_len<=200"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "sequence must match mailbox;data_len==request_length-2",
+      "completion_codes": [
+        "00",
+        "85",
+        "c7",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "replaces shared BIOS-response mailbox",
+      "evidence": {
+        "location": "libipmiamioembiosremotecontrol.so.13.0.0:AMISetBiosResponse@00010dec; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8690123032e5928a21e5983dc72b64c41579a8b5fa274366f8fe4acaaf0e99ce"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosResponse",
+      "command": [
+        50,
+        210
+      ],
+      "request": {
+        "layout": "sequence",
+        "length": "1"
+      },
+      "response": {
+        "layout": "cc;data_len;data[data_len]",
+        "length_including_cc": "2+data_len;data_len<=200"
+      },
+      "selectors": "sequence must match mailbox",
+      "completion_codes": [
+        "00",
+        "85",
+        "c7"
+      ],
+      "effect": "safe",
+      "side_effects": "reads shared BIOS-response mailbox; exact ELF appears to unlock rather than lock its mutex",
+      "evidence": {
+        "location": "libipmiamioembiosremotecontrol.so.13.0.0:AMIGetBiosResponse@00010f98; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8690123032e5928a21e5983dc72b64c41579a8b5fa274366f8fe4acaaf0e99ce"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetBiosFlag",
+      "command": [
+        50,
+        211
+      ],
+      "request": {
+        "layout": "mask_u32le;value_u32le",
+        "length": "8"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "masked update of persistent BIOS flag INI value",
+      "evidence": {
+        "location": "libipmiamioembiosremotecontrol.so.13.0.0:AMISetBiosFlag@000110fc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8690123032e5928a21e5983dc72b64c41579a8b5fa274366f8fe4acaaf0e99ce"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBiosFlag",
+      "command": [
+        50,
+        212
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;flag_u32le",
+        "length_including_cc": "5"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads persistent BIOS flag INI value",
+      "evidence": {
+        "location": "libipmiamioembiosremotecontrol.so.13.0.0:AMIGetBiosFlag@00011220; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8690123032e5928a21e5983dc72b64c41579a8b5fa274366f8fe4acaaf0e99ce"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIMediaRedirectionStartStop",
+      "command": [
+        50,
+        215
+      ],
+      "request": {
+        "layout": "param;app_type(0=local,1=remote);image_type(1=cd,4=hd);state;image_index_or_path",
+        "length": "local exactly5;remote 5..259"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "param=0 local(index);param=1 remote(path);state handler-defined",
+      "completion_codes": [
+        "00",
+        "80",
+        "9d",
+        "a6",
+        "c1",
+        "c7",
+        "cc",
+        "ff",
+        "service-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "starts/stops local or remote media redirection",
+      "evidence": {
+        "location": "libipmiamioemmedia.so.13.4.0:AMIMediaRedirectionStartStop@000126e4; sibling AMI header corroborated against exact handler",
+        "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetMediaInfo",
+      "command": [
+        50,
+        216
+      ],
+      "request": {
+        "layout": "selector;app_type;image_type[;index]",
+        "length": "2..4 selector-dependent"
+      },
+      "response": {
+        "layout": "cc;app_type;selector-dependent records",
+        "length_including_cc": "1..variable"
+      },
+      "selectors": "00 count;01 local_cd_count;03 local_hd_count;04 total;05 list;06 active_list;07 image_names;08 clear_image",
+      "completion_codes": [
+        "00",
+        "80",
+        "83",
+        "93",
+        "9e",
+        "9f",
+        "a1",
+        "a2",
+        "a5",
+        "c1",
+        "c7",
+        "cc",
+        "ff",
+        "service-defined"
+      ],
+      "effect": "security-sensitive",
+      "side_effects": "mostly reads image metadata; selector08 deletes/clears an image",
+      "evidence": {
+        "location": "libipmiamioemmedia.so.13.4.0:AMIGetMediaInfo@000129bc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetMediaInfo",
+      "command": [
+        50,
+        217
+      ],
+      "request": {
+        "layout": "operation;app_type;operation_data",
+        "length": "2..259 operation-dependent"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "01 delete(local index/path);02 rescan image list;03 clear image section",
+      "completion_codes": [
+        "00",
+        "80",
+        "82",
+        "83",
+        "9c",
+        "9e",
+        "a2",
+        "a5",
+        "c7",
+        "ff",
+        "service-defined"
+      ],
+      "effect": "destructive",
+      "side_effects": "deletes images, refreshes lists, or clears configured image sections",
+      "evidence": {
+        "location": "libipmiamioemmedia.so.13.4.0:AMISetMediaInfo@00013674; sibling AMI header corroborated against exact handler",
+        "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetBackupFlag",
+      "command": [
+        50,
+        227
+      ],
+      "request": {
+        "layout": "backup_flags_u16le",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "flags<0x80",
+      "completion_codes": [
+        "00",
+        "80",
+        "83",
+        "84",
+        "85",
+        "86",
+        "c1",
+        "cc",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "persists backup component-selection flags",
+      "evidence": {
+        "location": "libipmiamioembackuprestore.so.13.3.0:AMISetBackupFlag@00010cb0; sibling AMI header corroborated against exact handler",
+        "module_sha256": "c0f096abb9d145e4b10d0f261091f67eea76d27fa9aff329658de86ec3e3badf"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetBackupFlag",
+      "command": [
+        50,
+        228
+      ],
+      "request": {
+        "layout": "selector[;index]",
+        "length": "selector1=1;selector2=2"
+      },
+      "response": {
+        "layout": "selector1:cc;flags;ipv6[16];selector2:cc;list metadata[67]",
+        "length_including_cc": "selector1=18;selector2=69"
+      },
+      "selectors": "1=flags/address;2=backup list entry",
+      "completion_codes": [
+        "00",
+        "c1",
+        "c7",
+        "cc",
+        "ff",
+        "helper-defined"
+      ],
+      "effect": "safe",
+      "side_effects": "reads backup flags or backup-list metadata",
+      "evidence": {
+        "location": "libipmiamioembackuprestore.so.13.3.0:AMIGetBackupFlag@00010d90; sibling AMI header corroborated against exact handler",
+        "module_sha256": "c0f096abb9d145e4b10d0f261091f67eea76d27fa9aff329658de86ec3e3badf"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIManageBMCConfig",
+      "command": [
+        50,
+        229
+      ],
+      "request": {
+        "layout": "operation;address_or_path",
+        "length": "operation1,2:18;operation3,4:4 or16"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "1=backup IPv6;2=restore IPv6;3=backup IPv4/path;4=restore IPv4/path",
+      "completion_codes": [
+        "00",
+        "c0",
+        "c1",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "queues asynchronous BMC configuration backup or restore task 0x28",
+      "evidence": {
+        "location": "libipmiamioembackuprestore.so.13.3.0:AMIManageBMCConfig@00010f20; sibling AMI header corroborated against exact handler",
+        "module_sha256": "c0f096abb9d145e4b10d0f261091f67eea76d27fa9aff329658de86ec3e3badf"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPartialAddExtendSelEntries",
+      "command": [
+        50,
+        240
+      ],
+      "request": {
+        "layout": "reservation_u16le;record_id_u16le;offset_u16le;progress_nibble;chunk",
+        "length": "8..256;chunk<=249"
+      },
+      "response": {
+        "layout": "cc;record_id_u16le",
+        "length_including_cc": "3"
+      },
+      "selectors": "progress bit0=final;offset 0..128;assembled payload<=128",
+      "completion_codes": [
+        "00",
+        "80",
+        "83",
+        "c5",
+        "c7",
+        "c9",
+        "cc",
+        "ff",
+        "SEL-defined"
+      ],
+      "effect": "mutates",
+      "side_effects": "assembles a chunked extended SEL record, commits on final chunk, and stores payload file",
+      "evidence": {
+        "location": "libipmiamioemextendedsel.so.13.2.0:AMIPartialAddExtendSelEntries@00011eb0; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8963fde4415c05318814d290f49843986d3dc6d31ca7430a4c22efbe40e4ea0b"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIPartialGetExtendSelEntries",
+      "command": [
+        50,
+        241
+      ],
+      "request": {
+        "layout": "record_id_u16le;offset_u16le",
+        "length": "4"
+      },
+      "response": {
+        "layout": "cc;data_size_u16le;progress;remaining_u16le;data",
+        "length_including_cc": "6+data_size;chunk<=128"
+      },
+      "selectors": "offset within stored payload",
+      "completion_codes": [
+        "00",
+        "83",
+        "85",
+        "c9",
+        "cb",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads a chunk of an extended SEL payload",
+      "evidence": {
+        "location": "libipmiamioemextendedsel.so.13.2.0:AMIPartialGetExtendSelEntries@00012b34; sibling AMI header corroborated against exact handler",
+        "module_sha256": "8963fde4415c05318814d290f49843986d3dc6d31ca7430a4c22efbe40e4ea0b"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMIGetRecoveryInfo",
+      "command": [
+        50,
+        243
+      ],
+      "request": {
+        "layout": "selector;block_selector=0",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc;selector-dependent value",
+        "length_including_cc": "selector0,3,4=2;selector1=5;selector2=11"
+      },
+      "selectors": "00 enabled;01 server_ipv4;02 image_name[10];03 retry;04 interval",
+      "completion_codes": [
+        "00",
+        "80",
+        "cc",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads firmware-recovery U-Boot variables",
+      "evidence": {
+        "location": "libipmiamioemfirmwarerecovery.so.13.1.0:AMIGetRecoveryInfo@000109fc; sibling AMI header corroborated against exact handler",
+        "module_sha256": "36a9e52761841bc50265b9b1495691c44de5b3f3e0d40bee755990574149276d"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "AMISetRecoveryInfo",
+      "command": [
+        50,
+        244
+      ],
+      "request": {
+        "layout": "selector;block_selector=0;selector-dependent value",
+        "length": "selector0,3,4=3;selector1=6;selector2=12"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "00 enabled0..1;01 server_ipv4;02 image_name[10];03 retry1..5;04 interval1..5",
+      "completion_codes": [
+        "00",
+        "80",
+        "c7",
+        "cc",
+        "ff"
+      ],
+      "effect": "destructive",
+      "side_effects": "writes firmware-recovery U-Boot variables and may enable recovery boot",
+      "evidence": {
+        "location": "libipmiamioemfirmwarerecovery.so.13.1.0:AMISetRecoveryInfo@00010be8; sibling AMI header corroborated against exact handler",
+        "module_sha256": "36a9e52761841bc50265b9b1495691c44de5b3f3e0d40bee755990574149276d"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetActiveSessionCount",
+      "command": [
+        50,
+        251
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;session_count_u16le",
+        "length_including_cc": "3"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "safe",
+      "side_effects": "reads shared SMASH-lite active-session count",
+      "evidence": {
+        "location": "libipmiamioemsmashlitecorecmds.so.13.0.0:GetActiveSessionCount@00010850; sibling AMI header corroborated against exact handler",
+        "module_sha256": "185edab3b605d061132b61a234916e658ab8c38eeb60bf91b2aa9779f3362bac"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "SetActiveSessionCount",
+      "command": [
+        50,
+        252
+      ],
+      "request": {
+        "layout": "session_count_u16le",
+        "length": "2"
+      },
+      "response": {
+        "layout": "cc",
+        "length_including_cc": "1"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00",
+        "ff"
+      ],
+      "effect": "mutates",
+      "side_effects": "replaces shared SMASH-lite active-session count; dispatcher self-gates privilege 0x82",
+      "evidence": {
+        "location": "libipmiamioemsmashlitecorecmds.so.13.0.0:SetActiveSessionCount@0001093c; sibling AMI header corroborated against exact handler",
+        "module_sha256": "185edab3b605d061132b61a234916e658ab8c38eeb60bf91b2aa9779f3362bac"
+      },
+      "confidence": "high"
+    },
+    {
+      "id": "GetSysHealthFirmwareANDPowerCycle",
+      "command": [
+        50,
+        253
+      ],
+      "request": {
+        "layout": "empty",
+        "length": "0"
+      },
+      "response": {
+        "layout": "cc;overall_health;power_cycle_interval;firmware_version[254]",
+        "length_including_cc": "257"
+      },
+      "selectors": "none",
+      "completion_codes": [
+        "00"
+      ],
+      "effect": "safe",
+      "side_effects": "reads system-health, power-cycle interval, and firmware-version buffer",
+      "evidence": {
+        "location": "libipmiamioemsmashlitecorecmds.so.13.0.0:GetSysHealthFirmwareANDPowerCycle@00010a2c; sibling AMI header corroborated against exact handler",
+        "module_sha256": "185edab3b605d061132b61a234916e658ab8c38eeb60bf91b2aa9779f3362bac"
+      },
+      "confidence": "high"
     }
   ]
 }

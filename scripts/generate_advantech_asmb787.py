@@ -231,8 +231,8 @@ def field_descriptors(layout: str, expected_length: str) -> list[dict] | None:
 def apply_contracts(rows: list[dict[str, str]]) -> list[dict]:
     document = json.loads(CONTRACTS_SOURCE.read_text())
     operations = document.get("operations", [])
-    if document.get("schema_version") != 1 or len(operations) != 68:
-        raise SystemExit("expected ASMB contract schema v1 with 68 operations")
+    if document.get("schema_version") != 1 or len(operations) != 120:
+        raise SystemExit("expected ASMB contract schema v1 with 120 operations")
     by_key = {(int(row["netfn"], 0), int(row["cmd"], 0)): row for row in rows}
     ids = set()
     keys = set()
@@ -261,8 +261,8 @@ def apply_contracts(rows: list[dict[str, str]]) -> list[dict]:
             if op_key in keys:
                 raise SystemExit(f"duplicate ASMB operation prefix: {op_key}")
             keys.add(op_key)
-    if len({tuple(operation["command"]) for operation in operations}) != 30:
-        raise SystemExit("expected exact contracts for 30 ASMB command pairs")
+    if len({tuple(operation["command"]) for operation in operations}) != 82:
+        raise SystemExit("expected exact contracts for 82 ASMB command pairs")
     rank = {"safe": 0, "mutates": 1, "security-sensitive": 2, "destructive": 3}
     for key, row in by_key.items():
         matching = [operation for operation in operations if tuple(operation["command"]) == key]
@@ -395,7 +395,7 @@ def doc_text(rows: list[dict[str, str]], operations: list[dict]) -> str:
 <p class="mt-3 text-slate-300">Complete 187-entry firmware dispatch catalog and zipmi named raw surface for unique vendor NetFn/Cmd pairs. Evidence separates 92 statically registered core/platform rows, {registered} runtime-registered plugin rows, and {skipped} plugin rows skipped because their exact feature token is absent. The CmdHndlr_T layout is <code>cmd@+0</code>, <code>privilege@+1</code>, <code>handler@+4</code>, the one-byte dispatcher request-length constraint at <code>+8</code>, and <code>interface@+12</code>. Earlier documentation swapped privilege and request length.</p>
 <p class="mt-2 text-slate-300">A named command means zipmi can emit its exact NetFn/Cmd bytes. It does not claim a structured codec, complete request/response semantics, or runtime reachability. The +8 value proves only the dispatcher constraint shown; payload fields remain explicitly unknown unless AMI client/header material supplies labelled context. Type-8 secondary selector hooks exist, but their selector values remain unknown.</p>
 <section class="mt-8"><h2 class="text-2xl font-semibold">Exact-target operation contracts</h2>
-<p class="mt-2 text-slate-300">Exact handler decompilation currently proves {len(operations)} operations across 30 command pairs. zipmi generates structured fixed-width codecs for {sum(operation['codec_state'] == 'verified' for operation in operations)} operations; the remaining {sum(operation['codec_state'] != 'verified' for operation in operations)} retain exact raw contracts because their variable, union, checksum, or overlapping-bitmask framing needs a dedicated codec. The analyzed firmware is artifact <code>379c676d-4d49-52ea-a268-541c391a69ca</code>.</p>
+<p class="mt-2 text-slate-300">Exact handler decompilation currently proves {len(operations)} operations across {len({tuple(operation['command']) for operation in operations})} command pairs. zipmi generates structured fixed-width codecs for {sum(operation['codec_state'] == 'verified' for operation in operations)} operations; the remaining {sum(operation['codec_state'] != 'verified' for operation in operations)} retain exact raw contracts because their variable, union, checksum, or overlapping-bitmask framing needs a dedicated codec. The analyzed firmware is artifact <code>379c676d-4d49-52ea-a268-541c391a69ca</code>.</p>
 <div class="mt-4 overflow-x-auto"><table class="w-full text-sm"><caption class="pb-3 text-left text-slate-300">Handler-proven selector operations, effects, codecs, and live evidence.</caption><thead class="bg-slate-900 text-left"><tr><th class="p-2">Wire / prefix</th><th class="p-2">Operation</th><th class="p-2">Request</th><th class="p-2">Response</th><th class="p-2">CCs</th><th class="p-2">Effect</th><th class="p-2">Codec</th><th class="p-2">Evidence</th><th class="p-2">Live</th></tr></thead><tbody>{''.join(operation_body)}</tbody></table></div></section>
 <section class="mt-8"><h2 class="text-2xl font-semibold">Top-level firmware dispatch</h2>
 <div class="mt-6 overflow-x-auto"><table class="w-full text-sm"><caption class="pb-3 text-left text-slate-300">All 187 unique ASMB-787 vendor NetFn/Cmd catalog entries and their evidence boundaries.</caption><thead class="sticky top-0 bg-slate-900 text-left"><tr><th scope="col" class="p-2">Wire</th><th scope="col" class="p-2">Handler / module</th><th scope="col" class="p-2">Privilege</th><th scope="col" class="p-2">Request</th><th scope="col" class="p-2">Response</th><th scope="col" class="p-2">Interface</th><th scope="col" class="p-2">Activation</th><th scope="col" class="p-2">Evidence / confidence</th></tr></thead><tbody>""" + "".join(body) + """</tbody></table></div>
