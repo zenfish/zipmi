@@ -49,7 +49,7 @@ def test_lenovo_vendor_load_and_listing():
     from zipmi.scapy_ipmi.oem._registry import ENTERPRISE_IDS
     listing = _vendor_listing("lenovo")
     assert ENTERPRISE_IDS[2] in ("lenovo", "openpower")  # Shared IBM PEN.
-    assert len(listing) == 302
+    assert len(listing) == 307
     assert listing[(0x2E, 0x80, 0x66, 0x4A, 0x00)]["prefix"] == bytes.fromhex("66 4a 00")
 
 
@@ -71,7 +71,7 @@ def test_lenovo_official_contracts_add_missing_native_nm_and_codecs():
     from zipmi.scapy_ipmi.oem.lenovo import LENOVO_CONTRACTS, LENOVO_PAYLOADS
 
     zipmi.load_vendor("lenovo")
-    assert len(LENOVO_CONTRACTS) == 102
+    assert len(LENOVO_CONTRACTS) == 107
     assert any((c.netfn, c.cmd) == (0x3A, 0xC7) for c in LENOVO_CONTRACTS)
     assert (0x3A, 0x0D) in LENOVO_PAYLOADS
     request_type, response_type = lookup_payload("lenovo", 0x3A, 0x0D, b"")
@@ -90,6 +90,17 @@ def test_lenovo_official_contracts_add_missing_native_nm_and_codecs():
     )
     assert response_type is not None
     assert (decoded.revision, decoded.mac) == (0x11, bytes.fromhex("02 00 00 00 00 01"))
+
+    request_type, response_type = lookup_payload(
+        "lenovo", 0x0C, 0x02, bytes.fromhex("01 d2 00 00"),
+    )
+    assert bytes(request_type(channel=1)) == bytes.fromhex("01 d2 00 00")
+    decoded = decode_payload_response(
+        "lenovo", 0x0C, 0x02, bytes.fromhex("01 d2 00 00"), 0,
+        bytes.fromhex("11 7f"),
+    )
+    assert response_type is not None
+    assert (decoded.revision, decoded.value) == (0x11, 0x7F)
 
 
 def test_lenovo_contract_named_execution_supplies_exact_magic(monkeypatch):
