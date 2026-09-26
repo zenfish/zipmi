@@ -367,8 +367,8 @@ OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
 explicit `zipmi.load_vendor("<vendor>")`.
 
-**<!--OEM-COUNT-->2442<!--/OEM-COUNT--> known commands · 2370 named commands**
-across 9 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
+**<!--OEM-COUNT-->2809<!--/OEM-COUNT--> known commands · 2737 named commands**
+across 10 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
 firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 
 | CLI vendor | IANA | Known | Named | Catalog / source |
@@ -382,6 +382,7 @@ firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 | `megarac` | — | 95 | 95 | [MegaRAC command table](megarac-command-table.md) |
 | `yafu` | — | 42 | 42 | AMI YAFU NetFn 0x32 catalog |
 | `lenovo` | 2 | 307 | 307 | `zipmi/data/sources/lenovo-xcc-commands.json` |
+| `fujitsu` | 10368 | 367 | 367 | [iRMC S6 firmware-bound reference](fujitsu-irmc-s6-command-reference.html) |
 | `openbmc` | mixed | 130 | 130 | 9 flavors: Intel, Meta, Google, Ampere, OpenPOWER, Inspur, Foxconn, Wistron, Nvidia |
 
 Counts use the same `_vendor_stats()` path as `zipmi oem`; run

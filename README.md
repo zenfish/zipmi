@@ -4,7 +4,7 @@ zipmi is a pure-Python IPMI/BMC stack — an `ipmitool`-style CLI plus a library
 
 - **Every IPMI field is real, not an opaque blob.** Dissect, build, corrupt, fuzz, and replay any packet with full byte-level visibility — the thing `ipmitool` and `pyghmi` don't give you. Drop into the middle of a session and ask "what does this byte mean?" or "what if I flip field X?"
 
-- **Deep OEM coverage: <!--OEM-COUNT-->2442<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, Supermicro X11/X14, [Advantech ASMB-787](docs/advantech_ASMB787-command-reference.html), [AMI MegaRAC](docs/megarac-command-table.md) (95 OEM + 42 YAFU, with security tiers and 18 security annotations), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes.
+- **Deep OEM coverage: <!--OEM-COUNT-->2809<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech_ASMB787-command-reference.html), [AMI MegaRAC](docs/megarac-command-table.md) (95 OEM + 42 YAFU, with security tiers and 18 security annotations), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes.
 
 - **Security research batteries included.** Full IPMI 2.0 cipher suites 0–14 + 17, cipher-0 and RAKP-hash checks, unauthenticated `bmc-id` fingerprinting, plus a built-in virtual BMC and fuzzers to test against with no hardware.
 
@@ -17,7 +17,7 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code, which worked with me over the last half-year on this project — in all aspects of the package.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2442<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Per-vendor tables: [Dell](docs/dell-command-table.md) · [iDRAC9](docs/idrac9-command-table.md) · [Advantech](docs/advantech_ASMB787-command-reference.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) · [MegaRAC](docs/megarac-command-table.md)
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2809<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Per-vendor tables: [Dell](docs/dell-command-table.md) · [iDRAC9](docs/idrac9-command-table.md) · [Advantech](docs/advantech_ASMB787-command-reference.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) · [MegaRAC](docs/megarac-command-table.md)
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -339,6 +339,7 @@ zipmi -H <bmc> dell GetChassisStatus              # run by name (substring match
 zipmi -H <bmc> oem supermicro UtilRestoreConfig   # `oem <vendor>` form
 zipmi -H <bmc> oem idrac9 maser get               # structured OEM sub-verb (get/set)
 zipmi -H <xcc> -U USERID -C 17 oem lenovo "Firmware Version"
+zipmi -H <irmc> -U admin -C 17 oem fujitsu IRMCGetLastPowerOnReason0115
 zipmi -H <bmc> oem supermicro fwdump flash.bin    # dump X10-X13 firmware over IPMI
 
 # Firmware/bus access: IPMI reaches I2C/SMBus (Master Write-Read: i2c/i2cscan/
@@ -371,6 +372,10 @@ Lenovo's named XCC contracts prepend proven selector or IANA bytes and check
 request lengths. State-changing or uncertain operations require `--unsafe`;
 see the [XCC 6.92 command reference](docs/lenovo-xcc-command-reference.html)
 for each operation's exact bytes and evidence.
+Fujitsu's iRMC S6 catalog likewise prepends selector bytes; only four fixed
+power reads run without `--unsafe`. The other named operations are raw-exact
+with an explicit safety gate, while host-only bootstrap routes are listed but
+not runnable over LAN. See the [iRMC S6 reference](docs/fujitsu-irmc-s6-command-reference.html).
 
 > **zipmi defaults to IPMI 2.0 RMCP+ (`-I lanplus`), cipher auto-discovered.**
 > The right default: nearly every BMC from the last ~15 years speaks 2.0,
@@ -412,6 +417,13 @@ bytes via `zipmi raw`.
 
 Source-of-truth (hahah... well, for some value of truth) per vendor:
 
+- **Fujitsu iRMC S6 02.63S**: [firmware-bound zipmi reference](docs/fujitsu-irmc-s6-command-reference.html)
+  lists 135 top-level dispatch names and 232 selector/group operations, with
+  exact source hashes, evidence state, and fail-closed raw execution. The
+  [zBMC binary-evidence reference](../zbmc/boxes/irmc-fujitsu/irmc-s6-oem-reference.html)
+  retains all 148 active registrations, 138 LUN-aware identities, and 228
+  `2e` selector candidates. Partial leaf schemas and rack activation are
+  explicit limits, not presumed support.
 - **Lenovo XCC 6.92 Newyork-pass1**: [firmware-bound OEM reference](docs/lenovo-xcc-command-reference.html)
   covering 225 exact identities / 210 NetFn-command pairs and 107 promoted
   operation contracts. zipmi lists 307 named entries, with 66 request and 60

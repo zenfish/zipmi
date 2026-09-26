@@ -1,0 +1,6675 @@
+{
+  "target": "PRIMERGY RX2540 M7 iRMC S6 02.63S / SDR 03.67",
+  "librarySha256": "35839f7ab40993898666425d50e18654d68791c7dfe3bb5a3c3496e4daa23804",
+  "tableSha256": "6c25538d508e398135855d59550148b3fd93cdcc045bc9556e4f79c335f72dfa",
+  "sourceSha256": {
+    "f1-selector-contracts.json": "d7279c6cba6d2811987a701eb8f57ae86d209dd25c5b984814c581f0fbfa50e0",
+    "f5-selector-contracts.json": "94a351c944505294b1917eb984e3fb0d1a85550be8b119f2683cad9f83928b70",
+    "scci-selector-contracts.json": "70b9a325ae7d7e59bd1d64751585cfffd99166183504950b7f50af0ee83092a1",
+    "standard-overrides.json": "60d8479890acd671d452ad81b797ed079fd66b0147ec203648a036eb3ce1904a"
+  },
+  "operations": [
+    {
+      "name": "iRMC_RedfishBootstrap_01",
+      "netfn": 44,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        82,
+        1
+      ],
+      "privilege": 4,
+      "request": "[52,01]",
+      "response": "dc: standard DCMI capabilities; 52: CC, group byte, 1, 32-byte fingerprint on success",
+      "effect": "sensitive fingerprint read; static only",
+      "status": "decoded",
+      "activation": "0f only",
+      "source": "standard-overrides.json#2c/01/52",
+      "runnable": false,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_DCMI_01",
+      "netfn": 44,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        220
+      ],
+      "privilege": 2,
+      "request": "[dc, parameter selector]",
+      "response": "dc: standard DCMI capabilities; 52: CC, group byte, 1, 32-byte fingerprint on success",
+      "effect": "read",
+      "status": "partial",
+      "activation": "standard DCMI branch",
+      "source": "standard-overrides.json#2c/01/dc",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_RedfishBootstrap_02",
+      "netfn": 44,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        82,
+        165
+      ],
+      "privilege": 4,
+      "request": "[52,a5] observed selector branch",
+      "response": "dc: 19 bytes including CC per existing analysis; 52: 34 bytes including CC, group byte, 16-byte username and 16-byte password on success",
+      "effect": "HIGH: creates user and returns credentials; static only",
+      "status": "decoded",
+      "activation": "0f only",
+      "source": "standard-overrides.json#2c/02/52",
+      "runnable": false,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_DCMI_02",
+      "netfn": 44,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        220
+      ],
+      "privilege": 2,
+      "request": "[dc, mode, sample selector, 00]",
+      "response": "dc: 19 bytes including CC per existing analysis; 52: 34 bytes including CC, group byte, 16-byte username and 16-byte password on success",
+      "effect": "read",
+      "status": "partial",
+      "activation": "standard DCMI branch",
+      "source": "standard-overrides.json#2c/02/dc",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get last power-on reason_01_15",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        21
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 6,
+        "fields": "byte4 length=1, byte5 reason"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "onGetLastOnReasonFromBBR()!=FF",
+      "source": "scci-selector-contracts.json#01/15",
+      "runnable": true,
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
+    },
+    {
+      "name": "iRMC_Get next/last power-off reason_01_16",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        22
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 6,
+        "fields": "byte4 length=1, byte5 reason"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "temporary reason from permdata, fallback onGetLastOffReasonFromBBR",
+      "source": "scci-selector-contracts.json#01/16",
+      "runnable": true,
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
+    },
+    {
+      "name": "iRMC_Set next power transition reason_01_17",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        23
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 9,
+        "fields": "bytes4-7=00 00 00 01, byte8 reason; no length check before reads"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating persistent reason",
+      "status": "partial",
+      "activation": "writes only if temporary reason is FF; otherwise returns success without write",
+      "source": "scci-selector-contracts.json#01/17",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get last power-on timestamp_01_18",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        24
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 9,
+        "fields": "byte4 length=4, bytes5-8 timestamp LE from state +0x8a1c"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "always after shared checks",
+      "source": "scci-selector-contracts.json#01/18",
+      "runnable": true,
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
+    },
+    {
+      "name": "iRMC_Set power on/off reason_01_1B",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        27
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 9,
+        "fields": "bytes4-7=00 00 00 01, byte8 reason; no length check before reads"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating BBR/permdata; reason 09 emits SEL",
+      "status": "partial",
+      "activation": "reason-dependent onSetOnOffReasonToBBR or onStoreTempReason4nextPowerOnOffToPermdat",
+      "source": "scci-selector-contracts.json#01/1b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set power-off inhibit_01_1C",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        28
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 9,
+        "fields": "bytes4-7=00 00 00 01, byte8 inhibit; no length check before reads"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating power-off policy",
+      "status": "partial",
+      "activation": "onSetPwrOffInhibit",
+      "source": "scci-selector-contracts.json#01/1c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get power-off inhibit_01_1D",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        29
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 6,
+        "fields": "byte4 length=1, byte5 inhibit"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "onGetPwrOffInhibit",
+      "source": "scci-selector-contracts.json#01/1d",
+      "runnable": true,
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
+    },
+    {
+      "name": "iRMC_Set next power-on time_01_20",
+      "netfn": 46,
+      "cmd": 1,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        32
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 12,
+        "fields": "bytes4-7=00 00 00 04, bytes8-11 time LE; no length check before reads"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating power schedule and power-saving inhibit",
+      "status": "partial",
+      "activation": "onSetNextPowerOnTime; time zero clears inhibit reason 0x2000",
+      "source": "scci-selector-contracts.json#01/20",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set host-agent connection state_02_01",
+      "netfn": 46,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        1
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "4,5,7,8 according to branch",
+        "fields": "byte4 state 0..4 when present; states 3/4 use bytes5-6 value LE and optionally byte7 flag=1"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating host-agent status, boot counter, PCI scan notification",
+      "status": "partial",
+      "activation": "state 3/4 path calls utSetHostSystemStatus; branch-dependent",
+      "source": "scci-selector-contracts.json#02/01",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Disconnect host agent_02_02",
+      "netfn": 46,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        2
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4; no selector-specific check",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating; may request shutdown",
+      "status": "partial",
+      "activation": "onRequestAsrrShutdown if connection flags; onSetAgentDisconnected",
+      "source": "scci-selector-contracts.json#02/02",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set communication register connected_02_05",
+      "netfn": 46,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        5
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating communication state and temporary power reason",
+      "status": "partial",
+      "activation": "onIsAgentConnectFeatureSet(2) required",
+      "source": "scci-selector-contracts.json#02/05",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set communication register disconnected_02_06",
+      "netfn": 46,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        6
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating communication state",
+      "status": "partial",
+      "activation": "onIsAgentConnectFeatureSet(2) required",
+      "source": "scci-selector-contracts.json#02/06",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get host-agent connection state_02_08",
+      "netfn": 46,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        8
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": "8 or 9",
+        "fields": "byte4 length 1/3/4, byte5 state, bytes6-7 features LE, byte8 optional flag"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "onGetAgentConnectFeatures",
+      "source": "scci-selector-contracts.json#02/08",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Reset communication and power-cycle request_02_09",
+      "netfn": 46,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        9
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": "at least 4",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating; cancels power-cycle request",
+      "status": "partial",
+      "activation": "onResetPreventPowerSavingModeReason(0x400), onCanclePowerCycleRequest",
+      "source": "scci-selector-contracts.json#02/09",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Mark OS shutdown in progress_02_0F",
+      "netfn": 46,
+      "cmd": 2,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        15
+      ],
+      "privilege": 2,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 9,
+        "fields": "bytes4-7=00 00 00 01, byte8 reason bit index; no length check before reads"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating host status and shutdown state",
+      "status": "partial",
+      "activation": "utSetHostSystemStatus(0,6) even before selector fields validate; OsShutdownInProgress",
+      "source": "scci-selector-contracts.json#02/0f",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Start fan test_03_10",
+      "netfn": 46,
+      "cmd": 3,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        16
+      ],
+      "privilege": 3,
+      "request": {
+        "accepted_total_bytes": "at least 4; no selector-specific check",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating fan test",
+      "status": "partial",
+      "activation": "fcStartFanTest(0,0) only when utIsBladeSystem false; blade returns success without action",
+      "source": "scci-selector-contracts.json#03/10",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get memory PDA module mark/CRC_07_05",
+      "netfn": 46,
+      "cmd": 7,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        5
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 5,
+        "fields": "byte4 module index, high bit must be 0"
+      },
+      "response": {
+        "success_total_bytes": 10,
+        "fields": "byte4 length=5, byte5 mark-valid flag, bytes6-9 CRC/record LE"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "mcMemModuleBitwiseOp or memory SPD mark valid",
+      "source": "scci-selector-contracts.json#07/05",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set memory PDA module record_07_06",
+      "netfn": 46,
+      "cmd": 7,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        6
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 13,
+        "fields": "byte4 module index (<128), bytes8..12 contain status and 4-byte record; bytes5..7 are not visibly used"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating memory PDA state",
+      "status": "partial",
+      "activation": "mcMemModuleBitwiseOp and state write at +0x79c",
+      "source": "scci-selector-contracts.json#07/06",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Clear all memory PDA data_07_10",
+      "netfn": 46,
+      "cmd": 7,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        16
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 4,
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "destructive reset of memory PDA data",
+      "status": "decoded",
+      "activation": "clearMemoryPDAData",
+      "source": "scci-selector-contracts.json#07/10",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Clear memory PDA module entries_07_11",
+      "netfn": 46,
+      "cmd": 7,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        17
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 5,
+        "fields": "byte4 module index, high bit must be 0; helper signature decompilation ambiguous"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "destructive reset of module PDA entries",
+      "status": "partial",
+      "activation": "clearMemoryPDAModuleEntries",
+      "source": "scci-selector-contracts.json#07/11",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get power-history data_09_40",
+      "netfn": 46,
+      "cmd": 9,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        64
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 7,
+        "fields": "byte4 history kind (0,1,2), bytes5-6 index LE; kind 0 maps helper kind 3"
+      },
+      "response": {
+        "success_total_bytes": 17,
+        "fields": "byte4 length=12, bytes5-16 three 32-bit history values"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "isPowerHistorySupported; kind/index bounds; getPowerHistoryData",
+      "source": "scci-selector-contracts.json#09/40",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set local visual panel text_10_02",
+      "netfn": 46,
+      "cmd": 16,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        2
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 10,
+        "fields": "byte4 line (0/1), bytes5-6 metadata not resolved, byte7 declared length, byte8 alignment flag, bytes9.. text; inconsistent length logic uses param_2-7 and declared length"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating front-panel display",
+      "status": "partial",
+      "activation": "lvp_notify(3,0,42-byte display buffer), lvp_updateLastUpdateTime; oversize text clipped to 20 chars",
+      "source": "scci-selector-contracts.json#10/02",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Configuration-space status_E0_00",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        0
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": "at least 4; no selector-specific check",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "completion encodes status 00,01,02"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "ConfigurationSpaceStatus(1,0,0)",
+      "source": "scci-selector-contracts.json#e0/00",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read configuration-space variable_E0_01",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        1
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 7,
+        "fields": "byte4 subindex, bytes5-6 variable ID little-endian"
+      },
+      "response": {
+        "success_total_bytes": "5+returned length, except special variable 0x2300 path may differ",
+        "fields": "byte4 returned length; bytes5.. value"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "utBladeGetScheduleOnOffTime may intercept; ReadConfigurationSpaceExt; UDS session changes helper flag",
+      "source": "scci-selector-contracts.json#e0/01",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Write configuration-space variable_E0_02",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        2
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": "8+byte7 length (zero length is accepted by visible guard)",
+        "fields": "byte4 subindex, bytes5-6 variable ID LE, byte7 length, bytes8.. data"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "utBladeSetScheduleOnOffTime may intercept; WriteConfigurationSpaceExt; variable DAT_00034dbc rejected",
+      "source": "scci-selector-contracts.json#e0/02",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Configuration-space self-test update_E0_03",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        3
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": "at least 4; no selector-specific check",
+        "fields": "none"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "completion 00,02,03 according to status"
+      },
+      "effect": "mutating BMC self-test bit",
+      "status": "decoded",
+      "activation": "ConfigurationSpaceStatus; Get/Set_BMCInfo_MSGHNDLR_SelfTestByte",
+      "source": "scci-selector-contracts.json#e0/03",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Check NVRAM against IDPROM_E0_04",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        4
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": "5..9",
+        "fields": "bytes4.. IDPROM selector/data; first byte DE selects 5-byte comparison, otherwise 1-byte"
+      },
+      "response": {
+        "success_total_bytes": "5 or 9",
+        "fields": "comparison bytes from CheckNvramToIdprom"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "CheckNvramToIdprom",
+      "source": "scci-selector-contracts.json#e0/04",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Chunked configuration-space read_E0_07",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        7
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 13,
+        "fields": "byte4 version=1, byte5 subindex, bytes6-7 variable ID LE, byte8=0, bytes9-10 offset LE, bytes11-12 requested chunk length LE (nonzero)"
+      },
+      "response": {
+        "success_total_bytes": "9+returned chunk length",
+        "fields": "byte4=0, bytes5-6 total size LE, bytes7-8 returned length LE, bytes9.. chunk"
+      },
+      "effect": "read; session state/cache and notification side effects",
+      "status": "partial",
+      "activation": "ReadConfigurationSpaceExt; per-session chunk cache; UDS session flag",
+      "source": "scci-selector-contracts.json#e0/07",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Chunked configuration-space write_E0_08",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        8
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": ">11 by actual guard; coherent wire format needs at least 13 plus chunk, but no safe lower-bound or declared-total check is proved",
+        "fields": "byte4 version=1, byte5 subindex, bytes6-7 variable ID LE, byte8=0, bytes9-10 total size LE, bytes11-12 offset LE, bytes13.. chunk"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body; error path may append helper bytes"
+      },
+      "effect": "mutating",
+      "status": "partial",
+      "activation": "WriteConfigurationSpaceExt on final chunk; per-session chunk cache; UDS session flag",
+      "source": "scci-selector-contracts.json#e0/08",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read configuration-space default_E0_09",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        9
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 7,
+        "fields": "byte4 subindex, bytes5-6 variable ID LE"
+      },
+      "response": {
+        "success_total_bytes": "5+returned length; special 0x2300 path differs",
+        "fields": "byte4 length, bytes5.. default value"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "ConfigurationSpaceStatus(5,...), utBladeGetScheduleOnOffTime may intercept, ReadConfigurationSpaceDefaultExt",
+      "source": "scci-selector-contracts.json#e0/09",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read configuration-space limits_E0_0A",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        10
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 7,
+        "fields": "byte4 unused by direct helper, bytes5-6 variable ID LE"
+      },
+      "response": {
+        "success_total_bytes": "5+returned length",
+        "fields": "byte4 length, bytes5.. limits"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "ReadConfigurationSpaceLimits",
+      "source": "scci-selector-contracts.json#e0/0a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Reset configuration-space variable to defaults_E0_10",
+      "netfn": 46,
+      "cmd": 224,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        16
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": 7,
+        "fields": "byte4 subindex, bytes5-6 variable ID LE"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating; restores variable default",
+      "status": "decoded",
+      "activation": "ConfigurationSpaceStatus(5,...) != 1; DAT_00034dbc variable rejected; ResetConfigurationSpaceVariableToDefaults",
+      "source": "scci-selector-contracts.json#e0/10",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set BIOS slot/state byte_F1_06",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        6
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 5,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "payload": null
+      },
+      "effect": "mutating",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/06",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BIOS slot/state bytes_F1_07",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        7
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": 6,
+        "payload": null
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/07",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_08",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        8
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/08",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BIOS state byte at object+0x766_F1_09",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        9
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": 5,
+        "payload": null
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/09",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set BIOS state byte at object+0x767 and notify_F1_0A",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        10
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 5,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "payload": null
+      },
+      "effect": "mutating",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/0a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BIOS state byte at object+0x767_F1_0B",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        11
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": 5,
+        "payload": null
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/0b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set flash lock_F1_0F",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        15
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/0f",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_10",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        16
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/10",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Write system GUID to configuration space_F1_11",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        17
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/11",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_13",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        19
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/13",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_14",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        20
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/14",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_15",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        21
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/15",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Graphics-controller control/query_F1_16",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        22
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/16",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Uncorrectable-memory active state_F1_17",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        23
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/17",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_18",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        24
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/18",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Append PCI slot information_F1_19",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        25
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/19",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_1A",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        26
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/1a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_BIOS feature info get/set_F1_1B",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        27
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/1b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_1C",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        28
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/1c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Extended FRU device read/write/lock_F1_1D",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        29
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/1d",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_BSPBR boot status get/set_F1_1E",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        30
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/1e",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set BMC Interrupt Enable (bank 0)_F1_20",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        32
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "payload": "none"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/20",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Enable (bank 0)_F1_21",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        33
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/21",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Status (bank 0)_F1_22",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        34
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/22",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Reset BMC Interrupt Status (bank 0)_F1_23",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        35
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "payload": "none"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/23",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set BMC Interrupt Enable (bank 1)_F1_24",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        36
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 5,
+        "payload": "no helper output seen; shared epilogue returns bank-index extra bytes"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/24",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Enable (bank 1)_F1_25",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        37
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/25",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Status (bank 1)_F1_26",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        38
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/26",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Reset BMC Interrupt Status (bank 1)_F1_27",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        39
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 5,
+        "payload": "no helper output seen; shared epilogue returns bank-index extra bytes"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/27",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set BMC Interrupt Enable (bank 2)_F1_28",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        40
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 6,
+        "payload": "no helper output seen; shared epilogue returns bank-index extra bytes"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/28",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Enable (bank 2)_F1_29",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        41
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/29",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Status (bank 2)_F1_2A",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        42
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/2a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Reset BMC Interrupt Status (bank 2)_F1_2B",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        43
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 6,
+        "payload": "no helper output seen; shared epilogue returns bank-index extra bytes"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/2b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set BMC Interrupt Enable (bank 3)_F1_2C",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        44
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 7,
+        "payload": "no helper output seen; shared epilogue returns bank-index extra bytes"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/2c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Enable (bank 3)_F1_2D",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        45
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/2d",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get BMC Interrupt Status (bank 3)_F1_2E",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        46
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "4-byte helper output"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/2e",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Reset BMC Interrupt Status (bank 3)_F1_2F",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        47
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "opaque 4-byte helper input"
+      },
+      "response": {
+        "success_total_bytes": 7,
+        "payload": "no helper output seen; shared epilogue returns bank-index extra bytes"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/2f",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Update hardware-change state_F1_30",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        48
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/30",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Nested PCI-slot/subselector command_F1_31",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        49
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "mixed/unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/31",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Return constant BIOS value 0x32_F1_32",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        50
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 6,
+        "payload": "two bytes ignored by this branch"
+      },
+      "response": {
+        "success_total_bytes": 5,
+        "payload": "constant byte 0x32"
+      },
+      "effect": "read/compute",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/32",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Interface-control dispatch_F1_39",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        57
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/39",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_SPD manufacturer information_F1_3A",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        58
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/3a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read BIOS-side file data_F1_3B",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        59
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/3b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Remove BIOS-side file_F1_3C",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        60
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/3c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Write configuration space_F1_40",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        64
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/40",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read configuration space_F1_43",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        67
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/43",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_44",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        68
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/44",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read PCIe AIC metadata and status_F1_45",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        69
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/45",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read configuration space_F1_4A",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        74
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/4a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get PMB Object Counts and System Power Instance_F1_50",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        80
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 4,
+        "payload": "none"
+      },
+      "response": {
+        "success_total_bytes": 8,
+        "payload": "type 1, count(type 0), count(type 1), system-power instance"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/50",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get PMB object event status_F1_51",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        81
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/51",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set PMB Object Event Enable_F1_52",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        82
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "object type, instance, 16-bit event-enable flags"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "payload": "none"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/52",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get PMB Object Event Enable_F1_53",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        83
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 6,
+        "payload": "object type, instance"
+      },
+      "response": {
+        "success_total_bytes": 6,
+        "payload": "16-bit event-enable flags"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/53",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Clear PMB Object Event Status_F1_54",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        84
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 8,
+        "payload": "object type, instance, 16-bit status clear mask"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "payload": "none"
+      },
+      "effect": "mutating",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/54",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get PSU Object Status_F1_55",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        85
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 5,
+        "payload": "PSU object instance byte"
+      },
+      "response": {
+        "success_total_bytes": 5,
+        "payload": "one status byte"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/55",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get Power-Meter Capability_F1_56",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        86
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 5,
+        "payload": "power-meter object instance byte"
+      },
+      "response": {
+        "success_total_bytes": 36,
+        "payload": "32 opaque capability bytes from helper"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/56",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get Power-Meter Reading and Parameters_F1_57",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        87
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": 5,
+        "payload": "power-meter object instance byte"
+      },
+      "response": {
+        "success_total_bytes": 24,
+        "payload": "20-byte composite reading/parameter payload, individual fields unresolved"
+      },
+      "effect": "read",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/57",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set Power-Meter Parameter_F1_58",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        88
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": "at least 7 checked, but request offsets through 9 are read",
+        "payload": "object instance, parameter ID, four-byte value (requires at least 10 bytes to contain all fields)"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "payload": "none on helper success"
+      },
+      "effect": "mutating",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/58",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Network/LAN configuration operation_F1_60",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        96
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/60",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_61",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        97
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/61",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Selector_F1_62",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        98
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/62",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read SMBIOS structure data_F1_63",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        99
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/63",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Start BIOS PFR flash_F1_64",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        100
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/64",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Interface-control dispatch_F1_65",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        101
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/65",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set default boot order Redfish action_F1_66",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        102
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/66",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Interface-control dispatch_F1_67",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        103
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/67",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Start BIOS PFR flash_F1_68",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        104
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/68",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Nested selector 0..8 (likely S3M family)_F1_69",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        105
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "mixed/unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/69",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set CPU S3M state_F1_6A",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        106
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/6a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get CPU S3M state_F1_6B",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        107
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/6b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_VIOM table confirmation_F1_D0",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        208
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d0",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set server boot option_F1_D1",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        209
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d1",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get server boot option_F1_D2",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        210
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d2",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Write VIOM flag_F1_D3",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        211
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d3",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read VIOM flag_F1_D4",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        212
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d4",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get VIOM inventory table_F1_D5",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        213
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d5",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set VIOM table_F1_D6",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        214
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d6",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get VIOM table chunk_F1_D7",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        215
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d7",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Lock/unlock VIOM table_F1_D8",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        216
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d8",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get VIOM table element_F1_D9",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        217
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/d9",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Lock/unlock VIOM inventory table_F1_DA",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        218
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/da",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set VIOM inventory element_F1_DB",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        219
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/db",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Clear VIOM inventory table_F1_DC",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        220
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/dc",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set VIOM BIOS status_F1_DE",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        222
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/de",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get VIOM BIOS status_F1_DF",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        223
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/df",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Interface-control dispatch_F1_E0",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        224
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/e0",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get VIOM table element extended_F1_E1",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        225
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/e1",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set VIOM inventory element extended_F1_E2",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        226
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/e2",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read BIOS state bytes by subselector_F1_E3",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        227
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "read/unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/e3",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set preferred VIOM inventory inversion_F1_F4",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        244
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/f4",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get preferred VIOM inventory inversion_F1_F5",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        245
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/f5",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set/get VIOM communication trap parameter_F1_F6",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        246
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "unknown",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/f6",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Generate patterned response of caller-requested length_F1_FF",
+      "netfn": 46,
+      "cmd": 241,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        255
+      ],
+      "privilege": 4,
+      "request": {
+        "shared_minimum_total_bytes": 4,
+        "selector_specific_length": null,
+        "payload": null
+      },
+      "response": {
+        "success_total_bytes": null,
+        "payload": null
+      },
+      "effect": "read/compute",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f1-selector-contracts.json#f1/ff",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_00",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        0
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280000",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/00",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_07",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        7
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280007",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/07",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_08",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        8
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280008",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/08",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_09",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        9
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280009",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/09",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_0B",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        11
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028000b",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/0b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_0C",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        12
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028000c",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/0c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_0D",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        13
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028000d",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/0d",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_0E",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        14
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028000e",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/0e",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_10",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        16
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280010",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/10",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_12",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        18
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280012",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/12",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_18",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        24
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280018",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/18",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_1C",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        28
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028001c",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/1c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Clear all forced sensor readings and forced power-history values_F5_2C",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        44
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028002c",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "clears force overrides",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/2c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_2D",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        45
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028002d",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/2d",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_2E",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        46
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028002e",
+        "length_check_at_entry": "cmp\tr6, #8",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/2e",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1d274-0x1d28c passes output pointer and max length 40 to utGetLogInfo; helper return sets total response length._F5_2F",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        47
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028002f",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "none; exact total length 4 (other lengths branch to alternate path)"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "up to 40 bytes of log information; actual length is helper return value"
+      },
+      "effect": "none; reads log information via utGetLogInfo",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/2f",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_33",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        51
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280033",
+        "length_check_at_entry": "sub\tr3, r6, #5 (followed by comparison; inspect entry)",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/33",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Clear stored fan-controller values for selected fan_F5_34",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        52
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280034",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "clears fan-controller stored values",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/34",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_35",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        53
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280035",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/35",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_40",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        64
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280040",
+        "length_check_at_entry": "sub\tr3, r6, #6 (followed by comparison; inspect entry)",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/40",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_41",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        65
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280041",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/41",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_42",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        66
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280042",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/42",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_43",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        67
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280043",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/43",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_45",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        69
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280045",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/45",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_46",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        70
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280046",
+        "length_check_at_entry": "cmp\tr6, #10",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/46",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_48",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        72
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280048",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/48",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_49",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        73
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280049",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/49",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1c788-0x1c7a4 proves exact length, two getters, two-byte response._F5_4A",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        74
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028004a",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "none; exact total length 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "two bytes: memory-module policy, memory-module count"
+      },
+      "effect": "none; reads memory-module policy/count",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/4a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4B",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        75
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028004b",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/4b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4C",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        76
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028004c",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/4c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Disassembly 0x1c010-0x1c01c proves constant one-byte response; only shared outer minimum length applies._F5_4D",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        77
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028004d",
+        "length_check_at_entry": "not established at entry",
+        "payload": "none"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte: 00"
+      },
+      "effect": "none; returns constant zero byte",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/4d",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4E",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        78
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028004e",
+        "length_check_at_entry": "cmp\tr6, #11",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/4e",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4F",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        79
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028004f",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/4f",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_50",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        80
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280050",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/50",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_51",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        81
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280051",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/51",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_52",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        82
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280052",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/52",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_53",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        83
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280053",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/53",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_54",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        84
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280054",
+        "length_check_at_entry": "sub\tr3, r6, #7 (followed by comparison; inspect entry)",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/54",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1dd2c-0x1dd50 proves request length and helper output/return flow; selector values and backend codes unresolved._F5_55",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        85
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280055",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "exactly one selector byte at offset 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte written by SNTCI_On_Off_Stat on backend success"
+      },
+      "effect": "none; reads SNTCI on/off status",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/55",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_5A",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        90
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028005a",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/5a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_5C",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        92
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028005c",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/5c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_5F",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        95
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028005f",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/5f",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Reserve an SSO session_F5_60",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        96
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280060",
+        "length_check_at_entry": "cmp\tr6, #8",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "allocates SSO session",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/60",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1d758-0x1d77c proves exact request, echo, helper result, response length._F5_61",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        97
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280061",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "exactly one byte 0x01 at offset 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "two bytes: echoed 0x01, boolean MMB override-active state"
+      },
+      "effect": "none; reads MMB override flag",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/61",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_70",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        112
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280070",
+        "length_check_at_entry": "cmp\tr6, #9",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/70",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_71",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        113
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280071",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/71",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_72",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        114
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280072",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/72",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_73",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        115
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280073",
+        "length_check_at_entry": "cmp\tr6, #13",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/73",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_74",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        116
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280074",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/74",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_75",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        117
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280075",
+        "length_check_at_entry": "cmp\tr6, #21",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/75",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_7E",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        126
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028007e",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/7e",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1be1c-0x1be34 proves input offsets and no helper-return check; semantics of individual flag bits remain in imported helper._F5_80",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        128
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280080",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "at least 2 bytes: TPM status flag inputs at offsets 4 and 5; additional bytes ignored by this branch"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "none"
+      },
+      "effect": "sets TPM status flags via SetTPMstatusFlags",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/80",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_81",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        129
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280081",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/81",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read iEL information_F5_82",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        130
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280082",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/82",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_84",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        132
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280084",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/84",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Add iEL entry_F5_85",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        133
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280085",
+        "length_check_at_entry": "cmp\tr6, #11",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "adds iEL event",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/85",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Add iEL entry from SEL data_F5_86",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        134
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280086",
+        "length_check_at_entry": "cmp\tr6, #17",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "adds iEL event from SEL",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/86",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_87",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        135
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280087",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/87",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_89",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        137
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280089",
+        "length_check_at_entry": "cmp\tr6, #11",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/89",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8A",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        138
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028008a",
+        "length_check_at_entry": "cmp\tr6, #8",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/8a",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8B",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        139
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028008b",
+        "length_check_at_entry": "sub\tr1, r6, #4 (followed by comparison; inspect entry)",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/8b",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8C",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        140
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028008c",
+        "length_check_at_entry": "cmp\tr6, #8",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/8c",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8D",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        141
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028008d",
+        "length_check_at_entry": "sub\tr2, r6, #8 (followed by comparison; inspect entry)",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/8d",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8E",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        142
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028008e",
+        "length_check_at_entry": "cmp\tr6, #10",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/8e",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8F",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        143
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "8028008f",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/8f",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Delegate to OEM boot-flags handler_F5_90",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        144
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "80280090",
+        "length_check_at_entry": "sub\tr1, r6, #4 (followed by comparison; inspect entry)",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/90",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Disassembly 0x1bb40-0x1bb68 proves exact length, bit mask, shared-state write, and zero completion._F5_A2",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        162
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800a2",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "one byte; only bit 0 is stored"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "none"
+      },
+      "effect": "writes bit 0 at BMC shared-state offset 0x76d",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/a2",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Disassembly 0x1b9a0-0x1b9c0 proves exact length, bit mask, one-byte response, and shared success path._F5_A3",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        163
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800a3",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "none"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte: bit 0 of BMC shared-state offset 0x76d"
+      },
+      "effect": "none; reads shared-state bit",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/a3",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_A4",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        164
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800a4",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/a4",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_A5",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        165
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800a5",
+        "length_check_at_entry": "cmp\tr6, #12",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/a5",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b65c-0x1b67c passes payload pointer/length and output pointer/length to lkeySetKeyParameters; backend contract remains unresolved._F5_A8",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        168
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800a8",
+        "length_check_at_entry": "sub\tr1, r6, #4 (followed by comparison; inspect entry)",
+        "payload": "variable-length licensing key parameter payload (delegated unchanged to lkeySetKeyParameters)"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "backend-generated length and bytes"
+      },
+      "effect": "sets licensing key parameters",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/a8",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b638-0x1b658 passes payload pointer/length and output pointer/length to lkeyGetAppEnable; backend contract remains unresolved._F5_A9",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        169
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800a9",
+        "length_check_at_entry": "sub\tr1, r6, #4 (followed by comparison; inspect entry)",
+        "payload": "variable-length licensing application query payload (delegated unchanged to lkeyGetAppEnable)"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "backend-generated length and bytes"
+      },
+      "effect": "none; queries licensing application enable state",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/a9",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_AA",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        170
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800aa",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/aa",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_AB",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        171
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800ab",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/ab",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b7d8-0x1b7f0 proves length, helper argument, completion mapping._F5_B0",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        176
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800b0",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "exactly 1 byte: identification LED setting at offset 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "none"
+      },
+      "effect": "sets identification LED via haSetIdentLed",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/b0",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b7c0-0x1b7d4 proves exact length and one-byte helper result._F5_B1",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        177
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800b1",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "none; exact total length 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte: current identification LED value"
+      },
+      "effect": "none; reads identification LED",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/b1",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b5dc-0x1b5e8 and 0x1f808-0x1f818 prove exact length, helper argument and completion mapping._F5_B2",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        178
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800b2",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "exactly 1 byte: message LED mode at offset 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "none"
+      },
+      "effect": "sets message LED mode via haSetMsgLedMode",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/b2",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b5c4-0x1b5d8 proves exact length and one-byte helper result._F5_B3",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        179
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800b3",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "none; exact total length 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte: current message LED mode"
+      },
+      "effect": "none; reads message LED mode",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/b3",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b860-0x1b878 proves exact length and one-byte helper result._F5_B4",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        180
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800b4",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "none; exact total length 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte: power LED status"
+      },
+      "effect": "none; reads power LED status",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/b4",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_B5",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        181
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800b5",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/b5",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set CSS test mode_F5_B6",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        182
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800b6",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "sets CSS test mode",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/b6",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_DE",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        222
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800de",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/de",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b77c-0x1b7bc proves magic comparison and no backend call._F5_DF",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        223
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800df",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "exactly four magic bytes 43 4c 52 aa ('CLR' + 0xaa) at offsets 4-7; extra bytes accepted"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "none"
+      },
+      "effect": "none in this wrapper branch; validates magic and returns success",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/df",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_E0",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        224
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800e0",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/e0",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b8f8-0x1b978 and 0x1fff0-0x20004 prove offsets, backend call, status mapping and length-prefixed return; backend data-length bounds need confirmation._F5_E1",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        225
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800e1",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "exactly 3 bytes: fan selector at offset 4; little-endian 16-bit configuration-space offset at 5-6"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "success: one length byte followed by configuration data (backend fills up to 0x100-byte buffer); exact maximum wire size unresolved"
+      },
+      "effect": "reads extended configuration space through ReadConfigurationSpaceExt",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/e1",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b87c-0x1b8f4 proves count/length relation, fan-index and offset arguments, backend call and status. Backend offset/data semantics remain external._F5_E2",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        226
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800e2",
+        "length_check_at_entry": "cmp\tr6, #7",
+        "payload": "fan selector offset 4; little-endian 16-bit configuration-space offset at 5-6; byte count at 7; count data bytes at 8; total length must equal 8+count"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "none"
+      },
+      "effect": "writes configuration space via WriteConfigurationSpace",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/e2",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_E3",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        227
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800e3",
+        "length_check_at_entry": "cmp\tr6, #13",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/e3",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_EF",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        239
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800ef",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/ef",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_F0",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        240
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800f0",
+        "length_check_at_entry": "cmp\tr6, #12",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/f0",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_F1",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        241
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800f1",
+        "length_check_at_entry": "cmp\tr6, #4",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/f1",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_F2",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        242
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800f2",
+        "length_check_at_entry": "not established at entry",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/f2",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b4e8-0x1b520 proves exact length, arguments, backend return mapping, and empty success body._F5_F6",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        246
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800f6",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "exactly 2 bytes: account/user selector at offset 4, shell value at offset 5"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "none"
+      },
+      "effect": "writes BMC account user-shell setting through salCsBMCAcctUserShell_write",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/f6",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b4c0-0x1b4e4 proves exact length, output pointer, response length, and backend error mapping._F5_F7",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        247
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800f7",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "exactly 1 byte: account/user selector at offset 4"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte: shell value from salCsBMCAcctUserShell_read"
+      },
+      "effect": "none; reads account shell setting",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/f7",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_F8",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        248
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800f8",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/f8",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Read NM performance-control state_F5_F9",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        249
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800f9",
+        "length_check_at_entry": "sub\tr1, r6, #4 (followed by comparison; inspect entry)",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/f9",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_FA",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        250
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800fa",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "unknown",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/fa",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_FC",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        252
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800fc",
+        "length_check_at_entry": "cmp\tr6, #5",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "undetermined from entry block",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/fc",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Delegate manufacturing command_F5_FD",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        253
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800fd",
+        "length_check_at_entry": "cmp\tr6, #6",
+        "payload": "selector-specific; not fully resolved"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "not fully resolved"
+      },
+      "effect": "manufacturing-command side effects depend on inner request",
+      "status": "partial",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/fd",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_0x1b364-0x1b388 proves constant response and shared success wrapper; no selector-specific request body is read._F5_FE",
+      "netfn": 46,
+      "cmd": 245,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        254
+      ],
+      "privilege": 4,
+      "request": {
+        "prefix_hex": "802800fe",
+        "length_check_at_entry": "not established at entry",
+        "payload": "none; minimum total length 4 from shared outer gate"
+      },
+      "response": {
+        "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
+        "body": "one byte: 01"
+      },
+      "effect": "none; returns fixed one-byte value 01",
+      "status": "decoded",
+      "activation": "registered; platform-dependent",
+      "source": "f5-selector-contracts.json#f5/fe",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get blade port name_F8_06",
+      "netfn": 46,
+      "cmd": 248,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        6
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": "6 or 7 by unsigned param_2-6 <= 1",
+        "fields": "byte4 port index, byte5 type (1..4), byte6 optional unresolved"
+      },
+      "response": {
+        "success_total_bytes": "5, or 6+port-name length",
+        "fields": "byte4 length/count, byte5.. port-name bytes and NUL when present"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "blade system",
+      "source": "scci-selector-contracts.json#f8/06",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Blade interface state action_F8_10",
+      "netfn": 46,
+      "cmd": 248,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        16
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": null,
+        "fields": "selector; subsequent fields depend on unresolved indirect jump"
+      },
+      "response": {
+        "success_total_bytes": null,
+        "fields": "indirect jump cases unresolved"
+      },
+      "effect": "unknown; potentially mutating",
+      "status": "partial",
+      "activation": "blade system and DAT_0003da90 != 0",
+      "source": "scci-selector-contracts.json#f8/10",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Set blade interface control_F8_20",
+      "netfn": 46,
+      "cmd": 248,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        32
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 6,
+        "fields": "byte4 bit0 mode, bits1-2 type, bits3-5 slot; byte5 bit7 flag"
+      },
+      "response": {
+        "success_total_bytes": 4,
+        "fields": "no body"
+      },
+      "effect": "mutating",
+      "status": "partial",
+      "activation": "blade system, DAT_0003da90 != 0, InterfaceControl(0x80000002,0x80000002,1) available",
+      "source": "scci-selector-contracts.json#f8/20",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    },
+    {
+      "name": "iRMC_Get blade interface control_F8_21",
+      "netfn": 46,
+      "cmd": 248,
+      "lun": 0,
+      "prefix": [
+        128,
+        40,
+        0,
+        33
+      ],
+      "privilege": 4,
+      "request": {
+        "accepted_total_bytes": null,
+        "minimum_read_bytes": 5,
+        "fields": "byte4 bit0 mode, bits1-2 type, bits3-5 slot"
+      },
+      "response": {
+        "success_total_bytes": "5 on success",
+        "fields": "byte4 flag bit7; local_1c source unresolved"
+      },
+      "effect": "read",
+      "status": "partial",
+      "activation": "blade system, DAT_0003da90 != 0, InterfaceControl available",
+      "source": "scci-selector-contracts.json#f8/21",
+      "runnable": true,
+      "requiresUnsafe": true,
+      "exactSafeLength": null
+    }
+  ]
+}

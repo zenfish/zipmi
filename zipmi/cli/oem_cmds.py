@@ -26,6 +26,7 @@ RELATED  zipmi.scapy_ipmi.oem.{dell,idrac9,supermicro}
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 
@@ -89,6 +90,10 @@ VENDORS: dict[str, dict] = {
     "lenovo": {
         "iana": 2,
         "blurb": "Lenovo IMM/XCC 6.92 — 225 decoded server-side OEM command identities",
+    },
+    "fujitsu": {
+        "iana": 10368,
+        "blurb": "Fujitsu iRMC S6 02.63S — 135 dispatch pairs and 232 selector/group operations",
     },
     # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---
     # All registered via the simple register(vendor, iana, {(netfn,cmd):name})
@@ -178,8 +183,8 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "idrac10":
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
-    if vendor == "lenovo":
-        listing = _vendor_listing("lenovo")
+    if vendor in ("lenovo", "fujitsu"):
+        listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if vendor in ("advantech-asmb787", "supermicro", "supermicro-x11",
                   "supermicro-x14", "megarac", "yafu"):
@@ -945,6 +950,45 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 row["aliases"] = tuple({*row.get("aliases", ()), previous_name})
             out[key] = row
         return _normalize_listing(out, "lenovo")
+    if vendor == "fujitsu":
+        from ..scapy_ipmi.oem.fujitsu import FUJITSU_OPERATIONS, FUJITSU_RECORDS
+        out: dict = {}
+        privs = {2: "User", 3: "Operator", 4: "Admin"}
+        for row in FUJITSU_RECORDS:
+            if row.lun != 0 or row.scope == "MSMM callback":
+                continue
+            out[(row.netfn, row.cmd)] = {
+                "name": row.handler, "priv": privs[row.privilege],
+                "desc": f"iRMC S6 {row.table} dispatch identity",
+                "prefix": None, "request": (
+                    f"table length {row.request_length}" if row.request_length is not None
+                    else "variable; leaf schema required"
+                ),
+                "response": "handler-specific; see iRMC reference",
+                "security": "top-level registration is not a complete wire contract",
+                "activation": row.scope, "confidence": "static table",
+                "lib": f"libipmipdkcmds.so.1.53.20@{row.handler_address:08x}",
+                "request_min": row.request_length, "request_max": row.request_length,
+                "requires_unsafe": True,
+                "runnable": row.netfn not in (0x2C, 0x2E),
+                "missing": False, "live": None,
+            }
+        for op in FUJITSU_OPERATIONS:
+            key = (op.netfn, op.cmd, *op.prefix)
+            out[key] = {
+                "name": op.name, "priv": privs[op.privilege],
+                "desc": op.effect, "prefix": op.prefix,
+                "request": json.dumps(op.request, ensure_ascii=False),
+                "response": json.dumps(op.response, ensure_ascii=False),
+                "security": op.effect, "activation": op.activation,
+                "confidence": op.status, "src": op.source,
+                "request_min": op.exact_safe_length,
+                "request_max": op.exact_safe_length,
+                "requires_unsafe": op.requires_unsafe,
+                "runnable": op.runnable,
+                "missing": not op.runnable, "live": None,
+            }
+        return _normalize_listing(out, "fujitsu")
     raise KeyError(f"unknown vendor: {vendor}")
 
 
@@ -952,7 +996,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
 # drop separators. Lets `GetChassisStatus`, `get-chassis-status`,
 # `Cmd Get Chassis Status`, and `getchassisstatus` all match the same
 # entry.
-_PREFIX_RE = re.compile(r"^(?:idrac6|idrac9|dell|supermicro|lenovo|xcc|imm|cmd|oem|sm)+",
+_PREFIX_RE = re.compile(r"^(?:idrac6|idrac9|dell|supermicro|lenovo|xcc|imm|fujitsu|irmc|cmd|oem|sm)+",
                         re.IGNORECASE)
 
 
@@ -1408,7 +1452,19 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
                 )
                 return 2
 
-    if vendor in ("advantech-asmb787", "idrac10", "lenovo"):
+    if vendor == "fujitsu":
+        if not info.get("runnable", True):
+            _msg.error(
+                f"{info['name']} is a parent dispatch or host-interface-only route; "
+                "no supported LAN execution contract"
+            )
+            return 2
+        exact = info.get("request_min")
+        if exact is not None and len(data_bytes) != exact:
+            _msg.error(f"{info['name']} requires exactly {exact} payload bytes; got {len(data_bytes)}")
+            return 2
+
+    if vendor in ("advantech-asmb787", "idrac10", "lenovo", "fujitsu"):
         if info.get("requires_unsafe") and not getattr(args, "unsafe", False):
             _msg.error(
                 f"{info['name']} is state-changing or has an unproved payload "
@@ -1605,7 +1661,7 @@ def _add_vendor_parser(
     looks up (defaults to parser_name)."""
     vendor_key = vendor_key or parser_name
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
-    if vendor_key in ("advantech-asmb787", "idrac10", "lenovo"):
+    if vendor_key in ("advantech-asmb787", "idrac10", "lenovo", "fujitsu"):
         sp.add_argument(
             "--unsafe", action="store_true",
             help="acknowledge state-changing or schema-unknown named raw execution",
@@ -1641,6 +1697,7 @@ def _add_all_vendor_parsers(parent_sub) -> None:
         "megarac": ["ami"],
         "supermicro-x11": ["supermicro"],  # legacy `oem supermicro` → X11
         "lenovo": ["xcc", "imm"],
+        "fujitsu": ["irmc"],
     }
     for vkey, vinfo in VENDORS.items():
         if vkey in obmc:

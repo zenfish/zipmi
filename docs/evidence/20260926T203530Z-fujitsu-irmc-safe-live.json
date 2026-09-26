@@ -1,0 +1,47 @@
+{
+  "schema": "zbmc.irmc-s6.safe-oem-probes.v1",
+  "generated": "2026-09-26T20:35:36.816322+00:00",
+  "runId": "20260926T200725Z-7ecec0c7-f88e-4945-b3b2-2fe97bcb9e3a",
+  "host": "10.250.0.42",
+  "user": "admin",
+  "grantedPrivilege": 4,
+  "cipherSuite": 17,
+  "results": [
+    {
+      "name": "last-power-on-reason",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "80280015",
+      "completionCode": 0,
+      "response": "8028000100",
+      "elapsedMs": 76
+    },
+    {
+      "name": "next-or-last-power-off-reason",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "80280016",
+      "completionCode": 0,
+      "response": "8028000100",
+      "elapsedMs": 23
+    },
+    {
+      "name": "runtime-power-field",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "80280018",
+      "completionCode": 0,
+      "response": "8028000400000000",
+      "elapsedMs": 68
+    },
+    {
+      "name": "power-off-inhibit-state",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "8028001d",
+      "completionCode": 0,
+      "response": "8028000100",
+      "elapsedMs": 57
+    }
+  ]
+}

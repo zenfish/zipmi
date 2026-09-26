@@ -83,6 +83,7 @@ _VENDOR_ALIAS: dict[str, str] = {
     "ami": "megarac",
     "xcc": "lenovo",
     "imm": "lenovo",
+    "irmc": "fujitsu",
     "advantech": "advantech_asmb787",
     "advantech-asmb787": "advantech_asmb787",
     "asmb787": "advantech_asmb787",

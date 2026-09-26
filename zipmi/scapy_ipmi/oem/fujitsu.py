@@ -7,6 +7,7 @@ contract: selector leaves and rack applicability are tracked separately.
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass
 from importlib.resources import files
 
@@ -25,6 +26,25 @@ class FujitsuRecord:
     request_length: int | None
     handler: str
     handler_address: int
+
+
+@dataclass(frozen=True)
+class FujitsuOperation:
+    name: str
+    netfn: int
+    cmd: int
+    lun: int
+    prefix: bytes
+    privilege: int
+    request: object
+    response: object
+    effect: str
+    status: str
+    activation: str
+    source: str
+    runnable: bool
+    requires_unsafe: bool
+    exact_safe_length: int | None
 
 
 def _load_records() -> tuple[FujitsuRecord, ...]:
@@ -51,12 +71,37 @@ def _load_records() -> tuple[FujitsuRecord, ...]:
 
 
 FUJITSU_RECORDS = _load_records()
+
+
+def _load_operations() -> tuple[FujitsuOperation, ...]:
+    source = files("zipmi").joinpath(
+        "data/sources/fujitsu-irmc-s6-operations.json"
+    )
+    with source.open() as stream:
+        rows = json.load(stream)["operations"]
+    return tuple(FujitsuOperation(
+        name=row["name"], netfn=row["netfn"], cmd=row["cmd"], lun=row["lun"],
+        prefix=bytes(row["prefix"]), privilege=row["privilege"],
+        request=row["request"], response=row["response"], effect=row["effect"],
+        status=row["status"], activation=row["activation"], source=row["source"],
+        runnable=row["runnable"], requires_unsafe=row["requiresUnsafe"],
+        exact_safe_length=row["exactSafeLength"],
+    ) for row in rows)
+
+
+FUJITSU_OPERATIONS = _load_operations()
 FUJITSU_CMD_NAMES = {
     (row.netfn, row.cmd): row.handler
     for row in FUJITSU_RECORDS
     if row.lun == 0 and row.scope != "MSMM callback"
 }
-register("fujitsu", 10368, FUJITSU_CMD_NAMES)
+FUJITSU_OPERATION_NAMES = {
+    (op.netfn, op.cmd, *op.prefix): op.name for op in FUJITSU_OPERATIONS
+}
+register("fujitsu", 10368, FUJITSU_CMD_NAMES | FUJITSU_OPERATION_NAMES)
 
 
-__all__ = ["FujitsuRecord", "FUJITSU_RECORDS", "FUJITSU_CMD_NAMES"]
+__all__ = [
+    "FujitsuRecord", "FujitsuOperation", "FUJITSU_RECORDS", "FUJITSU_OPERATIONS",
+    "FUJITSU_CMD_NAMES", "FUJITSU_OPERATION_NAMES",
+]
