@@ -20,6 +20,7 @@ same as the ASMB787 column just added.
 
 ## Review — ASMB-787 OEM completion (2026-09-25)
 
+- Fresh post-reboot live validation exercised all 32 read-only codecs with safely synthesized requests: 26 CC00 reads and 6 expected target rejections, with no transport failures. Exact request bytes and observed CC/data are embedded in the contract source; one earlier redirected-media read brings total live-backed operations to 33.
 - Exact-target core decompilation adds 210 selector operations across the remaining 79 pairs. The static denominator is now closed: all 187/187 dispatched commands have exact handler contracts, totaling 462 operations with 81 unambiguous codecs. `AMIGetFwVersion` preserves separate dispatcher and delegated-implementation hashes.
 - Exact-target Plugin-B decompilation adds 132 selector operations across its complete 26-pair assignment, including password-key rotation, virtual-device power mode, and feature-gated PLDM BIOS operations. The generated catalog is now 252 operations / 108 pairs / 80 unambiguous codecs; Plugin-B safety split is 72 safe, 35 mutating, 22 security-sensitive, and 3 destructive.
 - Exact-target Plugin-A decompilation now adds 52 operation contracts across 52 previously uncovered dispatch pairs; the generated catalog is at 120 operations / 82 pairs with 70 structured fixed-width codecs. Focused generator and unit proof: 22 passed.

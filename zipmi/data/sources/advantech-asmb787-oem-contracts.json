@@ -90,6 +90,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "3002",
         "response_data_hex": "00"
       }
     },
@@ -172,7 +173,13 @@
         "location": "libipmipdkcmds.so.6.0.0:LockInputs@1d14",
         "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "f2",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "ControlSysErrLED.action_0",
@@ -253,7 +260,13 @@
         "location": "libipmipdkcmds.so.6.0.0:ControlSysErrLED@1d9c",
         "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "02",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "GetPlatformID",
@@ -283,6 +296,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "",
         "response_data_hex": "00"
       }
     },
@@ -401,6 +415,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "00",
         "response_data_hex": "00"
       }
     },
@@ -429,7 +444,13 @@
         "location": "libipmipdkcmds.so.6.0.0:PDK_SDRGetAnalogFlags@1f9c",
         "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
       },
-      "confidence": "high; firmware bug"
+      "confidence": "high; firmware bug",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "cc",
+        "request_data_hex": "00",
+        "response_data_hex": ""
+      }
     },
     {
       "id": "AMIGetRMediaCfg.retry_count",
@@ -463,6 +484,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "00",
         "response_data_hex": "03"
       }
     },
@@ -498,6 +520,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "01",
         "response_data_hex": "0f"
       }
     },
@@ -706,6 +729,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "",
         "response_data_hex": "00010000000005000001"
       }
     },
@@ -766,6 +790,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "",
         "response_data_hex": "00000000000000000000"
       }
     },
@@ -825,6 +850,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "",
         "response_data_hex": "000000000000000000000000000000"
       }
     },
@@ -969,6 +995,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "03",
         "response_data_hex": "00"
       }
     },
@@ -1001,7 +1028,8 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
-        "response_data_hex": "070707"
+        "request_data_hex": "010000",
+        "response_data_hex": "000000"
       }
     },
     {
@@ -1033,6 +1061,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "01",
         "response_data_hex": "01"
       }
     },
@@ -1065,6 +1094,7 @@
       "live_evidence": {
         "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
         "completion_code": "00",
+        "request_data_hex": "0f",
         "response_data_hex": "01"
       }
     },
@@ -1911,7 +1941,13 @@
         "location": "libipmiamioemsshconf.so.13.0.0:AMIGetSSHConf@11024",
         "module_sha256": "39237c9123274fb25d1f7ced15722fb674cf65e328fd1f15bb392d3183299ff2"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "00",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "AMIGetSSHConf.password_auth",
@@ -1940,7 +1976,13 @@
         "location": "libipmiamioemsshconf.so.13.0.0:AMIGetSSHConf@11024",
         "module_sha256": "39237c9123274fb25d1f7ced15722fb674cf65e328fd1f15bb392d3183299ff2"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "01",
+        "response_data_hex": "01"
+      }
     },
     {
       "id": "AMISetSSHConf.ssh_enabled",
@@ -2191,7 +2233,13 @@
         "location": "libipmiamioemprsvconf.so.13.0.0:AMIGetPreserveConfStatus@000108d4; sibling AMI header corroborated against exact handler",
         "module_sha256": "82657f8c973c35832722a5a7dac246bedfb7ccb6708fab2dfb1837fbfe5761a2"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "00",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "AMIStartTFTPFwUpdate",
@@ -2249,7 +2297,13 @@
         "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMIGetTftpProgressStatus@00010fb8; sibling AMI header corroborated against exact handler",
         "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "0000"
+      }
     },
     {
       "id": "AMISetFWCfg",
@@ -2365,7 +2419,13 @@
         "location": "libipmiamioemfwupdateprctl.so.13.0.0:AMIGetFWProtocol@00011458; sibling AMI header corroborated against exact handler",
         "module_sha256": "4971282246494fab26245512c0e9497da5b3de0bdc1b78b7f90d33581e929bb6"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "AMIGetRISConf",
@@ -2531,7 +2591,13 @@
         "location": "libipmiamioemctldbg.so.13.0.0:AMIGetDebugMsgStatus@0001077c; sibling AMI header corroborated against exact handler",
         "module_sha256": "805d81c7f81a3fb82795b3a951c1d99975af0b1c2b3e51b4532b71260336abf8"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "AMISetExtendedPrivilege",
@@ -2614,7 +2680,13 @@
         "location": "libipmiamioemhostlock.so.13.0.0:AMIGetHostLockFeatureStatus@0001080c; sibling AMI header corroborated against exact handler",
         "module_sha256": "fdaccdd0e34b6f1b7fea5418b1da218eb027ce5ada06cf0add9a6ae68bfeeb55"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "01"
+      }
     },
     {
       "id": "AMISetHostLockFeatureStatus",
@@ -2701,7 +2773,13 @@
         "location": "libipmiamioemprsvconf.so.13.0.0:AMIGetAllPreserveConfStatus@00010acc; sibling AMI header corroborated against exact handler",
         "module_sha256": "82657f8c973c35832722a5a7dac246bedfb7ccb6708fab2dfb1837fbfe5761a2"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "0000007f57"
+      }
     },
     {
       "id": "AMIGetHostAutoLockStatus",
@@ -2730,7 +2808,13 @@
         "location": "libipmiamioemautohostlock.so.13.0.0:AMIGetHostAutoLockStatus@00010814; sibling AMI header corroborated against exact handler",
         "module_sha256": "3db0eeb58554bcd8cf7ca4d36508b881b9e46d0ed7f4b18ef301fbe8461ead24"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "AMISetHostAutoLockStatus",
@@ -2929,7 +3013,13 @@
         "location": "libipmiamioemmedia.so.13.4.0:AMIGetVmediaCfg@00011b68; sibling AMI header corroborated against exact handler",
         "module_sha256": "0431f340be54deb0db97cda128a083e2d74749b5dd49d1fd6773e95d98d0274c"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "00",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "AMISetVmediaCfg",
@@ -3192,7 +3282,13 @@
         "location": "libipmiamioembiosremotecontrol.so.13.0.0:AMIGetBiosFlag@00011220; sibling AMI header corroborated against exact handler",
         "module_sha256": "8690123032e5928a21e5983dc72b64c41579a8b5fa274366f8fe4acaaf0e99ce"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "ff",
+        "request_data_hex": "",
+        "response_data_hex": ""
+      }
     },
     {
       "id": "AMIMediaRedirectionStartStop",
@@ -3548,7 +3644,13 @@
         "location": "libipmiamioemsmashlitecorecmds.so.13.0.0:GetActiveSessionCount@00010850; sibling AMI header corroborated against exact handler",
         "module_sha256": "185edab3b605d061132b61a234916e658ab8c38eeb60bf91b2aa9779f3362bac"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "0000"
+      }
     },
     {
       "id": "SetActiveSessionCount",
@@ -3601,7 +3703,13 @@
         "location": "libipmiamioemsmashlitecorecmds.so.13.0.0:GetSysHealthFirmwareANDPowerCycle@00010a2c; sibling AMI header corroborated against exact handler",
         "module_sha256": "185edab3b605d061132b61a234916e658ab8c38eeb60bf91b2aa9779f3362bac"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "000256657273696f6e312e3000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      }
     },
     {
       "id": "AMIGetServiceConf",
@@ -3630,7 +3738,13 @@
         "location": "libipmiamioemserviceconf.so.13.1.0:AMIGetServiceConf@1828",
         "module_sha256": "a62799d9a4788c8b4c60e5d7fea057ff44ba6a63bda26cfb50b313928dcc8af7"
       },
-      "confidence": "high; service-ID names remain platform table data"
+      "confidence": "high; service-ID names remain platform table data",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "cc",
+        "request_data_hex": "00000000",
+        "response_data_hex": ""
+      }
     },
     {
       "id": "AMISetServiceConf",
@@ -3925,7 +4039,13 @@
         "location": "libipmiamioemsnmp.so.13.0.0:AMIGetSNMPConf@1014",
         "module_sha256": "6f7f217e35ea69304decc2c874fd970ea0d01e79a05aff480e386a6b8fce600b"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "cc",
+        "request_data_hex": "00",
+        "response_data_hex": ""
+      }
     },
     {
       "id": "AMISetSNMPConf",
@@ -4507,7 +4627,13 @@
         "location": "libipmiamioemsingleport.so.13.0.0:AMIGetRunTimeSinglePortStatus@06bc",
         "module_sha256": "0ea161e64902751a8432a21de8695c279ef1d58b34e83d88338664bfdceb6d1a"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "c1",
+        "request_data_hex": "",
+        "response_data_hex": ""
+      }
     },
     {
       "id": "AMISetRunTimeSinglePortStatus",
@@ -8225,7 +8351,13 @@
         "location": "libipmiamioempwrcons.so.13.1.0:AMIVirtualDeviceGetStatus@0f58",
         "module_sha256": "89a3ef496529ab0c9fb112edab89bc74b8e5c3a997ff24058834ce8127c9ed26"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "request_data_hex": "",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "AMIPLDMBIOSMsg.get_bios_table",

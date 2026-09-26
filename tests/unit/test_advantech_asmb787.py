@@ -247,6 +247,11 @@ def test_exact_operation_contracts_and_codecs_are_generated():
     fw_version = next(row for row in ASMB787_OPERATIONS if row["id"] == "AMIGetFwVersion")
     assert fw_version["evidence"]["module_sha256"].startswith("1bee4dbf")
     assert fw_version["evidence"]["dispatch_module_sha256"].startswith("23e5b17b")
+    live_safe_codecs = [row for row in ASMB787_OPERATIONS
+                        if row["effect"] == "safe" and row["codec_state"] == "verified"]
+    assert len(live_safe_codecs) == 32
+    assert all(row.get("live_evidence", {}).get("request_data_hex") is not None
+               for row in live_safe_codecs)
 
     req_type, resp_type = ASMB787_PAYLOADS[(0x32, 0x18, 0x00)]
     assert bytes(req_type()) == b"\x00"
