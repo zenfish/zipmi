@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-oem-dispatch.csv"
 ACTIVATION_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-module-activation.csv"
 CONTRACTS_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-oem-contracts.json"
+HEADER_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-header-contracts.csv"
 MODULE = ROOT / "zipmi/scapy_ipmi/oem/advantech_asmb787_generated.py"
 DOC = ROOT / "docs/advantech_ASMB787-command-reference.html"
 DOC_MD = ROOT / "docs/advantech_ASMB787-command-reference.md"
@@ -277,6 +278,27 @@ def apply_contracts(rows: list[dict[str, str]]) -> list[dict]:
     return operations
 
 
+def validate_header_context(rows: list[dict[str, str]]) -> None:
+    with HEADER_SOURCE.open(newline="") as stream:
+        headers = list(csv.DictReader(stream))
+    row_keys = [(row["netfn"], row["cmd"], row["handler"]) for row in rows]
+    header_keys = [(row["netfn"], row["cmd"], row["handler"]) for row in headers]
+    if header_keys != row_keys:
+        raise SystemExit("ASMB sibling-header map does not match dispatch ordering/identity")
+    coverage = {"full": 0, "partial": 0, "none": 0}
+    for row in headers:
+        if not row["unresolved"]:
+            coverage["full"] += 1
+        elif not row["request_type"] and not row["response_type"]:
+            coverage["none"] += 1
+        else:
+            coverage["partial"] += 1
+        if row["source_artifact_uuid"] != "a726253a-edfa-5f2e-baa0-4c1d31af48ab":
+            raise SystemExit("unexpected ASMB sibling-header artifact UUID")
+    if coverage != {"full": 153, "partial": 6, "none": 28}:
+        raise SystemExit(f"unexpected ASMB sibling-header coverage: {coverage}")
+
+
 def source_text(rows: list[dict[str, str]]) -> str:
     fields = [k for k in rows[0] if k not in SEMANTIC_FIELDS] + list(SEMANTIC_FIELDS)
     stream = io.StringIO(newline="")
@@ -435,6 +457,7 @@ def main() -> int:
     else:
         rows = read_rows(SOURCE)
     rows = apply_activation(rows)
+    validate_header_context(rows)
     operations = apply_contracts(rows)
     ok = emit(SOURCE, source_text(rows), args.check)
     ok &= emit(MODULE, module_text(rows, operations), args.check)

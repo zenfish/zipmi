@@ -34,6 +34,25 @@ def test_generated_catalog_exactly_matches_canonical_csv():
     assert ASMB787_COMMANDS == canonical
 
 
+def test_sibling_header_context_preserves_all_dispatch_rows():
+    source = (Path(__file__).parents[2] / "zipmi/data/sources/"
+              "advantech-asmb787-header-contracts.csv")
+    with source.open(newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert len(rows) == 187
+    coverage = {
+        "full": sum(not row["unresolved"] for row in rows),
+        "partial": sum(bool(row["unresolved"])
+                       and bool(row["request_type"] or row["response_type"])
+                       for row in rows),
+        "none": sum(not row["request_type"] and not row["response_type"]
+                    for row in rows),
+    }
+    assert coverage == {"full": 153, "partial": 6, "none": 28}
+    assert {row["source_artifact_uuid"] for row in rows} == {
+        "a726253a-edfa-5f2e-baa0-4c1d31af48ab"}
+
+
 def test_generated_markdown_contains_every_canonical_row():
     reference = (Path(__file__).parents[2] / "docs/"
                  "advantech_ASMB787-command-reference.md").read_text()
