@@ -4,10 +4,10 @@ from __future__ import annotations
 
 def test_lenovo_catalog_preserves_both_dispatch_layers():
     from zipmi.scapy_ipmi.oem.lenovo import LENOVO_COMMANDS
-    assert len(LENOVO_COMMANDS) == 222
+    assert len(LENOVO_COMMANDS) == 225
     assert sum(len(c.registrations) for c in LENOVO_COMMANDS) == 192
     assert sum(c.dispatch.startswith("legacy") for c in LENOVO_COMMANDS) == 56
-    assert len({(c.netfn, c.cmd, c.prefix) for c in LENOVO_COMMANDS}) == 222
+    assert len({(c.netfn, c.cmd, c.prefix) for c in LENOVO_COMMANDS}) == 225
 
 
 def test_lenovo_parser_cast_recoveries_are_present():
@@ -49,7 +49,7 @@ def test_lenovo_vendor_load_and_listing():
     from zipmi.scapy_ipmi.oem._registry import ENTERPRISE_IDS
     listing = _vendor_listing("lenovo")
     assert ENTERPRISE_IDS[2] in ("lenovo", "openpower")  # Shared IBM PEN.
-    assert len(listing) == 298
+    assert len(listing) == 302
     assert listing[(0x2E, 0x80, 0x66, 0x4A, 0x00)]["prefix"] == bytes.fromhex("66 4a 00")
 
 
@@ -71,7 +71,7 @@ def test_lenovo_official_contracts_add_missing_native_nm_and_codecs():
     from zipmi.scapy_ipmi.oem.lenovo import LENOVO_CONTRACTS, LENOVO_PAYLOADS
 
     zipmi.load_vendor("lenovo")
-    assert len(LENOVO_CONTRACTS) == 99
+    assert len(LENOVO_CONTRACTS) == 102
     assert any((c.netfn, c.cmd) == (0x3A, 0xC7) for c in LENOVO_CONTRACTS)
     assert (0x3A, 0x0D) in LENOVO_PAYLOADS
     request_type, response_type = lookup_payload("lenovo", 0x3A, 0x0D, b"")
@@ -225,7 +225,7 @@ def test_lenovo_second_tranche_and_live_evidence_are_exposed():
     from zipmi.cli.oem_cmds import _vendor_listing_data
     from zipmi.scapy_ipmi.oem.lenovo import LENOVO_COMMANDS, lookup
 
-    assert sum(len(c.operations) for c in LENOVO_COMMANDS) == 198
+    assert sum(len(c.operations) for c in LENOVO_COMMANDS) == 201
     assert sum(bool(c.registrations) for c in LENOVO_COMMANDS) == 166
     assert all(c.operations for c in LENOVO_COMMANDS if c.registrations)
     assert len(lookup(0x3A, 0xC4).operations) == 8

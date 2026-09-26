@@ -5,10 +5,11 @@
   "deviceManufacturerIanaEvidence": "live Get Device ID from Debby XCC 6.92, 2026-09-10",
   "lenovoGroupExtensionIana": 19046,
   "counts": {
-    "commands": 222,
+    "commands": 225,
     "cppRegistrations": 192,
     "legacyAdmissions": 175,
-    "decodedOperations": 198
+    "coreStaticRegistrations": 134,
+    "decodedOperations": 201
   },
   "commands": [
     {
@@ -10097,6 +10098,75 @@
           "source": "libmod_power.so:set_baidu_power_supply_AS_mode@00050e14 and platform variants"
         }
       ]
+    },
+    {
+      "name": "XCCCore_30_E2",
+      "netfn": 48,
+      "cmd": 226,
+      "prefix": [],
+      "iana": null,
+      "runnable": true,
+      "dispatch": "core_static_table",
+      "privilege": 4,
+      "requestLengthRules": [{"length_kind": "exact", "request_length": 4}],
+      "handler": "CmdOEMGetReading",
+      "registrations": [],
+      "purpose": "Node Manager power telemetry",
+      "request": "Exactly 4 bytes: operation/selector, selector 2, reserved 00 00",
+      "response": "4 bytes: request byte 0 echo, reserved/indeterminate, little-endian reading",
+      "sideEffect": "likely-read-only",
+      "remoteRestriction": "unknown",
+      "evidenceState": "decoded",
+      "confidence": "high",
+      "source": "XCC 6.92 libipmi consolidated request table",
+      "notes": "Row 0xc9ef8: e2 30 04 04; relocation to CmdOEMGetReading@0x83e4c",
+      "operations": [{"selector":"high nibble 0,1,2","operation":"Node Manager reading","request":"4 bytes; high nibble selects hook op 1/2/3, low nibble and byte 1 are selectors for op 3, bytes 2..3 must be 00 00","response":"4 bytes: request byte 0 echo, reserved/indeterminate byte, little-endian u16 reading","completionCodes":"c7 length; cc selector/reserved; d5 NMPT disabled or hook unavailable/failure","effect":"read","evidence":"Decoded","source":"libipmi.so:CmdOEMGetReading@00083e4c"}]
+    },
+    {
+      "name": "XCCCore_30_E3",
+      "netfn": 48,
+      "cmd": 227,
+      "prefix": [],
+      "iana": null,
+      "runnable": true,
+      "dispatch": "core_static_table",
+      "privilege": 4,
+      "requestLengthRules": [{"length_kind": "exact", "request_length": 1}],
+      "handler": "CmdOEMMEPowerStateChange",
+      "registrations": [],
+      "purpose": "Node Manager pass-through enable control",
+      "request": "One control byte; 00 enables and 02 disables NMPT",
+      "response": "Empty",
+      "sideEffect": "state-changing-or-control",
+      "remoteRestriction": "unknown",
+      "evidenceState": "decoded",
+      "confidence": "high",
+      "source": "XCC 6.92 libipmi consolidated request table",
+      "notes": "Row 0xc9f00: e3 30 04 01; relocation to CmdOEMMEPowerStateChange@0x83fbc",
+      "operations": [{"selector":"00,02","operation":"NMPT enable state","request":"1 byte: 00 enable or 02 disable","response":"empty","completionCodes":"c7 length; cc invalid value","effect":"changes volatile Node Manager pass-through enable state","evidence":"Decoded","source":"libipmi.so:CmdOEMMEPowerStateChange@00083fbc"}]
+    },
+    {
+      "name": "XCCCore_3A_C7",
+      "netfn": 58,
+      "cmd": 199,
+      "prefix": [],
+      "iana": null,
+      "runnable": true,
+      "dispatch": "core_static_table",
+      "privilege": 4,
+      "requestLengthRules": [{"length_kind": "minimum", "request_length": 0}],
+      "handler": "CmdOEMNativeNMInterfaceSwitch",
+      "registrations": [],
+      "purpose": "Native Node Manager IPMI bridge switch",
+      "request": "Empty reads; one byte 00/01 disables/enables",
+      "response": "Get returns one state byte; set returns empty",
+      "sideEffect": "state-changing-or-control",
+      "remoteRestriction": "remote-supported",
+      "evidenceState": "decoded",
+      "confidence": "high",
+      "source": "XCC 6.92 libipmi consolidated request table and Lenovo public documentation",
+      "notes": "Row 0xc9f08: c7 3a 04 80; relocation to CmdOEMNativeNMInterfaceSwitch@0x84054",
+      "operations": [{"selector":"empty,00,01","operation":"native Node Manager bridge get/set","request":"empty get; 00 disable; 01 enable","response":"get 1 byte; set empty","completionCodes":"c1 length; cc value","effect":"read or command-routing exposure change","evidence":"Decoded","source":"libipmi.so:CmdOEMNativeNMInterfaceSwitch@00084054"}]
     }
   ]
 }
