@@ -24,10 +24,17 @@ same as the ASMB787 column just added.
 
 - Added a generated top summary matching the Lenovo/Fujitsu references: 187 dispatch pairs,
   462 handler-proven operations, 81 fixed-width codecs, 33 live-backed reads, and the
-  223-safe/239-state-changing-or-sensitive split.
-- Added explicit coverage and safety boundaries so closed dispatch coverage is not confused
-  with complete structured-codec coverage or runtime plugin reachability.
-- Generator sync and focused ASMB/Fujitsu tests pass; the complete suite passes 2,358 tests.
+  219-read-only/243-mutating-or-sensitive split.
+- Reworked the initial summary after review: all 462 operations now carry visible safety tags,
+  searchable plain-language purpose text, expandable byte-offset field maps, privilege,
+  activation, completion codes, codec state, and evidence. Variable/union layouts retain their
+  exact tokens and explicitly mark unresolved widths.
+- Added combined text/safety filtering for operations, text filtering for the top-level dispatch,
+  live result counts, and complete expandable indexes of the 157 mutating, 55 security-sensitive,
+  and 31 destructive operations. Arbitrary flash/memory reads and credential-bearing reads were
+  separated from genuinely destructive commands and remain `--unsafe`-gated. Closed dispatch coverage is no longer presented as complete
+  structured-codec coverage or runtime plugin reachability.
+- Generator sync and focused ASMB tests pass; full-suite proof is recorded with the final commit.
 
 ## Review — Fujitsu decode follow-up and zipmi 0.6.2 (2026-09-26)
 
@@ -37,6 +44,15 @@ same as the ASMB787 column just added.
   the packaged source hashes and linked both from zipmi's reference.
 - Built and installed the 0.6.2 wheel in an isolated environment; metadata reported 0.6.2 and
   the installed catalog contained 128 top-level names, 232 operations, and all seven source pins.
+
+## Review — Advantech reference usability and safety correction (2026-09-26)
+
+- Version 0.6.3 corrects the operation taxonomy and named-command gates uncovered while making
+  the generated reference inspectable. Credential-bearing reads now require `--unsafe`; arbitrary
+  flash/memory reads remain gated but are no longer mislabeled destructive.
+- The generated HTML exposes exact high-impact identities, readable purposes, byte-level fields,
+  per-operation and per-command safety tags, combined text/safety filters, completion codes,
+  activation, codec state, evidence, and live status.
 
 - Release version advanced to 0.3.4 after completing the 187/187 ASMB-787 operation surface and live read-only proof.
 - Fresh post-reboot live validation exercised all 32 read-only codecs with safely synthesized requests: 26 CC00 reads and 6 expected target rejections, with no transport failures. Exact request bytes and observed CC/data are embedded in the contract source; one earlier redirected-media read brings total live-backed operations to 33.

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+from collections import Counter
 from contextlib import contextmanager
+from html.parser import HTMLParser
 from pathlib import Path
 
 import pytest
@@ -71,7 +73,50 @@ def test_generated_html_contains_every_exact_operation():
     assert "462</strong><div>handler-proven operations" in reference
     assert "381 remain raw-exact" in reference
     assert "33</strong><div>live-backed operations" in reference
+    assert "31 destructive operations" in reference
+    assert "55 security-sensitive operations" in reference
+    assert "157 mutates operations" in reference
+    assert 'id="operation-filter"' in reference
+    assert 'id="effect-filter"' in reference
+    assert 'id="dispatch-filter"' in reference
+    assert 'id="dispatch-effect-filter"' in reference
+    assert "byte 0</code> · <code>mode</code>: u8" in reference
+    assert "<strong>Does:</strong> Writes ptpd configuration" in reference
+    assert "Queries AMI YAFU Get Flash Info; response layout:" in reference
     assert "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2" in reference
+
+    class TableRows(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.section = None
+            self.current = None
+            self.rows = {"operation-rows": [], "dispatch-rows": []}
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if tag == "tbody" and attrs.get("id") in self.rows:
+                self.section = attrs["id"]
+            elif self.section and tag == "tr":
+                self.current = {"cells": 0, **attrs}
+            elif self.current is not None and tag in {"td", "th"}:
+                self.current["cells"] += 1
+
+        def handle_endtag(self, tag):
+            if tag == "tr" and self.current is not None:
+                self.rows[self.section].append(self.current)
+                self.current = None
+            elif tag == "tbody":
+                self.section = None
+
+    parser = TableRows()
+    parser.feed(reference)
+    operations = parser.rows["operation-rows"]
+    dispatch = parser.rows["dispatch-rows"]
+    assert len(operations) == 462 and {row["cells"] for row in operations} == {6}
+    assert Counter(row["data-effect"] for row in operations) == {
+        "safe": 219, "mutates": 157, "security-sensitive": 55, "destructive": 31}
+    assert len(dispatch) == 187 and {row["cells"] for row in dispatch} == {9}
+    assert all(row.get("data-search") and row.get("data-effect") for row in dispatch)
 
 
 def test_corrected_cmd_handler_layout_values():
@@ -255,6 +300,18 @@ def test_exact_operation_contracts_and_codecs_are_generated():
     assert len(live_safe_codecs) == 32
     assert all(row.get("live_evidence", {}).get("request_data_hex") is not None
                for row in live_safe_codecs)
+    by_id = {row["id"]: row for row in ASMB787_OPERATIONS}
+    assert all(by_id[name]["effect"] == "security-sensitive" for name in (
+        "AMIYAFUReadFlash", "AMIYAFUVerifyFlash", "AMIYAFUReadMemory",
+        "AMIYAFUCompareMemory", "AMIGetRadiusConf.secret",
+        "GetSMTPConfigParams.password", "GetSMTPConfigParams.password2",
+        "AMIGetSSLCertStatus.private_key_info",
+    ))
+    assert "reads arbitrary BMC memory" in by_id["AMIYAFUReadMemory"]["side_effects"]
+    assert "RADIUS shared secret" in by_id["AMIGetRadiusConf.secret"]["side_effects"]
+    assert ASMB787_COMMANDS[(0x32, 0x22)]["safety_tier"] == "security-sensitive"
+    assert ASMB787_COMMANDS[(0x32, 0x79)]["safety_tier"] == "security-sensitive"
+    assert ASMB787_COMMANDS[(0x32, 0xC3)]["safety_tier"] == "security-sensitive"
 
     req_type, resp_type = ASMB787_PAYLOADS[(0x32, 0x18, 0x00)]
     assert bytes(req_type()) == b"\x00"

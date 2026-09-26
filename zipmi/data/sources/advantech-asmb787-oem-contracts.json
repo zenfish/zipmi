@@ -5371,8 +5371,8 @@
         "cc",
         "ff"
       ],
-      "effect": "safe",
-      "side_effects": "reads RADIUS secret",
+      "effect": "security-sensitive",
+      "side_effects": "returns the configured 32-byte RADIUS shared secret",
       "evidence": {
         "location": "libipmiamioemradius.so.13.1.0:AMIGetRadiusConf@0a48",
         "module_sha256": "dc867659c98c2b1cd25be08e0468751266501f737565f1c7a156a65736344155"
@@ -8753,8 +8753,8 @@
       "completion_codes": [
         "00"
       ],
-      "effect": "destructive",
-      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "effect": "security-sensitive",
+      "side_effects": "reads arbitrary flash bytes; dispatcher privilege=Administrator",
       "evidence": {
         "location": "libipmimsghndlr.so.13.22.0:AMIYAFUReadFlash@0x32008; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
         "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
@@ -8885,8 +8885,8 @@
         "00",
         "17"
       ],
-      "effect": "destructive",
-      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "effect": "security-sensitive",
+      "side_effects": "compares memory against flash and returns the first mismatch; dispatcher privilege=Administrator",
       "evidence": {
         "location": "libipmimsghndlr.so.13.22.0:AMIYAFUVerifyFlash@0x34130; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
         "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
@@ -8963,8 +8963,8 @@
       "completion_codes": [
         "00"
       ],
-      "effect": "destructive",
-      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "effect": "security-sensitive",
+      "side_effects": "reads arbitrary BMC memory bytes; dispatcher privilege=Administrator",
       "evidence": {
         "location": "libipmimsghndlr.so.13.22.0:AMIYAFUReadMemory@0x349b4; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
         "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
@@ -9041,8 +9041,8 @@
       "completion_codes": [
         "00"
       ],
-      "effect": "destructive",
-      "side_effects": "flash/memory/boot mutation; dispatcher privilege=Administrator",
+      "effect": "security-sensitive",
+      "side_effects": "compares two BMC memory ranges and returns the first mismatch; dispatcher privilege=Administrator",
       "evidence": {
         "location": "libipmimsghndlr.so.13.22.0:AMIYAFUCompareMemory@0x35258; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
         "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
@@ -11899,8 +11899,8 @@
         "cc",
         "ff"
       ],
-      "effect": "safe",
-      "side_effects": "none; dispatcher privilege=User",
+      "effect": "security-sensitive",
+      "side_effects": "returns the primary SMTP credential block; dispatcher privilege=User",
       "evidence": {
         "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
         "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
@@ -12263,8 +12263,8 @@
         "cc",
         "ff"
       ],
-      "effect": "safe",
-      "side_effects": "none; dispatcher privilege=User",
+      "effect": "security-sensitive",
+      "side_effects": "returns the secondary SMTP credential block; dispatcher privilege=User",
       "evidence": {
         "location": "libipmimsghndlr.so.13.22.0:GetSMTPConfigParams@0x39c8c; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
         "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
@@ -14059,8 +14059,8 @@
         "80",
         "ff"
       ],
-      "effect": "safe",
-      "side_effects": "none; dispatcher privilege=User",
+      "effect": "security-sensitive",
+      "side_effects": "returns selector-specific private-key status information; dispatcher privilege=User",
       "evidence": {
         "location": "libipmimsghndlr.so.13.22.0:AMIGetSSLCertStatus@0x42508; exact Ghidra decompile; ASUS ipmi_dev-3.177.0 headers",
         "module_sha256": "23e5b17be7125d100db9effea1772a57ee8ecd45da0569a5a331b8eb8d627539"
