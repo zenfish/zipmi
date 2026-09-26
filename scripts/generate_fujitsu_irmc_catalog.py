@@ -35,6 +35,7 @@ def build(source: Path) -> dict:
         "f1": evidence / "f1-selector-contracts.json",
         "f5": evidence / "f5-selector-contracts.json",
         "scci": evidence / "scci-selector-contracts.json",
+        "c0d0": evidence / "c0d0-handler-audit.json",
         "standard": evidence / "standard-overrides.json",
     }
     data = {key: load(path) for key, path in files.items()}
@@ -96,11 +97,29 @@ def build(source: Path) -> dict:
     assert len(operations) == 232
     keys = {(op["netfn"], op["cmd"], *op["prefix"]) for op in operations}
     assert len(keys) == len(operations)
+    top_level = []
+    for origin, records in (("standard", data["standard"]["records"]),
+                            ("c0d0", data["c0d0"]["handlers"])):
+        for row in records:
+            top_level.append({
+                "netfn": int(row["netfn"], 16),
+                "cmd": int(row.get("cmd", row.get("command")), 16),
+                "lun": row.get("lun", 0),
+                "request": row.get("request") or row.get("request_length"),
+                "response": row.get("response"),
+                "effect": row.get("effect") or row.get("side_effect"),
+                "status": row.get("contractStatus") or row.get("certainty"),
+                "activation": row.get("activation"),
+                "source": f"{files[origin].name}#{row['netfn']}/{row.get('cmd', row.get('command'))}",
+            })
+    assert len(top_level) == 128
+    assert len({(r["netfn"], r["cmd"], r["lun"]) for r in top_level}) == 128
     return {
         "target": "PRIMERGY RX2540 M7 iRMC S6 02.63S / SDR 03.67",
         "librarySha256": "35839f7ab40993898666425d50e18654d68791c7dfe3bb5a3c3496e4daa23804",
         "tableSha256": digest(evidence / "irmc-s6-command-tables.tsv"),
         "sourceSha256": {path.name: digest(path) for path in files.values()},
+        "topLevel": sorted(top_level, key=lambda row: (row["netfn"], row["cmd"], row["lun"])),
         "operations": sorted(operations, key=lambda op: (op["netfn"], op["cmd"], op["prefix"])),
     }
 

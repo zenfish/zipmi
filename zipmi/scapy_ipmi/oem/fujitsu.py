@@ -73,12 +73,13 @@ def _load_records() -> tuple[FujitsuRecord, ...]:
 FUJITSU_RECORDS = _load_records()
 
 
+_source = files("zipmi").joinpath("data/sources/fujitsu-irmc-s6-operations.json")
+with _source.open() as _stream:
+    _catalog = json.load(_stream)
+
+
 def _load_operations() -> tuple[FujitsuOperation, ...]:
-    source = files("zipmi").joinpath(
-        "data/sources/fujitsu-irmc-s6-operations.json"
-    )
-    with source.open() as stream:
-        rows = json.load(stream)["operations"]
+    rows = _catalog["operations"]
     return tuple(FujitsuOperation(
         name=row["name"], netfn=row["netfn"], cmd=row["cmd"], lun=row["lun"],
         prefix=bytes(row["prefix"]), privilege=row["privilege"],
@@ -90,6 +91,9 @@ def _load_operations() -> tuple[FujitsuOperation, ...]:
 
 
 FUJITSU_OPERATIONS = _load_operations()
+FUJITSU_TOP_LEVEL = {
+    (row["netfn"], row["cmd"], row["lun"]): row for row in _catalog["topLevel"]
+}
 FUJITSU_CMD_NAMES = {
     (row.netfn, row.cmd): row.handler
     for row in FUJITSU_RECORDS
@@ -133,6 +137,6 @@ register("fujitsu", 10368, FUJITSU_CMD_NAMES | FUJITSU_OPERATION_NAMES,
 
 __all__ = [
     "FujitsuRecord", "FujitsuOperation", "FUJITSU_RECORDS", "FUJITSU_OPERATIONS",
-    "FUJITSU_CMD_NAMES", "FUJITSU_OPERATION_NAMES",
+    "FUJITSU_CMD_NAMES", "FUJITSU_OPERATION_NAMES", "FUJITSU_TOP_LEVEL",
     "FUJITSU_SELECTOR_PAYLOADS",
 ]

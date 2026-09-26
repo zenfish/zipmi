@@ -3,11 +3,1422 @@
   "librarySha256": "35839f7ab40993898666425d50e18654d68791c7dfe3bb5a3c3496e4daa23804",
   "tableSha256": "6c25538d508e398135855d59550148b3fd93cdcc045bc9556e4f79c335f72dfa",
   "sourceSha256": {
-    "f1-selector-contracts.json": "d7279c6cba6d2811987a701eb8f57ae86d209dd25c5b984814c581f0fbfa50e0",
-    "f5-selector-contracts.json": "94a351c944505294b1917eb984e3fb0d1a85550be8b119f2683cad9f83928b70",
+    "f1-selector-contracts.json": "18ceb43614ad21dba0dccd79b2675e73e2572ede356e9307744aaaffa403f59d",
+    "f5-selector-contracts.json": "75b70ba2c1f6af1e9d22e2411363e375849d109eae27bd29c022f2c9f56012de",
     "scci-selector-contracts.json": "70b9a325ae7d7e59bd1d64751585cfffd99166183504950b7f50af0ee83092a1",
+    "c0d0-handler-audit.json": "5607b04cec546ff53a2a12e38e31180335f2621dc1459e30741f0db3fc8167cc",
     "standard-overrides.json": "60d8479890acd671d452ad81b797ed079fd66b0147ec203648a036eb3ce1904a"
   },
+  "topLevel": [
+    {
+      "netfn": 0,
+      "cmd": 2,
+      "lun": 0,
+      "request": "1 exact (table): action",
+      "response": "CC only",
+      "effect": "host power/reset/NMI mutation",
+      "status": "handler decompiled; physical actuation not implied by CC 00",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#00/02"
+    },
+    {
+      "netfn": 0,
+      "cmd": 8,
+      "lun": 0,
+      "request": "variable table; standard Set System Boot Options format",
+      "response": "standard handler response or CC 82 for selected parameters and platform state",
+      "effect": "boot configuration mutation; semaphore signal",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#00/08"
+    },
+    {
+      "netfn": 0,
+      "cmd": 15,
+      "lun": 0,
+      "request": "variable table; handler ignores request",
+      "response": "6 bytes including CC, count unit 05 and count LE32",
+      "effect": "read",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#00/0f"
+    },
+    {
+      "netfn": 4,
+      "cmd": 22,
+      "lun": 0,
+      "request": "3 or 11 exact (handler)",
+      "response": "CC only, or CC plus LAN alert status for operation 1",
+      "effect": "may send network alert or change alert-status byte",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#04/16"
+    },
+    {
+      "netfn": 6,
+      "cmd": 1,
+      "lun": 0,
+      "request": "0 exact (handler)",
+      "response": "16 bytes including CC on success",
+      "effect": "read",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#06/01"
+    },
+    {
+      "netfn": 6,
+      "cmd": 55,
+      "lun": 0,
+      "request": "0 exact (handler)",
+      "response": "17 bytes including CC plus 16-byte GUID on success",
+      "effect": "read",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#06/37"
+    },
+    {
+      "netfn": 6,
+      "cmd": 64,
+      "lun": 0,
+      "request": "3 exact (table)",
+      "response": "standard handler response, possibly replaced by AMI KCS/LAN interface hook",
+      "effect": "channel access mutation",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#06/40"
+    },
+    {
+      "netfn": 6,
+      "cmd": 67,
+      "lun": 0,
+      "request": "variable table; standard Set User Access format",
+      "response": "standard handler response",
+      "effect": "user privilege mutation",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#06/43"
+    },
+    {
+      "netfn": 6,
+      "cmd": 69,
+      "lun": 0,
+      "request": "variable table; standard Set User Name format",
+      "response": "CC only on Fujitsu configuration success; standard fallback otherwise",
+      "effect": "user identity mutation; possible out-of-bounds read on malformed input",
+      "status": "handler decompiled; boundary exploitability unproven",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#06/45"
+    },
+    {
+      "netfn": 6,
+      "cmd": 71,
+      "lun": 0,
+      "request": "variable table; standard Set User Password format",
+      "response": "standard handler response",
+      "effect": "credential mutation",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#06/47"
+    },
+    {
+      "netfn": 6,
+      "cmd": 88,
+      "lun": 0,
+      "request": "variable table; standard Set System Info format",
+      "response": "standard handler response",
+      "effect": "system-info mutation",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#06/58"
+    },
+    {
+      "netfn": 10,
+      "cmd": 16,
+      "lun": 0,
+      "request": "1 exact (handler): FRU device ID",
+      "response": "on success CC, size LE16, access byte",
+      "effect": "read",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0a/10"
+    },
+    {
+      "netfn": 10,
+      "cmd": 16,
+      "lun": 3,
+      "request": "variable table; reads first device-selector byte",
+      "response": "4 bytes including CC, hidden FRU size LE16, access byte",
+      "effect": "read",
+      "status": "handler decompiled; LAN reachability unproven",
+      "activation": "static LUN-3 dispatch; prior LAN LUN-3 request returned CC c0",
+      "source": "standard-overrides.json#0a/10"
+    },
+    {
+      "netfn": 10,
+      "cmd": 17,
+      "lun": 0,
+      "request": "4 exact (handler): FRU device, offset LE16, count",
+      "response": "on success CC, returned count, data",
+      "effect": "read FRU",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0a/11"
+    },
+    {
+      "netfn": 10,
+      "cmd": 17,
+      "lun": 3,
+      "request": "4 exact (handler): device, offset LE16, count",
+      "response": "on success CC, returned count, data",
+      "effect": "read hidden FRU",
+      "status": "handler decompiled; LAN reachability unproven",
+      "activation": "static LUN-3 dispatch; prior LAN LUN-3 request returned CC c0",
+      "source": "standard-overrides.json#0a/11"
+    },
+    {
+      "netfn": 10,
+      "cmd": 18,
+      "lun": 0,
+      "request": "at least 4 (handler): FRU device, offset LE16, data",
+      "response": "on success CC and written count",
+      "effect": "FRU mutation",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0a/12"
+    },
+    {
+      "netfn": 10,
+      "cmd": 18,
+      "lun": 3,
+      "request": "at least 4 (handler): device, offset LE16, data",
+      "response": "on success CC and written count",
+      "effect": "hidden FRU mutation",
+      "status": "handler decompiled; LAN reachability unproven",
+      "activation": "static LUN-3 dispatch; prior LAN LUN-3 request returned CC c0",
+      "source": "standard-overrides.json#0a/12"
+    },
+    {
+      "netfn": 10,
+      "cmd": 32,
+      "lun": 0,
+      "request": "variable table; standard Get SDR Repository Info format",
+      "response": "standard response with reported count adjusted outside channel 0d",
+      "effect": "read",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0a/20"
+    },
+    {
+      "netfn": 10,
+      "cmd": 35,
+      "lun": 0,
+      "request": "6 for specialized path; other lengths delegated to standard handler",
+      "response": "standard Get SDR response with Fujitsu filtering for selected sessions",
+      "effect": "read",
+      "status": "handler decompiled; exact skipped record identity unresolved",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0a/23"
+    },
+    {
+      "netfn": 10,
+      "cmd": 73,
+      "lun": 0,
+      "request": "variable table; request ignored by handler",
+      "response": "CC 00 only",
+      "effect": "none observed despite setter name",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0a/49"
+    },
+    {
+      "netfn": 10,
+      "cmd": 92,
+      "lun": 0,
+      "request": "variable table; request ignored by handler",
+      "response": "3 bytes including CC and signed UTC offset LE16 on success",
+      "effect": "read",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0a/5c"
+    },
+    {
+      "netfn": 12,
+      "cmd": 1,
+      "lun": 0,
+      "request": "variable table; standard Set LAN Configuration format",
+      "response": "standard handler response",
+      "effect": "network configuration mutation",
+      "status": "handler decompiled",
+      "activation": "normal OEM map; static",
+      "source": "standard-overrides.json#0c/01"
+    },
+    {
+      "netfn": 44,
+      "cmd": 1,
+      "lun": 0,
+      "request": "variable table; at least group byte; dc branch requires 2 including group",
+      "response": "dc: standard DCMI capabilities; 52: CC, group byte, 1, 32-byte fingerprint on success",
+      "effect": "read",
+      "status": "handler decompiled; 52 branch not live tested",
+      "activation": "normal group-extension OEM map; static",
+      "source": "standard-overrides.json#2c/01"
+    },
+    {
+      "netfn": 44,
+      "cmd": 2,
+      "lun": 0,
+      "request": "variable table; at least group byte; dc branch requires 4 including group",
+      "response": "dc: 19 bytes including CC per existing analysis; 52: 34 bytes including CC, group byte, 16-byte username and 16-byte password on success",
+      "effect": "dc is read; 52 creates a privileged user and may clear bootstrap config flag",
+      "status": "handler decompiled; 52 branch not live tested",
+      "activation": "normal group-extension OEM map; 52 branch static only, LAN channel rejected by leaf",
+      "source": "standard-overrides.json#2c/02"
+    },
+    {
+      "netfn": 48,
+      "cmd": 0,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,tier_le16,minutes]",
+      "effect": "read boot-watchdog tier; tiers 0–7 map 120–6000 seconds",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x00"
+    },
+    {
+      "netfn": 48,
+      "cmd": 1,
+      "lun": 0,
+      "request": "tier_le16 or >=3 bytes with extended minute at offset 2",
+      "response": "[cc]",
+      "effect": "set boot-watchdog timeout; extended minute 0–100",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x01"
+    },
+    {
+      "netfn": 48,
+      "cmd": 2,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,state]",
+      "effect": "read boot-watchdog enable",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x02"
+    },
+    {
+      "netfn": 48,
+      "cmd": 3,
+      "lun": 0,
+      "request": "[state 0|1]",
+      "response": "[cc]",
+      "effect": "set boot-watchdog enable",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x03"
+    },
+    {
+      "netfn": 48,
+      "cmd": 4,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,state]",
+      "effect": "read watchdog behavior",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x04"
+    },
+    {
+      "netfn": 48,
+      "cmd": 5,
+      "lun": 0,
+      "request": "[behavior]",
+      "response": "[cc]",
+      "effect": "set watchdog behavior; no local range check",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x05"
+    },
+    {
+      "netfn": 48,
+      "cmd": 6,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,restore_policy]",
+      "effect": "read AC power-restore policy",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x06"
+    },
+    {
+      "netfn": 48,
+      "cmd": 7,
+      "lun": 0,
+      "request": "[restore_policy]",
+      "response": "[cc]",
+      "effect": "set AC power-restore policy; no local range check",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x07"
+    },
+    {
+      "netfn": 48,
+      "cmd": 10,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,retry_count]",
+      "effect": "read configuration ID 0x30",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x0a"
+    },
+    {
+      "netfn": 48,
+      "cmd": 11,
+      "lun": 0,
+      "request": ">=1 byte, first byte used",
+      "response": "[cc]",
+      "effect": "write one byte to configuration ID 0x30",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x0b"
+    },
+    {
+      "netfn": 48,
+      "cmd": 16,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,restart_delay_le16]",
+      "effect": "read error-off restart delay from configuration ID 0x32",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x10"
+    },
+    {
+      "netfn": 48,
+      "cmd": 17,
+      "lun": 0,
+      "request": ">=2 bytes, first LE16 used",
+      "response": "[cc]",
+      "effect": "write error-off restart delay to configuration ID 0x32",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x11"
+    },
+    {
+      "netfn": 48,
+      "cmd": 18,
+      "lun": 0,
+      "request": "5 bytes: NIC selector plus LE32 loopback value",
+      "response": "[cc]",
+      "effect": "start/stop NIC loopback thread; CC D5 if already busy",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x12"
+    },
+    {
+      "netfn": 48,
+      "cmd": 19,
+      "lun": 0,
+      "request": "[NIC selector]",
+      "response": "15 bytes on success: cc,state,status,counters",
+      "effect": "read loopback status for selected NIC",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x13"
+    },
+    {
+      "netfn": 48,
+      "cmd": 20,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,flags]",
+      "effect": "read critical flag byte",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x14"
+    },
+    {
+      "netfn": 48,
+      "cmd": 21,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc]",
+      "effect": "set critical flag bit 0",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x15"
+    },
+    {
+      "netfn": 48,
+      "cmd": 22,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc]",
+      "effect": "clear entire critical flag byte",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x16"
+    },
+    {
+      "netfn": 48,
+      "cmd": 24,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,blade_id]",
+      "effect": "return platform blade-port index +1",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x18"
+    },
+    {
+      "netfn": 48,
+      "cmd": 25,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc]",
+      "effect": "clear battery-backed power-on-hours state",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x19"
+    },
+    {
+      "netfn": 48,
+      "cmd": 26,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,4 config bytes]",
+      "effect": "read memory-enable mask from config ID 0x21; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x1a"
+    },
+    {
+      "netfn": 48,
+      "cmd": 27,
+      "lun": 0,
+      "request": "exactly 4 bytes",
+      "response": "[cc]",
+      "effect": "write memory-enable mask to config ID 0x21; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x1b"
+    },
+    {
+      "netfn": 48,
+      "cmd": 28,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,4 config bytes]",
+      "effect": "read memory-disable reason config ID 0x24; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x1c"
+    },
+    {
+      "netfn": 48,
+      "cmd": 29,
+      "lun": 0,
+      "request": "exactly 4 bytes",
+      "response": "[cc]",
+      "effect": "write memory-disable reason config ID 0x24; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x1d"
+    },
+    {
+      "netfn": 48,
+      "cmd": 32,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,state]",
+      "effect": "read graceful-shutdown enable",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x20"
+    },
+    {
+      "netfn": 48,
+      "cmd": 33,
+      "lun": 0,
+      "request": "first byte; no local length check",
+      "response": "[cc]",
+      "effect": "set graceful-shutdown enable",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x21"
+    },
+    {
+      "netfn": 48,
+      "cmd": 34,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,flag]",
+      "effect": "read shutdown communication flags masked 0x0b",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x22"
+    },
+    {
+      "netfn": 48,
+      "cmd": 35,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,4 config bytes]",
+      "effect": "read CPU-enable mask from config ID 0x20; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x23"
+    },
+    {
+      "netfn": 48,
+      "cmd": 36,
+      "lun": 0,
+      "request": "exactly 4 bytes",
+      "response": "[cc]",
+      "effect": "write CPU-enable mask to config ID 0x20; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x24"
+    },
+    {
+      "netfn": 48,
+      "cmd": 37,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,4 config bytes]",
+      "effect": "read CPU-disable reason config ID 0x23; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x25"
+    },
+    {
+      "netfn": 48,
+      "cmd": 38,
+      "lun": 0,
+      "request": "exactly 4 bytes",
+      "response": "[cc]",
+      "effect": "write CPU-disable reason config ID 0x23; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x26"
+    },
+    {
+      "netfn": 48,
+      "cmd": 39,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc]",
+      "effect": "set power-off inhibit/dump flag; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x27"
+    },
+    {
+      "netfn": 48,
+      "cmd": 40,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc]",
+      "effect": "clear power-off inhibit/dump flag; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x28"
+    },
+    {
+      "netfn": 48,
+      "cmd": 50,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,32 GUID bytes]",
+      "effect": "read two 16-byte system GUID config records; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x32"
+    },
+    {
+      "netfn": 48,
+      "cmd": 81,
+      "lun": 0,
+      "request": "ignored; handler has no local request-length check",
+      "response": "6 bytes [cc,status,00,00,00,00] on blade; status 04 if LED mode 0 and host off, 00 if LED mode 0 and host on, 02 for LED modes 1/3/4, 03 for modes 2/5/6/7/8; C1 non-blade, CE unknown LED mode",
+      "effect": "read host power and message-LED mode as a single status byte",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x51"
+    },
+    {
+      "netfn": 48,
+      "cmd": 82,
+      "lun": 0,
+      "request": "selector 1 delegated; selectors 2/3/4/5 require exactly [selector,cpu_index], with index <8 locally enforced for 3/4/5; selector 2 passes index to HAL",
+      "response": "selector 2: 27 bytes [cc,status,cpu_count,4-byte config,10-byte sensor designator,10-byte manufacturer] on HAL success; selectors 3/4: variable CPU name string chunks; selector 5: 5 bytes [cc,component_status,00,00,00]; C7 length, C9 selector/index, C0 unavailable cache",
+      "effect": "read CPU status, model/name chunks, manufacturer and component signal; selector 1 jumps to separate function pointer",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x52"
+    },
+    {
+      "netfn": 48,
+      "cmd": 83,
+      "lun": 0,
+      "request": "exactly [slot_index] for base view, or [slot_index,00/01]; index must be below HAL memory-slot count",
+      "response": "base/selector 00: 29 bytes [cc,slot_count,DIMM metadata bytes(2..13),10-byte lightpath designator/space pad at 14..23,4 config bytes at 24..27,health at 28]; selector 01: 3 bytes [cc,SPD-derived module type bytes]; C7 wrong length, C9 invalid slot, C0 cache unavailable",
+      "effect": "read DIMM status/type/capacity, enable/disable settings, lightpath designator, health, and SPD module type",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x53"
+    },
+    {
+      "netfn": 48,
+      "cmd": 84,
+      "lun": 0,
+      "request": "ignored",
+      "response": "14 bytes on blade success",
+      "effect": "read boot configuration/status",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x54"
+    },
+    {
+      "netfn": 48,
+      "cmd": 86,
+      "lun": 0,
+      "request": "handler reads first 2 bytes without local length check",
+      "response": "[cc]",
+      "effect": "write two boot-option bytes to config; blade only; ignores write result",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x56"
+    },
+    {
+      "netfn": 48,
+      "cmd": 87,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,power_good/status]",
+      "effect": "read blade power status",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x57"
+    },
+    {
+      "netfn": 48,
+      "cmd": 89,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc]",
+      "effect": "request host power-off",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x59"
+    },
+    {
+      "netfn": 48,
+      "cmd": 93,
+      "lun": 0,
+      "request": ">=2 bytes: blade ID, event bits",
+      "response": "[cc]",
+      "effect": "update TFTP flash status based on event bits 0x20/0x40",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x5d"
+    },
+    {
+      "netfn": 48,
+      "cmd": 95,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,inhibit_state]",
+      "effect": "read power-off inhibit flag; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x30/0x5f"
+    },
+    {
+      "netfn": 48,
+      "cmd": 104,
+      "lun": 0,
+      "request": "ignored; handler has no local request-length check",
+      "response": "12 bytes [cc,watchdog_behavior(0/1/3),00,power_restore_policy_shifted,watchdog_bucket_le16,config_0x30_byte,config_0x32_le16,00,00,watchdog_minutes_byte] on success; CE backend failure, C7 timer above platform cap",
+      "effect": "read configuration IDs 0x74,0x41,0x30,0x32 and runtime power-restore policy; bucket maps timer intervals 0..7",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x68"
+    },
+    {
+      "netfn": 48,
+      "cmd": 105,
+      "lun": 0,
+      "request": "bitmask byte 0: bit7 writes watchdog behavior from byte1 (0/1/3), bit5 sets power-restore policy from byte3 (0/1/2), bit4 sets watchdog timer from bytes4-5 bucket or byte11 minutes when length>=12, bit3 writes config ID 0x30 from byte6&7, bit2 writes config ID 0x32 from bytes7-8; handler lacks comprehensive length check",
+      "response": "[cc]",
+      "effect": "writes config IDs 0x74,0x41,0x30,0x32 and power-restore policy in mask order; partial writes can occur before a later validation/backend error",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x69"
+    },
+    {
+      "netfn": 48,
+      "cmd": 106,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,state]",
+      "effect": "read watchdog-enable state",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x6a"
+    },
+    {
+      "netfn": 48,
+      "cmd": 107,
+      "lun": 0,
+      "request": "first byte",
+      "response": "[cc]",
+      "effect": "set watchdog-enable state",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x6b"
+    },
+    {
+      "netfn": 48,
+      "cmd": 112,
+      "lun": 0,
+      "request": "exactly 1 byte: 0/1 set, 2 query",
+      "response": "[cc,recovery_state]",
+      "effect": "set/query BIOS recovery; 0/1 are inverted at HAL",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x70"
+    },
+    {
+      "netfn": 48,
+      "cmd": 117,
+      "lun": 0,
+      "request": "[index: low 7 bits, mode: high bit]",
+      "response": "11 bytes on success",
+      "effect": "read blade LAN info; backend 10-byte field layout unresolved",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x75"
+    },
+    {
+      "netfn": 48,
+      "cmd": 128,
+      "lun": 0,
+      "request": "exactly 4 bytes LE time",
+      "response": "[cc]",
+      "effect": "set blade local time from MMB",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x80"
+    },
+    {
+      "netfn": 48,
+      "cmd": 129,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,time_le32]",
+      "effect": "read SEL timestamp on blade",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x81"
+    },
+    {
+      "netfn": 48,
+      "cmd": 135,
+      "lun": 0,
+      "request": "ignored",
+      "response": "14 bytes [cc,blade_type,power_consumption_be32,pci_present,memory_slot_count,pci_card_count,mezzanine_card_count,power_budget_be32]; C1 on non-blade",
+      "effect": "read blade type, actual or fallback power consumption, peripheral counts, and calculated/dummy power budget",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x87"
+    },
+    {
+      "netfn": 48,
+      "cmd": 150,
+      "lun": 0,
+      "request": "ignored",
+      "response": "first five calls return [C0]; sixth call returns [00,06,sensor_0,00,00,sensor_1,00,00] when both sensor lookups succeed, else [CB]; CE if feature disabled",
+      "effect": "increments an internal call counter, resets it on sixth call, then resolves two fan sensor numbers via SDR lookup",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0x96"
+    },
+    {
+      "netfn": 48,
+      "cmd": 155,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[00]",
+      "effect": "unconditional no-op success stub; does not configure CPU errors",
+      "status": "direct",
+      "activation": "Registered Admin; handler itself unconditionally returns 00.",
+      "source": "c0d0-handler-audit.json#0x30/0x9b"
+    },
+    {
+      "netfn": 48,
+      "cmd": 163,
+      "lun": 0,
+      "request": "bytes 2–3 are SEL record ID little-endian; bytes 0–1 ignored; no local request-length check",
+      "response": "19 bytes [00,next_record_id_le16,16-byte SEL record] on success; [CB] if no record, [C1] non-blade",
+      "effect": "read blade SEL record by ID using standard 16-byte SEL record backend",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0xa3"
+    },
+    {
+      "netfn": 48,
+      "cmd": 170,
+      "lun": 0,
+      "request": "exactly 1 byte; only selector 00 accepted",
+      "response": "6 bytes [cc,status,00,00,00,00]; selector!=0 gives [D5,01,00,00,00,00]; host off status 04; host on status 00/01/02/03/05 based on I/O blade presence and sensor state; C7 wrong length",
+      "effect": "read I/O blade presence and peripheral-event sensor state",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0xaa"
+    },
+    {
+      "netfn": 48,
+      "cmd": 173,
+      "lun": 0,
+      "request": "exactly 4 bytes",
+      "response": "variable text chunk",
+      "effect": "read blade SEL long text; delegated backend content unresolved",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0xad"
+    },
+    {
+      "netfn": 48,
+      "cmd": 221,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,01]",
+      "effect": "report VIOM support when feature enabled",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0xdd"
+    },
+    {
+      "netfn": 48,
+      "cmd": 230,
+      "lun": 0,
+      "request": "[PECI target,write_len,read_len,write_bytes...]",
+      "response": "[cc,read_bytes...]",
+      "effect": "allowed PECI command set 01,61,65,a1,a5,b1,b5,e1,e5,f7; requires host on",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x30/0xe6"
+    },
+    {
+      "netfn": 52,
+      "cmd": 0,
+      "lun": 0,
+      "request": "exactly 32 bytes; byte 0 selector 1/2",
+      "response": "[cc]",
+      "effect": "set BIOS TFTP flash parameters through external helper; downstream layout unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x00"
+    },
+    {
+      "netfn": 52,
+      "cmd": 1,
+      "lun": 0,
+      "request": "exactly 1 byte selector 1/2",
+      "response": "external helper response",
+      "effect": "read BIOS TFTP parameters; downstream response unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x01"
+    },
+    {
+      "netfn": 52,
+      "cmd": 2,
+      "lun": 0,
+      "request": "exactly 32 bytes; byte 0 selector; bytes 1–31 image name",
+      "response": "[cc]",
+      "effect": "write BIOS image-name configuration; helper strlen may read beyond fixed request if unterminated",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x02"
+    },
+    {
+      "netfn": 52,
+      "cmd": 3,
+      "lun": 0,
+      "request": "exactly 1 byte selector 1/2",
+      "response": "32 bytes: cc + 31 name bytes",
+      "effect": "read BIOS image-name page; config length/error behavior partly unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x03"
+    },
+    {
+      "netfn": 52,
+      "cmd": 4,
+      "lun": 0,
+      "request": "unknown",
+      "response": "[cc]",
+      "effect": "examine BIOS flash parameters through delegated helper; constraints unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x04"
+    },
+    {
+      "netfn": 52,
+      "cmd": 5,
+      "lun": 0,
+      "request": "empty",
+      "response": "delegated response",
+      "effect": "start BIOS TFTP flash update; downstream completion and activation unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x05"
+    },
+    {
+      "netfn": 52,
+      "cmd": 6,
+      "lun": 0,
+      "request": "exactly 32 bytes; byte 0 selector 1/2",
+      "response": "[cc]",
+      "effect": "set iRMC TFTP flash parameters through external helper; downstream layout unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x06"
+    },
+    {
+      "netfn": 52,
+      "cmd": 7,
+      "lun": 0,
+      "request": "exactly 1 byte selector 1/2",
+      "response": "external helper response",
+      "effect": "read iRMC TFTP parameters; downstream response unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x07"
+    },
+    {
+      "netfn": 52,
+      "cmd": 8,
+      "lun": 0,
+      "request": "exactly 32 bytes; byte 0 selector; bytes 1–31 image name",
+      "response": "[cc]",
+      "effect": "write iRMC image-name configuration; helper strlen may read beyond fixed request if unterminated",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x08"
+    },
+    {
+      "netfn": 52,
+      "cmd": 9,
+      "lun": 0,
+      "request": "exactly 1 byte selector 1/2",
+      "response": "32 bytes: cc + 31 name bytes",
+      "effect": "read iRMC image-name page; config length/error behavior partly unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x09"
+    },
+    {
+      "netfn": 52,
+      "cmd": 10,
+      "lun": 0,
+      "request": "unknown",
+      "response": "[cc]",
+      "effect": "examine iRMC flash parameters through delegated helper; constraints unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x0a"
+    },
+    {
+      "netfn": 52,
+      "cmd": 11,
+      "lun": 0,
+      "request": ">=1 byte, first byte passed to StartTFTPFWUpdate",
+      "response": "[cc]",
+      "effect": "start iRMC TFTP firmware update; byte meaning and downstream effects unknown",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x0b"
+    },
+    {
+      "netfn": 52,
+      "cmd": 12,
+      "lun": 0,
+      "request": "unknown",
+      "response": "external helper response",
+      "effect": "read BIOS flash status; downstream schema unknown",
+      "status": "partial",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x0c"
+    },
+    {
+      "netfn": 52,
+      "cmd": 13,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[00,status,byte,byte]",
+      "effect": "read iRMC TFTP flash status",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x0d"
+    },
+    {
+      "netfn": 52,
+      "cmd": 14,
+      "lun": 0,
+      "request": "nominally exactly 1 byte selector 0/1",
+      "response": "[cc,previous_status] on recognized selector",
+      "effect": "reset BIOS/iRMC flash status; malformed lengths still read selector and may mutate",
+      "status": "direct",
+      "activation": "Registered Admin; handler checks a feature-global (CE when off); live rack state unproved.",
+      "source": "c0d0-handler-audit.json#0x34/0x0e"
+    },
+    {
+      "netfn": 52,
+      "cmd": 16,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,location 1|2]",
+      "effect": "read MMB location GPIO 0x1e; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x34/0x10"
+    },
+    {
+      "netfn": 52,
+      "cmd": 17,
+      "lun": 0,
+      "request": "exactly 1 byte location",
+      "response": "[cc]",
+      "effect": "trigger MMB role change; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x34/0x11"
+    },
+    {
+      "netfn": 52,
+      "cmd": 26,
+      "lun": 0,
+      "request": "exactly 1 byte page index",
+      "response": "[cc,total_length,page,up to 20 DNS chars]",
+      "effect": "read blade DNS name page",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x1a"
+    },
+    {
+      "netfn": 52,
+      "cmd": 32,
+      "lun": 0,
+      "request": "mode 0–6, mode-dependent suffix",
+      "response": "[cc,mode,00]",
+      "effect": "set iRMC power policy; mode 4 uses unchecked byte-7 runtime-array index; full policy interpretation partial",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x20"
+    },
+    {
+      "netfn": 52,
+      "cmd": 33,
+      "lun": 0,
+      "request": "1-byte policy index 0–6",
+      "response": "simple [cc,mode] or complex [cc,mode,6 bytes]",
+      "effect": "read iRMC power policy; mode-specific fields partial",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x21"
+    },
+    {
+      "netfn": 52,
+      "cmd": 34,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,state]",
+      "effect": "read performance state combining config 0x1a00 and Node Manager",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x22"
+    },
+    {
+      "netfn": 52,
+      "cmd": 35,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc]",
+      "effect": "force minimum power; save policy and write config 0x1a00=2",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x23"
+    },
+    {
+      "netfn": 52,
+      "cmd": 36,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc]",
+      "effect": "end minimum power; restore saved policy",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x24"
+    },
+    {
+      "netfn": 52,
+      "cmd": 39,
+      "lun": 0,
+      "request": "exactly 2 bytes; byte 0 duty used",
+      "response": "[cc]",
+      "effect": "set fan duty; second byte purpose unknown",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x27"
+    },
+    {
+      "netfn": 52,
+      "cmd": 40,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,duty]",
+      "effect": "read fan duty",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x28"
+    },
+    {
+      "netfn": 52,
+      "cmd": 41,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc]",
+      "effect": "force power-on LED on",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x29"
+    },
+    {
+      "netfn": 52,
+      "cmd": 42,
+      "lun": 0,
+      "request": "[class,index_le16], no local length check",
+      "response": "[cc,0c,12-byte sample]",
+      "effect": "read power history sample with class-specific index bounds",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x2a"
+    },
+    {
+      "netfn": 52,
+      "cmd": 44,
+      "lun": 0,
+      "request": "empty reuses stored mode; nonempty byte 0 sets stored mode; if length >1, blindly copies 20 bytes from request+1 to runtime state regardless of actual length",
+      "response": "mode 0: 7 bytes [cc,prior NM flag,00,counter_a_le16,counter_b_le16]; other modes: 3 bytes [cc,saved_page_byte,mode], with saved-page cursor advancing up to 20",
+      "effect": "mode 0 clears prior NM flag, starts CPU-throttling averaging interval and conditionally resets runtime counters; other modes page a saved 20-byte runtime array",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x2c"
+    },
+    {
+      "netfn": 52,
+      "cmd": 45,
+      "lun": 0,
+      "request": "exactly 2 bytes; byte 0 mask used",
+      "response": "[cc,sensor IDs]",
+      "effect": "resolve power-consumption SDR sensors for entities 0x1b/0xe0",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x2d"
+    },
+    {
+      "netfn": 52,
+      "cmd": 46,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,big-endian uint32]",
+      "effect": "read enhanced power budget; C1 on non-blade",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x2e"
+    },
+    {
+      "netfn": 52,
+      "cmd": 56,
+      "lun": 0,
+      "request": "exactly 6 bytes [id_le16,sub_le16,page_le16]",
+      "response": "[cc,id2,sub2,meta2,total2,data<=24]",
+      "effect": "backup one configuration parameter; parameter namespace/backend meaning unresolved",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x38"
+    },
+    {
+      "netfn": 52,
+      "cmd": 57,
+      "lun": 0,
+      "request": ">=8 bytes [id_le16,sub_le16,page_le16,total_le16,data...]",
+      "response": "[cc]",
+      "effect": "stage/restore configuration parameter; page 0 can memcpy 24 bytes from request+8 without actual data-length check",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x39"
+    },
+    {
+      "netfn": 52,
+      "cmd": 64,
+      "lun": 0,
+      "request": "exactly 2 bytes: port selector and peer field",
+      "response": "[cc,fru_id,property_lo,property_hi,flag]",
+      "effect": "read LAN-card FRU ID through interface control; platform mapping partial",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x40"
+    },
+    {
+      "netfn": 52,
+      "cmd": 65,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[c1]",
+      "effect": "unconditional command-invalid stub; does not disable LAN",
+      "status": "direct",
+      "activation": "Registered Admin; handler itself unconditionally returns C1.",
+      "source": "c0d0-handler-audit.json#0x34/0x41"
+    },
+    {
+      "netfn": 52,
+      "cmd": 66,
+      "lun": 0,
+      "request": "first byte nonzero mezzanine index; no local length check",
+      "response": "[cc,mux_state]",
+      "effect": "read mezzanine mux through interface control",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x42"
+    },
+    {
+      "netfn": 52,
+      "cmd": 67,
+      "lun": 0,
+      "request": "first byte nonzero index, second byte low two bits mux; no local length check",
+      "response": "[cc]",
+      "effect": "set mezzanine mux through interface control",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x43"
+    },
+    {
+      "netfn": 52,
+      "cmd": 68,
+      "lun": 0,
+      "request": "exactly 4 bytes",
+      "response": "[cc]",
+      "effect": "copy E-key status to runtime state; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x34/0x44"
+    },
+    {
+      "netfn": 52,
+      "cmd": 69,
+      "lun": 0,
+      "request": ">=4 bytes; byte 2 declared length <64; data begins at byte 3",
+      "response": "[cc]",
+      "effect": "write HSS runtime data; copies declared length without checking actual request length",
+      "status": "partial",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x34/0x45"
+    },
+    {
+      "netfn": 52,
+      "cmd": 70,
+      "lun": 0,
+      "request": "get: exactly 2 bytes [0x80|page_size(0..20),page_index(low nibble)]; set: 3..22 bytes [page_size(1..20),page_index(low nibble)|commit(bit7),data(1..page_size bytes)]; offset=page_size*page_index, max config size 40",
+      "response": "get: [cc,total_length,data(0..page_size bytes)]; set: [cc,bytes_written]; errors: C7 bad length, C9 invalid page/offset, CB config backend failure, C1 non-blade",
+      "effect": "get reads config ID 0x210; set stages data in 40-byte runtime buffer, clears it on page index 0, and writes config ID 0x210 when byte 1 bit7 is set",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x34/0x46"
+    },
+    {
+      "netfn": 52,
+      "cmd": 71,
+      "lun": 0,
+      "request": "empty get; one byte bit7 sets state",
+      "response": "[cc,state bit7]",
+      "effect": "get/set SEL notification; blade only",
+      "status": "direct",
+      "activation": "Registered Admin; explicitly gated by utIsBladeSystem(), so C1 on rack where non-blade.",
+      "source": "c0d0-handler-audit.json#0x34/0x47"
+    },
+    {
+      "netfn": 52,
+      "cmd": 73,
+      "lun": 0,
+      "request": "empty",
+      "response": "[cc,count]",
+      "effect": "read AVR session count; CE feature off, FF backend failure",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x49"
+    },
+    {
+      "netfn": 52,
+      "cmd": 74,
+      "lun": 0,
+      "request": "delegated",
+      "response": "delegated text response",
+      "effect": "read blade SEL long text; wire schema unresolved",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x4a"
+    },
+    {
+      "netfn": 52,
+      "cmd": 97,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,NUL-terminated LDAP department]",
+      "effect": "read configuration string for LDAP department",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x61"
+    },
+    {
+      "netfn": 52,
+      "cmd": 98,
+      "lun": 0,
+      "request": ">4 bytes",
+      "response": "delegated variable response",
+      "effect": "reserve SSO session; request layout, side effects and response unknown",
+      "status": "partial",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x62"
+    },
+    {
+      "netfn": 52,
+      "cmd": 99,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[cc,product_id_le16,00,00]",
+      "effect": "read server-blade product type",
+      "status": "direct",
+      "activation": "Registered Admin privilege, channel mask 0xaaaa; runtime gate or backend support may vary.",
+      "source": "c0d0-handler-audit.json#0x34/0x63"
+    },
+    {
+      "netfn": 52,
+      "cmd": 128,
+      "lun": 0,
+      "request": "ignored",
+      "response": "[c1]",
+      "effect": "unconditional command-invalid stub",
+      "status": "direct",
+      "activation": "Registered Admin; handler itself unconditionally returns C1.",
+      "source": "c0d0-handler-audit.json#0x34/0x80"
+    }
+  ],
   "operations": [
     {
       "name": "iRMC_RedfishBootstrap_01",
@@ -1004,14 +2415,14 @@
       "request": {
         "shared_minimum_total_bytes": 4,
         "selector_specific_length": 5,
-        "payload": null
+        "payload": "one state byte, written to BIOS object+0x765"
       },
       "response": {
         "success_total_bytes": 4,
-        "payload": null
+        "payload": "none"
       },
       "effect": "mutating",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/06",
       "runnable": true,
@@ -1033,14 +2444,14 @@
       "request": {
         "shared_minimum_total_bytes": 4,
         "selector_specific_length": 4,
-        "payload": null
+        "payload": "none"
       },
       "response": {
         "success_total_bytes": 6,
-        "payload": null
+        "payload": "low nibble of BIOS object+0x765, followed by slot/state flag byte"
       },
       "effect": "read",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/07",
       "runnable": true,
@@ -1091,14 +2502,14 @@
       "request": {
         "shared_minimum_total_bytes": 4,
         "selector_specific_length": 4,
-        "payload": null
+        "payload": "none"
       },
       "response": {
         "success_total_bytes": 5,
-        "payload": null
+        "payload": "BIOS object byte at offset 0x766"
       },
       "effect": "read",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/09",
       "runnable": true,
@@ -1120,14 +2531,14 @@
       "request": {
         "shared_minimum_total_bytes": 4,
         "selector_specific_length": 5,
-        "payload": null
+        "payload": "one BIOS state/POST-code byte, written to object+0x767"
       },
       "response": {
         "success_total_bytes": 4,
-        "payload": null
+        "payload": "none"
       },
       "effect": "mutating",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/0a",
       "runnable": true,
@@ -1149,14 +2560,14 @@
       "request": {
         "shared_minimum_total_bytes": 4,
         "selector_specific_length": 4,
-        "payload": null
+        "payload": "none"
       },
       "response": {
         "success_total_bytes": 5,
-        "payload": null
+        "payload": "BIOS object byte at offset 0x767"
       },
       "effect": "read",
-      "status": "partial",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/0b",
       "runnable": true,
@@ -2250,14 +3661,14 @@
       "privilege": 4,
       "request": {
         "shared_minimum_total_bytes": 4,
-        "selector_specific_length": null,
-        "payload": null
+        "selector_specific_length": 4,
+        "payload": "none"
       },
       "response": {
         "success_total_bytes": null,
         "payload": null
       },
-      "effect": "unknown",
+      "effect": "mutating",
       "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/3c",
@@ -2453,15 +3864,15 @@
       "privilege": 4,
       "request": {
         "shared_minimum_total_bytes": 4,
-        "selector_specific_length": null,
-        "payload": null
+        "selector_specific_length": 6,
+        "payload": "PMB object type and instance bytes"
       },
       "response": {
-        "success_total_bytes": null,
-        "payload": null
+        "success_total_bytes": 7,
+        "payload": "one status byte followed by little-endian 16-bit event-status flags"
       },
-      "effect": "unknown",
-      "status": "partial",
+      "effect": "read",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/51",
       "runnable": true,
@@ -4078,14 +5489,14 @@
       "request": {
         "prefix_hex": "8028002d",
         "length_check_at_entry": "cmp\tr6, #5",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "two modes: total length <=5 clears bit0 across 32-byte shared array; longer requests enter another subdispatch"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "none in clear mode; longer-mode response unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "clear mode mutates 32 shared-state bytes by clearing bit 0",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/2d",
       "runnable": true,
@@ -4397,14 +5808,14 @@
       "request": {
         "prefix_hex": "80280046",
         "length_check_at_entry": "cmp\tr6, #10",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "at least 7 bytes after selector (total length >10); event fields at offsets 4-10 and possibly following bytes"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "on event decode, severity byte and length-prefixed text; exact alternate paths unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "none proved; passes event to istDecodeEvent for text/severity decoding",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/46",
       "runnable": true,
@@ -4513,14 +5924,14 @@
       "request": {
         "prefix_hex": "8028004b",
         "length_check_at_entry": "cmp\tr6, #4",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "one-byte slot index 0..7 at offset4; with total length 6, byte5 is written to shared slot field +0x29; length5 enters read path"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "length5 read path returns one byte or checks UDS session; full fallback unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "length6 marks shared slot flag +0x2d and writes value at +0x29",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/4b",
       "runnable": true,
@@ -4542,14 +5953,14 @@
       "request": {
         "prefix_hex": "8028004c",
         "length_check_at_entry": "cmp\tr6, #4",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "one-byte slot index 0..7 at offset4; with total length 6, byte5 is written to shared slot field +0x2a; length5 enters read path"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "length5 read path unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "length6 marks shared slot flag +0x2d and writes value at +0x2a",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/4c",
       "runnable": true,
@@ -4600,14 +6011,14 @@
       "request": {
         "prefix_hex": "8028004e",
         "length_check_at_entry": "cmp\tr6, #11",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "16-bit little-endian index at offsets4-5; values <0x180 follow direct branch, >=0x180 an unresolved alternate; total length6 enters read path, length11 writes five bytes from offsets6-10"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "read-path value unresolved; write-path no body"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "length11 writes five bytes into shared indexed table (or alternate branch for index>0x7f)",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/4e",
       "runnable": true,
@@ -4629,14 +6040,14 @@
       "request": {
         "prefix_hex": "8028004f",
         "length_check_at_entry": "cmp\tr6, #6",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "at least 3 bytes after selector; byte4 must equal 01, further fields at offsets5-6 consumed by SDR path"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "response begins with 01; remainder from SDR/backend unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "none proved; traverses SDR via GetNextSdr",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/4f",
       "runnable": true,
@@ -4658,14 +6069,14 @@
       "request": {
         "prefix_hex": "80280050",
         "length_check_at_entry": "not established at entry",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "none; shared minimum total length 4"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "three bytes: when shared flag==1, [shared byte3, 01, shared byte4]; otherwise [00,00,00]"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "none; reads shared BMC state",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/50",
       "runnable": true,
@@ -4716,14 +6127,14 @@
       "request": {
         "prefix_hex": "80280052",
         "length_check_at_entry": "cmp\tr6, #5",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "at least 2 bytes after selector; byte4 must equal configured bus token; byte5 is read length; bytes6+ are I2C write data"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "I2C read data written via backend output pointer; exact length unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "performs I2C write/read against configured bus/device via I2cMasterWriteRead",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/52",
       "runnable": true,
@@ -5064,14 +6475,14 @@
       "request": {
         "prefix_hex": "80280073",
         "length_check_at_entry": "cmp\tr6, #13",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "at least 10 bytes after selector (total length >13); includes 32-bit event identifier at offsets4-7, additional fields through offset13"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "text-cache/error-code text; exact framing and branches unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "none proved; calls istGetTextCacheReqId and istGetTextFromErrorcode",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/73",
       "runnable": true,
@@ -5093,14 +6504,14 @@
       "request": {
         "prefix_hex": "80280074",
         "length_check_at_entry": "not established at entry",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "none; shared minimum total length 4"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "seven bytes: 03 followed by three little-endian 16-bit values loaded from shared structure offsets 0, 8, 16"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "none; reads shared structure",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/74",
       "runnable": true,
@@ -5209,14 +6620,14 @@
       "request": {
         "prefix_hex": "80280081",
         "length_check_at_entry": "cmp\tr6, #4",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "at least one mask byte at offset4; extra bytes ignored by this branch"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "two bytes: first = mask & shared[0x9051]; second = mask & shared[0x9051] & shared[0x9050]"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "none; reads shared TPM-related status mask",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/81",
       "runnable": true,
@@ -5702,14 +7113,14 @@
       "request": {
         "prefix_hex": "802800a5",
         "length_check_at_entry": "cmp\tr6, #12",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "at least 13 bytes after selector; bytes4-12 must spell 'Reset POH' for side effect; little-endian 32-bit value at 13-16"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "none on observed paths"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "for matching magic and value <0x800000, calls WrBBRegPOH with transformed value; other paths appear no-op success",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/a5",
       "runnable": true,
@@ -5789,14 +7200,14 @@
       "request": {
         "prefix_hex": "802800aa",
         "length_check_at_entry": "cmp\tr6, #6",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "exactly two bytes: byte4 must be 01; byte5 must be 00 or 01"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "none"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "calls haSetLocalMonitorStatus(1) for byte5=00, or haSetLocalMonitorStatus(0) for byte5=01",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/aa",
       "runnable": true,
@@ -5818,14 +7229,14 @@
       "request": {
         "prefix_hex": "802800ab",
         "length_check_at_entry": "cmp\tr6, #6",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "byte4=01, byte5=01, byte6=data length <=200, followed by that many data bytes; total length exactly 7+data length"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "backend-generated response"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "passes data into OEM_FTS_BiosCmds after RC-init and SD-card checks; downstream side effects unresolved",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/ab",
       "runnable": true,
@@ -5992,14 +7403,14 @@
       "request": {
         "prefix_hex": "802800b5",
         "length_check_at_entry": "cmp\tr6, #4",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "none; exact total length 4"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "four bytes: low-level register values 3, 4, 5 and 6"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "none; reads LVP registers",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/b5",
       "runnable": true,
@@ -6195,14 +7606,14 @@
       "request": {
         "prefix_hex": "802800e3",
         "length_check_at_entry": "cmp\tr6, #13",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "exactly nine bytes after selector (total length 13); byte4 must equal 01; three little-endian 16-bit fields begin at offsets5,7,9"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "backend-generated configuration-space response"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "configuration-space read/enum path; exact backend effect unresolved",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/e3",
       "runnable": true,
@@ -6398,14 +7809,14 @@
       "request": {
         "prefix_hex": "802800f8",
         "length_check_at_entry": "cmp\tr6, #5",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "exactly one nonzero user ID at offset4"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "none"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "deletes selected BMC user ID via utDeleteUserID",
+      "status": "decoded",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/f8",
       "runnable": true,
@@ -6456,14 +7867,14 @@
       "request": {
         "prefix_hex": "802800fa",
         "length_check_at_entry": "cmp\tr6, #6",
-        "payload": "selector-specific; not fully resolved"
+        "payload": "exactly two bytes after selector (total length 6); byte4 is nested selector 01/02/03, byte5 nested argument"
       },
       "response": {
         "layout": "completion code, Fujitsu IANA 80 28 00, selector-specific body",
-        "body": "not fully resolved"
+        "body": "branch-specific; unresolved"
       },
-      "effect": "undetermined from entry block",
-      "status": "unknown",
+      "effect": "nested selector dispatch may change BMC state; leaf effects unresolved",
+      "status": "partial",
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/fa",
       "runnable": true,

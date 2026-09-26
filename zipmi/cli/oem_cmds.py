@@ -951,22 +951,25 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             out[key] = row
         return _normalize_listing(out, "lenovo")
     if vendor == "fujitsu":
-        from ..scapy_ipmi.oem.fujitsu import FUJITSU_OPERATIONS, FUJITSU_RECORDS
+        from ..scapy_ipmi.oem.fujitsu import FUJITSU_OPERATIONS, FUJITSU_RECORDS, FUJITSU_TOP_LEVEL
         out: dict = {}
         privs = {2: "User", 3: "Operator", 4: "Admin"}
         for row in FUJITSU_RECORDS:
             if row.lun != 0 or row.scope == "MSMM callback":
                 continue
+            audit = FUJITSU_TOP_LEVEL.get((row.netfn, row.cmd, row.lun), {})
             out[(row.netfn, row.cmd)] = {
                 "name": row.handler, "priv": privs[row.privilege],
                 "desc": f"iRMC S6 {row.table} dispatch identity",
-                "prefix": None, "request": (
+                "prefix": None, "request": audit.get("request") or (
                     f"table length {row.request_length}" if row.request_length is not None
                     else "variable; leaf schema required"
                 ),
-                "response": "handler-specific; see iRMC reference",
-                "security": "top-level registration is not a complete wire contract",
-                "activation": row.scope, "confidence": "static table",
+                "response": audit.get("response") or "handler-specific; see iRMC reference",
+                "security": audit.get("effect") or "top-level registration is not a complete wire contract",
+                "activation": audit.get("activation") or row.scope,
+                "confidence": audit.get("status") or "static table",
+                "src": audit.get("source"),
                 "lib": f"libipmipdkcmds.so.1.53.20@{row.handler_address:08x}",
                 "request_min": row.request_length, "request_max": row.request_length,
                 "requires_unsafe": True,
@@ -1578,6 +1581,9 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
                 print(f"  Live status:  {live}")
         if info.get("missing"):
             print(f"  Status:       (not present in this fw)")
+        if vendor == "fujitsu" and not info.get("runnable", True):
+            print("\n  Invoke: not runnable over LAN (parent dispatch or host-interface route)")
+            continue
         # Suggest example invocation.
         prefix_args = " ".join(f"0x{b:02x}" for b in prefix)
         print(f"\n  Invoke:")

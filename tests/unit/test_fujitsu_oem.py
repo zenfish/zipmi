@@ -4,10 +4,10 @@ from hashlib import sha256
 from importlib.resources import files
 from argparse import Namespace
 
-from zipmi.cli.oem_cmds import _vendor_listing, cmd_oem_run
+from zipmi.cli.oem_cmds import _cmd_oem_help, _vendor_listing, cmd_oem_run
 from zipmi.scapy_ipmi.oem.fujitsu import (
     FUJITSU_CMD_NAMES, FUJITSU_OPERATION_NAMES, FUJITSU_OPERATIONS, FUJITSU_RECORDS,
-    FUJITSU_SELECTOR_PAYLOADS,
+    FUJITSU_SELECTOR_PAYLOADS, FUJITSU_TOP_LEVEL,
 )
 from zipmi.scapy_ipmi.oem._registry import lookup_payload
 
@@ -29,6 +29,7 @@ def test_pinned_irmc_s6_dispatch_table() -> None:
     assert sum(r.lun == 3 for r in FUJITSU_RECORDS) == 3
     assert len(FUJITSU_CMD_NAMES) == 135
     assert len(FUJITSU_OPERATIONS) == len(FUJITSU_OPERATION_NAMES) == 232
+    assert len(FUJITSU_TOP_LEVEL) == 128
     assert len({op.name for op in FUJITSU_OPERATIONS}) == 232
     assert sum(not op.requires_unsafe for op in FUJITSU_OPERATIONS) == 22
     assert sum(not op.runnable for op in FUJITSU_OPERATIONS) == 2
@@ -38,8 +39,14 @@ def test_irmc_named_execution_is_fail_closed_without_wire_contract(capsys) -> No
     listing = _vendor_listing("fujitsu")
     assert len(listing) == 367
     assert listing[(0x2E, 0x01, 0x80, 0x28, 0x00, 0x15)]["requires_unsafe"] is False
+    assert "page_size" in listing[(0x34, 0x46)]["request"].lower()
+    assert "host power" in listing[(0x00, 0x02)]["security"].lower()
     assert listing[(0x2E, 0xF1)]["runnable"] is False
     assert listing[(0x2C, 0x02, 0x52, 0xA5)]["runnable"] is False
+    assert _cmd_oem_help("fujitsu", listing[(0x2C, 0x02, 0x52, 0xA5)]["name"]) == 0
+    help_text = capsys.readouterr().out
+    assert "not runnable over LAN" in help_text
+    assert " raw " not in help_text
     assert cmd_oem_run(Namespace(cmd_name=listing[(0x2E, 0xF1)]["name"], data=[], unsafe=True), "fujitsu") == 2
     assert "no supported LAN execution contract" in capsys.readouterr().err
     assert cmd_oem_run(Namespace(cmd_name=listing[(0x34, 0x39)]["name"], data=[], unsafe=False), "fujitsu") == 2
