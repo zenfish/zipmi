@@ -58,23 +58,20 @@ def test_activation_evidence_stratification():
 
     statuses = [row["activation_status"] for row in ASMB787_COMMANDS.values()]
     assert sum(s == "statically registered in owning dispatcher table" for s in statuses) == 92
-    assert sum("explicitly enabled" in s for s in statuses) == 85
-    unproved = {key for key, row in ASMB787_COMMANDS.items()
-                if "absent from extracted" in row["activation_status"]}
-    assert unproved == {
-        (0x32, 0xC0), (0x32, 0xC1), (0x32, 0xCA), (0x32, 0xCB),
-        (0x32, 0xD5), (0x32, 0xD6), (0x32, 0xD7), (0x32, 0xD8),
-        (0x32, 0xD9), (0x32, 0xDC),
-    }
+    assert sum(s.startswith("runtime registered:") for s in statuses) == 93
+    skipped = {key for key, row in ASMB787_COMMANDS.items()
+               if row["activation_status"].startswith("not runtime registered:")}
+    assert skipped == {(0x32, 0xD5), (0x32, 0xD6)}
 
 
-def test_cli_does_not_upgrade_plugin_eligibility_to_registration():
+def test_cli_reports_proven_plugin_registration():
     from zipmi.cli.oem_cmds import _vendor_listing
 
     listing = _vendor_listing("advantech-asmb787")
     assert "statically registered" in listing[(0x32, 0x66)]["desc"]
-    assert "feature enabled; runtime registration unproved" in listing[(0x32, 0x11)]["desc"]
-    assert "feature absent; runtime registration unproved" in listing[(0x32, 0xC0)]["desc"]
+    assert "runtime registered" in listing[(0x32, 0x11)]["desc"]
+    assert "runtime registered" in listing[(0x32, 0xC0)]["desc"]
+    assert "not runtime registered" in listing[(0x32, 0xD6)]["desc"]
 
 
 def test_named_resolution_emits_exact_netfn_cmd_bytes():

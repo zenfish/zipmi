@@ -294,8 +294,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
                                'handler semantics not independently proved',
             'table': 'g_AMI_CmdHndlr',
             'table_address': '0x0009db24'},
- (50, 17): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 17): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x11',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -323,8 +323,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_SSHConf_CmdHndlr',
             'table_address': '0x000010b0'},
- (50, 18): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 18): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x12',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -352,8 +352,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_SSHConf_CmdHndlr',
             'table_address': '0x000010b0'},
- (50, 24): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 24): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x18',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -381,8 +381,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_RIS_CmdHndlr',
             'table_address': '0x00003128'},
- (50, 25): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 25): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x19',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -738,8 +738,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
                                'handler semantics not independently proved',
             'table': 'g_AMI_CmdHndlr',
             'table_address': '0x0009db24'},
- (50, 42): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 42): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x2a',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -973,8 +973,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_AMI_CmdHndlr',
             'table_address': '0x0009db24'},
- (50, 54): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 54): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x36',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1002,8 +1002,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_PTP_CmdHndlr',
             'table_address': '0x00001010'},
- (50, 55): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 55): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x37',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1031,8 +1031,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_PTP_CmdHndlr',
             'table_address': '0x00001010'},
- (50, 56): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 56): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x38',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1060,8 +1060,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_PTP_CmdHndlr',
             'table_address': '0x00001010'},
- (50, 57): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 57): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x39',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1089,8 +1089,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_PTP_CmdHndlr',
             'table_address': '0x00001010'},
- (50, 58): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 58): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x3a',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1118,8 +1118,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_PTP_CmdHndlr',
             'table_address': '0x00001010'},
- (50, 59): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 59): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x3b',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1147,8 +1147,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_PTP_CmdHndlr',
             'table_address': '0x00001010'},
- (50, 60): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 60): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x3c',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1350,8 +1350,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
                                'handler semantics not independently proved',
             'table': 'g_AMI_CmdHndlr',
             'table_address': '0x0009db24'},
- (50, 74): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 74): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x4a',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1674,8 +1674,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_AMI_CmdHndlr',
             'table_address': '0x0009db24'},
- (50, 90): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 90): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x5a',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1703,8 +1703,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_Inventory_CmdHndlr',
             'table_address': '0x00000d50'},
- (50, 91): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 91): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x5b',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1732,8 +1732,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_Inventory_CmdHndlr',
             'table_address': '0x00000d50'},
- (50, 92): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 92): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x5c',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -1761,8 +1761,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
             'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
             'table': 'g_RESTInterface_CmdHndlr',
             'table_address': '0x00003b8c'},
- (50, 93): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                 'in extracted project configuration',
+ (50, 93): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                 'dependencies, exported table, and table merge proved',
             'category': 'plugin',
             'cmd': '0x5d',
             'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2016,8 +2016,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 105): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 105): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x69',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2045,8 +2045,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_ServiceConf_CmdHndlr',
              'table_address': '0x00002d5c'},
- (50, 106): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 106): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x6a',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2214,8 +2214,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 115): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 115): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x73',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2243,8 +2243,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_GetBIOSCode_CmdHndlr',
              'table_address': '0x000008e0'},
- (50, 118): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 118): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x76',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2272,8 +2272,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Firewall_CmdHndlr',
              'table_address': '0x00001870'},
- (50, 119): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 119): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x77',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2357,8 +2357,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 122): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 122): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x7a',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2386,8 +2386,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_PAMReorder_CmdHndlr',
              'table_address': '0x000021ac'},
- (50, 123): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 123): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x7b',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2415,8 +2415,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_PAMReorder_CmdHndlr',
              'table_address': '0x000021ac'},
- (50, 124): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 124): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x7c',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2444,8 +2444,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_SNMP_CmdHndlr',
              'table_address': '0x000011f0'},
- (50, 125): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 125): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x7d',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2613,8 +2613,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 131): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 131): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x83',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2642,8 +2642,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_prsvconf_CmdHndlr',
              'table_address': '0x00000c18'},
- (50, 132): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 132): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x84',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2727,8 +2727,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 135): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 135): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x87',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2758,8 +2758,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
                                 'ASMB handler semantics not independently proved',
              'table': 'g_FrmUpdatePrctl_CmdHndlr',
              'table_address': '0x000014d4'},
- (50, 136): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 136): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x88',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2787,8 +2787,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_FrmUpdatePrctl_CmdHndlr',
              'table_address': '0x000014d4'},
- (50, 137): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 137): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x89',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2816,8 +2816,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_FrmUpdatePrctl_CmdHndlr',
              'table_address': '0x000014d4'},
- (50, 138): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 138): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x8a',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2845,8 +2845,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_FrmUpdatePrctl_CmdHndlr',
              'table_address': '0x000014d4'},
- (50, 139): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 139): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x8b',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -2874,8 +2874,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_FrmUpdatePrctl_CmdHndlr',
              'table_address': '0x000014d4'},
- (50, 140): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 140): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x8c',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3270,8 +3270,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 155): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 155): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x9b',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3299,8 +3299,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_PwdEnc_CmdHndlr',
              'table_address': '0x0000178c'},
- (50, 156): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 156): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x9c',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3328,8 +3328,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Memtest_CmdHndlr',
              'table_address': '0x0000091c'},
- (50, 157): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 157): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x9d',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3357,8 +3357,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Memtest_CmdHndlr',
              'table_address': '0x0000091c'},
- (50, 158): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 158): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x9e',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3386,8 +3386,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_RIS_CmdHndlr',
              'table_address': '0x00003128'},
- (50, 159): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 159): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0x9f',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3415,8 +3415,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_RIS_CmdHndlr',
              'table_address': '0x00003128'},
- (50, 160): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 160): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa0',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3444,8 +3444,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_RIS_CmdHndlr',
              'table_address': '0x00003128'},
- (50, 161): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 161): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa1',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3473,8 +3473,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_CtlDbg_CmdHndlr',
              'table_address': '0x000007fc'},
- (50, 162): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 162): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa2',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3502,8 +3502,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_CtlDbg_CmdHndlr',
              'table_address': '0x000007fc'},
- (50, 163): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 163): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa3',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3531,8 +3531,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_ExtPriv_CmdHndlr',
              'table_address': '0x00000cf4'},
- (50, 164): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 164): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa4',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3560,8 +3560,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_ExtPriv_CmdHndlr',
              'table_address': '0x00000cf4'},
- (50, 165): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 165): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa5',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3589,8 +3589,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_TimeZone_CmdHndlr',
              'table_address': '0x00001018'},
- (50, 166): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 166): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa6',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3618,8 +3618,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_TimeZone_CmdHndlr',
              'table_address': '0x00001018'},
- (50, 167): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 167): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa7',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3647,8 +3647,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_NTP_CmdHndlr',
              'table_address': '0x000013f4'},
- (50, 168): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 168): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xa8',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3706,8 +3706,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
                                 'ASMB handler semantics not independently proved',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 170): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 170): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xaa',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3735,8 +3735,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_PwrCons_CmdHndlr',
              'table_address': '0x00000fd0'},
- (50, 171): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 171): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xab',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3764,8 +3764,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_PwrCons_CmdHndlr',
              'table_address': '0x00000fd0'},
- (50, 174): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 174): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xae',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3793,8 +3793,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_HostLock_CmdHndlr',
              'table_address': '0x00000a20'},
- (50, 175): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 175): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xaf',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3822,8 +3822,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_HostLock_CmdHndlr',
              'table_address': '0x00000a20'},
- (50, 176): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 176): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xb0',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3851,8 +3851,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_SessionMgmt_CmdHndlr',
              'table_address': '0x00001224'},
- (50, 177): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 177): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xb1',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3908,8 +3908,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 183): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 183): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xb7',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3937,8 +3937,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_SinglePort_CmdHndlr',
              'table_address': '0x00000844'},
- (50, 184): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 184): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xb8',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3966,8 +3966,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_SinglePort_CmdHndlr',
              'table_address': '0x00000844'},
- (50, 186): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 186): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xba',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -3995,8 +3995,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_prsvconf_CmdHndlr',
              'table_address': '0x00000c18'},
- (50, 187): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 187): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xbb',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4024,8 +4024,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_prsvconf_CmdHndlr',
              'table_address': '0x00000c18'},
- (50, 188): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 188): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xbc',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4053,8 +4053,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AutoHostLock_CmdHndlr',
              'table_address': '0x00000a18'},
- (50, 189): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 189): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xbd',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4110,9 +4110,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 192): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_REMOTEKVM_SUPPORT '
-                                  'absent from extracted project configuration; runtime '
-                                  'registration unproved',
+ (50, 192): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc0',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4140,9 +4139,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_REMOTEKVM_CmdHndlr',
              'table_address': '0x0000108c'},
- (50, 193): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_REMOTEKVM_SUPPORT '
-                                  'absent from extracted project configuration; runtime '
-                                  'registration unproved',
+ (50, 193): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc1',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4226,8 +4224,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 196): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 196): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc4',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4255,8 +4253,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AD_CmdHndlr',
              'table_address': '0x00001b18'},
- (50, 197): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 197): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc5',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4284,8 +4282,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_AD_CmdHndlr',
              'table_address': '0x00001b18'},
- (50, 198): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 198): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc6',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4313,8 +4311,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Radius_CmdHndlr',
              'table_address': '0x000013f0'},
- (50, 199): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 199): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc7',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4342,8 +4340,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Radius_CmdHndlr',
              'table_address': '0x000013f0'},
- (50, 200): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 200): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc8',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4371,8 +4369,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_LDAP_CmdHndlr',
              'table_address': '0x00001ef0'},
- (50, 201): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 201): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xc9',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4400,9 +4398,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_LDAP_CmdHndlr',
              'table_address': '0x00001ef0'},
- (50, 202): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_MEDIA_SUPPORT absent '
-                                  'from extracted project configuration; runtime registration '
-                                  'unproved',
+ (50, 202): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xca',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4430,9 +4427,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Media_CmdHndlr',
              'table_address': '0x00003d6c'},
- (50, 203): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_MEDIA_SUPPORT absent '
-                                  'from extracted project configuration; runtime registration '
-                                  'unproved',
+ (50, 203): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xcb',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4460,8 +4456,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Media_CmdHndlr',
              'table_address': '0x00003d6c'},
- (50, 204): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 204): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xcc',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4489,8 +4485,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_ExtSEL_CmdHndlr',
              'table_address': '0x000030e4'},
- (50, 205): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 205): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xcd',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4518,8 +4514,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_ExtSEL_CmdHndlr',
              'table_address': '0x000030e4'},
- (50, 206): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 206): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xce',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4547,8 +4543,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_GetBIOSRemoteCtrl_CmdHndlr',
              'table_address': '0x000012cc'},
- (50, 207): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 207): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xcf',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4576,8 +4572,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_GetBIOSRemoteCtrl_CmdHndlr',
              'table_address': '0x000012cc'},
- (50, 209): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 209): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xd1',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4605,8 +4601,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_GetBIOSRemoteCtrl_CmdHndlr',
              'table_address': '0x000012cc'},
- (50, 210): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 210): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xd2',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4634,8 +4630,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_GetBIOSRemoteCtrl_CmdHndlr',
              'table_address': '0x000012cc'},
- (50, 211): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 211): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xd3',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4663,8 +4659,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_GetBIOSRemoteCtrl_CmdHndlr',
              'table_address': '0x000012cc'},
- (50, 212): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 212): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xd4',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4692,9 +4688,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_GetBIOSRemoteCtrl_CmdHndlr',
              'table_address': '0x000012cc'},
- (50, 213): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_IPMI_PLDM_SUPPORT '
-                                  'absent from extracted project configuration; runtime '
-                                  'registration unproved',
+ (50, 213): {'activation_status': 'not runtime registered: exact feature token absent; loader '
+                                  'skips module',
              'category': 'plugin',
              'cmd': '0xd5',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4722,9 +4717,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_PLDM_CmdHndlr',
              'table_address': '0x000024f8'},
- (50, 214): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_IPMI_PLDM_SUPPORT '
-                                  'absent from extracted project configuration; runtime '
-                                  'registration unproved',
+ (50, 214): {'activation_status': 'not runtime registered: exact feature token absent; loader '
+                                  'skips module',
              'category': 'plugin',
              'cmd': '0xd6',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4752,9 +4746,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_PLDM_CmdHndlr',
              'table_address': '0x000022bc'},
- (50, 215): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_MEDIA_SUPPORT absent '
-                                  'from extracted project configuration; runtime registration '
-                                  'unproved',
+ (50, 215): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xd7',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4782,9 +4775,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Media_CmdHndlr',
              'table_address': '0x00003d6c'},
- (50, 216): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_MEDIA_SUPPORT absent '
-                                  'from extracted project configuration; runtime registration '
-                                  'unproved',
+ (50, 216): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xd8',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4812,9 +4804,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Media_CmdHndlr',
              'table_address': '0x00003d6c'},
- (50, 217): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_MEDIA_SUPPORT absent '
-                                  'from extracted project configuration; runtime registration '
-                                  'unproved',
+ (50, 217): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xd9',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4842,9 +4833,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Media_CmdHndlr',
              'table_address': '0x00003d6c'},
- (50, 220): {'activation_status': 'declared plugin table; CONFIG_SPX_FEATURE_MEDIA_SUPPORT absent '
-                                  'from extracted project configuration; runtime registration '
-                                  'unproved',
+ (50, 220): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xdc',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4872,8 +4862,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_Media_CmdHndlr',
              'table_address': '0x00003d6c'},
- (50, 227): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 227): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xe3',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4901,8 +4891,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_BackupRst_CmdHndlr',
              'table_address': '0x00001320'},
- (50, 228): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 228): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xe4',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -4930,8 +4920,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_BackupRst_CmdHndlr',
              'table_address': '0x00001320'},
- (50, 229): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 229): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xe5',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5135,8 +5125,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
                                 'ASMB handler semantics not independently proved',
              'table': 'g_AMI_CmdHndlr',
              'table_address': '0x0009db24'},
- (50, 239): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 239): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xef',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5166,8 +5156,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
                                 'ASMB handler semantics not independently proved',
              'table': 'g_RAIDInfo_CmdHndlr',
              'table_address': '0x0000f014'},
- (50, 240): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 240): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xf0',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5195,8 +5185,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_ExtSEL_CmdHndlr',
              'table_address': '0x000030e4'},
- (50, 241): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 241): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xf1',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5224,8 +5214,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_ExtSEL_CmdHndlr',
              'table_address': '0x000030e4'},
- (50, 243): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 243): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xf3',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5253,8 +5243,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_FirmwareRecovery_CmdHndlr',
              'table_address': '0x00000f4c'},
- (50, 244): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 244): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xf4',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5282,8 +5272,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_FirmwareRecovery_CmdHndlr',
              'table_address': '0x00000f4c'},
- (50, 251): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 251): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xfb',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5311,8 +5301,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_SMASHLITE_CmdHndlr',
              'table_address': '0x00000aac'},
- (50, 252): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 252): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xfc',
              'confidence': 'high for registration/identity/layout; payload schema not implied',
@@ -5340,8 +5330,8 @@ ASMB787_COMMANDS: dict[tuple[int, int], dict[str, str]] = {(48, 1): {'activation
              'semantic_source': 'ASMB-787 dispatcher registration (structure only)',
              'table': 'g_SMASHLITE_CmdHndlr',
              'table_address': '0x00000aac'},
- (50, 253): {'activation_status': 'declared plugin table; metadata feature gate explicitly enabled '
-                                  'in extracted project configuration',
+ (50, 253): {'activation_status': 'runtime registered: exact feature token present; loader enable, '
+                                  'dependencies, exported table, and table merge proved',
              'category': 'plugin',
              'cmd': '0xfd',
              'confidence': 'high for registration/identity/layout; payload schema not implied',

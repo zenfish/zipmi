@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import html
+import io
 import pprint
 import re
 import sys
@@ -14,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-oem-dispatch.csv"
+ACTIVATION_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-module-activation.csv"
 MODULE = ROOT / "zipmi/scapy_ipmi/oem/advantech_asmb787_generated.py"
 DOC = ROOT / "docs/advantech_ASMB787-command-reference.html"
 DOC_MD = ROOT / "docs/advantech_ASMB787-command-reference.md"
@@ -99,6 +101,8 @@ def enrich(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     from zipmi.scapy_ipmi.oem.yafu import YAFU_COMMANDS
 
     for row in rows:
+        if row.get("semantic_confidence") not in (None, "", "unknown"):
+            continue
         key = (int(row["netfn"], 0), int(row["cmd"], 0))
         context = YAFU_COMMANDS.get(key) or MEGARAC_COMMANDS.get(key)
         row["request_semantics"] = "unknown beyond dispatcher request-length constraint"
@@ -121,13 +125,43 @@ def enrich(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     return rows
 
 
-def write_source(rows: list[dict[str, str]]) -> None:
+def apply_activation(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    with ACTIVATION_SOURCE.open(newline="") as stream:
+        modules = {row["module"]: row for row in csv.DictReader(stream)}
+    plugin_rows = [row for row in rows if row["category"] == "plugin"]
+    if len(modules) != 38 or sum(int(row["rows"]) for row in modules.values()) != 95:
+        raise SystemExit("expected activation evidence for 38 modules / 95 plugin rows")
+    if {row["module"] for row in plugin_rows} != set(modules):
+        raise SystemExit("activation module set does not match dispatch catalog")
+    for module, evidence in modules.items():
+        count = sum(row["module"] == module for row in plugin_rows)
+        if count != int(evidence["rows"]):
+            raise SystemExit(f"activation row count mismatch for {module}: {count}")
+    for row in plugin_rows:
+        evidence = modules[row["module"]]
+        if evidence["sha256"] != row["module_sha256"]:
+            raise SystemExit(f"activation SHA-256 mismatch for {row['module']}")
+        if evidence["result"] == "REGISTERED":
+            row["activation_status"] = (
+                "runtime registered: exact feature token present; loader enable, "
+                "dependencies, exported table, and table merge proved"
+            )
+        elif evidence["result"] == "SKIPPED":
+            row["activation_status"] = (
+                "not runtime registered: exact feature token absent; loader skips module"
+            )
+        else:
+            raise SystemExit(f"unknown activation result for {row['module']}")
+    return rows
+
+
+def source_text(rows: list[dict[str, str]]) -> str:
     fields = [k for k in rows[0] if k not in SEMANTIC_FIELDS] + list(SEMANTIC_FIELDS)
-    SOURCE.parent.mkdir(parents=True, exist_ok=True)
-    with SOURCE.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
+    stream = io.StringIO(newline="")
+    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
+    writer.writeheader()
+    writer.writerows(rows)
+    return stream.getvalue()
 
 
 def module_text(rows: list[dict[str, str]]) -> str:
@@ -153,6 +187,10 @@ def activation_label(value: str) -> str:
         return "feature enabled; runtime registration unproved"
     if "absent from extracted" in value:
         return "feature absent; runtime registration unproved"
+    if value.startswith("runtime registered:"):
+        return "runtime registered"
+    if value.startswith("not runtime registered:"):
+        return "not runtime registered"
     raise SystemExit(f"unknown activation status: {value}")
 
 
@@ -174,12 +212,14 @@ def doc_text(rows: list[dict[str, str]]) -> str:
             f"<td class='p-2'>{esc(row['confidence'])}<br><span class='text-slate-400'>{esc(row['semantic_source'])}; {esc(row['semantic_confidence'])}</span></td>"
             "</tr>"
         )
-    return """<!doctype html>
+    registered = sum(row["activation_status"].startswith("runtime registered:") for row in rows)
+    skipped = sum(row["activation_status"].startswith("not runtime registered:") for row in rows)
+    return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Advantech ASMB-787 OEM IPMI command reference</title><script src="https://cdn.tailwindcss.com"></script></head>
 <body class="bg-slate-950 text-slate-100"><main class="mx-auto max-w-[110rem] p-6">
 <h1 class="text-3xl font-bold">Advantech ASMB-787 OEM IPMI command reference</h1>
-<p class="mt-3 text-slate-300">Complete 187-entry firmware dispatch catalog and zipmi named raw surface for unique vendor NetFn/Cmd pairs. Evidence separates 92 statically registered core/platform rows, 85 feature-enabled plugin declarations whose runtime registration was not directly proved, and 10 feature-absent plugin declarations. The CmdHndlr_T layout is <code>cmd@+0</code>, <code>privilege@+1</code>, <code>handler@+4</code>, the one-byte dispatcher request-length constraint at <code>+8</code>, and <code>interface@+12</code>. Earlier documentation swapped privilege and request length.</p>
+<p class="mt-3 text-slate-300">Complete 187-entry firmware dispatch catalog and zipmi named raw surface for unique vendor NetFn/Cmd pairs. Evidence separates 92 statically registered core/platform rows, {registered} runtime-registered plugin rows, and {skipped} plugin rows skipped because their exact feature token is absent. The CmdHndlr_T layout is <code>cmd@+0</code>, <code>privilege@+1</code>, <code>handler@+4</code>, the one-byte dispatcher request-length constraint at <code>+8</code>, and <code>interface@+12</code>. Earlier documentation swapped privilege and request length.</p>
 <p class="mt-2 text-slate-300">A named command means zipmi can emit its exact NetFn/Cmd bytes. It does not claim a structured codec, complete request/response semantics, or runtime reachability. The +8 value proves only the dispatcher constraint shown; payload fields remain explicitly unknown unless AMI client/header material supplies labelled context. Type-8 secondary selector hooks exist, but their selector values remain unknown.</p>
 <div class="mt-6 overflow-x-auto"><table class="w-full text-sm"><caption class="pb-3 text-left text-slate-300">All 187 unique ASMB-787 vendor NetFn/Cmd catalog entries and their evidence boundaries.</caption><thead class="sticky top-0 bg-slate-900 text-left"><tr><th scope="col" class="p-2">Wire</th><th scope="col" class="p-2">Handler / module</th><th scope="col" class="p-2">Privilege</th><th scope="col" class="p-2">Request</th><th scope="col" class="p-2">Response</th><th scope="col" class="p-2">Interface</th><th scope="col" class="p-2">Activation</th><th scope="col" class="p-2">Evidence / confidence</th></tr></thead><tbody>""" + "".join(body) + """</tbody></table></div>
 <p class="mt-6 text-slate-400">Generated from <code>zipmi/data/sources/advantech-asmb787-oem-dispatch.csv</code> by <code>scripts/generate_advantech_asmb787.py</code>.</p>
@@ -235,9 +275,12 @@ def main() -> int:
     if args.import_csv:
         if args.check:
             parser.error("--check and --import-csv are mutually exclusive")
-        write_source(enrich(read_rows(args.import_csv)))
-    rows = read_rows(SOURCE)
-    ok = emit(MODULE, module_text(rows), args.check)
+        rows = enrich(read_rows(args.import_csv))
+    else:
+        rows = read_rows(SOURCE)
+    rows = apply_activation(rows)
+    ok = emit(SOURCE, source_text(rows), args.check)
+    ok &= emit(MODULE, module_text(rows), args.check)
     ok &= emit(DOC, doc_text(rows), args.check)
     ok &= emit(DOC_MD, markdown_text(rows), args.check)
     if args.check and not ok:

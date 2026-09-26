@@ -796,6 +796,10 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             activation = e["activation_status"]
             if activation == "statically registered in owning dispatcher table":
                 active = "statically registered"
+            elif activation.startswith("runtime registered:"):
+                active = "runtime registered"
+            elif activation.startswith("not runtime registered:"):
+                active = "not runtime registered"
             elif "explicitly enabled" in activation:
                 active = "feature enabled; runtime registration unproved"
             else:
