@@ -1,4 +1,3 @@
-]0;not a ttyexport plugin already enabled
 {
   "target": "Lenovo XCC 6.92 Newyork-pass1",
   "zbmcRun": "20260926T180101Z-a368af09-d224-4a10-b6f6-74c5e3d2490d",
@@ -48,4 +47,3 @@
     "No mutating, mixed-effect, destructive, schema-unbounded, or test-only setter was executed."
   ]
 }
-
