@@ -906,6 +906,12 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "confidence": c.confidence, "lib": c.handler,
                 "backend_deps": c.notes,
                 "operations": c.operations,
+                "request_length_rules": c.request_length_rules,
+                "requires_unsafe": (
+                    c.side_effect != "likely-read-only"
+                    or len(c.request_length_rules) != 1
+                    or c.request_length_rules[0][0] != "exact"
+                ),
                 "args": "", "src": c.source + (f"; request length {rules}" if rules else ""),
             }
         return _normalize_listing(out, "lenovo")
@@ -1329,7 +1335,27 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             _msg.error(f"{info['name']} accepts at most {req_max} payload bytes; got {payload_len}")
             return 2
 
-    if vendor in ("advantech-asmb787", "idrac10"):
+    if vendor == "lenovo":
+        payload_len = len(raw_data)
+        rules = info.get("request_length_rules") or ()
+        exact = {length for kind, length in rules if kind == "exact"}
+        minimum = {length for kind, length in rules if kind == "minimum"}
+        if exact and payload_len not in exact:
+            allowed = ", ".join(str(length) for length in sorted(exact))
+            _msg.error(
+                f"{info['name']} requires exactly {allowed} body byte(s) "
+                f"after its fixed prefix; got {payload_len}"
+            )
+            return 2
+        if not exact and minimum and payload_len < min(minimum):
+            required = min(minimum)
+            _msg.error(
+                f"{info['name']} requires at least {required} body byte(s) "
+                f"after its fixed prefix; got {payload_len}"
+            )
+            return 2
+
+    if vendor in ("advantech-asmb787", "idrac10", "lenovo"):
         if info.get("requires_unsafe") and not getattr(args, "unsafe", False):
             _msg.error(
                 f"{info['name']} is state-changing or has an unproved payload "
@@ -1526,7 +1552,7 @@ def _add_vendor_parser(
     looks up (defaults to parser_name)."""
     vendor_key = vendor_key or parser_name
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
-    if vendor_key in ("advantech-asmb787", "idrac10"):
+    if vendor_key in ("advantech-asmb787", "idrac10", "lenovo"):
         sp.add_argument(
             "--unsafe", action="store_true",
             help="acknowledge state-changing or schema-unknown named raw execution",

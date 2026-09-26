@@ -76,9 +76,53 @@ def test_lenovo_named_command_sends_exact_group_prefix(monkeypatch):
 
     session = Session()
     monkeypatch.setattr(cli, "_open_session", lambda _args: session)
-    args = argparse.Namespace(cmd_name="XCCBmcEmerson_2E_80_66_4A_00", data=["0x99"], json=True)
+    args = argparse.Namespace(
+        cmd_name="XCCBmcEmerson_2E_80_66_4A_00", data=["0x99"], json=True,
+        unsafe=True,
+    )
     assert cmd_oem_run(args, "lenovo") == 0
     assert session.sent == [(0x2E, 0x80, bytes.fromhex("66 4a 00 99"))]
+
+
+def test_lenovo_named_execution_is_fail_closed(monkeypatch, capsys):
+    import argparse
+    import zipmi.cli.zipmi as cli
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    monkeypatch.setattr(cli, "_open_session", lambda _args: None)
+    unsafe = argparse.Namespace(
+        cmd_name="XCCReset_3A_38", data=["0x01"], json=True, unsafe=False,
+    )
+    assert cmd_oem_run(unsafe, "lenovo") == 2
+    assert "--unsafe" in capsys.readouterr().err
+
+    wrong_length = argparse.Namespace(
+        cmd_name="XCCModules_3A_0D", data=["0x00"], json=True, unsafe=False,
+    )
+    assert cmd_oem_run(wrong_length, "lenovo") == 2
+    assert "requires exactly 0 body byte" in capsys.readouterr().err
+
+
+def test_lenovo_group_prefix_is_excluded_from_body_length(monkeypatch):
+    import argparse
+    import zipmi.cli.zipmi as cli
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    class Session:
+        sent = []
+        def __enter__(self): return self
+        def __exit__(self, *_): return False
+        def send_raw(self, netfn, cmd, data):
+            self.sent.append((netfn, cmd, bytes(data)))
+            return 0, b""
+
+    session = Session()
+    monkeypatch.setattr(cli, "_open_session", lambda _args: session)
+    args = argparse.Namespace(
+        cmd_name="XCCModules_2E_30_D0_51_00", data=[], json=True, unsafe=True,
+    )
+    assert cmd_oem_run(args, "lenovo") == 0
+    assert session.sent == [(0x2E, 0x30, bytes.fromhex("d0 51 00"))]
 
 
 def test_lenovo_decoded_operation_contracts_are_structured():
