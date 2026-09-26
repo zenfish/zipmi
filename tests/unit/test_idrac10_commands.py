@@ -81,7 +81,7 @@ def test_catalog_imports_all():
         IDRAC10_COMMANDS, IDrac10Command,
     )
     assert isinstance(IDRAC10_COMMANDS, list)
-    assert len(IDRAC10_COMMANDS) == 456
+    assert len(IDRAC10_COMMANDS) == 581
     assert all(isinstance(c, IDrac10Command) for c in IDRAC10_COMMANDS)
 
 
@@ -102,7 +102,7 @@ def test_wire_prefixes_preserve_colliding_handlers_and_live_evidence():
         (c.netfn, c.cmd, c.subcmd if c.subcmd is not None else c.prefix)
         for c in IDRAC10_COMMANDS
     ]
-    assert len(keys) == len(set(keys)) == 456
+    assert len(keys) == len(set(keys)) == 581
     assert {
         (c.name, c.prefix) for c in IDRAC10_COMMANDS
         if (c.netfn, c.cmd) == (0x2c, 0x01)
@@ -124,7 +124,7 @@ def test_cli_keeps_every_exact_wire_operation():
     from zipmi.cli.oem_cmds import _vendor_listing
 
     rows = _vendor_listing("idrac10")
-    assert len(rows) == 456
+    assert len(rows) == 581
     assert rows[(0x2c, 0x01, 0xdc)]["name"] == "CmdDcmiGetDcmiCapabilityInfo"
     assert rows[(0x2c, 0x01, 0x52, 0x01)]["name"] == "DellCmdGetMgrCertFingerprint"
     assert rows[(0x2c, 0x02, 0xdc)]["name"].startswith("CmdDcmiGetPowerReading")
@@ -217,20 +217,20 @@ def test_every_maser_operation_has_explicit_safety_and_evidence():
     }
 
 
-def test_every_existing_liboemcmds_operation_has_audited_safety():
+def test_every_liboemcmds_operation_has_audited_safety():
     from collections import Counter
     from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
 
     rows = [c for c in IDRAC10_COMMANDS if c.lib == "liboemcmds"]
-    assert len(rows) == 120
+    assert len(rows) == 229
     assert Counter(c.effect for c in rows) == {
-        "safe": 50,
-        "mutates": 26,
-        "security-sensitive": 25,
+        "safe": 112,
+        "mutates": 72,
+        "security-sensitive": 26,
         "unknown": 19,
     }
     assert all(c.evidence for c in rows)
-    assert sum(c.selector_offset == 1 for c in rows) == 78
+    assert sum(c.selector_offset == 1 for c in rows) == 132
 
 
 def test_misc_and_dcmi_operations_have_audited_contracts():
@@ -247,13 +247,78 @@ def test_misc_and_dcmi_operations_have_audited_contracts():
         "destructive": 2,
     }
     dcmi = [c for c in IDRAC10_COMMANDS if c.lib == "libdcmi"]
-    assert len(dcmi) == 60
+    assert len(dcmi) == 66
     assert Counter(c.effect for c in dcmi) == {
         "safe": 8,
         "mutates": 8,
-        "unknown": 44,
+        "unknown": 50,
     }
     assert all(c.codec_state == "raw-exact" and c.evidence for c in misc + dcmi)
+
+
+def test_missing_top_level_and_sysinfo_contracts_are_catalogued():
+    from collections import Counter
+
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
+
+    keys = {(c.netfn, c.cmd) for c in IDRAC10_COMMANDS}
+    assert {
+        (0x00, 0x06), (0x04, 0x12), (0x04, 0x13), (0x04, 0x23),
+        (0x04, 0x26), (0x04, 0x2f), (0x06, 0x01), (0x06, 0x52),
+        (0x0a, 0x25), (0x0a, 0x27), (0x0c, 0x01), (0x0c, 0x02),
+        (0x06, 0x38), (0x06, 0x39), (0x06, 0x3a), (0x06, 0x3b),
+        (0x08, 0x05), (0x08, 0x06), (0x08, 0x07), (0x08, 0x08),
+        (0x08, 0x09), (0x08, 0x20),
+    } <= keys
+    setters = [c for c in IDRAC10_COMMANDS if c.netfn == 0x06 and c.cmd == 0x58]
+    getters = [c for c in IDRAC10_COMMANDS if c.netfn == 0x06 and c.cmd == 0x59]
+    assert len(setters) == 49
+    assert Counter(c.effect for c in setters) == {"mutates": 39, "safe": 10}
+    assert all(c.selector_offset == 0 and c.prefix for c in setters)
+    assert len(getters) == 54
+    assert Counter(c.effect for c in getters) == {"safe": 51, "mutates": 3}
+    assert all(c.selector_offset == 1 and not c.prefix for c in getters)
+
+
+def test_modular_and_osa_contracts_are_audited_and_fail_closed():
+    from collections import Counter
+
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
+
+    modular = [c for c in IDRAC10_COMMANDS if c.lib == "libmodular"]
+    assert len(modular) == 34
+    assert Counter(c.effect for c in modular) == {
+        "safe": 10, "mutates": 20, "security-sensitive": 4,
+    }
+    osa = [c for c in IDRAC10_COMMANDS if c.lib == "libosa"]
+    assert len(osa) == 11
+    assert Counter(c.effect for c in osa) == {
+        "safe": 6, "security-sensitive": 2, "destructive": 3,
+    }
+    reset = next(c for c in osa if c.name.endswith("CmdResetToDefaultOSA"))
+    assert reset.effect == "destructive"
+    assert reset.activation["effectivePrivilege"].startswith("Callback")
+    assert "not re-enforced" in reset.activation["innerDeclaredPrivilege"]
+    assert all(c.codec_state == "raw-exact" and c.evidence for c in modular + osa)
+
+
+def test_small_libraries_and_irreducible_unknowns_are_explicit():
+    from collections import Counter
+
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
+
+    small = [c for c in IDRAC10_COMMANDS if c.lib in {
+        "libserialcmds", "libkcspassthru", "libbackplane",
+    }]
+    assert len(small) == 4
+    assert all(c.effect == "security-sensitive" for c in small)
+    backplane = next(c for c in small if c.lib == "libbackplane")
+    assert backplane.request_length == (0, 8)
+
+    unknown = [c for c in IDRAC10_COMMANDS if c.effect == "unknown"]
+    assert len(unknown) == 69
+    assert Counter(c.lib for c in unknown) == {"libdcmi": 50, "liboemcmds": 19}
+    assert all(c.evidence for c in unknown)
 
 
 def test_offset_one_selector_is_identity_not_auto_prefix(monkeypatch):

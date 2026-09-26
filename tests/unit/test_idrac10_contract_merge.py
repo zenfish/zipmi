@@ -69,6 +69,27 @@ def test_array_fragment_preserves_including_cc_length_and_selector_offset():
     assert merged["selectorOffset"] == 1
 
 
+def test_operations_fragment_normalizes_rich_audit_schema():
+    catalog = {"commands": [{
+        "name": "ReadThing", "netfn": "0x30", "cmd": "0x01", "subcmd": "",
+    }]}
+    fragment = {"operations": [{
+        "name": "ReadThing",
+        "prefixDiscriminant": {"netfn": "0x30", "cmd": "0x01", "subcmd": None},
+        "safety": "safe/read-only", "sideEffects": [],
+        "requestLength": {"kind": "minimum", "bytes": 1},
+        "responseLengthIncludingCc": {"kind": "range", "bytes": [2, 4]},
+        "completionCodes": {"0x00": "success"},
+        "activation": {"registration": "static", "gates": []},
+        "evidence": [{"symbol": "ReadThing"}],
+    }]}
+
+    merged = _MODULE.merge(catalog, fragment)["commands"][0]
+    assert merged["effect"] == "safe"
+    assert merged["requestLength"] == {"min": 1, "max": None}
+    assert merged["responseLengthIncludingCc"] == {"min": 2, "max": 4}
+
+
 def test_effect_normalization_is_fail_closed():
     assert _MODULE._effect("read-only", "ReadThing") == "safe"
     assert _MODULE._effect("mixed", "ReadThing") == "security-sensitive"
