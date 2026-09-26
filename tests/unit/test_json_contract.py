@@ -390,6 +390,15 @@ def test_raw_json(monkeypatch):
     assert d["data"] == "200102"
 
 
+def test_raw_does_not_guess_an_oem_vendor(monkeypatch, clean_oem_registry):
+    from zipmi.cli.zipmi import cmd_raw
+
+    s = _S({(0x30, 0x04): (0x00, b"\x00")})
+    rc, data = _run(monkeypatch, cmd_raw, s, netfn="0x30", cmd="0x04", data=[])
+    assert rc == 0
+    assert data["name"] == ""
+
+
 # === sessionless list (static) ===========================================
 
 def test_sessionless_list_json(monkeypatch):

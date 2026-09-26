@@ -4550,10 +4550,6 @@ def cmd_raw(args: argparse.Namespace) -> int:
     netfn = int(args.netfn, 0)
     cmd = int(args.cmd, 0)
     data = bytes(int(b, 0) & 0xFF for b in args.data)
-    # Auto-load iDRAC6 vendor for OEM NetFns so names appear by default.
-    if netfn in (0x30, 0x2E):
-        import zipmi
-        zipmi.load_vendor("idrac6")
     with _open_session(args) as s:
         cc, resp = s.send_raw(netfn, cmd, data)
     cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")
