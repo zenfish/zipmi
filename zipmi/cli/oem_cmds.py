@@ -88,7 +88,7 @@ VENDORS: dict[str, dict] = {
     },
     "lenovo": {
         "iana": 2,
-        "blurb": "Lenovo IMM/XCC 6.92 — 222 decoded server-side OEM command identities",
+        "blurb": "Lenovo IMM/XCC 6.92 — 225 decoded server-side OEM command identities",
     },
     # --- OpenBMC vendor flavors (open source; see oem/openbmc.py manifest) ---
     # All registered via the simple register(vendor, iana, {(netfn,cmd):name})

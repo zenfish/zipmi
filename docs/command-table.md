@@ -367,21 +367,21 @@ OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
 explicit `zipmi.load_vendor("<vendor>")`.
 
-**<!--OEM-COUNT-->2176<!--/OEM-COUNT--> known commands · 2099 named commands**
+**<!--OEM-COUNT-->2442<!--/OEM-COUNT--> known commands · 2370 named commands**
 across 9 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
 firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 
 | CLI vendor | IANA | Known | Named | Catalog / source |
 |------------|------|------:|------:|------------------|
-| `advantech-asmb787` | 10297 | 187 | 187 | [ASMB-787 firmware dispatch reference](advantech_ASMB787-command-reference.html) |
+| `advantech-asmb787` | 10297 | 230 | 230 | [ASMB-787 firmware dispatch reference](advantech_ASMB787-command-reference.html) |
 | `idrac6` | 674 | 192 | 192 | [iDRAC6 dispatch table](dell-command-table.md) |
 | `idrac9` | 674 | 349 | 277 | [iDRAC9 handler catalog](idrac9-command-table.md) |
-| `idrac10` | 674 | 443 | 443 | `zipmi/data/sources/idrac10-commands.json` |
+| `idrac10` | 674 | 581 | 581 | `zipmi/data/sources/idrac10-commands.json` |
 | `supermicro-x11` | 10876 | 477 | 477 | firmware/JAR-derived catalog |
 | `supermicro-x14` | — | 39 | 39 | OpenBMC + SMC OEM catalog |
 | `megarac` | — | 95 | 95 | [MegaRAC command table](megarac-command-table.md) |
 | `yafu` | — | 42 | 42 | AMI YAFU NetFn 0x32 catalog |
-| `lenovo` | 2 | 222 | 217 | `zipmi/data/sources/lenovo-xcc-commands.json` |
+| `lenovo` | 2 | 307 | 307 | `zipmi/data/sources/lenovo-xcc-commands.json` |
 | `openbmc` | mixed | 130 | 130 | 9 flavors: Intel, Meta, Google, Ampere, OpenPOWER, Inspur, Foxconn, Wistron, Nvidia |
 
 Counts use the same `_vendor_stats()` path as `zipmi oem`; run
