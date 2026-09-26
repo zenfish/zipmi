@@ -11,6 +11,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "zipmi/data/sources/fujitsu-irmc-s6-operations.json"
+SAFE_EXACT = {
+    (0x01, selector) for selector in ("15", "16", "18", "1d")
+} | {
+    (0xF1, selector) for selector in ("21", "22", "25", "26", "29", "2a", "2d", "2e", "50")
+} | {
+    (0xF5, selector) for selector in ("4a", "4d", "a3", "b1", "b3", "b4", "fe")
+} | {(0xE0, "00"), (0x02, "08")}
+assert len(SAFE_EXACT) == 22
 
 
 def load(path: Path) -> dict:
@@ -40,9 +48,11 @@ def build(source: Path) -> dict:
 
     def add(cmd: int, selector: str, item: dict, origin: str) -> None:
         prefix = [0x80, 0x28, 0x00, int(selector, 16)]
-        exact_safe = cmd == 0x01 and selector in {"15", "16", "18", "1d"}
+        exact_safe = (cmd, selector) in SAFE_EXACT
+        if exact_safe:
+            assert item["status"] == "decoded", (cmd, selector)
         operations.append({
-            "name": f"iRMC_{item.get('name') or item.get('notes') or 'Selector'}_{cmd:02X}_{selector.upper()}",
+            "name": f"iRMC_{item.get('name') or 'Selector'}_{cmd:02X}_{selector.upper()}",
             "netfn": 0x2E, "cmd": cmd, "lun": 0, "prefix": prefix,
             "privilege": privilege[(0x2E, cmd)],
             "request": item.get("request"), "response": item.get("response"),

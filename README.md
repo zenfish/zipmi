@@ -372,8 +372,8 @@ Lenovo's named XCC contracts prepend proven selector or IANA bytes and check
 request lengths. State-changing or uncertain operations require `--unsafe`;
 see the [XCC 6.92 command reference](docs/lenovo-xcc-command-reference.html)
 for each operation's exact bytes and evidence.
-Fujitsu's iRMC S6 catalog likewise prepends selector bytes; only four fixed
-power reads run without `--unsafe`. The other named operations are raw-exact
+Fujitsu's iRMC S6 catalog likewise prepends selector bytes; 22 fixed
+read-only selectors run without `--unsafe`. The other named operations are raw-exact
 with an explicit safety gate, while host-only bootstrap routes are listed but
 not runnable over LAN. See the [iRMC S6 reference](docs/fujitsu-irmc-s6-command-reference.html).
 
@@ -420,7 +420,7 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
 - **Fujitsu iRMC S6 02.63S**: [firmware-bound zipmi reference](docs/fujitsu-irmc-s6-command-reference.html)
   lists 135 top-level dispatch names and 232 selector/group operations, with
   exact source hashes, evidence state, and fail-closed raw execution. The
-  [zBMC binary-evidence reference](../zbmc/boxes/irmc-fujitsu/irmc-s6-oem-reference.html)
+  [zBMC binary-evidence reference](https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/irmc-s6-oem-reference.html)
   retains all 148 active registrations, 138 LUN-aware identities, and 228
   `2e` selector candidates. Partial leaf schemas and rack activation are
   explicit limits, not presumed support.

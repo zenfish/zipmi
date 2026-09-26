@@ -11,7 +11,7 @@ import json
 from dataclasses import dataclass
 from importlib.resources import files
 
-from ._registry import register
+from ._registry import build_fixed_packet_class, register
 
 
 @dataclass(frozen=True)
@@ -98,10 +98,41 @@ FUJITSU_CMD_NAMES = {
 FUJITSU_OPERATION_NAMES = {
     (op.netfn, op.cmd, *op.prefix): op.name for op in FUJITSU_OPERATIONS
 }
-register("fujitsu", 10368, FUJITSU_CMD_NAMES | FUJITSU_OPERATION_NAMES)
+FUJITSU_SELECTOR_PAYLOADS = []
+_power_fields = {0x15: "reason", 0x16: "reason", 0x18: "runtime_power_field",
+                 0x1D: "inhibit"}
+for _operation in FUJITSU_OPERATIONS:
+    if _operation.exact_safe_length != 4:
+        continue
+    _selector = _operation.prefix[-1]
+    _request = build_fixed_packet_class(
+        f"iRMC {_operation.cmd:02x}/{_selector:02x} Request",
+        [{"name": "iana0", "kind": "u8", "constant": 0x80},
+         {"name": "iana1", "kind": "u8", "constant": 0x28},
+         {"name": "iana2", "kind": "u8", "constant": 0},
+         {"name": "selector", "kind": "u8", "constant": _selector}],
+        require_fields=True,
+    )
+    _response = None
+    if _operation.cmd == 0x01:
+        _response = build_fixed_packet_class(
+            f"iRMC SCCI {_selector:02x} Response",
+            [{"name": "completion_code", "kind": "u8"},
+             {"name": "iana0", "kind": "u8", "constant": 0x80},
+             {"name": "iana1", "kind": "u8", "constant": 0x28},
+             {"name": "iana2", "kind": "u8", "constant": 0},
+             {"name": "length", "kind": "u8", "constant": 4 if _selector == 0x18 else 1},
+             {"name": _power_fields[_selector],
+              "kind": "u32le" if _selector == 0x18 else "u8"}],
+        )
+    FUJITSU_SELECTOR_PAYLOADS.append((0x2E, _operation.cmd, 3, bytes([_selector]),
+                                      (_request, _response)))
+register("fujitsu", 10368, FUJITSU_CMD_NAMES | FUJITSU_OPERATION_NAMES,
+         selector_payloads=FUJITSU_SELECTOR_PAYLOADS)
 
 
 __all__ = [
     "FujitsuRecord", "FujitsuOperation", "FUJITSU_RECORDS", "FUJITSU_OPERATIONS",
     "FUJITSU_CMD_NAMES", "FUJITSU_OPERATION_NAMES",
+    "FUJITSU_SELECTOR_PAYLOADS",
 ]

@@ -452,8 +452,8 @@
       "activation": "onGetAgentConnectFeatures",
       "source": "scci-selector-contracts.json#02/08",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Reset communication and power-cycle request_02_09",
@@ -734,8 +734,8 @@
       "activation": "ConfigurationSpaceStatus(1,0,0)",
       "source": "scci-selector-contracts.json#e0/00",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Read configuration-space variable_E0_01",
@@ -1653,8 +1653,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/21",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Get BMC Interrupt Status (bank 0)_F1_22",
@@ -1682,8 +1682,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/22",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Reset BMC Interrupt Status (bank 0)_F1_23",
@@ -1769,8 +1769,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/25",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Get BMC Interrupt Status (bank 1)_F1_26",
@@ -1798,8 +1798,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/26",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Reset BMC Interrupt Status (bank 1)_F1_27",
@@ -1885,8 +1885,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/29",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Get BMC Interrupt Status (bank 2)_F1_2A",
@@ -1914,8 +1914,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/2a",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Reset BMC Interrupt Status (bank 2)_F1_2B",
@@ -2001,8 +2001,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/2d",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Get BMC Interrupt Status (bank 3)_F1_2E",
@@ -2030,8 +2030,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/2e",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Reset BMC Interrupt Status (bank 3)_F1_2F",
@@ -2436,8 +2436,8 @@
       "activation": "registered; platform-dependent",
       "source": "f1-selector-contracts.json#f1/50",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Get PMB object event status_F1_51",
@@ -3687,7 +3687,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_00",
+      "name": "iRMC_Selector_F5_00",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3716,7 +3716,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_07",
+      "name": "iRMC_Selector_F5_07",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3745,7 +3745,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_08",
+      "name": "iRMC_Selector_F5_08",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3774,7 +3774,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_09",
+      "name": "iRMC_Selector_F5_09",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3803,7 +3803,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_0B",
+      "name": "iRMC_Selector_F5_0B",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3832,7 +3832,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_0C",
+      "name": "iRMC_Selector_F5_0C",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3861,7 +3861,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_0D",
+      "name": "iRMC_Selector_F5_0D",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3890,7 +3890,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_0E",
+      "name": "iRMC_Selector_F5_0E",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3919,7 +3919,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_10",
+      "name": "iRMC_Selector_F5_10",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3948,7 +3948,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_12",
+      "name": "iRMC_Selector_F5_12",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -3977,7 +3977,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_18",
+      "name": "iRMC_Selector_F5_18",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4006,7 +4006,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_1C",
+      "name": "iRMC_Selector_F5_1C",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4035,7 +4035,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Clear all forced sensor readings and forced power-history values_F5_2C",
+      "name": "iRMC_Selector_F5_2C",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4064,7 +4064,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_2D",
+      "name": "iRMC_Selector_F5_2D",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4093,7 +4093,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_2E",
+      "name": "iRMC_Selector_F5_2E",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4122,7 +4122,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1d274-0x1d28c passes output pointer and max length 40 to utGetLogInfo; helper return sets total response length._F5_2F",
+      "name": "iRMC_Selector_F5_2F",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4151,7 +4151,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_33",
+      "name": "iRMC_Selector_F5_33",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4180,7 +4180,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Clear stored fan-controller values for selected fan_F5_34",
+      "name": "iRMC_Selector_F5_34",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4209,7 +4209,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_35",
+      "name": "iRMC_Selector_F5_35",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4238,7 +4238,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_40",
+      "name": "iRMC_Selector_F5_40",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4267,7 +4267,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_41",
+      "name": "iRMC_Selector_F5_41",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4296,7 +4296,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_42",
+      "name": "iRMC_Selector_F5_42",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4325,7 +4325,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_43",
+      "name": "iRMC_Selector_F5_43",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4354,7 +4354,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_45",
+      "name": "iRMC_Selector_F5_45",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4383,7 +4383,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_46",
+      "name": "iRMC_Selector_F5_46",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4412,7 +4412,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_48",
+      "name": "iRMC_Selector_F5_48",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4441,7 +4441,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_49",
+      "name": "iRMC_Selector_F5_49",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4470,7 +4470,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1c788-0x1c7a4 proves exact length, two getters, two-byte response._F5_4A",
+      "name": "iRMC_Selector_F5_4A",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4495,11 +4495,11 @@
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/4a",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4B",
+      "name": "iRMC_Selector_F5_4B",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4528,7 +4528,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4C",
+      "name": "iRMC_Selector_F5_4C",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4557,7 +4557,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Disassembly 0x1c010-0x1c01c proves constant one-byte response; only shared outer minimum length applies._F5_4D",
+      "name": "iRMC_Selector_F5_4D",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4582,11 +4582,11 @@
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/4d",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4E",
+      "name": "iRMC_Selector_F5_4E",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4615,7 +4615,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_4F",
+      "name": "iRMC_Selector_F5_4F",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4644,7 +4644,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_50",
+      "name": "iRMC_Selector_F5_50",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4673,7 +4673,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_51",
+      "name": "iRMC_Selector_F5_51",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4702,7 +4702,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_52",
+      "name": "iRMC_Selector_F5_52",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4731,7 +4731,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_53",
+      "name": "iRMC_Selector_F5_53",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4760,7 +4760,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_54",
+      "name": "iRMC_Selector_F5_54",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4789,7 +4789,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1dd2c-0x1dd50 proves request length and helper output/return flow; selector values and backend codes unresolved._F5_55",
+      "name": "iRMC_Selector_F5_55",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4818,7 +4818,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_5A",
+      "name": "iRMC_Selector_F5_5A",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4847,7 +4847,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_5C",
+      "name": "iRMC_Selector_F5_5C",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4876,7 +4876,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_5F",
+      "name": "iRMC_Selector_F5_5F",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4905,7 +4905,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Reserve an SSO session_F5_60",
+      "name": "iRMC_Selector_F5_60",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4934,7 +4934,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1d758-0x1d77c proves exact request, echo, helper result, response length._F5_61",
+      "name": "iRMC_Selector_F5_61",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4963,7 +4963,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_70",
+      "name": "iRMC_Selector_F5_70",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -4992,7 +4992,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_71",
+      "name": "iRMC_Selector_F5_71",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5021,7 +5021,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_72",
+      "name": "iRMC_Selector_F5_72",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5050,7 +5050,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_73",
+      "name": "iRMC_Selector_F5_73",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5079,7 +5079,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_74",
+      "name": "iRMC_Selector_F5_74",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5108,7 +5108,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_75",
+      "name": "iRMC_Selector_F5_75",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5137,7 +5137,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_7E",
+      "name": "iRMC_Selector_F5_7E",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5166,7 +5166,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1be1c-0x1be34 proves input offsets and no helper-return check; semantics of individual flag bits remain in imported helper._F5_80",
+      "name": "iRMC_Selector_F5_80",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5195,7 +5195,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_81",
+      "name": "iRMC_Selector_F5_81",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5224,7 +5224,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Read iEL information_F5_82",
+      "name": "iRMC_Selector_F5_82",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5253,7 +5253,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_84",
+      "name": "iRMC_Selector_F5_84",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5282,7 +5282,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Add iEL entry_F5_85",
+      "name": "iRMC_Selector_F5_85",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5311,7 +5311,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Add iEL entry from SEL data_F5_86",
+      "name": "iRMC_Selector_F5_86",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5340,7 +5340,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_87",
+      "name": "iRMC_Selector_F5_87",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5369,7 +5369,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_89",
+      "name": "iRMC_Selector_F5_89",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5398,7 +5398,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8A",
+      "name": "iRMC_Selector_F5_8A",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5427,7 +5427,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8B",
+      "name": "iRMC_Selector_F5_8B",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5456,7 +5456,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8C",
+      "name": "iRMC_Selector_F5_8C",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5485,7 +5485,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8D",
+      "name": "iRMC_Selector_F5_8D",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5514,7 +5514,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8E",
+      "name": "iRMC_Selector_F5_8E",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5543,7 +5543,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_8F",
+      "name": "iRMC_Selector_F5_8F",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5572,7 +5572,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Delegate to OEM boot-flags handler_F5_90",
+      "name": "iRMC_Selector_F5_90",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5601,7 +5601,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Disassembly 0x1bb40-0x1bb68 proves exact length, bit mask, shared-state write, and zero completion._F5_A2",
+      "name": "iRMC_Selector_F5_A2",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5630,7 +5630,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Disassembly 0x1b9a0-0x1b9c0 proves exact length, bit mask, one-byte response, and shared success path._F5_A3",
+      "name": "iRMC_Selector_F5_A3",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5655,11 +5655,11 @@
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/a3",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_A4",
+      "name": "iRMC_Selector_F5_A4",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5688,7 +5688,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_A5",
+      "name": "iRMC_Selector_F5_A5",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5717,7 +5717,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b65c-0x1b67c passes payload pointer/length and output pointer/length to lkeySetKeyParameters; backend contract remains unresolved._F5_A8",
+      "name": "iRMC_Selector_F5_A8",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5746,7 +5746,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b638-0x1b658 passes payload pointer/length and output pointer/length to lkeyGetAppEnable; backend contract remains unresolved._F5_A9",
+      "name": "iRMC_Selector_F5_A9",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5775,7 +5775,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_AA",
+      "name": "iRMC_Selector_F5_AA",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5804,7 +5804,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_AB",
+      "name": "iRMC_Selector_F5_AB",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5833,7 +5833,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b7d8-0x1b7f0 proves length, helper argument, completion mapping._F5_B0",
+      "name": "iRMC_Selector_F5_B0",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5862,7 +5862,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b7c0-0x1b7d4 proves exact length and one-byte helper result._F5_B1",
+      "name": "iRMC_Selector_F5_B1",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5887,11 +5887,11 @@
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/b1",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
-      "name": "iRMC_0x1b5dc-0x1b5e8 and 0x1f808-0x1f818 prove exact length, helper argument and completion mapping._F5_B2",
+      "name": "iRMC_Selector_F5_B2",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5920,7 +5920,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b5c4-0x1b5d8 proves exact length and one-byte helper result._F5_B3",
+      "name": "iRMC_Selector_F5_B3",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5945,11 +5945,11 @@
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/b3",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
-      "name": "iRMC_0x1b860-0x1b878 proves exact length and one-byte helper result._F5_B4",
+      "name": "iRMC_Selector_F5_B4",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -5974,11 +5974,11 @@
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/b4",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_B5",
+      "name": "iRMC_Selector_F5_B5",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6007,7 +6007,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Set CSS test mode_F5_B6",
+      "name": "iRMC_Selector_F5_B6",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6036,7 +6036,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_DE",
+      "name": "iRMC_Selector_F5_DE",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6065,7 +6065,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b77c-0x1b7bc proves magic comparison and no backend call._F5_DF",
+      "name": "iRMC_Selector_F5_DF",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6094,7 +6094,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_E0",
+      "name": "iRMC_Selector_F5_E0",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6123,7 +6123,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b8f8-0x1b978 and 0x1fff0-0x20004 prove offsets, backend call, status mapping and length-prefixed return; backend data-length bounds need confirmation._F5_E1",
+      "name": "iRMC_Selector_F5_E1",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6152,7 +6152,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b87c-0x1b8f4 proves count/length relation, fan-index and offset arguments, backend call and status. Backend offset/data semantics remain external._F5_E2",
+      "name": "iRMC_Selector_F5_E2",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6181,7 +6181,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_E3",
+      "name": "iRMC_Selector_F5_E3",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6210,7 +6210,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_EF",
+      "name": "iRMC_Selector_F5_EF",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6239,7 +6239,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_F0",
+      "name": "iRMC_Selector_F5_F0",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6268,7 +6268,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_F1",
+      "name": "iRMC_Selector_F5_F1",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6297,7 +6297,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_F2",
+      "name": "iRMC_Selector_F5_F2",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6326,7 +6326,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b4e8-0x1b520 proves exact length, arguments, backend return mapping, and empty success body._F5_F6",
+      "name": "iRMC_Selector_F5_F6",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6355,7 +6355,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b4c0-0x1b4e4 proves exact length, output pointer, response length, and backend error mapping._F5_F7",
+      "name": "iRMC_Selector_F5_F7",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6384,7 +6384,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_F8",
+      "name": "iRMC_Selector_F5_F8",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6413,7 +6413,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Read NM performance-control state_F5_F9",
+      "name": "iRMC_Selector_F5_F9",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6442,7 +6442,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry target confirmed; downstream contract unresolved._F5_FA",
+      "name": "iRMC_Selector_F5_FA",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6471,7 +6471,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Entry-block observation only; follow branch targets before constructing a runnable codec._F5_FC",
+      "name": "iRMC_Selector_F5_FC",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6500,7 +6500,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_Delegate manufacturing command_F5_FD",
+      "name": "iRMC_Selector_F5_FD",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6529,7 +6529,7 @@
       "exactSafeLength": null
     },
     {
-      "name": "iRMC_0x1b364-0x1b388 proves constant response and shared success wrapper; no selector-specific request body is read._F5_FE",
+      "name": "iRMC_Selector_F5_FE",
       "netfn": 46,
       "cmd": 245,
       "lun": 0,
@@ -6554,8 +6554,8 @@
       "activation": "registered; platform-dependent",
       "source": "f5-selector-contracts.json#f5/fe",
       "runnable": true,
-      "requiresUnsafe": true,
-      "exactSafeLength": null
+      "requiresUnsafe": false,
+      "exactSafeLength": 4
     },
     {
       "name": "iRMC_Get blade port name_F8_06",

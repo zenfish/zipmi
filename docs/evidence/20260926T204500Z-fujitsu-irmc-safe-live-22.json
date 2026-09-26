@@ -1,0 +1,209 @@
+{
+  "schema": "zbmc.irmc-s6.safe-oem-probes.v1",
+  "generated": "2026-09-26T20:42:46.075432+00:00",
+  "runId": "20260926T200725Z-7ecec0c7-f88e-4945-b3b2-2fe97bcb9e3a",
+  "host": "10.250.0.42",
+  "user": "admin",
+  "grantedPrivilege": 4,
+  "cipherSuite": 17,
+  "results": [
+    {
+      "name": "last-power-on-reason",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "80280015",
+      "completionCode": 0,
+      "response": "8028000100",
+      "elapsedMs": 88
+    },
+    {
+      "name": "next-or-last-power-off-reason",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "80280016",
+      "completionCode": 0,
+      "response": "8028000100",
+      "elapsedMs": 80
+    },
+    {
+      "name": "runtime-power-field",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "80280018",
+      "completionCode": 0,
+      "response": "8028000400000000",
+      "elapsedMs": 70
+    },
+    {
+      "name": "power-off-inhibit-state",
+      "netfn": "2e",
+      "cmd": "01",
+      "request": "8028001d",
+      "completionCode": 0,
+      "response": "8028000100",
+      "elapsedMs": 138
+    },
+    {
+      "name": "host-agent-connection-state",
+      "netfn": "2e",
+      "cmd": "02",
+      "request": "80280008",
+      "completionCode": 0,
+      "response": "8028000100",
+      "elapsedMs": 17
+    },
+    {
+      "name": "configuration-space-status",
+      "netfn": "2e",
+      "cmd": "e0",
+      "request": "80280000",
+      "completionCode": 1,
+      "response": "802800",
+      "elapsedMs": 120
+    },
+    {
+      "name": "interrupt-enable-bank-0",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "80280021",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 38
+    },
+    {
+      "name": "interrupt-status-bank-0",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "80280022",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 102
+    },
+    {
+      "name": "interrupt-enable-bank-1",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "80280025",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 68
+    },
+    {
+      "name": "interrupt-status-bank-1",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "80280026",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 109
+    },
+    {
+      "name": "interrupt-enable-bank-2",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "80280029",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 116
+    },
+    {
+      "name": "interrupt-status-bank-2",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "8028002a",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 77
+    },
+    {
+      "name": "interrupt-enable-bank-3",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "8028002d",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 77
+    },
+    {
+      "name": "interrupt-status-bank-3",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "8028002e",
+      "completionCode": 0,
+      "response": "80280000000000",
+      "elapsedMs": 69
+    },
+    {
+      "name": "pmb-object-counts",
+      "netfn": "2e",
+      "cmd": "f1",
+      "request": "80280050",
+      "completionCode": 0,
+      "response": "80280001020100",
+      "elapsedMs": 133
+    },
+    {
+      "name": "f5-4a-read",
+      "netfn": "2e",
+      "cmd": "f5",
+      "request": "8028004a",
+      "completionCode": 0,
+      "response": "8028000128",
+      "elapsedMs": 57
+    },
+    {
+      "name": "f5-4d-read",
+      "netfn": "2e",
+      "cmd": "f5",
+      "request": "8028004d",
+      "completionCode": 0,
+      "response": "80280000",
+      "elapsedMs": 94
+    },
+    {
+      "name": "f5-a3-read",
+      "netfn": "2e",
+      "cmd": "f5",
+      "request": "802800a3",
+      "completionCode": 0,
+      "response": "80280000",
+      "elapsedMs": 89
+    },
+    {
+      "name": "f5-b1-read",
+      "netfn": "2e",
+      "cmd": "f5",
+      "request": "802800b1",
+      "completionCode": 0,
+      "response": "80280000",
+      "elapsedMs": 77
+    },
+    {
+      "name": "f5-b3-read",
+      "netfn": "2e",
+      "cmd": "f5",
+      "request": "802800b3",
+      "completionCode": 0,
+      "response": "80280002",
+      "elapsedMs": 99
+    },
+    {
+      "name": "f5-b4-read",
+      "netfn": "2e",
+      "cmd": "f5",
+      "request": "802800b4",
+      "completionCode": 0,
+      "response": "80280000",
+      "elapsedMs": 103
+    },
+    {
+      "name": "f5-fe-read",
+      "netfn": "2e",
+      "cmd": "f5",
+      "request": "802800fe",
+      "completionCode": 0,
+      "response": "80280001",
+      "elapsedMs": 95
+    }
+  ]
+}

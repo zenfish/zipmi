@@ -7,7 +7,9 @@ from argparse import Namespace
 from zipmi.cli.oem_cmds import _vendor_listing, cmd_oem_run
 from zipmi.scapy_ipmi.oem.fujitsu import (
     FUJITSU_CMD_NAMES, FUJITSU_OPERATION_NAMES, FUJITSU_OPERATIONS, FUJITSU_RECORDS,
+    FUJITSU_SELECTOR_PAYLOADS,
 )
+from zipmi.scapy_ipmi.oem._registry import lookup_payload
 
 
 def test_pinned_irmc_s6_dispatch_table() -> None:
@@ -28,7 +30,7 @@ def test_pinned_irmc_s6_dispatch_table() -> None:
     assert len(FUJITSU_CMD_NAMES) == 135
     assert len(FUJITSU_OPERATIONS) == len(FUJITSU_OPERATION_NAMES) == 232
     assert len({op.name for op in FUJITSU_OPERATIONS}) == 232
-    assert sum(not op.requires_unsafe for op in FUJITSU_OPERATIONS) == 4
+    assert sum(not op.requires_unsafe for op in FUJITSU_OPERATIONS) == 22
     assert sum(not op.runnable for op in FUJITSU_OPERATIONS) == 2
 
 
@@ -42,3 +44,30 @@ def test_irmc_named_execution_is_fail_closed_without_wire_contract(capsys) -> No
     assert "no supported LAN execution contract" in capsys.readouterr().err
     assert cmd_oem_run(Namespace(cmd_name=listing[(0x34, 0x39)]["name"], data=[], unsafe=False), "fujitsu") == 2
     assert "add --unsafe" in capsys.readouterr().err
+    safe_f1 = listing[(0x2E, 0xF1, 0x80, 0x28, 0, 0x21)]["name"]
+    assert cmd_oem_run(Namespace(cmd_name=safe_f1, data=["0x00"], unsafe=False), "fujitsu") == 2
+    assert "requires exactly 4 payload bytes" in capsys.readouterr().err
+
+
+def test_irmc_safe_power_read_codecs() -> None:
+    assert len(FUJITSU_SELECTOR_PAYLOADS) == 22
+    for operation in FUJITSU_OPERATIONS:
+        if operation.exact_safe_length == 4:
+            pair = lookup_payload("fujitsu", operation.netfn, operation.cmd,
+                                  operation.prefix)
+            assert pair is not None
+            assert bytes(pair[0]()) == operation.prefix
+    for selector, response_hex, value_field in (
+        (0x15, "008028000100", "reason"),
+        (0x16, "008028000100", "reason"),
+        (0x18, "008028000400000000", "runtime_power_field"),
+        (0x1D, "008028000100", "inhibit"),
+    ):
+        pair = lookup_payload("fujitsu", 0x2E, 0x01,
+                              bytes([0x80, 0x28, 0, selector]))
+        assert pair is not None
+        request, response = pair
+        assert bytes(request()) == bytes([0x80, 0x28, 0, selector])
+        decoded = response(bytes.fromhex(response_hex))
+        assert decoded.completion_code == 0
+        assert getattr(decoded, value_field) == 0
