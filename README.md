@@ -17,7 +17,7 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code, which worked with me over the last half-year on this project — in all aspects of the package.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2442<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Per-vendor tables: [Dell](docs/dell-command-table.md) · [iDRAC9](docs/idrac9-command-table.md) · [Advantech](docs/advantech_ASMB787-command-reference.html) · [MegaRAC](docs/megarac-command-table.md)
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2442<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Per-vendor tables: [Dell](docs/dell-command-table.md) · [iDRAC9](docs/idrac9-command-table.md) · [Advantech](docs/advantech_ASMB787-command-reference.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) · [MegaRAC](docs/megarac-command-table.md)
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -338,6 +338,7 @@ zipmi idrac6                                      # list iDRAC6's 192 cmds (RE'd
 zipmi -H <bmc> dell GetChassisStatus              # run by name (substring match)
 zipmi -H <bmc> oem supermicro UtilRestoreConfig   # `oem <vendor>` form
 zipmi -H <bmc> oem idrac9 maser get               # structured OEM sub-verb (get/set)
+zipmi -H <xcc> -U USERID -C 17 oem lenovo "Firmware Version"
 zipmi -H <bmc> oem supermicro fwdump flash.bin    # dump X10-X13 firmware over IPMI
 
 # Firmware/bus access: IPMI reaches I2C/SMBus (Master Write-Read: i2c/i2cscan/
@@ -366,6 +367,10 @@ command expects, read its handler / the per-command notes; the OpenBMC
 OEM IPMI survey (upstream source review) documents the byte
 layouts that were recovered from source. A wrong-length payload comes back
 as a completion code (e.g. `0xC7` Request Data Length Invalid), not a crash.
+Lenovo's named XCC contracts prepend proven selector or IANA bytes and check
+request lengths. State-changing or uncertain operations require `--unsafe`;
+see the [XCC 6.92 command reference](docs/lenovo-xcc-command-reference.html)
+for each operation's exact bytes and evidence.
 
 > **zipmi defaults to IPMI 2.0 RMCP+ (`-I lanplus`), cipher auto-discovered.**
 > The right default: nearly every BMC from the last ~15 years speaks 2.0,
@@ -407,6 +412,14 @@ bytes via `zipmi raw`.
 
 Source-of-truth (hahah... well, for some value of truth) per vendor:
 
+- **Lenovo XCC 6.92 Newyork-pass1**: [firmware-bound OEM reference](docs/lenovo-xcc-command-reference.html)
+  covering 225 exact identities / 210 NetFn-command pairs and 107 promoted
+  operation contracts. zipmi lists 307 named entries, with 66 request and 60
+  response codecs; bounded variable payloads remain available as guarded raw
+  commands. The catalog reconciles C++ registrations, legacy admissions, and
+  the core request table. It also documents privilege, channel, effect,
+  activation, completion-code, and live evidence boundaries. IBM IANA 2 is
+  shared with OpenPower, so select `lenovo` explicitly for XCC.
 - **idrac6**: handler symbols recovered from `T710-bmc/bin/fullfw`
   with radare2 auto-analysis (ARM debug-string residue carried function
   names through the strip). 195 of 213 dispatch slots are now named.

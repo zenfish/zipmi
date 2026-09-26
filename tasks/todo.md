@@ -32,6 +32,13 @@ same as the ASMB787 column just added.
 - Corrected the swapped privilege/request-length interpretation and withdrew the false ASMB unauthenticated/backdoor claims. YAFU no longer advertises universal availability or privilege.
 - Proof: generator sync check passed; focused OEM/CLI suite passed (18 tests); repository doc sync passed after refreshing generated statistics.
 
+## Review — Lenovo XCC public reference (2026-09-26)
+
+- Added Lenovo to the README OEM section and linked the firmware-bound HTML reference from the coverage summary.
+- Generated the reference from zipmi's 225-identity command catalog and 107 operation contracts; retained the 32-command safe live evidence beside it.
+- Corrected RMCP+ `Session.granted_priv` to record the effective Set Session Privilege Level reply rather than the Open Session ceiling.
+- Proof: documentation sync, generator rerun, HTML parse, and focused Lenovo/auth tests passed.
+
 ## Review — OEM coverage table and 0.3.3 version (2026-09-25)
 
 - Replaced the stale zero-command OEM summary with the live 2,176-command vendor inventory while retaining the useful iDRAC6 NetFn breakdown.

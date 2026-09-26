@@ -20,6 +20,7 @@ from zipmi.scapy_ipmi.commands import (
     GetSessionChallengeReq,
     GetSessionChallengeResp,
     SetSessionPrivLevelReq,
+    SetSessionPrivLevelResp,
 )
 from zipmi.scapy_ipmi.crypto import md5_auth_code, pad_password
 
@@ -115,3 +116,14 @@ def test_set_session_priv_req_bytes():
     # two distinct values so this isn't a one-constant passthrough tautology
     assert bytes(SetSessionPrivLevelReq(priv=0x04)) == b"\x04"   # Administrator
     assert bytes(SetSessionPrivLevelReq(priv=0x03)) == b"\x03"   # Operator
+
+
+def test_set_session_priv_records_effective_level():
+    """The Set Privilege reply, not Open Session's ceiling, is authoritative."""
+    from zipmi.core import Session
+
+    session = Session("127.0.0.1", None, None)
+    session.granted_priv = 0x04
+    session.send_cmd = lambda *_: SetSessionPrivLevelResp(b"\x00\x02")
+    session._set_privilege(0x02)
+    assert session.granted_priv == 0x02

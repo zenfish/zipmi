@@ -1,0 +1,51 @@
+]0;not a ttyexport plugin already enabled
+{
+  "target": "Lenovo XCC 6.92 Newyork-pass1",
+  "zbmcRun": "20260926T180101Z-a368af09-d224-4a10-b6f6-74c5e3d2490d",
+  "readySeconds": 382,
+  "zipmiVersion": "0.5.0",
+  "zipmiCommit": "78a57dd7b994e8f697555de56210778e096a8e94",
+  "transport": "RMCP+ cipher suite 17",
+  "safety": "All 32 mechanically synthesizable fixed-request read-only contracts were executed.",
+  "observations": [
+    {"name":"Firmware Version","netfn":"0x3a","cmd":"0x00","requestHex":"","completionCode":"0x00","responseHex":"0692"},
+    {"name":"Firmware Version with Revision","netfn":"0x3a","cmd":"0x00","requestHex":"00","completionCode":"0x00","responseHex":"069200"},
+    {"name":"Board Information","netfn":"0x3a","cmd":"0x0d","requestHex":"","completionCode":"0x00","responseHex":"ff00"},
+    {"name":"Power Restore Delay Get","netfn":"0x3a","cmd":"0x1e","requestHex":"01","completionCode":"0x00","responseHex":"00"},
+    {"name":"Build Information","netfn":"0x3a","cmd":"0x50","requestHex":"","completionCode":"0x00","responseHex":"455358333534580000323032352d30382d323800000030363a33373a3432"},
+    {"name":"Board Hardware Revision","netfn":"0x3a","cmd":"0x6c","requestHex":"","completionCode":"0xce","responseHex":""},
+    {"name":"PSoC Firmware Inventory","netfn":"0x3a","cmd":"0x6d","requestHex":"","completionCode":"0x00","responseHex":""},
+    {"name":"Front USB Owner Get","netfn":"0x3a","cmd":"0x98","requestHex":"01","completionCode":"0x00","responseHex":"01"},
+    {"name":"Front USB Configuration Get","netfn":"0x3a","cmd":"0x98","requestHex":"02","completionCode":"0x00","responseHex":"020005010a"},
+    {"name":"Front USB Enable Get","netfn":"0x3a","cmd":"0x98","requestHex":"06","completionCode":"0xd5","responseHex":""},
+    {"name":"Auxiliary Log Status","netfn":"0x0a","cmd":"0x5a","requestHex":"01","completionCode":"0x00","responseHex":"238bb068664a0014004e08"},
+    {"name":"Native Node Manager Bridge Get","netfn":"0x3a","cmd":"0xc7","requestHex":"","completionCode":"0x00","responseHex":"00"},
+    {"name":"LAN IP Address Source Get","netfn":"0x0c","cmd":"0x02","requestHex":"01040000","completionCode":"0x00","responseHex":"1104"},
+    {"name":"LAN Ethernet Interface Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c00000","completionCode":"0x00","responseHex":"1101"},
+    {"name":"LAN Ethernet over USB Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c10000","completionCode":"0x00","responseHex":"1100"},
+    {"name":"LAN DUID-LLT Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c20000","completionCode":"0x00","responseHex":"110c000200002b5ee771b957e507"},
+    {"name":"LAN Autonegotiation Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c30000","completionCode":"0x00","responseHex":"1101"},
+    {"name":"LAN Data Rate Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c40000","completionCode":"0x00","responseHex":"1101"},
+    {"name":"LAN Duplex Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c50000","completionCode":"0x00","responseHex":"1101"},
+    {"name":"LAN MTU Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c60000","completionCode":"0x00","responseHex":"11dc05"},
+    {"name":"LAN Locally Administered MAC Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c70000","completionCode":"0x00","responseHex":"11e771b957e507"},
+    {"name":"LAN IPv6 Link Local Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c80000","completionCode":"0x00","responseHex":"1140fe80000000000000e571b9fffe57e507"},
+    {"name":"LAN IPv6 Enable Get","netfn":"0x0c","cmd":"0x02","requestHex":"01c90000","completionCode":"0x00","responseHex":"1101"},
+    {"name":"LAN USB External Pass-through Get","netfn":"0x0c","cmd":"0x02","requestHex":"01ca0000","completionCode":"0x00","responseHex":"11000000000000"},
+    {"name":"LAN USB XCC IPv4 Get","netfn":"0x0c","cmd":"0x02","requestHex":"01cb0000","completionCode":"0x00","responseHex":"1100f212560a000000"},
+    {"name":"LAN USB Host IPv4 Get","netfn":"0x0c","cmd":"0x02","requestHex":"01cc0000","completionCode":"0x00","responseHex":"11a9fe5f78"},
+    {"name":"LAN Logical Package Inventory Get","netfn":"0x0c","cmd":"0x02","requestHex":"01d30000","completionCode":"0x00","responseHex":"114042434445464748"},
+    {"name":"LAN Logical Package Priority Get","netfn":"0x0c","cmd":"0x02","requestHex":"01d40000","completionCode":"0x00","responseHex":"110002030405060708"},
+    {"name":"LAN Dedicated Shared Synchronization Get","netfn":"0x0c","cmd":"0x02","requestHex":"01d50000","completionCode":"0x00","responseHex":"1100"},
+    {"name":"LAN Unnamed OEM Value Get","netfn":"0x0c","cmd":"0x02","requestHex":"01d20000","completionCode":"0xcc","responseHex":""},
+    {"name":"LAN On-board Package Inventory Get","netfn":"0x0c","cmd":"0x02","requestHex":"01d70000","completionCode":"0x00","responseHex":"11071f20314253647586"},
+    {"name":"LAN Test NCSI Mapping Get","netfn":"0x0c","cmd":"0x02","requestHex":"01d80000","completionCode":"0x00","responseHex":"110000010002000300040005000600070008000900"}
+  ],
+  "transportNotes": [
+    "The first Firmware Version session failed at RAKP4 status 0x02; its bounded serialized retry returned CC00.",
+    "The same intermittent authenticated-IPMI behavior occurred during zBMC readiness before the required 83-second stable interval.",
+    "Twenty-nine contracts returned CC00; Board Hardware Revision returned 0xCE, Front USB Enable Get returned 0xD5, and inactive D2 returned 0xCC.",
+    "No mutating, mixed-effect, destructive, schema-unbounded, or test-only setter was executed."
+  ]
+}
+

@@ -614,7 +614,7 @@ class Session:
     def _set_privilege(self, priv: int) -> None:
         req = cmds.SetSessionPrivLevelReq(priv=priv)
         decoded = self.send_cmd(0x06, 0x3B, req)
-        # decoded.priv is the actual granted level — already validated by send_cmd
+        self.granted_priv = decoded.priv
         # via comp_code check.
 
     # -- IPMI 2.0 RMCP+ (lanplus) ------------------------------------------
