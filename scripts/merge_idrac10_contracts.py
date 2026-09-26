@@ -124,6 +124,80 @@ def _selector_offset(contract: dict) -> int | None:
     return None
 
 
+def _exact_length(value) -> int | None:
+    if isinstance(value, int):
+        return value
+    if not isinstance(value, dict):
+        return None
+    if value.get("kind") == "exact":
+        return value["bytes"]
+    if value.get("min") is not None and value.get("min") == value.get("max"):
+        return value["min"]
+    return None
+
+
+def _codec_fields(fields: list[dict], total: int, *, drop_cc: bool = False,
+                  prefix: bytes = b"") -> list[dict] | None:
+    fields = [dict(field) for field in fields]
+    if drop_cc:
+        if (not fields or fields[0].get("offset") != 0
+                or fields[0].get("length") != 1
+                or "completion code" not in fields[0].get("description", "").lower()):
+            return None
+        fields = fields[1:]
+        total -= 1
+        for field in fields:
+            field["offset"] -= 1
+    position = 0
+    normalized = []
+    for field in sorted(fields, key=lambda item: item["offset"]):
+        size = field.get("length")
+        if field["offset"] != position or not isinstance(size, int) or size < 1:
+            return None
+        item = {
+            "name": f"field_{position}",
+            "kind": "u8" if size == 1 else "bytes",
+            "description": field.get("description", ""),
+        }
+        if size != 1:
+            item["length"] = size
+        if size == 1 and position < len(prefix):
+            item["constant"] = prefix[position]
+        normalized.append(item)
+        position += size
+    return normalized if position == total else None
+
+
+def _promote_codecs(record: dict, contract: dict) -> None:
+    if contract.get("codecState") != "verified":
+        return
+    request_length = _exact_length(contract.get("requestLength"))
+    request_fields = (_codec_fields(
+        contract.get("requestFields", []), request_length, prefix=_prefix(record))
+        if request_length is not None else None)
+    response_includes_cc = "responseLengthIncludingCc" in contract
+    response_length = _exact_length(contract.get(
+        "responseLengthIncludingCc" if response_includes_cc else "responseLength"))
+    response_fields = (_codec_fields(
+        contract.get("responseFields", []), response_length,
+        drop_cc=response_includes_cc)
+        if response_length is not None else None)
+    if request_fields is not None:
+        record["requestCodec"] = True
+        record["requestFields"] = request_fields
+    if response_fields is not None:
+        record["responseCodec"] = True
+        record["responseFields"] = [
+            {"name": "completion_code", "kind": "u8"}, *response_fields,
+        ]
+    if record.get("requestCodec") and record.get("responseCodec"):
+        record["codecState"] = "verified"
+    elif record.get("requestCodec"):
+        record["codecState"] = "request-only"
+    elif record.get("responseCodec"):
+        record["codecState"] = "response-only"
+
+
 def merge(catalog: dict, fragment: dict) -> dict:
     by_key = {_key(record): record for record in catalog["commands"]}
     records = _records(fragment)
@@ -148,11 +222,12 @@ def merge(catalog: dict, fragment: dict) -> dict:
             "responseLengthIncludingCc": _length(response_length, add=response_add),
             "completionCodes": contract["completionCodes"],
             "activation": contract["activation"],
-            "codecState": "raw-exact",
+            "codecState": record.get("codecState", "raw-exact"),
             "evidence": contract["evidence"],
         })
         if contract.get("subcmd"):
             record["selectorOffset"] = _selector_offset(contract)
+        _promote_codecs(record, contract)
     return catalog
 
 

@@ -43,7 +43,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -54,7 +54,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "CmdOEMGetChassisCapabilities",
@@ -2017,7 +2024,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -2028,7 +2035,41 @@
     "selectorPrefix": "5201",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x52 ('R', required magic)",
+     "constant": 82
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "0x01 (version/subtype selector)",
+     "constant": 1
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0x0152 (LE uint16 type marker)",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "32-byte SHA-256 fingerprint binary (StringToHex of the 64 hex chars from the 65-byte CfgDB TLSCertificateFingerPrint string)",
+     "length": 32
+    }
+   ]
   },
   {
    "name": "CmdDcmiGetPowerReading",
@@ -2197,7 +2238,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -2208,7 +2249,39 @@
     "selectorPrefix": "52",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x52 ('R', required magic)",
+     "constant": 82
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "0xa5 keeps provisioning enabled after read, any other value triggers CfgSetAttributeInt to disable IPMIBootstrapCredentialProvisioning"
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x52 ('R' marker)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "32-byte bootstrap credential blob from GenerateBootstrapCredentials_IPCClient (username+password)",
+     "length": 32
+    }
+   ]
   },
   {
    "name": "CmdDcmiGetPowerLimit",
@@ -4250,7 +4323,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4262,7 +4335,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x42",
@@ -4311,7 +4391,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4323,7 +4403,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x43",
@@ -4372,7 +4459,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4384,7 +4471,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x44",
@@ -4432,7 +4526,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4444,7 +4538,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x45",
@@ -4492,7 +4593,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4504,7 +4605,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x46",
@@ -4552,7 +4660,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4564,7 +4672,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x4b",
@@ -4612,7 +4727,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4624,7 +4739,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x60",
@@ -4672,7 +4794,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4684,7 +4806,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x61",
@@ -4732,7 +4861,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4744,7 +4873,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x64",
@@ -4792,7 +4928,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4804,7 +4940,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x65",
@@ -4852,7 +4995,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4864,7 +5007,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x66",
@@ -4913,7 +5063,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4925,7 +5075,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x67",
@@ -4974,7 +5131,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -4986,7 +5143,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x68",
@@ -5035,7 +5199,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5047,7 +5211,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x69",
@@ -5096,7 +5267,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5108,7 +5279,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x80",
@@ -5161,7 +5339,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5173,7 +5351,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x81",
@@ -5225,7 +5410,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5237,7 +5422,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0x82",
@@ -5289,7 +5481,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5301,7 +5493,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xa8",
@@ -5414,7 +5613,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5426,7 +5625,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xba",
@@ -5475,7 +5681,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5487,7 +5693,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xc0",
@@ -5553,7 +5766,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5565,7 +5778,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xc1",
@@ -5618,7 +5838,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5630,7 +5850,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xc2",
@@ -5682,7 +5909,7 @@
      "AllowIpmiI2cCommands policy gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -5694,7 +5921,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xc3",
@@ -6031,7 +6265,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -6043,7 +6277,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xc8",
@@ -6104,7 +6345,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -6116,7 +6357,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xc9",
@@ -6240,7 +6488,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -6252,7 +6500,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xcb",
@@ -6305,7 +6560,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -6317,7 +6572,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "CmdOSAOEMCmdHandler/CmdGetFWVersion",
@@ -7519,7 +7781,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -7531,7 +7793,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xcf",
@@ -7779,7 +8048,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -7791,7 +8060,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xd3",
@@ -7840,7 +8116,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -7852,7 +8128,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xd4",
@@ -7901,7 +8184,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -7913,7 +8196,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xd7",
@@ -7966,7 +8256,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -7978,7 +8268,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xd8",
@@ -8027,7 +8324,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8039,7 +8336,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xd9",
@@ -8092,7 +8396,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8104,7 +8408,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xdc",
@@ -8153,7 +8464,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8165,7 +8476,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xdf",
@@ -8214,7 +8532,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8226,7 +8544,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellCmdNodeMgrDebugInfo",
@@ -8267,7 +8592,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8278,7 +8603,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellCmdNodeMgrSendRaw",
@@ -8319,7 +8651,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8330,7 +8662,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/PowerBudget",
@@ -8383,7 +8722,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8394,7 +8733,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/SNMPAlertTrapDest",
@@ -8442,7 +8788,7 @@
      "AllowIpmiI2cCommands policy gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8453,7 +8799,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xf1",
@@ -8697,7 +9050,7 @@
      "AllowIpmiI2cCommands policy gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -8708,7 +9061,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xf5",
@@ -11176,7 +11536,7 @@
      "feature/license gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -11188,7 +11548,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xC7",
@@ -11359,7 +11726,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -11371,7 +11738,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xCA",
@@ -11418,7 +11792,7 @@
      "feature/license gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -11430,7 +11804,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xCB",
@@ -11477,7 +11858,7 @@
      "feature/license gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -11489,7 +11870,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xCE",
@@ -11536,7 +11924,7 @@
      "feature/license gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -11548,7 +11936,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellNMCommand/0xD0",
@@ -11595,7 +11990,7 @@
      "some operation modes require manufacturing mode"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -11607,7 +12002,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellGetInternalVariable",
@@ -11749,7 +12151,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -11760,7 +12162,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "CmdGetNICSelectionFailover",
@@ -13775,7 +14184,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -13786,7 +14195,43 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "CC byte (CMC response code)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "fail code"
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "power allocated (uint16 LE, Watts)",
+     "length": 2
+    },
+    {
+     "name": "field_4",
+     "kind": "u8",
+     "description": "warning-condition flags"
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0 (proceed/granted) or 1 (denied), from Server_Pwr_On_Response_Client (left 0 if IPC returns a value >= 2)"
+    }
+   ]
   },
   {
    "name": "DellCmdRequestedAirflow",
@@ -14015,7 +14460,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -14026,7 +14471,61 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "requestCodec": true,
+   "requestFields": [],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "DC actual power (uint16 LE, Watts, AC reading * efficiency)",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "power allocated/threshold (uint16 LE, Watts, from System",
+     "length": 2
+    },
+    {
+     "name": "field_4",
+     "kind": "bytes",
+     "description": "warning threshold (uint16 LE, same value as [2",
+     "length": 2
+    },
+    {
+     "name": "field_6",
+     "kind": "u8",
+     "description": "throttle state byte (CPLD THROTTLE bit | SHM status byte at region 0x27 offset 0x302)"
+    },
+    {
+     "name": "field_7",
+     "kind": "bytes",
+     "description": "max potential/normal power (uint16 LE, Watts)",
+     "length": 2
+    },
+    {
+     "name": "field_9",
+     "kind": "bytes",
+     "description": "min potential/throttled power (uint16 LE, Watts)",
+     "length": 2
+    },
+    {
+     "name": "field_11",
+     "kind": "u8",
+     "description": "aux power (byte, Watts)"
+    },
+    {
+     "name": "field_12",
+     "kind": "u8",
+     "description": "0 (reserved)"
+    }
+   ]
   },
   {
    "name": "DellCmdGetIMCStatusRegister",
@@ -14924,7 +15423,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -14935,7 +15434,14 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "DellCmdBladeACPowerCycle",
@@ -15041,7 +15547,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -15052,7 +15558,20 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0x0000",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdGetSoftLockStatus",
@@ -15177,7 +15696,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -15189,7 +15708,34 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x00"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "provisioning options code (G_u8ProvOptions: 0=normal/no-action, 1=launch GUI, 2=MASER locked, 3=LC disabled or BnR in progress, 4=MASER in recovery, 5=launch SSM, 6=AutoSync ON, 7=Boot-to-MASER active)"
+    },
+    {
+     "name": "field_2",
+     "kind": "u8",
+     "description": "1=SSM unoptimized flag set in cfgdb"
+    },
+    {
+     "name": "field_3",
+     "kind": "u8",
+     "description": "0x00"
+    }
+   ]
   },
   {
    "name": "CmdOEMPOSTMASERAccess/CmdOEMPOSTMASERSetSystemReq",
@@ -15498,7 +16044,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -15510,7 +16056,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMPOSTMASERAccess/CmdOEMPOSTSetBIOSSHAPassword",
@@ -15616,7 +16175,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -15628,7 +16187,56 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x00 (subcmd=LockMASER)",
+     "constant": 0
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "flags byte (bit0=ACK timeout requested, bit1=auto-close session on host power-off)"
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "LE uint16 main watchdog timeout in seconds (0\u219264800 s default, <60\u2192clamped to 60)",
+     "length": 2
+    },
+    {
+     "name": "field_4",
+     "kind": "u8",
+     "description": "reserved (must be 0x00)"
+    },
+    {
+     "name": "field_5",
+     "kind": "u8",
+     "description": "ACK timeout in seconds (valid only when flags bit0=1"
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "2B random session handle (LE, used in all subsequent session-locked subcmds)",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0 (reserved)",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMUnLockMASER",
@@ -15685,7 +16293,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -15697,7 +16305,41 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x01 (subcmd)",
+     "constant": 1
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle (must match active session handle exactly",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00)",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0,0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMMASERLockWDreset",
@@ -15807,7 +16449,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -15819,7 +16461,59 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x03 (subcmd)",
+     "constant": 3
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00)",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "session handle echo",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 4
+    },
+    {
+     "name": "field_6",
+     "kind": "bytes",
+     "description": "LE uint16 partition index count (global DAT_0018bef0)",
+     "length": 2
+    },
+    {
+     "name": "field_8",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMGetPartitioninfo",
@@ -15876,7 +16570,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -15888,7 +16582,77 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x04 (subcmd)",
+     "constant": 4
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "u8",
+     "description": "partition type byte (bit7=1 for dynamic, bits6:0 must be 0"
+    },
+    {
+     "name": "field_4",
+     "kind": "u8",
+     "description": "dynamic partition index (0-based)"
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00 bits in upper bits)",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "session handle low"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "LE uint16 partition size in 64KB units minus 1",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "u8",
+     "description": "size high byte"
+    },
+    {
+     "name": "field_4",
+     "kind": "bytes",
+     "description": "5 bytes of digit-encoded partition name from map",
+     "length": 5
+    },
+    {
+     "name": "field_9",
+     "kind": "u8",
+     "description": "status flags (0x58=hidden SECUPD)"
+    },
+    {
+     "name": "field_10",
+     "kind": "u8",
+     "description": "type flags (0x49=dynamic)"
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMAttachPartitions",
@@ -15949,7 +16713,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -15961,7 +16725,65 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x05 (subcmd)",
+     "constant": 5
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "2B partition attach bitmap (which partitions",
+     "length": 2
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00",
+     "length": 2
+    },
+    {
+     "name": "field_7",
+     "kind": "bytes",
+     "description": "2B partition access flags/type bitmap",
+     "length": 2
+    },
+    {
+     "name": "field_9",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00)",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "session handle echo",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMDetachPartitions",
@@ -16022,7 +16844,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -16034,7 +16856,65 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x06 (subcmd)",
+     "constant": 6
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "2B partition bitmap (must not be all-zero with req+15",
+     "length": 2
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00)",
+     "length": 2
+    },
+    {
+     "name": "field_7",
+     "kind": "bytes",
+     "description": "2B detach flags",
+     "length": 2
+    },
+    {
+     "name": "field_9",
+     "kind": "bytes",
+     "description": "reserved",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "session handle echo",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMCreateDynamicPartition",
@@ -16164,7 +17044,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -16176,7 +17056,59 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x08 (subcmd)",
+     "constant": 8
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "2B delete bitmap (S_u8DeleteDynamicBitMap[0",
+     "length": 2
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00)",
+     "length": 2
+    },
+    {
+     "name": "field_7",
+     "kind": "bytes",
+     "description": "reserved (must be 0x00)",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "session handle echo",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMSecureUpdatePartition",
@@ -16236,7 +17168,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -16248,7 +17180,30 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "session handle low"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "0x00"
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMCheckMASER_IPMIcmdStatus",
@@ -16305,7 +17260,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -16317,7 +17272,56 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x0a (subcmd)",
+     "constant": 10
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "u8",
+     "description": "1B command ID to query (see purpose for valid values)"
+    },
+    {
+     "name": "field_4",
+     "kind": "bytes",
+     "description": "reserved (upper bits of req+8",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "session handle (LE uint16)",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "u8",
+     "description": "status byte for the queried command (0=success/complete, 1=failure, 2=pending, 3=invalid handle, other=command-specific error)"
+    },
+    {
+     "name": "field_3",
+     "kind": "u8",
+     "description": "0x00"
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMChangePartitionAccessType",
@@ -16382,7 +17386,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -16394,7 +17398,76 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x0b (subcmd)",
+     "constant": 11
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "2B partition bitmap (which partitions)",
+     "length": 2
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "2B source flags",
+     "length": 2
+    },
+    {
+     "name": "field_7",
+     "kind": "bytes",
+     "description": "2B target partition bitmap",
+     "length": 2
+    },
+    {
+     "name": "field_9",
+     "kind": "bytes",
+     "description": "reserved",
+     "length": 2
+    },
+    {
+     "name": "field_11",
+     "kind": "u8",
+     "description": "access type (0=read-only, 1=read-write)"
+    },
+    {
+     "name": "field_12",
+     "kind": "bytes",
+     "description": "reserved",
+     "length": 2
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "session handle echo",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMGetPartitioninfoByName",
@@ -16729,7 +17802,7 @@
      "active MASER session and matching handle for session-scoped paths"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "verified",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -16741,7 +17814,51 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "requestCodec": true,
+   "requestFields": [
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x14 (subcmd)",
+     "constant": 20
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "2B session handle (bypass-able in manufacturing test mode)",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "u8",
+     "description": "1B wipe mode flags"
+    },
+    {
+     "name": "field_4",
+     "kind": "u8",
+     "description": "reserved (must be 0x00)"
+    }
+   ],
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "session handle echo",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASERPartitionAccess/CmdOEMUtility_Request",
@@ -17254,7 +18371,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17266,7 +18383,19 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0 or 1"
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SetAutoDiscovery",
@@ -17313,7 +18442,7 @@
      "some operation modes require manufacturing mode"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17325,7 +18454,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SignCertificate",
@@ -17376,7 +18512,7 @@
      "some operation modes require manufacturing mode"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17388,7 +18524,24 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "0"
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetCertificateStatus",
@@ -17429,7 +18582,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17441,7 +18594,29 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "present flag: 1 if the cert file for the requested type exists, 0 if absent"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "fault_code (byte from /tmp/STAG_client_error via fscanf) when the cert is absent, else 0"
+    },
+    {
+     "name": "field_2",
+     "kind": "u8",
+     "description": "0"
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetRECapabilitiesBitmap",
@@ -17482,7 +18657,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17494,7 +18669,26 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "capability_bitmap_8bytes (fscanf %2hhx x8, byte-reversed)",
+     "length": 8
+    },
+    {
+     "name": "field_8",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SetRECapabilitiesBitmap",
@@ -17651,7 +18845,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17663,7 +18857,19 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "chunk_length (echo)"
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetDiscoveryRestartOptions",
@@ -17699,7 +18905,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17711,7 +18917,24 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "flags_byte"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "0"
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SetDiscoveryRestartOptions",
@@ -17747,7 +18970,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17759,7 +18982,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetCCRFeatureState",
@@ -17795,7 +19025,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17807,7 +19037,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "1 if ccr_enabled file exists, 0 otherwise"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SetCCRFeatureState",
@@ -17848,7 +19096,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17860,7 +19108,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetCCRUpdateFWMode",
@@ -17901,7 +19162,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17913,7 +19174,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "mode (0"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SetCCRUpdateFWMode",
@@ -17958,7 +19237,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -17970,7 +19249,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetCCRConfigurationState",
@@ -18011,7 +19303,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18023,7 +19315,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "state (0"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SetCCRConfigurationState",
@@ -18068,7 +19378,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18080,7 +19390,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetCCRAutoSyncState",
@@ -18121,7 +19444,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18133,7 +19456,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "state"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SetCCRAutoSyncState",
@@ -18178,7 +19519,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18190,7 +19531,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/GetDHStatus",
@@ -18283,7 +19637,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18295,7 +19649,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/SkipISOBoot",
@@ -18340,7 +19707,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18352,7 +19719,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/DisconnectNetworkISO",
@@ -18397,7 +19777,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18409,7 +19789,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/ChangeRFSToAttachMode",
@@ -18450,7 +19843,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18462,7 +19855,20 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/ReCapabilityForDup",
@@ -18503,7 +19909,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18515,7 +19921,36 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "component_id echo (the u32 from req+9",
+     "length": 4
+    },
+    {
+     "name": "field_5",
+     "kind": "u8",
+     "description": "dup_capable (1 if Dell_get_generation()>3, else 0)"
+    },
+    {
+     "name": "field_6",
+     "kind": "bytes",
+     "description": "0",
+     "length": 5
+    }
+   ]
   },
   {
    "name": "CmdOEMRemoteEnablement/UEFILOGService",
@@ -18660,7 +20095,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18672,7 +20107,31 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result_code (0=ok, 99=invalid action)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "jobID (only set for action=2)",
+     "length": 4
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/GetPartitionIndexInfo",
@@ -18710,7 +20169,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18722,7 +20181,31 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "partition_bitmap (big-endian, byte-swapped from VFL output)",
+     "length": 2
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/GetPartitionInfo",
@@ -18760,7 +20243,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18772,7 +20255,48 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "partition_size_u32",
+     "length": 4
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "label_u16",
+     "length": 2
+    },
+    {
+     "name": "field_7",
+     "kind": "u8",
+     "description": "flags (bit6=attached, bit3=read-write, bit0=emulation floppy, bit1=emulation CD"
+    },
+    {
+     "name": "field_8",
+     "kind": "bytes",
+     "description": "size2_u32",
+     "length": 4
+    },
+    {
+     "name": "field_12",
+     "kind": "bytes",
+     "description": "format_type_flags (0x20=ext2,0x40=ext3,0x60=fat16,0x80=fat32)",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/AttachPartitions",
@@ -18810,7 +20334,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18822,7 +20346,31 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "jobID_u32",
+     "length": 4
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/DetachPartitions",
@@ -18860,7 +20408,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18872,7 +20420,31 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "jobID_u32",
+     "length": 4
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/SetBootPartition",
@@ -18910,7 +20482,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18922,7 +20494,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 0x08=fail-by-index, 0x16=fail-by-label)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/GetBootPartition",
@@ -18960,7 +20550,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -18972,7 +20562,42 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result ('0x23'=no boot partition)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "boot_partition_index"
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "label_4bytes",
+     "length": 4
+    },
+    {
+     "name": "field_6",
+     "kind": "bytes",
+     "description": "label_2bytes",
+     "length": 2
+    },
+    {
+     "name": "field_8",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/CreateEmptyPartition",
@@ -19010,7 +20635,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -19022,7 +20647,31 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "jobID_u32",
+     "length": 4
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/FormatPartition",
@@ -19065,7 +20714,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -19077,7 +20726,14 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/ChangePartitionAccessType",
@@ -19115,7 +20771,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -19127,7 +20783,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 0x19=invalid access type)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/DeletePartition",
@@ -19165,7 +20839,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -19177,7 +20851,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMvFlash/GetJobStatus",
@@ -19442,7 +21134,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -19454,7 +21146,30 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "index"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "DAT_0018c480[index]"
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMDellFactory/PlatformCacheCleanup",
@@ -19621,7 +21336,7 @@
      "feature/license gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -19633,7 +21348,24 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 1=fopen/fwrite error)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "0"
+    }
+   ]
   },
   {
    "name": "CmdOEMBackupRestore/SendBackupCmd",
@@ -20074,7 +21806,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20086,7 +21818,45 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x0a (reserved constant, from *param_3=10)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "0"
+    },
+    {
+     "name": "field_2",
+     "kind": "u8",
+     "description": "AutoUpdate(0=off,1=on,0xff=error)"
+    },
+    {
+     "name": "field_3",
+     "kind": "u8",
+     "description": "AutoBackup"
+    },
+    {
+     "name": "field_4",
+     "kind": "u8",
+     "description": "AutoRestore"
+    },
+    {
+     "name": "field_5",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMBackupRestore/GetAutoRestoreVflCap",
@@ -20124,7 +21894,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20136,7 +21906,19 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "capability_byte when done (DAT_0018c4a0)"
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/NativeOSCollection",
@@ -20180,7 +21962,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20192,7 +21974,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 6=shm write failed or cfg failed)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/NativeOSCollectionStarted",
@@ -20227,7 +22027,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20239,7 +22039,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 1=not enabled, 6=shm write failed)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/NativeOSCollectionEnded",
@@ -20277,7 +22095,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20289,7 +22107,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 1=invalid file_type, 3=invalid length, 6=shm write failed)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/ExposeiSMInstaller",
@@ -20380,7 +22216,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20392,7 +22228,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 1=SetGPTaskEvent failed, 2=pending, 4=another op pending, 8=session does not exist)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/GetStatus",
@@ -20427,7 +22281,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20439,7 +22293,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "status (DAT_0018c191 if idle, 2 if in-progress)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/CollectData",
@@ -20474,7 +22346,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20486,7 +22358,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 1=error, 2=pending)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/GetCollectDataStatus",
@@ -20521,7 +22411,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20533,7 +22423,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "status (DAT_0018c193 or 2=pending)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/HideCollectDataResult",
@@ -20568,7 +22476,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20580,7 +22488,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result (0=ok, 1=error, 2=pending, 4=another op pending, 8=partition not exposed or session missing)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/CollectDataCancel",
@@ -20624,7 +22550,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20636,7 +22562,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "result: 2 = cancel signaled (only when DAT_0018c194==1, i"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSupportAssist/JobInProgressPendingSignal",
@@ -20671,7 +22615,7 @@
      "system interface (in-band) only"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -20683,7 +22627,25 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "status (0=no job, 1=precheck failed, 2=job in progress, 3=bad length)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASER_PM/CmdOEMGetPMUpdateFlag",
@@ -21044,7 +23006,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -21056,7 +23018,35 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x17 (subcmd echo)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "CfgGetAttributeInt return code (0=success, non-zero=error)"
+    },
+    {
+     "name": "field_2",
+     "kind": "u8",
+     "description": "BIOSRTDRequested value (0=not requested, 1=requested)"
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 4
+    }
+   ]
   },
   {
    "name": "CmdOEMMASER_PM/ClearBIOSRTDFlag",
@@ -21097,7 +23087,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -21109,7 +23099,35 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x18 (subcmd echo)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "CfgSetAttributeInt return code"
+    },
+    {
+     "name": "field_2",
+     "kind": "u8",
+     "description": "value read back after clear (should be 0)"
+    },
+    {
+     "name": "field_3",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 3
+    }
+   ]
   },
   {
    "name": "CmdOEMMASER_PM/SetBIOSRTDFlag",
@@ -21154,7 +23172,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -21166,7 +23184,30 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x19 (subcmd echo)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "value written (from cfgdb read-back or req+9)"
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 4
+    }
+   ]
   },
   {
    "name": "CmdOEMMASER_PM/CmdOEMCmplntUpdValidate",
@@ -21411,7 +23452,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -21423,7 +23464,30 @@
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
    },
-   "selectorOffset": 0
+   "selectorOffset": 0,
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0x1e (subcmd echo)"
+    },
+    {
+     "name": "field_1",
+     "kind": "u8",
+     "description": "LC status byte from CmdOemGetLCStatus()"
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "0x00",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMMASER_PM/CmdOEMGetBIOSPasswordInfo",
@@ -22297,7 +24361,7 @@
      "Lifecycle Controller/MASER state gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -22308,7 +24372,25 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "LC access state (0=LC enabled, 1=LC disabled, raw cfgdb value for other states)"
+    },
+    {
+     "name": "field_1",
+     "kind": "bytes",
+     "description": "zeroed reserved",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "CmdOEMSetMASERAccessState",
@@ -22359,7 +24441,7 @@
      "Lifecycle Controller/MASER state gate"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmaser.so.9.9.9",
     "binarySha256": "dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
@@ -22370,7 +24452,20 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "889375033c5eef3aea65abddd91db9a1711ff202029f24952e13ed5f03efcbf0"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "zeroed",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "DellPwrPSUInfo",
@@ -22657,7 +24752,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -22668,7 +24763,19 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "FWUpdateStatus byte read from SHM before update is triggered (previous status)"
+    }
+   ]
   },
   {
    "name": "DellPwrPSUFirmwareUpdateStatus",
@@ -22721,7 +24828,7 @@
     "inBandOnly": false,
     "conditions": []
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -22732,7 +24839,19 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "FWUpdateStatus byte from SHM (interpretation: 0x00=idle/not started, 0x01=in-progress per FirmwareUpdate handler's write-back, other values implementation-defined)"
+    }
+   ]
   },
   {
    "name": "QueueSpdDimmInfoCmd",
@@ -22961,7 +25080,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -22972,7 +25091,19 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "u8",
+     "description": "0xff (hardcoded success indicator)"
+    }
+   ]
   },
   {
    "name": "DellPwrHeadroom",
@@ -23036,7 +25167,7 @@
      "platform/generation-dependent path"
     ]
    },
-   "codecState": "raw-exact",
+   "codecState": "response-only",
    "evidence": {
     "binaryPath": "/private/tmp/idrac10-denom.tF6m5G/all/usr/lib/ipmi/libmisccmd.so.9.9.9",
     "binarySha256": "6b5aec47c2010eaa576ef605f91c418045dd8438766dbcd315d013fff3273f3e",
@@ -23047,7 +25178,26 @@
     "selectorPrefix": "",
     "catalogSourcePath": "/tmp/idrac10_commands_generated.py",
     "catalogSourceSha256": "60bbfbd010180a17a0a5634ccd8ebf59654acab5e6f99b62e94f940c6ef2ebfe"
-   }
+   },
+   "responseCodec": true,
+   "responseFields": [
+    {
+     "name": "completion_code",
+     "kind": "u8"
+    },
+    {
+     "name": "field_0",
+     "kind": "bytes",
+     "description": "Instantaneous Headroom in watts (uint16 LE, from SHM segment 6 offset 2",
+     "length": 2
+    },
+    {
+     "name": "field_2",
+     "kind": "bytes",
+     "description": "Peak Headroom in watts (uint16 LE, from SHM segment 6 offset 0",
+     "length": 2
+    }
+   ]
   },
   {
    "name": "DellCPLDAccessStatus",
@@ -34032,7 +36182,9 @@
     }
    ],
    "codecState": "verified",
-   "evidence": "liboemcmds row 0x4ee90; libmaser CmdOEMRecreateMASER@0x11df54; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+   "evidence": "liboemcmds row 0x4ee90; libmaser CmdOEMRecreateMASER@0x11df54; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
+   "requestCodec": true,
+   "responseCodec": true
   },
   {
    "name": "CmdOEMToolSet/ExposeExecs",
@@ -34102,7 +36254,9 @@
     }
    ],
    "codecState": "verified",
-   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 0; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 0; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
+   "requestCodec": true,
+   "responseCodec": true
   },
   {
    "name": "CmdOEMToolSet/HideExecs",
@@ -34165,7 +36319,9 @@
     }
    ],
    "codecState": "verified",
-   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 1; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 1; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
+   "requestCodec": true,
+   "responseCodec": true
   },
   {
    "name": "CmdOEMToolSet/GetStatus",
@@ -34309,7 +36465,9 @@
     }
    ],
    "codecState": "verified",
-   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 5; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 5; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
+   "requestCodec": true,
+   "responseCodec": true
   },
   {
    "name": "CmdOEMToolSet/EndMarker",
@@ -34380,7 +36538,9 @@
     }
    ],
    "codecState": "verified",
-   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 6; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 6; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
+   "requestCodec": true,
+   "responseCodec": true
   },
   {
    "name": "CmdOEMToolSet/UpdateMarker",
@@ -34455,7 +36615,9 @@
     }
    ],
    "codecState": "verified",
-   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 7; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee"
+   "evidence": "liboemcmds row 0x4eee0; libmaser CmdOEMToolSet@0x12f8f0 selector 7; libmaser sha256 dca0f3ce1ede3c6a6d30903acd3beca89d9607399b8a7d3712ecb76b6e10a8ee",
+   "requestCodec": true,
+   "responseCodec": true
   },
   {
    "name": "CmdOEMToolSet/SystemErase",

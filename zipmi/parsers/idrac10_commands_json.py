@@ -58,6 +58,8 @@ class IDrac10Command:
     request_fields: list[dict]
     response_fields: list[dict]
     codec_state: str
+    request_codec: bool
+    response_codec: bool
     evidence: str | dict
 
 
@@ -102,6 +104,7 @@ def parse_json(text: str) -> list[IDrac10Command]:
     out: list[IDrac10Command] = []
     for c in data["commands"]:
         subcmd = _hex_or_none(c["subcmd"])
+        codec_state = c.get("codecState", "raw-exact")
         out.append(IDrac10Command(
             name=c["name"],
             netfn=_hex_or_none(c["netfn"]),
@@ -127,7 +130,9 @@ def parse_json(text: str) -> list[IDrac10Command]:
             activation=c.get("activation", "not yet classified"),
             request_fields=c.get("requestFields", []),
             response_fields=c.get("responseFields", []),
-            codec_state=c.get("codecState", "raw-exact"),
+            codec_state=codec_state,
+            request_codec=bool(c.get("requestCodec", codec_state == "verified")),
+            response_codec=bool(c.get("responseCodec", codec_state == "verified")),
             evidence=c.get("evidence", ""),
         ))
     return out
@@ -182,6 +187,8 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
         "    request_fields: list[dict]",
         "    response_fields: list[dict]",
         "    codec_state: str",
+        "    request_codec: bool",
+        "    response_codec: bool",
         "    evidence: str | dict",
         "",
         "",
@@ -215,6 +222,8 @@ def emit_module(entries: list[IDrac10Command], src: str) -> str:
             f"request_fields={e.request_fields!r}, "
             f"response_fields={e.response_fields!r}, "
             f"codec_state={e.codec_state!r}, "
+            f"request_codec={e.request_codec!r}, "
+            f"response_codec={e.response_codec!r}, "
             f"evidence={e.evidence!r}),"
         )
     lines.append("]")

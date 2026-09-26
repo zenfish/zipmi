@@ -94,3 +94,26 @@ def test_effect_normalization_is_fail_closed():
     assert _MODULE._effect("read-only", "ReadThing") == "safe"
     assert _MODULE._effect("mixed", "ReadThing") == "security-sensitive"
     assert _MODULE._effect("read-with-side-effects", "DellCPLDAccessStatus") == "security-sensitive"
+
+
+def test_verified_fragment_promotes_only_exact_complete_codec_sides():
+    fragment = _fragment()
+    record = fragment["records"]["record"]
+    record["codecState"] = "verified"
+    record["responseLengthIncludingCc"] = {"min": 3, "max": 3}
+    del record["responseLength"]
+    record["requestFields"] = [{
+        "offset": 0, "length": 1, "encoding": "u8", "description": "selector",
+    }]
+    record["responseFields"] = [
+        {"offset": 0, "length": 1, "encoding": "u8",
+         "description": "IPMI completion code"},
+        {"offset": 1, "length": 2, "encoding": "raw-bytes", "description": "value"},
+    ]
+
+    merged = _MODULE.merge(_catalog(), fragment)["commands"][0]
+    assert merged["requestCodec"] is True
+    assert merged["responseCodec"] is True
+    assert merged["codecState"] == "verified"
+    assert merged["responseFields"][0]["name"] == "completion_code"
+    assert merged["responseFields"][1]["length"] == 2

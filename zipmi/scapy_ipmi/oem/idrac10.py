@@ -104,13 +104,15 @@ _claimed = set(OEM_CMD_NAMES)
 _IDRAC10_NAMES = {**IDRAC10_CMD_NAMES, **IDRAC10_COMMAND_NAMES}
 IDRAC10_PAYLOADS = {}
 for _command in IDRAC10_COMMANDS:
-    if _command.codec_state != "verified":
+    if not (_command.request_codec or _command.response_codec):
         continue
     _key = (_command.netfn, _command.cmd, *_command.prefix)
-    _request = build_fixed_packet_class(
+    _request = (build_fixed_packet_class(
         f"{_command.name} Request", _command.request_fields, require_fields=True)
-    _response = build_fixed_packet_class(
+        if _command.request_codec else None)
+    _response = (build_fixed_packet_class(
         f"{_command.name} Response", _command.response_fields)
+        if _command.response_codec else None)
     IDRAC10_PAYLOADS[_key] = (_request, _response)
 
 register(

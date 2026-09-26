@@ -186,7 +186,9 @@ def test_toolset_and_recreate_contracts_are_selector_exact():
     recreate = next(c for c in IDRAC10_COMMANDS if c.name == "CmdOEMRecreateMASER")
     assert recreate.request_length == (2, 2)
     assert recreate.effect == "destructive"
-    assert len(IDRAC10_PAYLOADS) == 6
+    assert len(IDRAC10_PAYLOADS) == 130
+    assert sum(request is not None for request, _ in IDRAC10_PAYLOADS.values()) == 20
+    assert sum(response is not None for _, response in IDRAC10_PAYLOADS.values()) == 130
 
     req_type, resp_type = IDRAC10_PAYLOADS[(0x30, 0xa7, 0x05)]
     request = req_type(version=1, toolset=0, timeout=30, reserved=b"\0\0")
@@ -253,7 +255,47 @@ def test_misc_and_dcmi_operations_have_audited_contracts():
         "mutates": 8,
         "unknown": 50,
     }
-    assert all(c.codec_state == "raw-exact" and c.evidence for c in misc + dcmi)
+    assert Counter(c.codec_state for c in misc) == {
+        "raw-exact": 31, "response-only": 55, "verified": 4,
+    }
+    assert all(c.codec_state == "raw-exact" for c in dcmi)
+    assert all(c.evidence for c in misc + dcmi)
+
+
+def test_every_idrac10_codec_matches_its_exact_payload_width():
+    from zipmi.scapy_ipmi.oem._registry import decode_payload_response
+    from zipmi.scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS, IDRAC10_PAYLOADS
+
+    commands = {
+        (c.netfn, c.cmd, *c.prefix): c for c in IDRAC10_COMMANDS
+        if c.request_codec or c.response_codec
+    }
+    assert set(IDRAC10_PAYLOADS) == set(commands)
+    for key, (request_class, response_class) in IDRAC10_PAYLOADS.items():
+        command = commands[key]
+        if request_class is not None:
+            assert command.request_length[0] == command.request_length[1]
+            values = {}
+            for field in command.request_fields:
+                if "constant" in field:
+                    continue
+                values[field["name"]] = (b"\x00" * field["length"]
+                                         if field["kind"] == "bytes" else 0)
+            payload = bytes(request_class(**values))
+            assert len(payload) == command.request_length[0]
+            assert payload.startswith(command.prefix)
+        if response_class is not None:
+            assert command.response_length_including_cc[0] == command.response_length_including_cc[1]
+            payload_length = command.response_length_including_cc[0]
+            assert command.response_fields[0]["name"] == "completion_code"
+            assert len(bytes(response_class(b"\x00" * payload_length))) == payload_length
+
+    decoded = decode_payload_response(
+        "idrac10", 0x2c, 0x01, b"\x52\x01", 0x00, b"\x00" * 34,
+    )
+    assert decoded is not None
+    assert decoded.completion_code == 0
+    assert len(bytes(decoded)) == 35
 
 
 def test_missing_top_level_and_sysinfo_contracts_are_catalogued():
