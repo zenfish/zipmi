@@ -45,6 +45,42 @@ class LenovoCommand:
     live_evidence: dict[str, object] | None
 
 
+@dataclass(frozen=True)
+class LenovoContract:
+    name: str
+    netfn: int
+    cmd: int
+    selector: bytes
+    selector_offset: int | None
+    prefix: bytes
+    privilege: int
+    purpose: str
+    request: str
+    response: str
+    request_length: tuple[int | None, int | None]
+    response_length: tuple[int | None, int | None]
+    request_fields: list[dict]
+    response_fields: list[dict]
+    effect: str
+    side_effects: str
+    completion_codes: list[dict]
+    channel: str
+    activation: str
+    codec_state: str
+    request_codec: bool
+    response_codec: bool
+    evidence: str
+    source: str
+
+
+def _length_range(value) -> tuple[int | None, int | None]:
+    if isinstance(value, int):
+        return value, value
+    if isinstance(value, dict):
+        return value.get("min"), value.get("max")
+    return None, None
+
+
 def parse_json(text: str) -> list[LenovoCommand]:
     data = json.loads(text)
     out = []
@@ -73,7 +109,62 @@ def parse_json(text: str) -> list[LenovoCommand]:
     return out
 
 
-def emit_module(entries: list[LenovoCommand], source: str) -> str:
+def parse_contract_json(text: str) -> list[LenovoContract]:
+    data = json.loads(text)
+    out = []
+    for c in data["contracts"]:
+        lan_parameter = c.get("lanParameter")
+        selector = bytes(c.get("selector", [lan_parameter] if lan_parameter is not None else []))
+        selector_offset = c.get("selectorOffset", 1 if lan_parameter is not None else None)
+        request_fields = c.get("requestFields", [])
+        if lan_parameter is not None:
+            request_fields = [
+                {"name": "channel", "kind": "u8"},
+                {"name": "parameter", "kind": "u8", "constant": lan_parameter},
+            ]
+            if c["cmd"] == 0x02:
+                request_fields += [
+                    {"name": "set_selector", "kind": "u8", "constant": 0},
+                    {"name": "block_selector", "kind": "u8", "constant": 0},
+                ]
+            else:
+                request_fields += c.get("bodyFields", [])
+        lan_completion_codes = (
+            [{"code": 0x80, "meaning": "parameter unsupported"}]
+            if c["cmd"] == 0x02 else [
+                {"code": 0x80, "meaning": "parameter unsupported"},
+                {"code": 0x81, "meaning": "set-in-progress conflict"},
+                {"code": 0x82, "meaning": "parameter read-only"},
+                {"code": 0x83, "meaning": "parameter write-only"},
+            ]
+        ) if lan_parameter is not None else []
+        out.append(LenovoContract(
+            name=c["name"], netfn=c["netfn"], cmd=c["cmd"],
+            selector=selector, selector_offset=selector_offset,
+            prefix=selector if selector and selector_offset == 0 else b"",
+            privilege=c.get("privilege", 4 if c["cmd"] == 0x01 else 2),
+            purpose=c["purpose"],
+            request=c["request"], response=c["response"],
+            request_length=_length_range(c.get("requestLength")),
+            response_length=_length_range(c.get("responseLength")),
+            request_fields=request_fields,
+            response_fields=c.get("responseFields", []),
+            effect=c["effect"], side_effects=c["sideEffects"],
+            completion_codes=c.get("completionCodes", lan_completion_codes),
+            channel=c.get("channel", "standard LAN configuration channel"),
+            activation=c.get("activation", "XCC 6.92 OEMLANInit channel-data handler"),
+            codec_state=c.get("codecState", "raw-exact"),
+            request_codec=bool(c.get("requestCodec", False)),
+            response_codec=bool(c.get("responseCodec", False)),
+            evidence=c.get("evidence", "Lenovo public parameter contract and XCC 6.92 OEMLANDataAccess activation"),
+            source=c.get("source", "https://pubs.lenovo.com/xcc/get_set_lan_config_parameter"),
+        ))
+    return out
+
+
+def emit_module(entries: list[LenovoCommand], source: str,
+                contracts: list[LenovoContract] | None = None) -> str:
+    contracts = contracts or []
     lines = [
         '"""Auto-generated Lenovo XCC OEM command catalog; do not edit."""',
         "from __future__ import annotations", "", "from dataclasses import dataclass", "", "",
@@ -91,6 +182,17 @@ def emit_module(entries: list[LenovoCommand], source: str) -> str:
         "    confidence: str", "    source: str", "    notes: str",
         "    operations: tuple[LenovoOperation, ...]",
         "    live_evidence: dict[str, object] | None", "", "",
+        "@dataclass(frozen=True)", "class LenovoContract:",
+        "    name: str", "    netfn: int", "    cmd: int", "    selector: bytes",
+        "    selector_offset: int | None", "    prefix: bytes", "    privilege: int",
+        "    purpose: str", "    request: str", "    response: str",
+        "    request_length: tuple[int | None, int | None]",
+        "    response_length: tuple[int | None, int | None]",
+        "    request_fields: list[dict]", "    response_fields: list[dict]",
+        "    effect: str", "    side_effects: str",
+        "    completion_codes: list[dict]", "    channel: str",
+        "    activation: str", "    codec_state: str", "    request_codec: bool",
+        "    response_codec: bool", "    evidence: str", "    source: str", "", "",
         f"# Source: {source}", f"# Entries: {len(entries)}",
         "LENOVO_COMMANDS: list[LenovoCommand] = [",
     ]
@@ -109,16 +211,37 @@ def emit_module(entries: list[LenovoCommand], source: str) -> str:
             f"live_evidence={e.live_evidence!r}),"
         )
     lines += ["]", ""]
+    lines += [f"# Operation contracts: {len(contracts)}",
+              "LENOVO_CONTRACTS: list[LenovoContract] = ["]
+    for c in contracts:
+        lines.append(
+            "    LenovoContract("
+            f"name={c.name!r}, netfn=0x{c.netfn:02x}, cmd=0x{c.cmd:02x}, "
+            f"selector={c.selector!r}, selector_offset={c.selector_offset!r}, "
+            f"prefix={c.prefix!r}, privilege={c.privilege!r}, purpose={c.purpose!r}, "
+            f"request={c.request!r}, response={c.response!r}, "
+            f"request_length={c.request_length!r}, response_length={c.response_length!r}, "
+            f"request_fields={c.request_fields!r}, response_fields={c.response_fields!r}, "
+            f"effect={c.effect!r}, side_effects={c.side_effects!r}, "
+            f"completion_codes={c.completion_codes!r}, channel={c.channel!r}, "
+            f"activation={c.activation!r}, codec_state={c.codec_state!r}, "
+            f"request_codec={c.request_codec!r}, response_codec={c.response_codec!r}, "
+            f"evidence={c.evidence!r}, source={c.source!r}),"
+        )
+    lines += ["]", ""]
     return "\n".join(lines)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
     source = Path(__file__).resolve().parent.parent / "data" / "sources" / "lenovo-xcc-commands.json"
+    contract_source = (Path(__file__).resolve().parent.parent / "data" / "sources" /
+                       "lenovo-xcc-operation-contracts.json")
     if len(args) > 1:
         source = Path(args[1])
     entries = parse_json(source.read_text())
-    sys.stdout.write(emit_module(entries, "lenovo-xcc-commands.json"))
+    contracts = parse_contract_json(contract_source.read_text())
+    sys.stdout.write(emit_module(entries, "lenovo-xcc-commands.json", contracts))
     return 0
 
 

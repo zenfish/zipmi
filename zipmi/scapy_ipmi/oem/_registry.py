@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import re
 
-from scapy.fields import ByteField, LEIntField, LEShortField, StrFixedLenField
+from scapy.fields import ByteField, LEIntField, LEShortField, ShortField, StrFixedLenField
 from scapy.packet import Packet
 
 # (netfn_request, cmd) → human-readable name.
@@ -34,6 +34,9 @@ OEM_PAYLOADS: dict[tuple[int, ...], PayloadPair] = {}
 # Vendor-scoped payloads are authoritative.  OEM_PAYLOADS remains as a
 # compatibility view for callers that loaded exactly one vendor.
 OEM_PAYLOADS_BY_VENDOR: dict[str, dict[tuple[int, ...], PayloadPair]] = {}
+OEM_PAYLOAD_SELECTORS_BY_VENDOR: dict[
+    str, list[tuple[int, int, int, bytes, PayloadPair]]
+] = {}
 
 # IANA Enterprise Number → human-readable vendor key registered.
 ENTERPRISE_IDS: dict[int, str] = {}
@@ -49,6 +52,7 @@ def build_fixed_packet_class(
     field_types = {
         "u8": lambda field: ByteField(field["name"], field.get("constant")),
         "u16le": lambda field: LEShortField(field["name"], field.get("constant")),
+        "u16be": lambda field: ShortField(field["name"], field.get("constant")),
         "u32le": lambda field: LEIntField(field["name"], field.get("constant")),
         "bytes": lambda field: StrFixedLenField(
             field["name"], b"\x00" * field["length"], field["length"]),
@@ -79,6 +83,7 @@ def register(
     iana: int | None,
     cmds: dict[tuple[int, int], str],
     payloads: dict[tuple[int, ...], PayloadPair] | None = None,
+    selector_payloads: list[tuple[int, int, int, bytes, PayloadPair]] | None = None,
 ) -> None:
     """Add a vendor's commands to the registry. Idempotent on re-import.
 
@@ -108,12 +113,27 @@ def register(
     if payloads:
         OEM_PAYLOADS.update(payloads)
         OEM_PAYLOADS_BY_VENDOR.setdefault(vendor, {}).update(payloads)
+    if selector_payloads:
+        OEM_PAYLOAD_SELECTORS_BY_VENDOR[vendor] = list(selector_payloads)
 
 
 def lookup_payload(
     vendor: str, netfn: int, cmd: int, data: bytes = b"",
 ) -> PayloadPair | None:
     """Return the most-specific vendor payload codec for a wire request."""
+    selector_matches = (
+        (selector, pair)
+        for candidate_netfn, candidate_cmd, offset, selector, pair
+        in OEM_PAYLOAD_SELECTORS_BY_VENDOR.get(vendor, [])
+        if candidate_netfn == (netfn & 0xFE)
+        and candidate_cmd == cmd
+        and data[offset:offset + len(selector)] == selector
+    )
+    selected = next((pair for _, pair in sorted(
+        selector_matches, key=lambda item: len(item[0]), reverse=True,
+    )), None)
+    if selected is not None:
+        return selected
     payloads = OEM_PAYLOADS_BY_VENDOR.get(vendor, {})
     matches = (
         (key, value) for key, value in payloads.items()

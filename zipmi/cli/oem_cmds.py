@@ -179,8 +179,8 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
     if vendor == "lenovo":
-        from ..scapy_ipmi.oem.lenovo import LENOVO_COMMANDS, LENOVO_CMD_NAMES
-        return len(LENOVO_COMMANDS), len(LENOVO_CMD_NAMES)
+        listing = _vendor_listing("lenovo")
+        return len(listing), len(listing)
     if vendor in ("advantech-asmb787", "supermicro", "supermicro-x11",
                   "supermicro-x14", "megarac", "yafu"):
         listing = _vendor_listing(vendor)
@@ -890,7 +890,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             }
         return _normalize_listing(out, "yafu")
     if vendor == "lenovo":
-        from ..scapy_ipmi.oem.lenovo import LENOVO_COMMANDS
+        from ..scapy_ipmi.oem.lenovo import LENOVO_COMMANDS, LENOVO_CONTRACTS
         out: dict = {}
         PRIVS = {2: "User", 4: "Admin"}
         for c in LENOVO_COMMANDS:
@@ -914,6 +914,36 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 ),
                 "args": "", "src": c.source + (f"; request length {rules}" if rules else ""),
             }
+        for c in LENOVO_CONTRACTS:
+            identity = c.selector if c.selector else b""
+            key = (c.netfn, c.cmd, *identity)
+            row = out.get(key, {})
+            previous_name = row.get("name")
+            row.update({
+                "name": c.name, "priv": PRIVS.get(c.privilege),
+                "desc": c.purpose, "missing": False,
+                "prefix": c.prefix or None, "selector_offset": c.selector_offset,
+                "request": c.request, "response": c.response,
+                "security": c.side_effects, "confidence": c.codec_state,
+                "lib": c.activation, "backend_deps": c.channel,
+                "tier": c.effect, "request_min": c.request_length[0],
+                "request_max": c.request_length[1],
+                "response_min": c.response_length[0],
+                "response_max": c.response_length[1],
+                "completion_codes": c.completion_codes,
+                "activation": c.activation, "codec_state": c.codec_state,
+                "evidence": c.evidence, "contract": True,
+                "selector": c.selector,
+                "requires_unsafe": (
+                    c.effect != "safe"
+                    or c.request_length[0] is None
+                    or c.request_length[1] is None
+                ),
+                "args": "", "src": c.source,
+            })
+            if previous_name and previous_name != c.name:
+                row["aliases"] = tuple({*row.get("aliases", ()), previous_name})
+            out[key] = row
         return _normalize_listing(out, "lenovo")
     raise KeyError(f"unknown vendor: {vendor}")
 
@@ -952,20 +982,24 @@ def _find_cmd(
     Phase 3: normalised substring — the loose "search the catalogue"
       mode, which legitimately can return >1.
     """
+    def names(info: dict) -> tuple[str, ...]:
+        return (info["name"], *info.get("aliases", ()))
+
     qlow = query.lower().strip()
     if qlow:
         literal = [(k, v) for k, v in listing.items()
-                   if qlow in v["name"].lower()]
+                   if any(qlow in name.lower() for name in names(v))]
         if len(literal) == 1:
             return literal
     qn = _normalize(query)
     if not qn:
         return []
     nexact = [(k, v) for k, v in listing.items()
-              if _normalize(v["name"]) == qn]
+              if any(_normalize(name) == qn for name in names(v))]
     if len(nexact) == 1:
         return nexact
-    return [(k, v) for k, v in listing.items() if qn in _normalize(v["name"])]
+    return [(k, v) for k, v in listing.items()
+            if any(qn in _normalize(name) for name in names(v))]
 
 
 def _vendor_listing_data(vendor: str) -> dict:
@@ -1336,24 +1370,43 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             return 2
 
     if vendor == "lenovo":
-        payload_len = len(raw_data)
-        rules = info.get("request_length_rules") or ()
-        exact = {length for kind, length in rules if kind == "exact"}
-        minimum = {length for kind, length in rules if kind == "minimum"}
-        if exact and payload_len not in exact:
-            allowed = ", ".join(str(length) for length in sorted(exact))
-            _msg.error(
-                f"{info['name']} requires exactly {allowed} body byte(s) "
-                f"after its fixed prefix; got {payload_len}"
-            )
-            return 2
-        if not exact and minimum and payload_len < min(minimum):
-            required = min(minimum)
-            _msg.error(
-                f"{info['name']} requires at least {required} body byte(s) "
-                f"after its fixed prefix; got {payload_len}"
-            )
-            return 2
+        if info.get("contract"):
+            payload_len = len(data_bytes)
+            req_min = info.get("request_min")
+            req_max = info.get("request_max")
+            if req_min is not None and payload_len < req_min:
+                _msg.error(f"{info['name']} requires at least {req_min} payload bytes; got {payload_len}")
+                return 2
+            if req_max is not None and payload_len > req_max:
+                _msg.error(f"{info['name']} accepts at most {req_max} payload bytes; got {payload_len}")
+                return 2
+            selector = info.get("selector") or b""
+            offset = info.get("selector_offset")
+            if selector and offset not in (None, 0):
+                actual = data_bytes[offset:offset + len(selector)]
+                if actual != selector:
+                    expected = " ".join(f"{byte:02x}" for byte in selector)
+                    _msg.error(f"{info['name']} requires selector {expected} at payload offset {offset}")
+                    return 2
+        else:
+            payload_len = len(raw_data)
+            rules = info.get("request_length_rules") or ()
+            exact = {length for kind, length in rules if kind == "exact"}
+            minimum = {length for kind, length in rules if kind == "minimum"}
+            if exact and payload_len not in exact:
+                allowed = ", ".join(str(length) for length in sorted(exact))
+                _msg.error(
+                    f"{info['name']} requires exactly {allowed} body byte(s) "
+                    f"after its fixed prefix; got {payload_len}"
+                )
+                return 2
+            if not exact and minimum and payload_len < min(minimum):
+                required = min(minimum)
+                _msg.error(
+                    f"{info['name']} requires at least {required} body byte(s) "
+                    f"after its fixed prefix; got {payload_len}"
+                )
+                return 2
 
     if vendor in ("advantech-asmb787", "idrac10", "lenovo"):
         if info.get("requires_unsafe") and not getattr(args, "unsafe", False):

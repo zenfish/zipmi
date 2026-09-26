@@ -49,16 +49,67 @@ def test_lenovo_vendor_load_and_listing():
     from zipmi.scapy_ipmi.oem._registry import ENTERPRISE_IDS
     listing = _vendor_listing("lenovo")
     assert ENTERPRISE_IDS[2] in ("lenovo", "openpower")  # Shared IBM PEN.
-    assert len(listing) == 217
+    assert len(listing) == 298
     assert listing[(0x2E, 0x80, 0x66, 0x4A, 0x00)]["prefix"] == bytes.fromhex("66 4a 00")
 
 
 def test_lenovo_codegen_is_idempotent():
     from pathlib import Path
-    from zipmi.parsers.lenovo_commands_json import emit_module, parse_json
+    from zipmi.parsers.lenovo_commands_json import emit_module, parse_contract_json, parse_json
     source = Path("zipmi/data/sources/lenovo-xcc-commands.json")
+    contracts = Path("zipmi/data/sources/lenovo-xcc-operation-contracts.json")
     generated = Path("zipmi/scapy_ipmi/oem/lenovo_commands_generated.py")
-    assert emit_module(parse_json(source.read_text()), source.name) == generated.read_text()
+    assert emit_module(
+        parse_json(source.read_text()), source.name,
+        parse_contract_json(contracts.read_text()),
+    ) == generated.read_text()
+
+
+def test_lenovo_official_contracts_add_missing_native_nm_and_codecs():
+    import zipmi
+    from zipmi.scapy_ipmi.oem._registry import decode_payload_response, lookup_payload
+    from zipmi.scapy_ipmi.oem.lenovo import LENOVO_CONTRACTS, LENOVO_PAYLOADS
+
+    zipmi.load_vendor("lenovo")
+    assert len(LENOVO_CONTRACTS) == 99
+    assert any((c.netfn, c.cmd) == (0x3A, 0xC7) for c in LENOVO_CONTRACTS)
+    assert (0x3A, 0x0D) in LENOVO_PAYLOADS
+    request_type, response_type = lookup_payload("lenovo", 0x3A, 0x0D, b"")
+    assert bytes(request_type()) == b""
+    decoded = decode_payload_response("lenovo", 0x3A, 0x0D, b"", 0, b"\x12\x34")
+    assert response_type is not None
+    assert (decoded.completion_code, decoded.system_id, decoded.board_revision) == (0, 0x12, 0x34)
+
+    request_type, response_type = lookup_payload(
+        "lenovo", 0x0C, 0x02, bytes.fromhex("01 c7 00 00"),
+    )
+    assert bytes(request_type(channel=1)) == bytes.fromhex("01 c7 00 00")
+    decoded = decode_payload_response(
+        "lenovo", 0x0C, 0x02, bytes.fromhex("01 c7 00 00"), 0,
+        bytes.fromhex("11 02 00 00 00 00 01"),
+    )
+    assert response_type is not None
+    assert (decoded.revision, decoded.mac) == (0x11, bytes.fromhex("02 00 00 00 00 01"))
+
+
+def test_lenovo_contract_named_execution_supplies_exact_magic(monkeypatch):
+    import argparse
+    import zipmi.cli.zipmi as cli
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    class Session:
+        sent = []
+        def __enter__(self): return self
+        def __exit__(self, *_): return False
+        def send_raw(self, netfn, cmd, data):
+            self.sent.append((netfn, cmd, bytes(data)))
+            return 0, b""
+
+    session = Session()
+    monkeypatch.setattr(cli, "_open_session", lambda _args: session)
+    args = argparse.Namespace(cmd_name="Reset XCC to Default", data=[], json=True, unsafe=True)
+    assert cmd_oem_run(args, "lenovo") == 0
+    assert session.sent == [(0x2E, 0xCC, bytes.fromhex("5e 2b 00 0a 01 ff 00 00 00"))]
 
 
 def test_lenovo_named_command_sends_exact_group_prefix(monkeypatch):
@@ -100,7 +151,7 @@ def test_lenovo_named_execution_is_fail_closed(monkeypatch, capsys):
         cmd_name="XCCModules_3A_0D", data=["0x00"], json=True, unsafe=False,
     )
     assert cmd_oem_run(wrong_length, "lenovo") == 2
-    assert "requires exactly 0 body byte" in capsys.readouterr().err
+    assert "accepts at most 0 payload bytes" in capsys.readouterr().err
 
 
 def test_lenovo_group_prefix_is_excluded_from_body_length(monkeypatch):
