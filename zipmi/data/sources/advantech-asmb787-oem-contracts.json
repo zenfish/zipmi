@@ -86,7 +86,12 @@
         "location": "libipmipdkcmds.so.6.0.0:ControlMEUpdate@1c90",
         "module_sha256": "c6c84c3e72f5dcb72cf2c9f4caa91c04ded88f28f5a64aeeea95f44d0e4591b0"
       },
-      "confidence": "high"
+      "confidence": "high",
+      "live_evidence": {
+        "run_id": "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2",
+        "completion_code": "00",
+        "response_data_hex": "00"
+      }
     },
     {
       "id": "LockInputs.action_f0",
