@@ -109,7 +109,7 @@ def test_generated_html_contains_every_exact_operation():
     assert "main h2 { margin: 2.5rem 0 .75rem; font-size: 1.125rem !important" in stylesheet
     assert ".operation-table { min-width: 108rem; table-layout: fixed; }" in stylesheet
     assert ".table-scrollbar-thumb { height: 100%" in stylesheet
-    assert ".table-scrollbar.is-floating { position: fixed; bottom: 0" in stylesheet
+    assert ".table-scrollbar.is-floating { position: fixed; top: 0" in stylesheet
     assert "mark.search-hit" in stylesheet
     assert "overflow-wrap: anywhere" in stylesheet
     assert 'id="operation-filter"' in reference

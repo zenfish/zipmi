@@ -23,6 +23,8 @@
 - Follow-up: replaced the OS-native floating scrollbar with a persistent accessible track/thumb;
   macOS can no longer hide it, and pointer, keyboard, ARIA, filtering, and viewport docking were
   verified in Chromium.
+- Follow-up: the floating control now remains at the viewport top, preserving its original position
+  above the table instead of unexpectedly jumping to the bottom edge.
 
 ## Review — OEM Command Reference Standard v1 pilot (2026-09-26)
 
