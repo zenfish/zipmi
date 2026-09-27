@@ -97,6 +97,17 @@ same as the ASMB787 column just added.
 - Generated the reference from zipmi's 225-identity command catalog and 107 operation contracts; retained the 32-command safe live evidence beside it.
 - Corrected RMCP+ `Session.granted_priv` to record the effective Set Session Privilege Level reply rather than the Open Session ceiling.
 - Proof: documentation sync, generator rerun, HTML parse, and focused Lenovo/auth tests passed.
+- Converted the reference to OEM Command Reference Standard v1: shared stylesheet and renderer,
+  six-class safety vocabulary, consistent provenance/summary/filters/columns, copyable named or raw
+  zipmi commands, compact headings, and a synchronized top scrollbar.
+- Preserved the full closed inventory in one table rather than dropping catalog-only evidence: 107
+  promoted contracts + 185 catalog-only decoded operations + 43 identity-only rows = 335 operations
+  across all 225 prefix-qualified identities / 210 NetFn/Cmd addresses.
+- Added generator `--check`, joined all 32 promoted-contract live observations plus three older
+  catalog-only captures, retained the User-privilege destructive-reset warning, and gave Lenovo
+  its own artifact identity.
+- Review proof also covers open-ended named payload hints, exact selectors in multi-operation raw
+  examples, high-impact safety labels, and firmware-handler evidence on promoted contracts.
 
 ## Review — OEM coverage table and 0.3.3 version (2026-09-25)
 

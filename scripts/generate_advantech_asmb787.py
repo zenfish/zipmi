@@ -660,6 +660,7 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
         "evidence": f'{row["table"]} entry {row["entry_address"]}; SHA-256 {row["module_sha256"]}',
     } for row in rows]
     return {
+        "artifact_marker": "bbe82df6-3df8-4103-8612-72b359a7fdda generated",
         "title": "Advantech ASMB-787 OEM IPMI command reference",
         "scope": ("Firmware-bound reference for every recovered OEM command address and distinct "
                   "handler operation in Advantech ASMB-787 firmware 20220912."),

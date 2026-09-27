@@ -1,6 +1,62 @@
 """Lenovo XCC static OEM catalog and exact request-prefix contracts."""
 from __future__ import annotations
 
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+def test_lenovo_reference_uses_shared_standard_without_losing_inventory():
+    root = Path(__file__).parents[2]
+    subprocess.run(
+        [sys.executable, "scripts/generate_lenovo_xcc_reference.py", "--check"],
+        cwd=root, check=True,
+    )
+    reference = (root / "docs/lenovo-xcc-command-reference.html").read_text()
+    assert '<link rel="stylesheet" href="assets/oem-command-reference.css">' in reference
+    assert "<style" not in reference
+    assert "210</strong>Unique NetFn/Cmd addresses" in reference
+    assert "335</strong>Documented operations" in reference
+    assert "66 / 222 / 46 / 1</strong>Request layout:" in reference
+    assert "60 / 225 / 49 / 1</strong>Response layout:" in reference
+    assert "63 / 224 / 48</strong>Named operation route:" in reference
+    assert "35</strong>Operations with captured live requests" in reference
+    assert reference.count('<tr data-search="') == 335
+    assert reference.count('data-live="true"') == 35
+    assert {name: reference.count(f'data-safety="{name}"') for name in (
+        "read-only", "sensitive", "state-changing", "disruptive", "destructive", "unknown",
+    )} == {
+        "read-only": 97, "sensitive": 17, "state-changing": 115,
+        "disruptive": 14, "destructive": 7, "unknown": 85,
+    }
+    assert "Top-level identity inventory" not in reference
+    assert "225 prefix-qualified identities" in reference
+    assert "185 catalog-only decoded operations" in reference
+    assert "43 identities whose leaf payload is not yet decoded" in reference
+    assert "Not available through zipmi over LAN" in reference
+    assert "bbe82df6-3df8-4103-8612-72b359a7fdda" not in reference
+    assert "<!-- z-artifact: 80a0113f-275b-40ea-9f28-089ba1ac988e generated -->" in reference
+    assert re.search(r'data-safety="destructive"[^>]*>.*?<strong>secure erase</strong>', reference)
+    assert re.search(r'data-safety="destructive"[^>]*>.*?<strong>management-engine update control</strong>', reference)
+    assert re.search(r'data-safety="destructive"[^>]*>.*?<strong>secured datastore delete</strong>', reference)
+    assert re.search(r'data-safety="sensitive"[^>]*>.*?<strong>private account enable/query</strong>', reference)
+    assert re.search(r'data-safety="sensitive"[^>]*>.*?<strong>BMU credentials get</strong>', reference)
+    assert "zipmi oem lenovo --unsafe &#x27;LAN Logical Package Priority Set&#x27; &lt;channel:u8&gt; 0xd4 &lt;at least 1 data bytes&gt;" in reference
+    assert "zipmi oem lenovo --unsafe &#x27;LAN Test NCSI Mapping Set&#x27; &lt;channel:u8&gt; 0xd8 &lt;additional data bytes&gt;" in reference
+    assert "zipmi raw 0x3a 0xf7 0x00 &lt;remaining operation payload bytes&gt;" in reference
+
+    reset_at = reference.index("Reset XCC to Default")
+    reset_row = reference[reset_at:reference.index('<tr data-search="', reset_at)]
+    assert "zipmi oem lenovo --unsafe &#x27;Reset XCC to Default&#x27;" in reset_row
+    assert "exact magic request 5e 2b 00 0a 01 ff 00 00 00" in reset_row
+    assert "this firmware accepted the reset from a User-privilege LAN session" in reset_row
+    assert "firmware identity XCCCmdOSAOEMCmdHandler_2E_CC_5E_2B_00" in reset_row
+    assert "Must be 0x5e" in reset_row and "Must be 0xff" in reset_row
+    assert re.search(r"zipmi oem lenovo &#x27;Firmware Version&#x27;", reference)
+    assert "2aaedcb6c5939efabd49ac4da0a8066e17c5c3dea356ad33ad0d9246c4b192c2" in reference
+    assert "b72294cd8a10699e2cd3827dd1b4aa0a13943c483332af0ceae8ba603cf17485" in reference
+
 
 def test_lenovo_catalog_preserves_both_dispatch_layers():
     from zipmi.scapy_ipmi.oem.lenovo import LENOVO_COMMANDS

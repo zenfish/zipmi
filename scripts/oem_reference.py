@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import html
-import json
 
 
 SAFETY = {
@@ -95,12 +94,14 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
     operation_rows = []
     for index, op in enumerate(operations, 1):
         search = " ".join(str(value) for value in (op["send"], op["id"], op["name"], op["purpose"], op["safety"], op["evidence"])).lower()
+        safety_note = (f'<p class="muted">{_e(op["safety_note"])}</p>'
+                       if op.get("safety_note") else "")
         operation_rows.append(
             f'<tr data-search="{_e(search)}" data-safety="{_e(op["safety"])}" '
             f'data-request="{_e(op["request"]["status"])}" data-response="{_e(op["response"]["status"])}" '
             f'data-execution="{_e(op["execution"])}" data-live="{str(op["live"]).lower()}">'
             f'<td>{index}</td><th scope="row"><strong>{_e(op["name"])}</strong><div class="wire muted">{_e(op["id"])}</div><p>{_e(op["purpose"])}</p></th>'
-            f'<td>{_badge(op["safety"])}{("<p class=\"muted\">" + _e(op["safety_note"]) + "</p>") if op.get("safety_note") else ""}</td>'
+            f'<td>{_badge(op["safety"])}{safety_note}</td>'
             f'<td><code class="command">{_e(op["send"])}</code></td>'
             f'<td>{_layout("Request", op["request"])}</td><td>{_layout("Response", op["response"])}</td>'
             f'<td class="stack"><p><strong>Privilege:</strong> {_e(op["privilege"])}</p><p><strong>Interface:</strong> {_e(op["interface"])}</p>'
@@ -112,9 +113,10 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
     layout_options = '<option value="">All</option>' + "".join(f'<option>{name}</option>' for name in ("Complete", "Partial", "Unknown", "Conflicting"))
     execution_options = '<option value="">All</option>' + "".join(f'<option>{name}</option>' for name in EXECUTION)
     source_items = "".join(f'<li>{item}</li>' for item in page["sources"])
+    artifact_marker = (f'<!-- z-artifact: {page["artifact_marker"]} -->\n'
+                       if page.get("artifact_marker") else "")
     return f'''<!doctype html>
-<!-- z-artifact: bbe82df6-3df8-4103-8612-72b359a7fdda generated -->
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+{artifact_marker}<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{_e(page["title"])}</title><script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="{_e(stylesheet_href)}"></head><body><main>
 <h1>{_e(page["title"])}</h1><p class="lede">{_e(page["scope"])}</p><p>{links}</p>
