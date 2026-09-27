@@ -7,7 +7,7 @@
 - [x] Generate compact command tables for Fujitsu, Lenovo, and corrected Advantech evidence.
 - [x] Generate the iDRAC10 command reference and compact command table.
 - [x] Generate the MegaRAC/YAFU command reference and make its compact table reproducible.
-- [ ] Rebuild the stale iDRAC9 command table and generate its command reference.
+- [x] Rebuild the stale iDRAC9 command table and generate its command reference.
 - [ ] Verify every generator, denominator, artifact stamp, browser interaction, and full test suite.
 
 ### Preservation boundary
