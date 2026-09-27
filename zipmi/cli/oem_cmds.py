@@ -664,6 +664,10 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                     row["desc"] = c.purpose
                 if c.priv:
                     row["priv"] = c.priv
+        # The catalog has semantic prose, not exact request codecs or bounds.
+        # Keep every named iDRAC9 route fail-closed behind acknowledgement.
+        for row in out.values():
+            row["requires_unsafe"] = True
         return _normalize_listing(out, vendor)
     if vendor == "idrac10":
         from ..scapy_ipmi.oem.idrac10 import IDRAC10_COMMANDS
@@ -803,9 +807,17 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
     if vendor == "megarac":
         from ..scapy_ipmi.oem.megarac import MEGARAC_COMMANDS
         out = {
-            key: {"name": e["name"], "priv": e.get("priv"),
-                  "desc": f"module: {e['module']}", "live": None,
-                  "missing": False, "prefix": None}
+            key: {
+                "name": e["name"], "priv": e.get("priv"),
+                "desc": e.get("desc", ""), "live": None,
+                "missing": False, "prefix": None,
+                "request": e.get("request"), "response": e.get("response"),
+                "security": e.get("security"), "tier": e.get("tier"),
+                "block": e.get("block"), "src": f"module: {e['module']}",
+                "requires_unsafe": (
+                    e.get("tier") != "safe" or bool(e.get("security"))
+                ),
+            }
             for key, e in MEGARAC_COMMANDS.items()
         }
         return _normalize_listing(out, "megarac")
@@ -892,6 +904,9 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "block": e.get("block"),
                 "req_len": e.get("req_len"),
                 "resp_len": e.get("resp_len"),
+                "requires_unsafe": (
+                    tier != "safe" or bool(e.get("security"))
+                ),
             }
         return _normalize_listing(out, "yafu")
     if vendor == "lenovo":
@@ -1467,7 +1482,9 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             _msg.error(f"{info['name']} requires exactly {exact} payload bytes; got {len(data_bytes)}")
             return 2
 
-    if vendor in ("advantech-asmb787", "idrac10", "lenovo", "fujitsu"):
+    if vendor in (
+        "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu", "megarac", "yafu",
+    ):
         if info.get("requires_unsafe") and not getattr(args, "unsafe", False):
             _msg.error(
                 f"{info['name']} is state-changing or has an unproved payload "
@@ -1667,7 +1684,10 @@ def _add_vendor_parser(
     looks up (defaults to parser_name)."""
     vendor_key = vendor_key or parser_name
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
-    if vendor_key in ("advantech-asmb787", "idrac10", "lenovo", "fujitsu"):
+    if vendor_key in (
+        "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu",
+        "megarac", "yafu",
+    ):
         sp.add_argument(
             "--unsafe", action="store_true",
             help="acknowledge state-changing or schema-unknown named raw execution",
