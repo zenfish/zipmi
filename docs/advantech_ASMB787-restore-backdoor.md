@@ -207,4 +207,4 @@ marker state and end-to-end command-to-wipe behavior remain untested.
 - Binary: `usr/local/lib/libipmimsghndlr.so.13.22.0` (ARM32, stripped-ish, AMI MegaRAC SP-X 4.0)
 - Ghidra project `asmb787`; functions `FUN_0002b0f0` (gate), `AMIRestoreDefaults` @ `0x3c150`
 - Scripts: `/etc/restoredefaults.sh`, `/usr/local/lib/restoredefaults.sh` in the unpacked rootfs
-- Canonical command/privilege catalog: [advantech_ASMB787-command-reference.html](advantech_ASMB787-command-reference.html)
+- Canonical command/privilege catalog: [advantech-asmb787-command-reference.html](advantech-asmb787-command-reference.html)

@@ -1,5 +1,18 @@
 # ⭐ TOP PRIORITY (2026-08-14): per-OEM columns across the whole command table
 
+## Review — OEM Command Reference Standard v1 pilot (2026-09-26)
+
+- Converted Advantech ASMB-787 to the shared light-theme renderer, semantic stylesheet,
+  canonical lowercase HTML, stable compatibility redirects, fixed section/column order, and
+  consistent filters.
+- Replaced legacy effect jargon with six defined safety classes and separated request/response
+  layout completeness, zipmi builders/parsers, execution policy, firmware availability, and live
+  evidence. Response lengths and offsets now exclude the completion-code byte.
+- Added exact firmware SHA-256/UUID provenance and reciprocal zBMC linkage. The legacy Markdown
+  table is now a pointer to the canonical HTML rather than a second drifting reference.
+- Proof: generator sync, focused 22-test suite, HTML structure/count assertions, JavaScript syntax,
+  repository whitespace checks, and full-suite results recorded with the final commit.
+
 We now have full handler catalogs for several OEM stacks (ASMB-787/AMI,
 iDRAC9, iDRAC6/Dell, OpenBMC ×9, Supermicro stub). `docs/command-table.md`
 only shows two live-hardware columns (R710, X11SSZ) + one static column
@@ -9,7 +22,7 @@ real dispatch tables (static ground truth: ✓ handler present / ✗ absent),
 same as the ASMB787 column just added.
 
 - Source of truth per stack:
-  - ASMB787 (AMI) — `docs/advantech_ASMB787-command-reference.html` (DONE; corrected 187-row firmware dispatch catalog)
+  - ASMB787 (AMI) — `docs/advantech-asmb787-command-reference.html` (DONE; corrected 187-row firmware dispatch catalog)
   - iDRAC9 — `docs/idrac9-command-table.md` (name-only; needs NetFn/cmd bytes
     from `G_asOEMIPMIReqeustHandleTable` — not yet cracked)
   - iDRAC6 — `docs/dell-command-table.md` (has NetFn/cmd — ready to columnize)

@@ -1,6 +1,6 @@
 # Advantech ASMB-787 — IPMI/OEM handler catalog
 
-> **Superseded:** this historical broad table used a swapped `CmdHndlr_T` field layout. Use the generated 187-entry dispatch reference in [HTML](advantech_ASMB787-command-reference.html) or [Markdown](advantech_ASMB787-command-reference.md), backed by the [canonical CSV](../zipmi/data/sources/advantech-asmb787-oem-dispatch.csv). They distinguish static registration from plugin eligibility and do not claim complete payload semantics or structured codecs.
+> **Superseded:** this historical broad table used a swapped `CmdHndlr_T` field layout. Use the generated [187-entry dispatch and operation reference](advantech-asmb787-command-reference.html), backed by the [canonical CSV](../zipmi/data/sources/advantech-asmb787-oem-dispatch.csv). It distinguishes firmware availability, request/response layout completeness, zipmi execution support, and safety.
 
 Static reverse-engineering of the ASMB-787 BMC firmware (**AMI MegaRAC SP-X 4.0 / ASPEED AST2600**, Linux 5.4.11-ami, ARM32 EABI5). Every `g_*_CmdHndlr` dispatch table was parsed out of the OEM `.so` set with pyelftools; NetFn bindings and the privilege model were confirmed in Ghidra (`libipmimsghndlr.so`: `GetMsgHndlrMap`, `GetCmdHndlr`, `SetSessionPrivLevel`).
 

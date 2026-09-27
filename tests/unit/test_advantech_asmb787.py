@@ -55,68 +55,102 @@ def test_sibling_header_context_preserves_all_dispatch_rows():
         "a726253a-edfa-5f2e-baa0-4c1d31af48ab"}
 
 
-def test_generated_markdown_contains_every_canonical_row():
-    reference = (Path(__file__).parents[2] / "docs/"
-                 "advantech_ASMB787-command-reference.md").read_text()
-    rows = [line for line in reference.splitlines() if line.startswith("| `0x")]
-    assert len(rows) == 187
-    assert any("`0x32/0x66`" in line and "`AMIRestoreDefaults`" in line
-               for line in rows)
+def test_legacy_reference_urls_point_to_canonical_html():
+    docs = Path(__file__).parents[2] / "docs"
+    markdown = (docs / "advantech_ASMB787-command-reference.md").read_text()
+    redirect = (docs / "advantech_ASMB787-command-reference.html").read_text()
+    assert "advantech-asmb787-command-reference.html" in markdown
+    assert not any(line.startswith("| `0x") for line in markdown.splitlines())
+    assert '<link rel="canonical" href="advantech-asmb787-command-reference.html">' in redirect
+    assert 'http-equiv="refresh"' in redirect
 
 
 def test_generated_html_contains_every_exact_operation():
     reference = (Path(__file__).parents[2] / "docs/"
-                 "advantech_ASMB787-command-reference.html").read_text()
-    assert reference.count("<td class='p-2 font-mono'>0x") == 462 + 187
-    assert "462 operations across 187 command pairs" in reference
-    assert "structured fixed-width codecs for 81 operations" in reference
-    assert "462</strong><div>handler-proven operations" in reference
-    assert "381 remain raw-exact" in reference
-    assert "33</strong><div>live-backed operations" in reference
-    assert "31 destructive operations" in reference
-    assert "55 security-sensitive operations" in reference
-    assert "157 mutates operations" in reference
+                 "advantech-asmb787-command-reference.html").read_text()
+    assert '<link rel="stylesheet" href="assets/oem-command-reference.css">' in reference
+    assert "<style" not in reference
+    assert "187</strong>Top-level command addresses" in reference
+    assert "462</strong>Documented operations" in reference
+    assert "143 / 319 / 0 / 0</strong>Request layout: complete / partial / unknown / conflicting" in reference
+    assert "204 / 258 / 0 / 0</strong>Response layout: complete / partial / unknown / conflicting" in reference
+    assert "75 / 117 / 270</strong>zipmi: default / --unsafe / unavailable" in reference
+    assert "81 / 81</strong>Request builders / response parsers" in reference
+    assert "33</strong>Live-tested operations" in reference
+    assert "200 operations" in reference and "104 operations" in reference
+    assert "108 operations" in reference and "14 operations" in reference
+    assert "22 operations" in reference
     assert 'id="operation-filter"' in reference
-    assert 'id="effect-filter"' in reference
-    assert 'id="dispatch-filter"' in reference
-    assert 'id="dispatch-effect-filter"' in reference
-    assert "byte 0</code> · <code>mode</code>: u8" in reference
-    assert "<strong>Does:</strong> Writes ptpd configuration" in reference
+    assert all(f'id="{name}-filter"' in reference for name in (
+        "safety", "request", "response", "execution", "live"))
+    assert "<td class=\"wire\">0</td><td class=\"wire\">mode</td>" in reference
+    assert "Writes ptpd configuration" in reference
     assert "Queries AMI YAFU Get Flash Info; response layout:" in reference
     assert "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2" in reference
+    assert "3e9916fd633babe11c208c0982330f8677e4f3b05029653a56ffe4230dea1cbd" in reference
+    assert "https://github.com/zenfish/zbmc/blob/main/boxes/advantech-asmb787/index.html" in reference
+    assert "including CC:</strong>" not in reference
 
     class TableRows(HTMLParser):
         def __init__(self):
             super().__init__()
             self.section = None
             self.current = None
-            self.rows = {"operation-rows": [], "dispatch-rows": []}
+            self.nested_rows = 0
+            self.nested_bodies = 0
+            self.rows = {"operation-rows": [], "command-rows": []}
 
         def handle_starttag(self, tag, attrs):
             attrs = dict(attrs)
-            if tag == "tbody" and attrs.get("id") in self.rows:
+            if tag == "tbody" and self.section:
+                self.nested_bodies += 1
+            elif tag == "tbody" and attrs.get("id") in self.rows:
                 self.section = attrs["id"]
-            elif self.section and tag == "tr":
+            elif self.section and tag == "tr" and self.current is None:
                 self.current = {"cells": 0, **attrs}
-            elif self.current is not None and tag in {"td", "th"}:
+            elif self.current is not None and tag == "tr":
+                self.nested_rows += 1
+            elif self.current is not None and not self.nested_rows and tag in {"td", "th"}:
                 self.current["cells"] += 1
 
         def handle_endtag(self, tag):
-            if tag == "tr" and self.current is not None:
+            if tag == "tr" and self.nested_rows:
+                self.nested_rows -= 1
+            elif tag == "tr" and self.current is not None:
                 self.rows[self.section].append(self.current)
                 self.current = None
+            elif tag == "tbody" and self.nested_bodies:
+                self.nested_bodies -= 1
             elif tag == "tbody":
                 self.section = None
 
     parser = TableRows()
     parser.feed(reference)
     operations = parser.rows["operation-rows"]
-    dispatch = parser.rows["dispatch-rows"]
-    assert len(operations) == 462 and {row["cells"] for row in operations} == {6}
-    assert Counter(row["data-effect"] for row in operations) == {
-        "safe": 219, "mutates": 157, "security-sensitive": 55, "destructive": 31}
-    assert len(dispatch) == 187 and {row["cells"] for row in dispatch} == {9}
-    assert all(row.get("data-search") and row.get("data-effect") for row in dispatch)
+    commands = parser.rows["command-rows"]
+    assert len(operations) == 462 and {row["cells"] for row in operations} == {8}
+    assert Counter(row["data-safety"] for row in operations) == {
+        "read-only": 200, "sensitive": 104, "state-changing": 108,
+        "disruptive": 14, "destructive": 22, "unknown": 14,
+    }
+    assert Counter(row["data-request"] for row in operations) == {
+        "Complete": 143, "Partial": 319,
+    }
+    assert Counter(row["data-response"] for row in operations) == {
+        "Complete": 204, "Partial": 258,
+    }
+    assert all(row.get("data-search") and row.get("data-execution") for row in operations)
+    by_search = {row["data-search"]: row for row in operations}
+    restore = next(row for search, row in by_search.items() if "amirestoredefaults" in search)
+    key_status = next(row for search, row in by_search.items()
+                      if "amigetsslcertstatus.private_key_info" in search)
+    assert restore["data-execution"] == "Requires --unsafe"
+    assert key_status["data-safety"] == "sensitive"
+    live = [row for row in operations if row["data-live"] == "true"]
+    assert Counter(row["data-safety"] for row in live) == {
+        "read-only": 32, "sensitive": 1,
+    }
+    assert len(commands) == 187 and {row["cells"] for row in commands} == {6}
 
 
 def test_corrected_cmd_handler_layout_values():

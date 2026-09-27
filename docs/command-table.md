@@ -34,7 +34,7 @@ and per-platform live test results.
 > **ASMB787 column is different** — it is *not* live-tested. It is **static
 > ground truth** from firmware RE: ✓ = a handler for that (NetFn, cmd) is
 > present in the ASMB-787's real dispatch tables, ✗ = absent. See
-> [advantech_ASMB787-command-table.html](advantech_ASMB787-command-table.html) for
+> [advantech-asmb787-command-reference.html](advantech-asmb787-command-reference.html) for
 > the full OEM handler catalog. (Cross-vendor OEM handler-lineage analysis lives
 > in the author's private research library, not this repo.)
 
@@ -373,7 +373,7 @@ firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 
 | CLI vendor | IANA | Known | Named | Catalog / source |
 |------------|------|------:|------:|------------------|
-| `advantech-asmb787` | 10297 | 230 | 230 | [ASMB-787 firmware dispatch reference](advantech_ASMB787-command-reference.html) |
+| `advantech-asmb787` | 10297 | 230 | 230 | [ASMB-787 firmware dispatch reference](advantech-asmb787-command-reference.html) |
 | `idrac6` | 674 | 192 | 192 | [iDRAC6 dispatch table](dell-command-table.md) |
 | `idrac9` | 674 | 349 | 277 | [iDRAC9 handler catalog](idrac9-command-table.md) |
 | `idrac10` | 674 | 581 | 581 | `zipmi/data/sources/idrac10-commands.json` |

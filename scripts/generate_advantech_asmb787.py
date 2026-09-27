@@ -5,13 +5,15 @@ from __future__ import annotations
 
 import argparse
 import csv
-import html
+from collections import Counter
 import io
 import json
 import pprint
 import re
 import sys
 from pathlib import Path
+
+from oem_reference import redirect_page, render_reference
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -20,7 +22,8 @@ ACTIVATION_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-module-activati
 CONTRACTS_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-oem-contracts.json"
 HEADER_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-header-contracts.csv"
 MODULE = ROOT / "zipmi/scapy_ipmi/oem/advantech_asmb787_generated.py"
-DOC = ROOT / "docs/advantech_ASMB787-command-reference.html"
+DOC = ROOT / "docs/advantech-asmb787-command-reference.html"
+LEGACY_DOC = ROOT / "docs/advantech_ASMB787-command-reference.html"
 DOC_MD = ROOT / "docs/advantech_ASMB787-command-reference.md"
 BASE_FIELDS = (
     "netfn", "cmd", "selector", "selector_status", "handler", "module",
@@ -36,6 +39,65 @@ SEMANTIC_FIELDS = (
     "semantic_confidence",
     "safety_tier",
 )
+
+DISRUPTIVE_OPERATIONS = {
+    "AMIPTPCtrl.stop", "AMIPTPCtrl.restart", "AMISetKCSLANIfcSupport.kcs",
+    "AMISetKCSLANIfcSupport.lan", "AMIRISStartStop",
+    "AMIMediaRedirectionStartStop", "AMIActiveSessionClose",
+    "AMIRestartWebService", "AMIYAFUResetDevice",
+    "AMISetIfaceState.ethernet_state", "AMISetIfaceState.bond_state",
+    "AMISetIfaceState.bond_enabled", "AMISetIfaceState.bond_active_slave",
+    "AMISetIfaceState.bond_vlan_enabled",
+}
+DESTRUCTIVE_OPERATIONS = {
+    "AMIGetMediaInfo", "AMISetFirewall", "AMIGetRAIDInfo.clear_event_log",
+    "AMIGetRAIDInfo.clear_sasit_event_log", "AMIGetRAIDInfo.clear_foreign_device",
+}
+SENSITIVE_OPERATIONS = {
+    "PDK_SDRGetAnalogFlags", "AMIFileDownload", "AMIFileUpload",
+    "AMISetPswdChangeStatus", "AMIResetPassword", "AMISetRootPassword",
+    "AMISetUserShelltype", "AMISetLoginAuditConfig", "AMISetSSLCert",
+    "AMISetDNSConf.tsig_upload", "AMISetFWCfg", "AMISetFWProtocol",
+    "AMIPLDMFIRMWAREMsg.request_update", "AMIPLDMFIRMWAREMsg.pass_component_table",
+    "AMIFirmwareCommand.set_update_mode", "AMIFirmwareCommand.set_network_share",
+    "AMIFirmwareCommand.set_share_operation", "AMIFirmwareCommand.set_update_component",
+    "AMIFirmwareCommand.set_status_by_bios", "AMIFirmwareCommand.cancel_component_update",
+    "AMIFirmwareCommand.rearm_firmware_timer", "AMIYAFUActivateFlashMode",
+    "AMIYAFUAllocateMemory", "AMIYAFUFreeMemory", "AMIYAFUProtectFlash",
+    "AMIYAFUSetBootConfig", "AMIYAFUDeactivateFlash", "AMIYAFUSwitchFlashDevice",
+    "AMIYAFURestoreFlashDevice", "AMIYAFUDualImgSup", "AMIYAFUFWSelectFlash",
+    "AMIYAFUActivateFlashDevice", "AMIYAFUReplaceSignedImageKey",
+    "AMIGetUDSSessionInfo.session_counts", "AMIGetUDSSessionInfo.session_by_id",
+    "AMIGetUDSSessionInfo.session_by_handle", "AMIGetUDSSessionInfo.session_by_index",
+    "AMIGetUDSSessionInfo.session_by_user", "AMIGetUDSSessionInfo.process_thread_ids",
+    "AMIGetUDSSessionInfo.active_indices", "SetSMTPConfigParams.username",
+    "SetSMTPConfigParams.password", "SetSMTPConfigParams.username2",
+    "SetSMTPConfigParams.password2", "SetSMTPConfigParams.auth_enable",
+    "SetSMTPConfigParams.auth2_enable", "SetSMTPConfigParams.starttls",
+    "SetSMTPConfigParams.starttls2", "SetSMTPConfigParams.ssltls",
+    "SetSMTPConfigParams.ssltls2",
+    *(f"AMIGetAllActiveSessions.type_{index}" for index in range(7)),
+}
+STATE_CHANGING_OPERATIONS = {
+    "AMISensorThresholdAcrossResets.restore", "AMISetRemoteKVMCfg.mouse_mode",
+    "AMISetRemoteKVMCfg.keyboard_layout", "AMISetRemoteKVMCfg.retry_count",
+    "AMISetRemoteKVMCfg.retry_interval", "AMISetRunTimeSinglePortStatus",
+}
+UNKNOWN_OPERATIONS = {
+    "ControlMEUpdate.action_0", "ControlMEUpdate.action_1", "LockInputs.action_f0",
+    "LockInputs.action_f1", "ControlSysErrLED.action_0", "ControlSysErrLED.action_1",
+    "AMIYAFUGetImgSize", "AMIPLDMFIRMWAREMsg.cancel_update_component",
+    "AMIPLDMFIRMWAREMsg.cancel_update", "AMIGetDNSConf.reserved_10",
+    "SetSMTPConfigParams.reserved_28", "SetSMTPConfigParams.reserved_29",
+    "GetSMTPConfigParams.reserved_28", "GetSMTPConfigParams.reserved_29",
+}
+MIXED_BEHAVIOR_OPERATIONS = {
+    "AMIGetMediaInfo", "AMISetFirewall", "AMISetKCSLANIfcSupport.kcs",
+    "AMISetKCSLANIfcSupport.lan", "AMIRISStartStop",
+    "AMIMediaRedirectionStartStop", "AMISetIfaceState.ethernet_state",
+    "AMISetIfaceState.bond_state", "AMISetIfaceState.bond_enabled",
+    "AMISetIfaceState.bond_active_slave", "AMISetIfaceState.bond_vlan_enabled",
+}
 
 
 def read_rows(path: Path) -> list[dict[str, str]]:
@@ -351,35 +413,6 @@ def activation_label(value: str) -> str:
     raise SystemExit(f"unknown activation status: {value}")
 
 
-def field_list(fields: list[dict] | None, layout: str, esc) -> str:
-    if fields is None:
-        tokens = [token.strip() for token in layout.split(";") if token.strip()]
-        if not tokens:
-            return '<span class="text-slate-400">No structured field map recovered.</span>'
-        return ('<p class="text-slate-400">Variable or union layout; widths are not safely fixed.</p>'
-                '<ul class="mt-1 list-disc pl-5">' + ''.join(
-                    f'<li><code>{esc(token)}</code></li>' for token in tokens) + '</ul>')
-    if not fields:
-        return '<span class="text-slate-400">No fields.</span>'
-    offset = 0
-    items = []
-    widths = {"u8": 1, "u16le": 2, "u32le": 4}
-    for field in fields:
-        width = field["length"] if "length" in field else widths[field["kind"]]
-        detail = field["kind"]
-        if "length" in field:
-            detail += f"[{field['length']}]"
-        if "constant" in field:
-            detail += f" = 0x{field['constant']:02x}"
-        byte_range = str(offset) if width == 1 else f"{offset}..{offset + width - 1}"
-        items.append(
-            f'<li><code>byte {byte_range}</code> · <code>{esc(field["name"])}</code>: '
-            f'{esc(detail)}</li>'
-        )
-        offset += width
-    return '<ul class="list-disc pl-5">' + ''.join(items) + '</ul>'
-
-
 def operation_name(identifier: str) -> str:
     """Turn catalog identifiers into readable labels without changing identity."""
     head, *tail = identifier.replace("_", " ").split(".")
@@ -399,162 +432,190 @@ def operation_purpose(operation: dict) -> str:
     return side_effects[0].upper() + side_effects[1:]
 
 
-def doc_text(rows: list[dict[str, str]], operations: list[dict]) -> str:
-    esc = lambda value: html.escape(str(value), quote=True)
+def safety_class(operation: dict) -> str:
+    identifier = operation["id"]
+    overrides = (
+        (DISRUPTIVE_OPERATIONS, "disruptive"),
+        (DESTRUCTIVE_OPERATIONS, "destructive"),
+        (SENSITIVE_OPERATIONS, "sensitive"),
+        (STATE_CHANGING_OPERATIONS, "state-changing"),
+        (UNKNOWN_OPERATIONS, "unknown"),
+    )
+    for identifiers, classification in overrides:
+        if identifier in identifiers:
+            return classification
+    return {
+        "safe": "read-only",
+        "mutates": "state-changing",
+        "security-sensitive": "sensitive",
+        "destructive": "destructive",
+    }[operation["effect"]]
+
+
+def layout_status(fields: list[dict] | None, layout: str) -> str:
+    if fields is not None:
+        return "Complete"
+    if any(word in layout.lower() for word in ("unknown", "unresolved")):
+        return "Unknown"
+    return "Partial"
+
+
+def normalized_fields(fields: list[dict] | None, *, response: bool = False) -> list[dict] | None:
+    if fields is None:
+        return None
+    source = fields[1:] if response and fields and fields[0]["name"] == "completion_code" else fields
+    result = []
+    offset = 0
+    widths = {"u8": 1, "u16le": 2, "u32le": 4}
+    for field in source:
+        width = field["length"] if "length" in field else widths[field["kind"]]
+        meaning = f"Must be 0x{field['constant']:02x}" if "constant" in field else "See operation semantics"
+        result.append({
+            "offset": str(offset) if width == 1 else f"{offset}–{offset + width - 1}",
+            "name": field["name"],
+            "type": f"bytes[{width}]" if field["kind"] == "bytes" else field["kind"],
+            "meaning": meaning,
+        })
+        offset += width
+    return result
+
+
+def response_length(value: str) -> str:
+    if value.isdigit():
+        return f"{max(0, int(value) - 1)} data bytes after completion code"
+    return f"{value} including completion code; data length unresolved"
+
+
+def availability(value: str) -> str:
+    if value == "statically registered in owning dispatcher table":
+        return "Always present in this firmware"
+    if value.startswith("runtime registered:"):
+        return "Module loaded in this firmware"
+    if value.startswith("not runtime registered:"):
+        return "Module present but not loaded"
+    if "explicitly enabled" in value:
+        return "Present; runtime availability unproved"
+    if "absent from extracted" in value:
+        return "Disabled in this firmware"
+    raise SystemExit(f"unknown activation status: {value}")
+
+
+def compatibility_markdown() -> str:
+    return """# Advantech ASMB-787 OEM IPMI command reference
+
+The canonical human-readable reference is
+[the HTML command reference](advantech-asmb787-command-reference.html).
+
+This compatibility pointer replaces the former duplicate Markdown table. The generated CSV and
+JSON files under `zipmi/data/sources/` remain the machine-readable sources of truth.
+"""
+
+
+def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
     by_key = {(int(row["netfn"], 0), int(row["cmd"], 0)): row for row in rows}
-    effect_style = {
-        "safe": "bg-emerald-950 text-emerald-200 ring-emerald-700",
-        "mutates": "bg-amber-950 text-amber-200 ring-amber-700",
-        "security-sensitive": "bg-pink-950 text-pink-200 ring-pink-700",
-        "destructive": "bg-rose-950 text-rose-200 ring-rose-600",
-    }
-    effect_label = {"safe": "read-only", "mutates": "mutates",
-                    "security-sensitive": "security-sensitive",
-                    "destructive": "destructive"}
-    body = []
-    for row in rows:
-        activation = row["activation_status"]
-        status = activation_label(activation)
-        effect = row["safety_tier"]
-        search = " ".join(str(row[key]) for key in (
-            "netfn", "cmd", "handler", "module", "privilege", "request_semantics",
-            "response_semantics", "activation_status", "semantic_source", "safety_tier",
-        )).lower()
-        body.append(
-            f"<tr class='border-b border-slate-800 align-top' data-search='{esc(search)}' data-effect='{esc(effect)}'>"
-            f"<td class='p-2 font-mono'>{esc(row['netfn'])}/{esc(row['cmd'])}</td>"
-            f"<th scope='row' class='p-2 text-left font-normal'><strong>{esc(row['handler'])}</strong><br><span class='text-slate-400'>{esc(row['module'])}</span></th>"
-            f"<td class='p-2'>{esc(row['privilege'])} <span class='font-mono text-slate-400'>({esc(row['privilege_raw'])})</span></td>"
-            f"<td class='p-2'>dispatcher +8 constraint: {esc(row['request_length_semantics'])}<br><span class='text-slate-400'>{esc(row['request_semantics'])}</span></td>"
-            f"<td class='p-2'>{esc(row['response_semantics'])}</td>"
-            f"<td class='p-2'>{esc(row['interface_semantics'])} <span class='font-mono text-slate-400'>({esc(row['interface_raw'])})</span></td>"
-            f"<td class='p-2'><span class='inline-block rounded px-2 py-1 text-xs font-semibold ring-1 {effect_style[effect]}'>{esc(effect_label[effect])}</span></td>"
-            f"<td class='p-2'><strong>{esc(status)}</strong><br><span class='text-slate-400'>{esc(activation)}</span></td>"
-            f"<td class='p-2'>{esc(row['confidence'])}<br><span class='text-slate-400'>{esc(row['semantic_source'])}; {esc(row['semantic_confidence'])}</span></td>"
-            "</tr>"
-        )
-    registered = sum(row["activation_status"].startswith("runtime registered:") for row in rows)
-    skipped = sum(row["activation_status"].startswith("not runtime registered:") for row in rows)
-    codecs = sum(operation["codec_state"] == "verified" for operation in operations)
-    live_count = sum(bool(operation.get("live_evidence")) for operation in operations)
-    effects = {effect: sum(operation["effect"] == effect for operation in operations)
-               for effect in ("safe", "mutates", "security-sensitive", "destructive")}
-    impact_lists = []
-    for effect in ("destructive", "security-sensitive", "mutates"):
-        matching = [operation for operation in operations if operation["effect"] == effect]
-        items = []
-        for operation in matching:
-            netfn, cmd = operation["command"]
-            items.append(
-                f'<li><code>0x{netfn:02x}/0x{cmd:02x}</code> '
-                f'<strong>{esc(operation_name(operation["id"]))}</strong> '
-                f'<code>{esc(operation["id"])}</code> — {esc(operation_purpose(operation))}</li>'
-            )
-        impact_lists.append(
-            f'<details class="mt-3"><summary class="font-semibold">{len(matching)} {esc(effect)} '
-            f'operations</summary><ul class="mt-2 list-disc space-y-1 pl-6 text-sm">'
-            f'{"".join(items)}</ul></details>'
-        )
-    operation_body = []
+    operation_counts = Counter(tuple(operation["command"]) for operation in operations)
+    rendered_operations = []
     for operation in operations:
         netfn, cmd = operation["command"]
         parent = by_key[(netfn, cmd)]
         prefix = operation.get("prefix")
         wire = f"0x{netfn:02x}/0x{cmd:02x}"
         if prefix is not None:
-            wire += " " + " ".join(f"{byte:02x}" for byte in prefix)
+            wire += " · data " + " ".join(f"{byte:02x}" for byte in prefix)
         live = operation.get("live_evidence")
-        live_text = "not live-tested"
-        if live:
-            live_text = (
-                f"run {live['run_id']}; CC {live['completion_code']}; "
-                f"data {live['response_data_hex'] or '(empty)'}"
-            )
-        effect = operation["effect"]
-        display_name = operation_name(operation["id"])
+        sole_unprefixed = prefix is None and operation_counts[(netfn, cmd)] == 1
+        executable = prefix is not None or sole_unprefixed
+        if not executable:
+            execution = "Not executable"
+        elif prefix is not None:
+            execution = ("Allowed by default" if operation["effect"] == "safe"
+                         else "Requires --unsafe")
+        else:
+            execution = ("Allowed by default" if parent["safety_tier"] == "safe"
+                         and parent["request_length_raw"] != "0xff"
+                         and parent["semantic_confidence"] == "target-proven"
+                         else "Requires --unsafe")
         purpose = operation_purpose(operation)
-        selector_text = operation.get("selectors")
-        search = " ".join((wire, operation["id"], display_name, effect, purpose,
-                           operation["request"]["layout"], operation["response"]["layout"],
-                           parent["handler"], parent["module"], parent["activation_status"])).lower()
-        request_fields = field_list(
-            operation["request"].get("fields"), operation["request"]["layout"], esc)
-        response_fields = field_list(
-            operation["response"].get("fields"), operation["response"]["layout"], esc)
-        safety = "read-only contract" if effect == "safe" else "--unsafe required"
-        operation_body.append(
-            f"<tr class='border-b border-slate-800 align-top' data-search='{esc(search)}' data-effect='{esc(effect)}'>"
-            f"<td class='p-2 font-mono'>{esc(wire)}</td>"
-            f"<th scope='row' class='min-w-72 p-2 text-left font-normal'><strong>{esc(display_name)}</strong>"
-            f"<div class='mt-1 font-mono text-xs text-slate-400'>{esc(operation['id'])}</div>"
-            f"<p class='mt-2 text-slate-300'><strong>Does:</strong> {esc(purpose)}</p>"
-            f"{f'<p class=\"mt-1 text-xs text-slate-400\"><strong>Selectors:</strong> {esc(selector_text)}</p>' if selector_text else ''}</th>"
-            f"<td class='min-w-96 p-2 text-xs'><strong>{esc(operation['request']['length'])} bytes:</strong> "
-            f"<code>{esc(operation['request']['layout'])}</code><details><summary>Fields</summary>{request_fields}</details></td>"
-            f"<td class='min-w-96 p-2 text-xs'><strong>{esc(operation['response']['length_including_cc'])} bytes including CC:</strong> "
-            f"<code>{esc(operation['response']['layout'])}</code><details><summary>Fields</summary>{response_fields}</details></td>"
-            f"<td class='min-w-72 p-2 text-xs'><span class='inline-block rounded px-2 py-1 font-semibold ring-1 {effect_style[effect]}'>{esc(effect_label[effect])}</span>"
-            f"<p class='mt-2'><strong>Execution:</strong> {esc(safety)}<br><strong>Privilege:</strong> {esc(parent['privilege'])}"
-            f"<br><strong>Activation:</strong> {esc(activation_label(parent['activation_status']))}</p>"
-            f"<details><summary>Completion codes</summary><code>{esc(', '.join(operation['completion_codes']))}</code></details></td>"
-            f"<td class='min-w-72 p-2 text-xs'><strong>Codec:</strong> {esc(operation['codec_state'])}"
-            f"<br><strong>Handler:</strong> {esc(parent['handler'])}<br><strong>Evidence:</strong> {esc(operation['evidence']['location'])}"
-            f"<br><strong>Confidence:</strong> {esc(operation['confidence'])}<br><strong>Live:</strong> {esc(live_text)}</td>"
-            "</tr>"
-        )
-    return f"""<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Advantech ASMB-787 OEM IPMI command reference</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-950 text-slate-100"><main class="mx-auto max-w-[110rem] p-6">
-<h1 class="text-3xl font-bold">Advantech ASMB-787 OEM IPMI command reference</h1>
-<div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6"><div class="rounded bg-blue-900/60 p-4"><strong class="text-2xl">{len(rows)}</strong><div>dispatch pairs</div></div><div class="rounded bg-blue-900/60 p-4"><strong class="text-2xl">{len(operations)}</strong><div>handler-proven operations</div></div><div class="rounded bg-emerald-900/60 p-4"><strong class="text-2xl">{codecs}</strong><div>fixed-width codecs</div></div><div class="rounded bg-emerald-900/60 p-4"><strong class="text-2xl">{live_count}</strong><div>live-backed operations</div></div><div class="rounded bg-amber-900/60 p-4"><strong class="text-2xl">{effects['safe']}</strong><div>read-only operations</div></div><div class="rounded bg-rose-900/60 p-4"><strong class="text-2xl">{effects['mutates'] + effects['security-sensitive'] + effects['destructive']}</strong><div>state-changing / sensitive</div></div></div>
-<section class="mt-5 rounded border border-blue-700 bg-blue-950/50 p-4"><h2 class="font-bold">Coverage and limits</h2><p class="mt-2 text-slate-300">The 187-pair denominator is closed against this ASMB-787 firmware image. Each pair has an exact-target handler contract, but a named raw command is not necessarily a structured codec or a live-reachable plugin. Of 462 operations, {len(operations) - codecs} remain raw-exact because their framing cannot safely be represented by the fixed-width codec. Activation is distinguished below: 92 static, {registered} runtime-registered plugin, and {skipped} skipped plugin rows.</p></section>
-<section class="mt-4 rounded border border-rose-800 bg-rose-950/40 p-4"><h2 class="font-bold">Safety boundary</h2><p class="mt-2 text-slate-300">The handler inventory includes {effects['mutates']} mutating, {effects['security-sensitive']} security-sensitive, and {effects['destructive']} destructive operations. Every operation is tagged and filterable below; expand these lists to see the exact commands and observed effects. zipmi requires <code>--unsafe</code> for named operations whose payload or effect is not proven safe.</p>{''.join(impact_lists)}</section>
-<p class="mt-3 text-slate-300">Complete 187-entry firmware dispatch catalog and zipmi named raw surface for unique vendor NetFn/Cmd pairs. Evidence separates 92 statically registered core/platform rows, {registered} runtime-registered plugin rows, and {skipped} plugin rows skipped because their exact feature token is absent. The CmdHndlr_T layout is <code>cmd@+0</code>, <code>privilege@+1</code>, <code>handler@+4</code>, the one-byte dispatcher request-length constraint at <code>+8</code>, and <code>interface@+12</code>. Earlier documentation swapped privilege and request length.</p>
-<p class="mt-2 text-slate-300">A named command means zipmi can emit its exact NetFn/Cmd bytes. It does not claim a structured codec, complete request/response semantics, or runtime reachability. The +8 value proves only the dispatcher constraint shown; payload fields remain explicitly unknown unless AMI client/header material supplies labelled context. Type-8 secondary selector hooks exist, but their selector values remain unknown.</p>
-<section class="mt-8"><h2 class="text-2xl font-semibold">Exact-target operation contracts</h2>
-<p class="mt-2 text-slate-300">Exact handler decompilation currently proves {len(operations)} operations across {len({tuple(operation['command']) for operation in operations})} command pairs. zipmi generates structured fixed-width codecs for {sum(operation['codec_state'] == 'verified' for operation in operations)} operations; the remaining {sum(operation['codec_state'] != 'verified' for operation in operations)} retain exact raw contracts because their variable, union, checksum, or overlapping-bitmask framing needs a dedicated codec. The analyzed firmware is artifact <code>379c676d-4d49-52ea-a268-541c391a69ca</code>.</p>
-<div class="mt-4 grid gap-3 md:grid-cols-[1fr_16rem]"><label><span class="font-semibold">Filter operations</span><input id="operation-filter" class="mt-2 w-full rounded border border-slate-700 bg-slate-900 p-3" placeholder="name, wire, action, handler, module"></label><label><span class="font-semibold">Safety class</span><select id="effect-filter" class="mt-2 w-full rounded border border-slate-700 bg-slate-900 p-3"><option value="">All safety classes</option><option value="safe">Read-only</option><option value="mutates">Mutates</option><option value="security-sensitive">Security-sensitive</option><option value="destructive">Destructive</option></select></label></div>
-<p id="operation-count" class="mt-3 text-sm text-slate-400" aria-live="polite"></p><div class="mt-4 overflow-x-auto" role="region" aria-label="Advantech exact operation contracts" tabindex="0"><table class="w-full text-sm"><caption class="pb-3 text-left text-slate-300">Handler-proven requests, responses, effects, activation, codecs, and live evidence.</caption><thead class="sticky top-0 bg-slate-900 text-left"><tr><th class="p-2">Wire / prefix</th><th class="p-2">Operation / purpose</th><th class="p-2">Request</th><th class="p-2">Response</th><th class="p-2">Safety / activation</th><th class="p-2">zipmi / evidence</th></tr></thead><tbody id="operation-rows">{''.join(operation_body)}</tbody></table></div></section>
-<section class="mt-8"><h2 class="text-2xl font-semibold">Top-level firmware dispatch</h2>
-<div class="mt-4 grid gap-3 md:grid-cols-[1fr_16rem]"><label><span class="font-semibold">Filter top-level commands</span><input id="dispatch-filter" class="mt-2 w-full rounded border border-slate-700 bg-slate-900 p-3" placeholder="wire, handler, module, privilege, activation"></label><label><span class="font-semibold">Worst operation class</span><select id="dispatch-effect-filter" class="mt-2 w-full rounded border border-slate-700 bg-slate-900 p-3"><option value="">All safety classes</option><option value="safe">Read-only</option><option value="mutates">Mutates</option><option value="security-sensitive">Security-sensitive</option><option value="destructive">Destructive</option></select></label></div><p id="dispatch-count" class="mt-3 text-sm text-slate-400" aria-live="polite"></p><div class="mt-6 overflow-x-auto" role="region" aria-label="Advantech top-level dispatch" tabindex="0"><table class="w-full text-sm"><caption class="pb-3 text-left text-slate-300">All 187 unique ASMB-787 vendor NetFn/Cmd catalog entries and their evidence boundaries.</caption><thead class="sticky top-0 bg-slate-900 text-left"><tr><th scope="col" class="p-2">Wire</th><th scope="col" class="p-2">Handler / module</th><th scope="col" class="p-2">Privilege</th><th scope="col" class="p-2">Request</th><th scope="col" class="p-2">Response</th><th scope="col" class="p-2">Interface</th><th scope="col" class="p-2">Worst operation class</th><th scope="col" class="p-2">Activation</th><th scope="col" class="p-2">Evidence / confidence</th></tr></thead><tbody id="dispatch-rows">""" + "".join(body) + """</tbody></table></div>
-</section>
-<p class="mt-6 text-slate-400">Generated from <code>zipmi/data/sources/advantech-asmb787-oem-dispatch.csv</code> by <code>scripts/generate_advantech_asmb787.py</code>.</p>
-</main><script>const operationFilter=document.getElementById('operation-filter'),effectFilter=document.getElementById('effect-filter'),operationRows=[...document.querySelectorAll('#operation-rows tr')],operationCount=document.getElementById('operation-count');function filterOperations(){const query=operationFilter.value.toLowerCase(),effect=effectFilter.value;let visible=0;for(const row of operationRows){row.hidden=!row.dataset.search.includes(query)||(effect&&row.dataset.effect!==effect);if(!row.hidden)visible++;}operationCount.textContent=`${visible} of ${operationRows.length} operations shown`;}operationFilter.addEventListener('input',filterOperations);effectFilter.addEventListener('change',filterOperations);filterOperations();const dispatchFilter=document.getElementById('dispatch-filter'),dispatchEffectFilter=document.getElementById('dispatch-effect-filter'),dispatchRows=[...document.querySelectorAll('#dispatch-rows tr')],dispatchCount=document.getElementById('dispatch-count');function filterDispatch(){const query=dispatchFilter.value.toLowerCase(),effect=dispatchEffectFilter.value;let visible=0;for(const row of dispatchRows){row.hidden=!row.dataset.search.includes(query)||(effect&&row.dataset.effect!==effect);if(!row.hidden)visible++;}dispatchCount.textContent=`${visible} of ${dispatchRows.length} commands shown`;}dispatchFilter.addEventListener('input',filterDispatch);dispatchEffectFilter.addEventListener('change',filterDispatch);filterDispatch();</script></body></html>
-"""
-
-
-def markdown_text(rows: list[dict[str, str]]) -> str:
-    def cell(value: str) -> str:
-        return str(value).replace("|", "\\|").replace("\n", " ")
-
-    lines = [
-        "# Advantech ASMB-787 OEM IPMI command reference",
-        "",
-        "> Generated from "
-        "[`zipmi/data/sources/advantech-asmb787-oem-dispatch.csv`](../zipmi/data/sources/advantech-asmb787-oem-dispatch.csv) "
-        "by `scripts/generate_advantech_asmb787.py`; do not edit by hand. "
-        "The [HTML reference](advantech_ASMB787-command-reference.html) is the styled view of the same rows.",
-        "",
-        "This is the complete 187-entry firmware dispatch catalog and zipmi named raw surface for unique vendor NetFn/Cmd pairs: 92 statically registered core/platform rows, 85 feature-enabled plugin declarations whose runtime registration was not directly proved, and 10 feature-absent plugin declarations. A named command proves exact NetFn/Cmd bytes, not a structured codec, complete request/response semantics, or runtime reachability. The one-byte field at `CmdHndlr_T +8` supplies only the dispatcher request-length constraint.",
-        "",
-        "| Wire | Handler / module | Privilege | Request | Response | Interface | Activation | Evidence / confidence | Safety |",
-        "|---|---|---|---|---|---|---|---|---|",
-    ]
-    for row in rows:
-        values = (
-            f"`{row['netfn']}/{row['cmd']}`",
-            f"`{row['handler']}`<br>{row['module']}",
-            f"{row['privilege']} (`{row['privilege_raw']}`)",
-            f"dispatcher +8: {row['request_length_semantics']}<br>{row['request_semantics']}",
-            row["response_semantics"],
-            f"{row['interface_semantics']} (`{row['interface_raw']}`)",
-            f"{activation_label(row['activation_status'])}<br>{row['activation_status']}",
-            f"{row['confidence']}<br>{row['semantic_source']}; {row['semantic_confidence']}",
-            row["safety_tier"],
-        )
-        lines.append("| " + " | ".join(cell(value) for value in values) + " |")
-    return "\n".join(lines) + "\n"
+        if operation["id"] in UNKNOWN_OPERATIONS:
+            purpose += " The external effect is not established by current evidence."
+        request = operation["request"]
+        response = operation["response"]
+        rendered_operations.append({
+            "id": operation["id"],
+            "wire": wire,
+            "name": operation_name(operation["id"]),
+            "purpose": purpose,
+            "safety": safety_class(operation),
+            "safety_note": ("Combined firmware behavior; class reflects the highest known impact."
+                            if operation["id"] in MIXED_BEHAVIOR_OPERATIONS else ""),
+            "execution": execution,
+            "request": {
+                "status": layout_status(request.get("fields"), request["layout"]),
+                "length": f'{request["length"]} payload bytes',
+                "summary": request["layout"],
+                "fields": normalized_fields(request.get("fields")),
+            },
+            "response": {
+                "status": layout_status(response.get("fields"), response["layout"]),
+                "length": response_length(response["length_including_cc"]),
+                "summary": response["layout"].removeprefix("cc;") or "no response data",
+                "fields": normalized_fields(response.get("fields"), response=True),
+            },
+            "privilege": parent["privilege"],
+            "interface": parent["interface_semantics"],
+            "availability": availability(parent["activation_status"]),
+            "completion_codes": ", ".join(operation["completion_codes"]),
+            "request_builder": "Available" if operation["codec_state"] == "verified" else "Not available",
+            "response_parser": "Available" if operation["codec_state"] == "verified" else "Not available",
+            "live": bool(live),
+            "live_text": (f'{live["run_id"]}; CC {live["completion_code"]}; data '
+                          f'{live["response_data_hex"] or "(empty)"}' if live else "Not live-tested"),
+            "evidence": operation["evidence"]["location"],
+            "confidence": operation["confidence"],
+        })
+    rendered_commands = [{
+        "wire": f'{row["netfn"]}/{row["cmd"]}',
+        "handler": row["handler"],
+        "module": row["module"],
+        "availability": availability(row["activation_status"]),
+        "privilege": row["privilege"],
+        "operation_count": operation_counts[(int(row["netfn"], 0), int(row["cmd"], 0))],
+        "evidence": f'{row["table"]} entry {row["entry_address"]}; SHA-256 {row["module_sha256"]}',
+    } for row in rows]
+    return {
+        "title": "Advantech ASMB-787 OEM IPMI command reference",
+        "scope": ("Firmware-bound reference for every recovered OEM command address and distinct "
+                  "handler operation in Advantech ASMB-787 firmware 20220912."),
+        "provenance": [
+            ("Controller", "Advantech ASMB-787"),
+            ("Firmware", "AMI MegaRAC SP-X 4.0; build 2022-09-12 01:11:56 UTC; identifier 20220912"),
+            ("Platform", "ASPEED AST2600 ARMv7; Linux 5.4.11-ami"),
+            ("Firmware artifact", "<code>encrypted_ASMB-787_20220912.ima_enc</code> (67,109,128 bytes)"),
+            ("Firmware SHA-256", "<code>3e9916fd633babe11c208c0982330f8677e4f3b05029653a56ffe4230dea1cbd</code>"),
+            ("Artifact UUID", "<code>379c676d-4d49-52ea-a268-541c391a69ca</code>"),
+            ("Original rootfs SHA-256", "<code>123557d290d9a76597f153aebf6922928d624ab2639445093e86a8a4a5e698b8</code>"),
+            ("Firmware source commit", "<code>bd7acc8f7a95e0ffc284d85ef6bd76bc61d4a2c4</code>; BuildScript 5.8.0"),
+        ],
+        "links": [{
+            "label": "zBMC firmware analysis and emulation notes",
+            "href": "https://github.com/zenfish/zbmc/blob/main/boxes/advantech-asmb787/index.html",
+        }],
+        "operations": rendered_operations,
+        "commands": rendered_commands,
+        "gaps": ("The 187 top-level command-address inventory is closed for this firmware. "
+                 "Variable, union, checksum, and selector-dependent layouts remain Partial. "
+                 "Combined behaviors are not split unless their selector boundary is proven."),
+        "live_evidence": ("33 operations have captured requests and responses from the emulated firmware: "
+                          "32 are classified read-only and one is classified sensitive because its handler "
+                          "can expose an uninitialized byte. Live evidence proves those exact transactions "
+                          "only; it is not permission to exercise other operations."),
+        "sources": [
+            '<a href="../zipmi/data/sources/advantech-asmb787-oem-dispatch.csv">Top-level firmware dispatch CSV</a>',
+            '<a href="../zipmi/data/sources/advantech-asmb787-oem-contracts.json">Operation-contract JSON</a>',
+            '<a href="../zipmi/data/sources/advantech-asmb787-module-activation.csv">Module availability CSV</a>',
+            '<a href="../zipmi/data/sources/advantech-asmb787-header-contracts.csv">Sibling-header context CSV</a>',
+        ],
+    }
 
 
 def emit(path: Path, text: str, check: bool) -> bool:
@@ -580,8 +641,12 @@ def main() -> int:
     operations = apply_contracts(rows)
     ok = emit(SOURCE, source_text(rows), args.check)
     ok &= emit(MODULE, module_text(rows, operations), args.check)
-    ok &= emit(DOC, doc_text(rows, operations), args.check)
-    ok &= emit(DOC_MD, markdown_text(rows), args.check)
+    ok &= emit(DOC, render_reference(reference_page(rows, operations)), args.check)
+    ok &= emit(LEGACY_DOC, redirect_page(
+        "Advantech ASMB-787 OEM IPMI command reference",
+        DOC.name,
+    ), args.check)
+    ok &= emit(DOC_MD, compatibility_markdown(), args.check)
     if args.check and not ok:
         print("ASMB-787 generated files are stale", file=sys.stderr)
         return 1
