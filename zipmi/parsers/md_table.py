@@ -29,7 +29,7 @@ from __future__ import annotations
 import re
 import sys
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass
 
 
 PRIV_MAP = {
@@ -189,6 +189,14 @@ def parse_md(text: str) -> list[DispatchEntry]:
     return list(by_key.values())
 
 
+def firmware_sha256(text: str) -> str:
+    """Return the firmware digest pinned in the RE source document."""
+    match = re.search(r"Firmware SHA-256: `([0-9a-f]{64})`", text)
+    if match is None:
+        raise ValueError("RE source is missing its firmware SHA-256")
+    return match.group(1)
+
+
 # -------------------------------------------------------------------------
 # Code generation: emit a static Python module the OEM dell.py can import.
 
@@ -196,7 +204,7 @@ def _py_repr(s: str) -> str:
     return repr(s)
 
 
-def emit_module(entries: list[DispatchEntry], source_path: str) -> str:
+def emit_module(entries: list[DispatchEntry], source_path: str, firmware_sha: str = "") -> str:
     """Build a Python source file declaring DELL_DISPATCH + helpers."""
     lines = []
     lines.append('"""')
@@ -207,6 +215,8 @@ def emit_module(entries: list[DispatchEntry], source_path: str) -> str:
     lines.append("    python -m zipmi.parsers.md_table > zipmi/scapy_ipmi/oem/dell_generated.py")
     lines.append("")
     lines.append(f"Source: {source_path}")
+    if firmware_sha:
+        lines.append(f"Firmware SHA-256: {firmware_sha}")
     lines.append(f"Entries: {len(entries)}")
     lines.append('"""')
     lines.append("")
@@ -267,7 +277,7 @@ _NETFN_LABELS = {
 }
 
 
-def emit_markdown(entries: list[DispatchEntry], source_path: str) -> str:
+def emit_markdown(entries: list[DispatchEntry], source_path: str, firmware_sha: str = "") -> str:
     """Render the dispatch entries as a docs/dell-command-table.md doc.
 
     Mirrors the same row schema as docs/command-table.md (Cmd | Name |
@@ -284,7 +294,9 @@ def emit_markdown(entries: list[DispatchEntry], source_path: str) -> str:
     lines.append("python -m zipmi.parsers.md_table --markdown > docs/dell-command-table.md")
     lines.append("```")
     lines.append("")
-    lines.append(f"Source: `{source_path}`  ")
+    lines.append(f"Source: `{source_path}`")
+    if firmware_sha:
+        lines.append(f"Firmware SHA-256: `{firmware_sha}`")
     lines.append(f"Entries: **{len(entries)}** unique (NetFn, cmd) pairs")
     lines.append("")
 
@@ -357,10 +369,11 @@ def main(argv: list[str] | None = None) -> int:
     with open(src) as f:
         text = f.read()
     entries = parse_md(text)
+    firmware_sha = firmware_sha256(text)
     if fmt == "md":
-        sys.stdout.write(emit_markdown(entries, src))
+        sys.stdout.write(emit_markdown(entries, src, firmware_sha))
     else:
-        sys.stdout.write(emit_module(entries, src))
+        sys.stdout.write(emit_module(entries, src, firmware_sha))
     return 0
 
 

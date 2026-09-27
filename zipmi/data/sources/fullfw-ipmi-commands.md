@@ -1,6 +1,7 @@
 # Dell iDRAC6 BMC — IPMI Command Dispatch Table Analysis
 
 Extracted from `fullfw` binary (Dell iDRAC6 Enterprise).
+Firmware SHA-256: `67f17aa14eda9e5d96b96825b93536a228db031acda90122eb353fba56dd3465` (1,760,176 bytes).
 Two dispatch tables parsed: **Standard** at `0x0019e238` (120 entries, 960 bytes) and **OEM** at `0x0019fac0` (93 entries, 744 bytes).
 Architecture: ARM little-endian. Entry format: `[descriptor:32][handler_ptr:32]`.
 

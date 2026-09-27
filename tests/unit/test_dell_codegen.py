@@ -11,11 +11,23 @@ WHY      The parser is non-trivial (multiple table layouts) and the
 
 from __future__ import annotations
 
+from pathlib import Path
+
+from zipmi.parsers.md_table import firmware_sha256
+
+
+def test_source_pins_fullfw_sha256():
+    source = Path(__file__).parents[2] / "zipmi/data/sources/fullfw-ipmi-commands.md"
+    assert firmware_sha256(source.read_text()) == (
+        "67f17aa14eda9e5d96b96825b93536a228db031acda90122eb353fba56dd3465"
+    )
+
 
 def test_codegen_imports():
     from zipmi.scapy_ipmi.oem.dell_generated import DELL_DISPATCH, DellEntry
     assert isinstance(DELL_DISPATCH, dict)
     assert len(DELL_DISPATCH) >= 150       # we generated 192
+    assert all(isinstance(entry, DellEntry) for entry in DELL_DISPATCH.values())
 
 
 def test_known_standard_entries():

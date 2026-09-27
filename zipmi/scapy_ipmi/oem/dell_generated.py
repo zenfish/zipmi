@@ -6,6 +6,7 @@ DO NOT EDIT BY HAND. Regenerate with:
     python -m zipmi.parsers.md_table > zipmi/scapy_ipmi/oem/dell_generated.py
 
 Source: iDRAC6 firmware (fullfw) reverse-engineering notes
+Firmware SHA-256: 67f17aa14eda9e5d96b96825b93536a228db031acda90122eb353fba56dd3465
 Entries: 192
 """
 

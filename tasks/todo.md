@@ -1,5 +1,21 @@
 # ⭐ TOP PRIORITY (2026-08-14): per-OEM columns across the whole command table
 
+## Task — Pin iDRAC6 firmware provenance (2026-09-27)
+
+- [x] Locate every known `fullfw` copy and prove they are byte-identical.
+- [x] Verify the ELF contains the documented 120-entry and 93-entry dispatch tables.
+- [x] Record the firmware SHA-256 in the authoritative RE source.
+- [x] Propagate the hash through both existing generated Dell outputs.
+- [x] Run focused generation/tests and register the immutable firmware artifact.
+- [x] Commit the verified provenance change.
+
+### Review
+
+- Four copies under the canonical research corpus, `_puff`, and the working directory are byte-identical: 1,760,176 bytes with SHA-256 `67f17aa14eda9e5d96b96825b93536a228db031acda90122eb353fba56dd3465`.
+- Direct ELF reads recover 120 standard and 93 OEM registrations at the documented virtual addresses; the existing source has a separate seven-row late-OEM mapping discrepancy, deliberately left outside this provenance-only change.
+- The source metadata is required by the generator and appears in both the generated Python registry and Markdown command table. Both outputs reproduce exactly.
+- Artifact registry ID: `114fbd3b-139c-5edd-8961-cffe210ef1f7`. Focused proof: 220 passed; full suite: 2,375 passed; Ruff and whitespace checks pass.
+
 ## Task — Complete paired OEM documentation views (2026-09-27)
 
 - [x] Remove the two retired mixed-case Advantech reference aliases and their generator outputs.

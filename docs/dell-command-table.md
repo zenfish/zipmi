@@ -7,7 +7,8 @@ Regenerate with:
 python -m zipmi.parsers.md_table --markdown > docs/dell-command-table.md
 ```
 
-Source: Dell/iDRAC6 full-firmware IPMI command dump (author's private firmware-RE corpus, not in this repo)  
+Source: `Dell/iDRAC6 full-firmware IPMI command dump (author's private firmware-RE corpus, not in this repo)`
+Firmware SHA-256: `67f17aa14eda9e5d96b96825b93536a228db031acda90122eb353fba56dd3465`
 Entries: **192** unique (NetFn, cmd) pairs
 
 ## Summary
