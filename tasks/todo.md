@@ -20,6 +20,9 @@
   automatic expansion, and zero page errors.
 - Follow-up: highlight cleanup now normalizes the affected text nodes, so matches remain highlighted
   as a person types each character rather than only when a complete query is inserted at once.
+- Follow-up: replaced the OS-native floating scrollbar with a persistent accessible track/thumb;
+  macOS can no longer hide it, and pointer, keyboard, ARIA, filtering, and viewport docking were
+  verified in Chromium.
 
 ## Review — OEM Command Reference Standard v1 pilot (2026-09-26)
 

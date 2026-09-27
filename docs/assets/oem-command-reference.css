@@ -35,16 +35,14 @@ code, .wire { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular
 .filters { display: grid; grid-template-columns: minmax(16rem, 2fr) repeat(4, minmax(10rem, 1fr)); gap: .75rem; align-items: end; }
 .filters label { display: grid; gap: .3rem; font-weight: 650; }
 input, select, button { min-height: 2.7rem; padding: .55rem .7rem; border: 1px solid #94a3b8; border-radius: .4rem; background: white; color: var(--text); font: inherit; }
-input:focus, select:focus, button:focus, a:focus { outline: 3px solid #93c5fd; outline-offset: 2px; }
+input:focus, select:focus, button:focus, a:focus, .table-scrollbar:focus { outline: 3px solid #93c5fd; outline-offset: 2px; }
 button { cursor: pointer; font-weight: 700; }
 .table-wrap { margin-top: 1rem; overflow: auto; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); }
-.table-scrollbar-slot.has-floating-scrollbar { height: 1rem; }
-.table-scrollbar { height: 1rem; overflow-x: scroll; overflow-y: hidden; scrollbar-color: #64748b #e2e8f0; }
+.table-scrollbar-slot.has-floating-scrollbar { height: 1.25rem; }
+.table-scrollbar { height: 1.25rem; padding: .3125rem .125rem; cursor: pointer; touch-action: none; }
 .table-scrollbar.is-floating { position: fixed; bottom: 0; z-index: 4; border-top: 1px solid var(--border); background: var(--surface); box-shadow: 0 -.25rem .75rem rgb(15 23 42 / 15%); }
-.table-scrollbar > div { height: 1px; }
-.table-scrollbar::-webkit-scrollbar { height: .8rem; }
-.table-scrollbar::-webkit-scrollbar-track { border-radius: 999px; background: #e2e8f0; }
-.table-scrollbar::-webkit-scrollbar-thumb { border: 2px solid #e2e8f0; border-radius: 999px; background: #64748b; }
+.table-scrollbar-track { height: .5rem; border-radius: 999px; background: #cbd5e1; }
+.table-scrollbar-thumb { height: 100%; min-width: 2.5rem; border-radius: 999px; background: #475569; }
 table { width: 100%; border-collapse: collapse; font-size: .85rem; }
 .operation-table { min-width: 108rem; table-layout: fixed; }
 .operation-table th:nth-child(1) { width: 3%; }
