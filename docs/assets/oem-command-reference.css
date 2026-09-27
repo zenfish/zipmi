@@ -12,12 +12,13 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.55 ui-sans-serif, system-ui, sans-serif; }
 main { max-width: 112rem; margin: auto; padding: 2rem; }
-h1 { margin: 0; font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.15; }
-h2 { margin: 2.5rem 0 .75rem; font-size: 1.45rem; }
-h3 { margin: 1.5rem 0 .5rem; font-size: 1.05rem; }
+main > h1 { margin: 0; font-size: clamp(2.2rem, 4vw, 3.25rem) !important; font-weight: 800 !important; line-height: 1.08; }
+main h2 { margin: 2.5rem 0 .75rem; font-size: 1.45rem !important; font-weight: 750 !important; line-height: 1.2; }
+main h3 { margin: 1.5rem 0 .5rem; font-size: 1.05rem !important; font-weight: 700 !important; }
 p { max-width: 90rem; }
 a { color: var(--accent); text-underline-offset: .15em; }
-code, .wire { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+code, .wire { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; word-break: break-word; }
+.command { display: block; white-space: normal; }
 .lede, .muted { color: var(--muted); }
 .panel { margin-top: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: .55rem; background: var(--surface); }
 .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .75rem; margin-top: 1.5rem; }
@@ -38,8 +39,15 @@ input:focus, select:focus, button:focus, a:focus { outline: 3px solid #93c5fd; o
 button { cursor: pointer; font-weight: 700; }
 .table-wrap { margin-top: 1rem; overflow: auto; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); }
 table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.operation-table { min-width: 108rem; table-layout: fixed; }
+.operation-table th:nth-child(1) { width: 3%; }
+.operation-table th:nth-child(2) { width: 15%; }
+.operation-table th:nth-child(3) { width: 16%; }
+.operation-table th:nth-child(4) { width: 8%; }
+.operation-table th:nth-child(5), .operation-table th:nth-child(6) { width: 17%; }
+.operation-table th:nth-child(7), .operation-table th:nth-child(8) { width: 12%; }
 caption { padding: .75rem; color: var(--muted); text-align: left; }
-th, td { padding: .7rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; text-align: left; }
+th, td { min-width: 0; padding: .7rem; border-bottom: 1px solid #e2e8f0; overflow-wrap: anywhere; vertical-align: top; text-align: left; }
 thead th { position: sticky; top: 0; z-index: 1; background: #e2e8f0; }
 tbody th { min-width: 18rem; font-weight: 400; }
 details { margin-top: .45rem; }

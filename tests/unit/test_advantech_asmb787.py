@@ -66,20 +66,31 @@ def test_legacy_reference_urls_point_to_canonical_html():
 
 
 def test_generated_html_contains_every_exact_operation():
-    reference = (Path(__file__).parents[2] / "docs/"
-                 "advantech-asmb787-command-reference.html").read_text()
+    docs = Path(__file__).parents[2] / "docs"
+    reference = (docs / "advantech-asmb787-command-reference.html").read_text()
+    stylesheet = (docs / "assets/oem-command-reference.css").read_text()
     assert '<link rel="stylesheet" href="assets/oem-command-reference.css">' in reference
     assert "<style" not in reference
     assert "187</strong>Top-level command addresses" in reference
     assert "462</strong>Documented operations" in reference
     assert "143 / 319 / 0 / 0</strong>Request layout: complete / partial / unknown / conflicting" in reference
     assert "204 / 258 / 0 / 0</strong>Response layout: complete / partial / unknown / conflicting" in reference
-    assert "75 / 117 / 270</strong>zipmi: default / --unsafe / unavailable" in reference
-    assert "81 / 81</strong>Request builders / response parsers" in reference
-    assert "33</strong>Live-tested operations" in reference
+    assert ("75 / 117 / 270</strong>Named operation route: default / --unsafe / "
+            "no distinct route" in reference)
+    assert "Request builders / response parsers" not in reference
+    assert "33</strong>Operations with captured live requests" in reference
     assert "200 operations" in reference and "104 operations" in reference
     assert "108 operations" in reference and "14 operations" in reference
     assert "22 operations" in reference
+    assert "Send with zipmi" in reference
+    assert "zipmi raw 0x30 0x03 0x00" in reference
+    assert "zipmi raw 0x32 0x37 &lt;mode:u8&gt; &lt;transport:u8&gt;" in reference
+    assert "Research artifact ID" in reference
+    assert "Original rootfs SHA-256" not in reference
+    assert "33 of 462 operations" in reference
+    assert "main > h1" in stylesheet and "font-weight: 800 !important" in stylesheet
+    assert ".operation-table { min-width: 108rem; table-layout: fixed; }" in stylesheet
+    assert "overflow-wrap: anywhere" in stylesheet
     assert 'id="operation-filter"' in reference
     assert all(f'id="{name}-filter"' in reference for name in (
         "safety", "request", "response", "execution", "live"))

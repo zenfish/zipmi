@@ -486,6 +486,32 @@ def response_length(value: str) -> str:
     return f"{value} including completion code; data length unresolved"
 
 
+def zipmi_raw_command(operation: dict) -> str:
+    """Render a copyable raw command, using placeholders only for caller data."""
+    netfn, cmd = operation["command"]
+    tokens = ["zipmi", "raw", f"0x{netfn:02x}", f"0x{cmd:02x}"]
+    request = operation["request"]
+    fields = request.get("fields")
+    if fields is not None:
+        for field in fields:
+            if "constant" in field:
+                tokens.append(f"0x{field['constant']:02x}")
+            elif field["kind"] == "bytes":
+                tokens.append(f"<{field['name']}:{field['length']} bytes>")
+            else:
+                tokens.append(f"<{field['name']}:{field['kind']}>")
+        return " ".join(tokens)
+    prefix = operation.get("prefix") or []
+    tokens.extend(f"0x{value:02x}" for value in prefix)
+    if request["length"].isdigit():
+        remaining = int(request["length"]) - len(prefix)
+        if remaining > 0:
+            tokens.append(f"<{remaining} remaining data bytes>")
+    else:
+        tokens.append("<payload bytes>")
+    return " ".join(tokens)
+
+
 def availability(value: str) -> str:
     if value == "statically registered in owning dispatcher table":
         return "Always present in this firmware"
@@ -519,14 +545,11 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
         netfn, cmd = operation["command"]
         parent = by_key[(netfn, cmd)]
         prefix = operation.get("prefix")
-        wire = f"0x{netfn:02x}/0x{cmd:02x}"
-        if prefix is not None:
-            wire += " · data " + " ".join(f"{byte:02x}" for byte in prefix)
         live = operation.get("live_evidence")
         sole_unprefixed = prefix is None and operation_counts[(netfn, cmd)] == 1
         executable = prefix is not None or sole_unprefixed
         if not executable:
-            execution = "Not executable"
+            execution = "No distinct named route"
         elif prefix is not None:
             execution = ("Allowed by default" if operation["effect"] == "safe"
                          else "Requires --unsafe")
@@ -542,7 +565,7 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
         response = operation["response"]
         rendered_operations.append({
             "id": operation["id"],
-            "wire": wire,
+            "send": zipmi_raw_command(operation),
             "name": operation_name(operation["id"]),
             "purpose": purpose,
             "safety": safety_class(operation),
@@ -592,8 +615,7 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
             ("Platform", "ASPEED AST2600 ARMv7; Linux 5.4.11-ami"),
             ("Firmware artifact", "<code>encrypted_ASMB-787_20220912.ima_enc</code> (67,109,128 bytes)"),
             ("Firmware SHA-256", "<code>3e9916fd633babe11c208c0982330f8677e4f3b05029653a56ffe4230dea1cbd</code>"),
-            ("Artifact UUID", "<code>379c676d-4d49-52ea-a268-541c391a69ca</code>"),
-            ("Original rootfs SHA-256", "<code>123557d290d9a76597f153aebf6922928d624ab2639445093e86a8a4a5e698b8</code>"),
+            ("Research artifact ID", "<code>379c676d-4d49-52ea-a268-541c391a69ca</code> — stable registry identity; unlike SHA-256, it remains attached when the research artifact is revised"),
             ("Firmware source commit", "<code>bd7acc8f7a95e0ffc284d85ef6bd76bc61d4a2c4</code>; BuildScript 5.8.0"),
         ],
         "links": [{
@@ -605,10 +627,12 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
         "gaps": ("The 187 top-level command-address inventory is closed for this firmware. "
                  "Variable, union, checksum, and selector-dependent layouts remain Partial. "
                  "Combined behaviors are not split unless their selector boundary is proven."),
-        "live_evidence": ("33 operations have captured requests and responses from the emulated firmware: "
-                          "32 are classified read-only and one is classified sensitive because its handler "
-                          "can expose an uninitialized byte. Live evidence proves those exact transactions "
-                          "only; it is not permission to exercise other operations."),
+        "live_evidence": ("33 of 462 operations have captured requests and responses from the emulated "
+                          "firmware: 32 are classified read-only and one is classified sensitive because its "
+                          "handler can expose an uninitialized byte. The others were not exercised when they "
+                          "change state, affect security, are disruptive or destructive, have unknown effects, "
+                          "lack a safely constructible request, or are not loaded in this firmware. Live "
+                          "evidence proves only the exact recorded transactions."),
         "sources": [
             '<a href="../zipmi/data/sources/advantech-asmb787-oem-dispatch.csv">Top-level firmware dispatch CSV</a>',
             '<a href="../zipmi/data/sources/advantech-asmb787-oem-contracts.json">Operation-contract JSON</a>',

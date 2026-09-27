@@ -12,6 +12,10 @@
   table is now a pointer to the canonical HTML rather than a second drifting reference.
 - Proof: generator sync, focused 22-test suite, HTML structure/count assertions, JavaScript syntax,
   repository whitespace checks, and full-suite results recorded with the final commit.
+- Follow-up: replaced the ambiguous Wire column with copyable `zipmi raw` commands and typed
+  placeholders, bounded the operation table to the page width, restored heading scale after the
+  Tailwind reset, simplified support labels, removed the rootfs hash, and explained the limited
+  live-test denominator.
 
 We now have full handler catalogs for several OEM stacks (ASMB-787/AMI,
 iDRAC9, iDRAC6/Dell, OpenBMC ×9, Supermicro stub). `docs/command-table.md`

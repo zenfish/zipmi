@@ -16,7 +16,7 @@ SAFETY = {
     "unknown": "Available evidence does not establish the external effect.",
 }
 LAYOUT = ("Complete", "Partial", "Unknown", "Conflicting")
-EXECUTION = ("Allowed by default", "Requires --unsafe", "Not executable")
+EXECUTION = ("Allowed by default", "Requires --unsafe", "No distinct named route")
 
 
 def validate_reference(page: dict) -> None:
@@ -75,17 +75,14 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
     response_counts = {name: sum(op["response"]["status"] == name for op in operations) for name in LAYOUT}
     execution_counts = {name: sum(op["execution"] == name for op in operations) for name in EXECUTION}
     live_count = sum(op["live"] for op in operations)
-    request_builders = sum(op["request_builder"] == "Available" for op in operations)
-    response_parsers = sum(op["response_parser"] == "Available" for op in operations)
 
     metrics = [
         (len(page["commands"]), "Top-level command addresses"),
         (len(operations), "Documented operations"),
         (f'{request_counts["Complete"]} / {request_counts["Partial"]} / {request_counts["Unknown"]} / {request_counts["Conflicting"]}', "Request layout: complete / partial / unknown / conflicting"),
         (f'{response_counts["Complete"]} / {response_counts["Partial"]} / {response_counts["Unknown"]} / {response_counts["Conflicting"]}', "Response layout: complete / partial / unknown / conflicting"),
-        (f'{execution_counts["Allowed by default"]} / {execution_counts["Requires --unsafe"]} / {execution_counts["Not executable"]}', "zipmi: default / --unsafe / unavailable"),
-        (f"{request_builders} / {response_parsers}", "Request builders / response parsers"),
-        (live_count, "Live-tested operations"),
+        (f'{execution_counts["Allowed by default"]} / {execution_counts["Requires --unsafe"]} / {execution_counts["No distinct named route"]}', "Named operation route: default / --unsafe / no distinct route"),
+        (live_count, "Operations with captured live requests"),
     ]
     metric_html = "".join(f'<div class="metric"><strong>{_e(value)}</strong>{_e(label)}</div>' for value, label in metrics)
     provenance = "".join(f'<tr><th scope="row">{_e(name)}</th><td>{value}</td></tr>' for name, value in page["provenance"])
@@ -97,19 +94,19 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 
     operation_rows = []
     for index, op in enumerate(operations, 1):
-        search = " ".join(str(value) for value in (op["wire"], op["id"], op["name"], op["purpose"], op["safety"], op["evidence"])).lower()
+        search = " ".join(str(value) for value in (op["send"], op["id"], op["name"], op["purpose"], op["safety"], op["evidence"])).lower()
         operation_rows.append(
             f'<tr data-search="{_e(search)}" data-safety="{_e(op["safety"])}" '
             f'data-request="{_e(op["request"]["status"])}" data-response="{_e(op["response"]["status"])}" '
             f'data-execution="{_e(op["execution"])}" data-live="{str(op["live"]).lower()}">'
-            f'<td>{index}</td><td class="wire nowrap">{_e(op["wire"])}</td>'
+            f'<td>{index}</td><td><code class="command">{_e(op["send"])}</code></td>'
             f'<th scope="row"><strong>{_e(op["name"])}</strong><div class="wire muted">{_e(op["id"])}</div><p>{_e(op["purpose"])}</p></th>'
             f'<td>{_badge(op["safety"])}{("<p class=\"muted\">" + _e(op["safety_note"]) + "</p>") if op.get("safety_note") else ""}</td>'
             f'<td>{_layout("Request", op["request"])}</td><td>{_layout("Response", op["response"])}</td>'
             f'<td class="stack"><p><strong>Privilege:</strong> {_e(op["privilege"])}</p><p><strong>Interface:</strong> {_e(op["interface"])}</p>'
             f'<p><strong>Available on this firmware:</strong> {_e(op["availability"])}</p><p><strong>Completion codes:</strong> <code>{_e(op["completion_codes"])}</code></p></td>'
-            f'<td class="stack"><p><strong>Execution:</strong> {_e(op["execution"])}</p><p><strong>Request builder:</strong> {_e(op["request_builder"])}</p>'
-            f'<p><strong>Response parser:</strong> {_e(op["response_parser"])}</p><p><strong>Live test:</strong> {_e(op["live_text"])}</p>'
+            f'<td class="stack"><p><strong>Named operation route:</strong> {_e(op["execution"])}</p><p><strong>Build request from named fields:</strong> {_e(op["request_builder"])}</p>'
+            f'<p><strong>Decode response into named fields:</strong> {_e(op["response_parser"])}</p><p><strong>Captured live request:</strong> {_e(op["live_text"])}</p>'
             f'<p><strong>Evidence:</strong> {_e(op["evidence"])}</p><p><strong>Confidence:</strong> {_e(op["confidence"])}</p></td></tr>'
         )
 
@@ -134,7 +131,7 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 <section aria-labelledby="coverage"><h2 id="coverage">Inventory scope and known gaps</h2><div class="panel"><p>{_e(page["gaps"])}</p></div></section>
 <section aria-labelledby="live"><h2 id="live">Live evidence</h2><div class="panel"><p>{_e(page["live_evidence"])}</p></div></section>
 <section aria-labelledby="operations"><h2 id="operations">Operations</h2>
-<div class="filters panel"><label>Search<input id="operation-filter" type="search" placeholder="wire, name, purpose, evidence"></label>
+<div class="filters panel"><label>Search<input id="operation-filter" type="search" placeholder="zipmi command, operation, purpose, evidence"></label>
 <label>Safety<select id="safety-filter"><option value="">All</option>{safety_options}</select></label>
 <label>Request layout<select id="request-filter">{layout_options}</select></label>
 <label>Response layout<select id="response-filter">{layout_options}</select></label>
@@ -142,8 +139,8 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 <label><span>Live evidence</span><select id="live-filter"><option value="">All</option><option value="true">Live-tested only</option></select></label>
 <button id="clear-filters" type="button">Clear filters</button></div>
 <p id="operation-count" class="muted" aria-live="polite"></p>
-<div class="table-wrap" role="region" aria-label="OEM operations" tabindex="0"><table><caption>Wire layouts, safety, availability, zipmi support, and evidence.</caption><thead><tr><th>#</th><th>Wire</th><th>Operation</th><th>Safety</th><th>Request</th><th>Response</th><th>Access &amp; availability</th><th>zipmi &amp; evidence</th></tr></thead><tbody id="operation-rows">{"".join(operation_rows)}</tbody></table></div></section>
-<section aria-labelledby="commands"><h2 id="commands">Top-level command addresses</h2><div class="table-wrap"><table><caption>Firmware dispatcher entries beneath the operations above.</caption><thead><tr><th>Wire</th><th>Firmware handler / module</th><th>Available on this firmware</th><th>Minimum privilege</th><th>Operations below it</th><th>Evidence</th></tr></thead><tbody id="command-rows">{command_rows}</tbody></table></div></section>
+<div class="table-wrap" role="region" aria-label="OEM operations" tabindex="0"><table class="operation-table"><caption>Commands to send, payload layouts, safety, availability, zipmi support, and evidence.</caption><thead><tr><th>#</th><th>Send with zipmi</th><th>Operation</th><th>Safety</th><th>Request data</th><th>Response data</th><th>Access &amp; availability</th><th>zipmi support &amp; evidence</th></tr></thead><tbody id="operation-rows">{"".join(operation_rows)}</tbody></table></div></section>
+<section aria-labelledby="commands"><h2 id="commands">Top-level command addresses</h2><div class="table-wrap"><table><caption>Firmware dispatcher entries beneath the operations above.</caption><thead><tr><th>Command address</th><th>Firmware handler / module</th><th>Available on this firmware</th><th>Minimum privilege</th><th>Operations below it</th><th>Evidence</th></tr></thead><tbody id="command-rows">{command_rows}</tbody></table></div></section>
 <section aria-labelledby="sources"><h2 id="sources">Sources</h2><ul>{source_items}</ul></section>
 </main><script>
 const ids=['operation-filter','safety-filter','request-filter','response-filter','execution-filter','live-filter'];
