@@ -117,7 +117,8 @@ or set `ZIPMI_TARGET / ZIPMI_USER / ZIPMI_PASS` env vars.
   `oem/dell_generated.py` and `docs/dell-command-table.md`.
 * `fuzz/rakp_mut.py` — RAKP1 mutation harness landed (commit `4d2f6c8`).
 * iDRAC9 handler catalog — 313 named entries in `oem/idrac9_generated.py`,
-  rendered to `docs/idrac9-command-table.md`.
+  now rendered to `docs/idrac9-command-table.html` with the operation-level view in
+  `docs/idrac9-command-reference.html`.
 * iDRAC9 dispatch-table codegen — 271 (NetFn, cmd, priv) tuples recovered
   by static parsing of three rootfs ELF .so libs (`liboemcmds`, `libdcmi`,
   `libosa`); cross-referenced with the handler catalog to humanize 46

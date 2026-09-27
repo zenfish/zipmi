@@ -13,8 +13,7 @@ WHY      iDRAC9 ships ~60 IPMI .so libraries with hundreds of handlers.
          (which is a separate code base from iDRAC6 — both 0x30 NetFn
          but different sub-cmd surface).
 
-USAGE    python -m zipmi.parsers.idrac9_md            # emits Python module
-         python -m zipmi.parsers.idrac9_md --markdown # emits markdown doc
+USAGE    python -m zipmi.parsers.idrac9_md  # emits Python module
 
 OUTPUT   IDRAC9_HANDLERS list of (section, library, cmd_name, handler).
 
@@ -54,7 +53,6 @@ def parse_md(text: str) -> list[IDrac9Handler]:
     section = ""
     library = ""
     in_table = False
-    table_cols = 2
     for line in text.splitlines():
         line = line.rstrip()
         # Section header.
@@ -137,62 +135,15 @@ def emit_module(handlers: list[IDrac9Handler], src: str) -> str:
     return "\n".join(lines)
 
 
-def emit_markdown(handlers: list[IDrac9Handler], src: str) -> str:
-    lines = [
-        "# iDRAC9 — IPMI handler catalog",
-        "",
-        "Auto-generated from the iDRAC9 firmware RE. **DO NOT EDIT BY HAND.**",
-        "Regenerate with:",
-        "",
-        "```",
-        "python -m zipmi.parsers.idrac9_md --markdown > docs/idrac9-command-table.md",
-        "```",
-        "",
-        f"Source: `{src}`  ",
-        f"Entries: **{len(handlers)}**",
-        "",
-        "**Note:** the source doc lists cmd names + handlers without their NetFn/cmd",
-        "byte codes (those live in the central dispatch table",
-        "`G_asOEMIPMIReqeustHandleTable` inside `libipmicmdtableapi.so`, not yet",
-        "fully cracked). The catalog below is a name-only reference — useful when a",
-        "fuzz crash trace surfaces a handler symbol.",
-        "",
-    ]
-    by_section: dict[str, list[IDrac9Handler]] = {}
-    for h in handlers:
-        by_section.setdefault(h.section, []).append(h)
-    for section in by_section:
-        lines.append(f"## {section}")
-        lines.append("")
-        sample = by_section[section][0].library
-        if sample:
-            lines.append(f"Library: `{sample}`")
-            lines.append("")
-        lines.append("| Cmd Name | Handler | Notes |")
-        lines.append("|---------|---------|-------|")
-        for h in by_section[section]:
-            notes = h.notes.replace("|", "\\|")
-            lines.append(f"| {h.cmd_name} | `{h.handler}` | {notes} |")
-        lines.append("")
-    return "\n".join(lines)
-
-
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
     src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "IPMI_COMMAND_ENUMERATION.md")
-    fmt = "py"
-    if "--markdown" in args:
-        fmt = "md"
-        args.remove("--markdown")
     if len(args) > 1:
         src = args[1]
     with open(src) as f:
         text = f.read()
     handlers = parse_md(text)
-    if fmt == "md":
-        sys.stdout.write(emit_markdown(handlers, src))
-    else:
-        sys.stdout.write(emit_module(handlers, src))
+    sys.stdout.write(emit_module(handlers, src))
     return 0
 
 

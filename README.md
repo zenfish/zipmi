@@ -4,7 +4,7 @@ zipmi is a pure-Python IPMI/BMC stack — an `ipmitool`-style CLI plus a library
 
 - **Every IPMI field is real, not an opaque blob.** Dissect, build, corrupt, fuzz, and replay any packet with full byte-level visibility — the thing `ipmitool` and `pyghmi` don't give you. Drop into the middle of a session and ask "what does this byte mean?" or "what if I flip field X?"
 
-- **Deep OEM coverage: <!--OEM-COUNT-->2809<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [AMI MegaRAC](docs/megarac-command-table.md) (95 OEM + 42 YAFU, with security tiers and 18 security annotations), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes.
+- **Deep OEM coverage: <!--OEM-COUNT-->2809<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [AMI MegaRAC/YAFU](docs/megarac-command-reference.html), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes.
 
 - **Security research batteries included.** Full IPMI 2.0 cipher suites 0–14 + 17, cipher-0 and RAKP-hash checks, unauthenticated `bmc-id` fingerprinting, plus a built-in virtual BMC and fuzzers to test against with no hardware.
 
@@ -17,7 +17,7 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code, which worked with me over the last half-year on this project — in all aspects of the package.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2809<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Per-vendor tables: [Dell](docs/dell-command-table.md) · [iDRAC9](docs/idrac9-command-table.md) · [Advantech](docs/advantech-asmb787-command-reference.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) · [MegaRAC](docs/megarac-command-table.md)
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2809<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [Dell/iDRAC6 table](docs/dell-command-table.md) remains compact-table-only.
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -418,6 +418,7 @@ bytes via `zipmi raw`.
 Source-of-truth (hahah... well, for some value of truth) per vendor:
 
 - **Fujitsu iRMC S6 02.63S**: [firmware-bound zipmi reference](docs/fujitsu-irmc-s6-command-reference.html)
+  and [compact registration table](docs/fujitsu-irmc-s6-command-table.html)
   lists 135 top-level dispatch names and 232 selector/group operations, with
   exact source hashes, evidence state, and fail-closed raw execution. The
   [zBMC binary-evidence reference](https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/irmc-s6-oem-reference.html)
@@ -425,6 +426,7 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   `2e` selector candidates. Partial leaf schemas and rack activation are
   explicit limits, not presumed support.
 - **Lenovo XCC 6.92 Newyork-pass1**: [firmware-bound OEM reference](docs/lenovo-xcc-command-reference.html)
+  and [compact registration table](docs/lenovo-xcc-command-table.html)
   covering 225 exact identities / 210 NetFn-command pairs and 107 promoted
   operation contracts. zipmi lists 307 named entries, with 66 request and 60
   response codecs; bounded variable payloads remain available as guarded raw
@@ -432,6 +434,14 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   the core request table. It also documents privilege, channel, effect,
   activation, completion-code, and live evidence boundaries. IBM IANA 2 is
   shared with OpenPower, so select `lenovo` explicitly for XCC.
+- **Advantech ASMB-787 / AMI SP-X 4.0**: [operation reference](docs/advantech-asmb787-command-reference.html)
+  for 462 recovered operations and [compact table](docs/advantech-asmb787-command-table.html)
+  for the corrected 187 firmware registrations. The retired mixed-case files and
+  swapped-structure Markdown inventory are intentionally gone.
+- **AMI MegaRAC / YAFU**: [catalog-level operation reference](docs/megarac-command-reference.html)
+  and [compact table](docs/megarac-command-table.html) for 95 recovered MegaRAC
+  registrations plus 42 cross-firmware YAFU commands. The unresolved MegaRAC NetFn
+  split and target-specific YAFU activation/privilege remain explicit.
 - **idrac6**: handler symbols recovered from `T710-bmc/bin/fullfw`
   with radare2 auto-analysis (ARM debug-string residue carried function
   names through the strip). 195 of 213 dispatch slots are now named.
@@ -440,7 +450,9 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   metadata. Resolution order in `DELL_CMD_NAMES`: hand-curated
   `DELL_NAME_OVERRIDES` → binary-RE'd `DELL_BINARY_NAMES` → MD-derived
   `DELL_NAMES`.
-- **idrac9**: **277 named** (46 from upstream RE doc + 99 from dynsym
+- **idrac9**: the [operation reference](docs/idrac9-command-reference.html) covers 276
+  recovered contracts across 58 addresses; the [compact firmware table](docs/idrac9-command-table.html)
+  retains all 293 registrations / 271 identities. **277 named** (46 from upstream RE doc + 99 from dynsym
   addr resolution + 132 from R_ARM_GLOB_DAT runtime-dispatch
   extraction). The catalogue surfaces 349 known dispatch slots: 271
   static (from binary RE of the lib dispatch tables) plus 78
@@ -468,6 +480,10 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   R_ARM_GLOB_DAT pairs across libs), `idrac9_runtime_dispatch_report.md`.
   Regenerate via `build_idrac9_addr_map.py` and
   `extract_runtime_dispatch.py`.
+- **idrac10**: the [operation reference](docs/idrac10-command-reference.html) documents
+  581 recovered contracts across 255 addresses and the [compact firmware table](docs/idrac10-command-table.html)
+  retains all 429 registrations / 346 NetFn-command identities. Response lengths and
+  fields are normalized to exclude the IPMI completion-code byte.
 - **supermicro**: 422 cmds total. Two layers:
   1. **smcipmi RE work** (4 top + 61 sub-cmds) — original handler
      names with HIGH RISK / CRITICAL annotations on the path-traversal

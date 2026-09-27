@@ -8,7 +8,7 @@
 - [x] Generate the iDRAC10 command reference and compact command table.
 - [x] Generate the MegaRAC/YAFU command reference and make its compact table reproducible.
 - [x] Rebuild the stale iDRAC9 command table and generate its command reference.
-- [ ] Verify every generator, denominator, artifact stamp, browser interaction, and full test suite.
+- [x] Verify every generator, denominator, artifact stamp, browser interaction, and full test suite.
 
 ### Preservation boundary
 
@@ -16,6 +16,13 @@
 - Unknown payloads, activation, safety, or wire identity remain explicitly unknown.
 - Compact tables describe registered identities; command references describe executable operations.
 - `docs/command-table.md` remains the separate standard-IPMI implementation/live-support matrix.
+
+### Review
+
+- Published paired detailed/compact views for Advantech, Lenovo, Fujitsu, iDRAC9, iDRAC10, and MegaRAC/YAFU; retired three stale or incorrect Markdown inventories.
+- The shared renderer keeps one safety vocabulary, comparable fields, incremental search highlighting, disclosure expansion, and a persistent top-docked horizontal scrollbar across all 12 pages.
+- All generators pass `--check`; artifact stamps were refreshed; HTML tidy and doc-sync checks pass. Browser proof at 1400×900 confirmed every page's row count, overflow, search highlights, and visible scrollbar, plus hidden-evidence expansion and top docking without console errors.
+- Full zipmi suite: 2,374 passed. zBMC's six touched documentation pairs are synchronized; its broader documentation contract still reports four pre-existing missing generated-Markdown links for Lenovo's local HTML-only references.
 
 ## Task — Shared OEM table interaction follow-up (2026-09-27)
 
