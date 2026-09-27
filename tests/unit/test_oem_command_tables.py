@@ -49,6 +49,7 @@ def test_compact_command_tables_are_generated_and_searchable() -> None:
         "advantech-asmb787-command-table.html",
         "lenovo-xcc-command-table.html",
         "fujitsu-irmc-s6-command-table.html",
+        "idrac10-command-table.html",
     ):
         document = page(name)
         assert '<link rel="stylesheet" href="assets/oem-command-reference.css">' in document
@@ -86,3 +87,15 @@ def test_fujitsu_table_preserves_lun_and_registration_denominators() -> None:
     assert "138</strong>Unique NetFn/Cmd/LUN identities" in document
     assert document.count("LUN 3") >= 3
     assert "wire LUN 3" in document
+
+
+def test_idrac10_table_preserves_cross_library_registrations() -> None:
+    document = page("idrac10-command-table.html")
+    assert row_count(document) == 429
+    assert "429</strong>Registration rows" in document
+    assert "346</strong>Unique NetFn/Cmd identities" in document
+    assert "383</strong>Unique NetFn/Cmd/handler identities" in document
+    assert document.count("0x2c / 0x01") >= 2
+    assert "DellCmdGetMgrCertFingerprint" in document
+    assert "CmdDcmiGetDcmiCapabilityInfo" in document
+    assert "Not decoded from the 16-byte dispatch record" in document

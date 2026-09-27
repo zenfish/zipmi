@@ -8,6 +8,7 @@ import argparse
 import csv
 import hashlib
 import json
+import sys
 from pathlib import Path
 
 from oem_command_table import render_command_table
@@ -19,6 +20,7 @@ OUTPUTS = {
     "advantech": ROOT / "docs/advantech-asmb787-command-table.html",
     "lenovo": ROOT / "docs/lenovo-xcc-command-table.html",
     "fujitsu": ROOT / "docs/fujitsu-irmc-s6-command-table.html",
+    "idrac10": ROOT / "docs/idrac10-command-table.html",
 }
 PRIVILEGE = {
     0: "None / pre-session", 1: "Callback", 2: "User", 3: "Operator",
@@ -191,6 +193,56 @@ def fujitsu_page() -> dict:
     }
 
 
+def idrac10_page() -> dict:
+    sys.path.insert(0, str(ROOT))
+    from zipmi.scapy_ipmi.oem.idrac10_dispatch_generated import IDRAC10_DISPATCH_ALL
+
+    source = SOURCES / "idrac10-dispatch-tables.md"
+    records = IDRAC10_DISPATCH_ALL
+    identities = {(row.netfn, row.cmd) for row in records}
+    handler_identities = {(row.netfn, row.cmd, row.handler_symbol) for row in records}
+    if not (len(records) == 429 and len(identities) == 346
+            and len(handler_identities) == 383):
+        raise SystemExit("unexpected iDRAC10 dispatch-table denominator")
+    indexes: dict[str, int] = {}
+    rows = []
+    for row in records:
+        index = indexes.get(row.table, 0)
+        indexes[row.table] = index + 1
+        rows.append({
+            "address": f"0x{row.netfn:02x} / 0x{row.cmd:02x}",
+            "qualifier": "—",
+            "handler": row.handler_symbol,
+            "privilege": PRIVILEGE.get(row.priv, f"Firmware value 0x{row.priv:02x}"),
+            "request": "Not decoded from the 16-byte dispatch record",
+            "activation": "Static firmware registration",
+            "evidence": (f"{row.table} row {index}; flags 0x{row.flags:02x}; "
+                         f"handler address 0x{row.handler_addr:x}"),
+        })
+    return {
+        "artifact_marker": "08038433-5484-484a-b7ae-f5c733ffc0f5 generated",
+        "title": "Dell iDRAC10 compact firmware command table",
+        "scope": ("Static dispatch registrations recovered from iDRAC10 firmware 1.30.10.50. "
+                  "Cross-library duplicates remain separate."),
+        "provenance": [
+            ("Target", "Dell iDRAC10 firmware 1.30.10.50"),
+            ("Canonical dispatch SHA-256", f"<code>{digest(source)}</code>"),
+            ("Denominator", "429 registrations across 346 unique NetFn/Cmd identities"),
+        ],
+        "metrics": [
+            (429, "Registration rows"), (346, "Unique NetFn/Cmd identities"),
+            (383, "Unique NetFn/Cmd/handler identities"), (len(indexes), "Owning libraries"),
+        ],
+        "rows": rows,
+        "sources": [
+            {"href": "../zipmi/data/sources/idrac10-dispatch-tables.md",
+             "label": "Canonical firmware dispatch extraction"},
+            {"href": "idrac10-command-reference.html",
+             "label": "Operation-level command reference"},
+        ],
+    }
+
+
 def emit(path: Path, text: str, check: bool) -> bool:
     if check:
         return path.exists() and path.read_text() == text
@@ -206,6 +258,7 @@ def main() -> int:
         "advantech": advantech_page(),
         "lenovo": lenovo_page(),
         "fujitsu": fujitsu_page(),
+        "idrac10": idrac10_page(),
     }
     valid = all(
         emit(OUTPUTS[name], render_command_table(page), args.check)

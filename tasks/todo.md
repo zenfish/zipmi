@@ -5,7 +5,7 @@
 - [x] Remove the two retired mixed-case Advantech reference aliases and their generator outputs.
 - [x] Convert Fujitsu iRMC S6 to OEM Command Reference Standard v1.
 - [x] Generate compact command tables for Fujitsu, Lenovo, and corrected Advantech evidence.
-- [ ] Generate the iDRAC10 command reference and compact command table.
+- [x] Generate the iDRAC10 command reference and compact command table.
 - [ ] Generate the MegaRAC/YAFU command reference and make its compact table reproducible.
 - [ ] Rebuild the stale iDRAC9 command table and generate its command reference.
 - [ ] Verify every generator, denominator, artifact stamp, browser interaction, and full test suite.
