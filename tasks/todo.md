@@ -1,5 +1,22 @@
 # ⭐ TOP PRIORITY (2026-08-14): per-OEM columns across the whole command table
 
+## Task — Complete paired OEM documentation views (2026-09-27)
+
+- [x] Remove the two retired mixed-case Advantech reference aliases and their generator outputs.
+- [x] Convert Fujitsu iRMC S6 to OEM Command Reference Standard v1.
+- [ ] Generate compact command tables for Fujitsu, Lenovo, and corrected Advantech evidence.
+- [ ] Generate the iDRAC10 command reference and compact command table.
+- [ ] Generate the MegaRAC/YAFU command reference and make its compact table reproducible.
+- [ ] Rebuild the stale iDRAC9 command table and generate its command reference.
+- [ ] Verify every generator, denominator, artifact stamp, browser interaction, and full test suite.
+
+### Preservation boundary
+
+- Structured catalogs remain the source of truth; no rendered document is parsed to create another.
+- Unknown payloads, activation, safety, or wire identity remain explicitly unknown.
+- Compact tables describe registered identities; command references describe executable operations.
+- `docs/command-table.md` remains the separate standard-IPMI implementation/live-support matrix.
+
 ## Task — Shared OEM table interaction follow-up (2026-09-27)
 
 - [x] Keep the horizontal scrollbar available while reading long operation tables.

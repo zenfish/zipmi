@@ -1,94 +1,351 @@
 #!/usr/bin/env python3
-"""Render zipmi's installed iRMC S6 OEM command catalog as HTML."""
+# z-artifact: f841be9f-21fc-4232-8511-70afdb652f85
+"""Generate the Fujitsu iRMC S6 reference through the shared renderer."""
 from __future__ import annotations
 
-import html
+import argparse
 import json
+import shlex
 import sys
-from collections import Counter
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
-
+from oem_reference import render_reference
 from zipmi.cli.oem_cmds import _vendor_listing
-from zipmi.scapy_ipmi.oem.fujitsu import FUJITSU_OPERATIONS, FUJITSU_RECORDS, FUJITSU_TOP_LEVEL
+from zipmi.scapy_ipmi.oem.fujitsu import (
+    FUJITSU_OPERATIONS,
+    FUJITSU_SELECTOR_PAYLOADS,
+)
 
 
+ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "docs/fujitsu-irmc-s6-command-reference.html"
-LIVE = json.loads((ROOT / "docs/evidence/20260926T204500Z-fujitsu-irmc-safe-live-22.json").read_text())
+LIVE = ROOT / "docs/evidence/20260926T204500Z-fujitsu-irmc-safe-live-22.json"
+ARTIFACT_MARKER = "a20b2e58-7cbf-4f25-9c6e-1b332e4d102d generated"
 
 
-def esc(value: object) -> str:
+def summary(value: object) -> str:
     if isinstance(value, (dict, list)):
-        value = json.dumps(value, ensure_ascii=False, separators=(", ", ": "))
-    return html.escape(str(value), quote=True)
+        return json.dumps(value, ensure_ascii=False, separators=(", ", ": "))
+    return str(value)
 
 
-listing = _vendor_listing("fujitsu")
-assert len(FUJITSU_RECORDS) == 148 and len(FUJITSU_OPERATIONS) == 232
-assert len(FUJITSU_TOP_LEVEL) == 128
-contract_counts = Counter(op.status for op in FUJITSU_OPERATIONS if op.netfn == 0x2E)
-assert sum(contract_counts.values()) == 228
-assert set(contract_counts) <= {"decoded", "partial", "unknown"}
-assert len(listing) == 367
-assert len(LIVE["results"]) == 22
-assert sum(row.get("completionCode") == 0 for row in LIVE["results"]) == 21
-top = [(key, row) for key, row in listing.items() if len(key) == 2]
-assert len(top) == 135
+def layout_status(text: str, *, complete: bool = False) -> str:
+    if complete:
+        return "Complete"
+    lowered = text.lower()
+    if any(word in lowered for word in ("unknown", "unresolved", "not fully resolved",
+                                         "handler-specific")):
+        return "Unknown"
+    return "Partial"
 
-top_rows = []
-for key, info in sorted(top):
-    wire = f"{key[0]:02x}/{key[1]:02x}"
-    top_rows.append(
-        f'<tr class="border-b align-top" data-search="{esc((wire + info["name"] + info["desc"]).lower())}">'
-        f'<td class="p-2 font-mono whitespace-nowrap">{wire}</td>'
-        f'<td class="p-2">{esc(info["name"])}<div class="text-xs text-slate-500">{esc(info["lib"])}</div></td>'
-        f'<td class="p-2">{esc(info["priv"])} · {esc(info["request"])}</td>'
-        f'<td class="p-2">{esc(info["security"])}</td>'
-        f'<td class="p-2">{"parent only" if not info["runnable"] else "--unsafe required"}</td></tr>'
-    )
 
-operation_rows = []
-for op in FUJITSU_OPERATIONS:
-    key = (op.netfn, op.cmd, *op.prefix)
-    info = listing[key]
-    wire = f"{op.netfn:02x}/{op.cmd:02x} " + " ".join(f"{byte:02x}" for byte in op.prefix)
-    gate = "safe fixed read" if not op.requires_unsafe else (
-        "host-interface only" if not op.runnable else "--unsafe required"
-    )
-    operation_rows.append(
-        f'<tr class="border-b align-top" data-search="{esc((wire + info["name"] + op.effect).lower())}">'
-        f'<td class="p-2 font-mono whitespace-nowrap">{esc(wire)}</td>'
-        f'<td class="p-2">{esc(info["name"])}<div class="text-xs text-slate-500">{esc(op.source)}</div></td>'
-        f'<td class="p-2">{esc(op.privilege)} · {esc(op.request)}</td>'
-        f'<td class="p-2">{esc(op.response)}</td>'
-        f'<td class="p-2">{esc(op.effect)}</td>'
-        f'<td class="p-2">{esc(op.status)} · {gate}<div class="text-xs text-slate-500">{esc(op.activation)}</div></td></tr>'
-    )
+def request_length(value: object) -> str:
+    if not isinstance(value, dict):
+        return "See request summary"
+    if value.get("accepted_total_bytes") is not None:
+        return f'Total request bytes: {value["accepted_total_bytes"]}'
+    if value.get("selector_specific_length") is not None:
+        return f'Total request bytes: {value["selector_specific_length"]}'
+    if value.get("length_check_at_entry"):
+        return f'Entry length check: {value["length_check_at_entry"]}'
+    if value.get("shared_minimum_total_bytes") is not None:
+        return f'At least {value["shared_minimum_total_bytes"]} total request bytes'
+    return "Unknown"
 
-document = f'''<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>zipmi Fujitsu iRMC S6 OEM IPMI reference</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 text-slate-900"><main class="mx-auto max-w-7xl px-5 py-10">
-<p class="text-sm font-bold uppercase tracking-widest text-blue-700">zipmi · Fujitsu iRMC S6 02.63S</p>
-<h1 class="mt-3 text-4xl font-bold">Fujitsu OEM IPMI command reference</h1>
-<p class="mt-4 max-w-4xl leading-7">For the RX2540 M7 image only. The recovered table is closed at 148 active records: 135 NetFn/command pairs or 138 LUN-aware identities. zipmi exposes 135 top-level names and 232 selector/group operations. Of the 228 selector leaves, {contract_counts['decoded']} are decoded, {contract_counts['partial']} partial, and {contract_counts['unknown']} unknown. A name is not a claim that an unsafe or partial payload has a structured codec.</p>
-<div class="mt-6 grid gap-3 sm:grid-cols-3"><div class="rounded bg-blue-100 p-4"><strong class="text-2xl">367</strong><div>named CLI entries</div></div><div class="rounded bg-emerald-100 p-4"><strong class="text-2xl">22</strong><div>safe fixed-read operations</div></div><div class="rounded bg-amber-100 p-4"><strong class="text-2xl">228</strong><div>2e selector candidates</div></div></div>
-<section class="mt-6 rounded border border-amber-400 bg-amber-50 p-5"><h2 class="text-xl font-bold">Execution model and limits</h2><p class="mt-2 leading-7">Named selector operations prepend their proven Fujitsu IANA and selector bytes. Twenty-two read-only selectors are constrained to a four-byte request and can run without <code>--unsafe</code>. Other runnable names require <code>--unsafe</code> pending individual safe promotion; this includes some decoded standard reads as well as state-changing or partial commands. The two group-52 Redfish bootstrap names are Admin/channel-0f host-interface routes and are not runnable over zipmi's LAN transport. For command <code>2c/02</code>, the named <code>A5</code> form is not an allowlist: any second byte reaches the credential path. Parent 2e and 2c dispatch names cannot be sent without selecting a leaf. Three distinct LUN-3 FRU handlers are documented in the <a class="text-blue-700 underline" href="https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/irmc-s6-oem-reference.html">firmware reference</a> but not exposed as LAN names after the target returned C0 on LUN 3.</p><pre class="mt-4 overflow-auto rounded bg-slate-900 p-4 text-sm text-slate-100"><code>zipmi oem fujitsu
-zipmi -H &lt;irmc&gt; -U admin -C 17 oem irmc IRMCGetLastPowerOnReason0115
-zipmi -H &lt;irmc&gt; -U admin -C 17 oem fujitsu --unsafe &lt;named-operation&gt; &lt;body-bytes&gt;</code></pre></section>
-<section class="mt-6 rounded border border-rose-400 bg-rose-50 p-5"><h2 class="text-xl font-bold">High-impact findings</h2><ul class="mt-3 list-disc space-y-2 pl-6"><li><code>2e/01</code> is admitted at User privilege and multiplexes power reads with state-changing selectors 17, 1b, 1c, and 20.</li><li><code>2e/e0 04</code> is a NVRAM/IDPROM maintenance multiplexer, not a safe read; it can restore FRU data or write IDPROM.</li><li><code>2e/F1 11/40</code> can change GUID/configuration state before an error reply; 40 returns C7 after its write attempt.</li><li><code>2c/02 group 52</code> can create and return user credentials on the host channel with any second byte; it is never a safe DCMI power read.</li><li><code>34/38–39</code> persists configuration and has a statically proved undersized-page copy path.</li><li><code>2e/F5</code> selectors 52, a5, and f8 reach I2C write/read, persistent POH reset, and user deletion respectively; flash and raw PECI routes also remain high-impact. These are static findings, not live probes.</li></ul><p class="mt-3">See the <a class="text-blue-700 underline" href="https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/irmc-s6-oem-reference.html">zBMC binary-evidence reference</a> for handler addresses, platform gates, and the distinction between decoded and partial leaf contracts.</p></section>
-<section class="mt-6 rounded border border-emerald-400 bg-emerald-50 p-5"><h2 class="text-xl font-bold">Safe live proof</h2><p class="mt-2 leading-7">The fresh iRMC guest run <code>{esc(LIVE['runId'])}</code> reached required-service READY. Twenty-two reviewed read-only four-byte requests were sent: 21 returned CC00, while 2e/e0 selector 00 returned device CC01; none had a transport error. The named zipmi path for power selector 15 also returned CC00. <a class="text-blue-700 underline" href="evidence/20260926T204500Z-fujitsu-irmc-safe-live-22.json">Exact bytes and completion codes</a> are retained. No state-changing request was sent.</p></section>
-<section class="mt-8"><h2 class="text-2xl font-bold">Top-level dispatch names</h2><label class="mt-3 block" for="top-filter">Filter commands</label><input id="top-filter" class="mt-2 w-full rounded border p-3" placeholder="wire or handler"><div class="mt-4 overflow-auto" role="region" aria-label="Top-level dispatch names" tabindex="0"><table class="min-w-full text-left text-sm"><thead class="bg-slate-200"><tr><th class="p-2">Wire</th><th class="p-2">Handler</th><th class="p-2">Privilege / request</th><th class="p-2">Safety</th><th class="p-2">Execution</th></tr></thead><tbody id="top-rows">{''.join(top_rows)}</tbody></table></div></section>
-<section class="mt-10"><h2 class="text-2xl font-bold">Selector and group operations</h2><label class="mt-3 block" for="operation-filter">Filter operations</label><input id="operation-filter" class="mt-2 w-full rounded border p-3" placeholder="wire, name, effect"><div class="mt-4 overflow-auto" role="region" aria-label="Selector and group operations" tabindex="0"><table class="min-w-full text-left text-sm"><thead class="bg-slate-200"><tr><th class="p-2">Wire</th><th class="p-2">Name / source</th><th class="p-2">Request</th><th class="p-2">Response</th><th class="p-2">Effect</th><th class="p-2">Evidence / gate</th></tr></thead><tbody id="operation-rows">{''.join(operation_rows)}</tbody></table></div></section>
-<section class="mt-6 rounded border p-5"><h2 class="text-xl font-bold">Nested selectors and parameters</h2><p class="mt-2 leading-7">The 228 count is for outer <code>2e</code> leaves. F5/A4 dispatches another 40 inner selector values; zipmi's named A4 operation accepts their bytes only through <code>--unsafe</code> raw execution. Their individual contracts and handler addresses are in the <a class="text-blue-700 underline" href="https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/evidence/f5-selector-contracts.json">firmware-bound F5 evidence</a>. E0/04 dispatches a separate <a class="text-blue-700 underline" href="https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/evidence/e0-04-maintenance-subcommands.json">50-case NVRAM/IDPROM maintenance table</a>. The <a class="text-blue-700 underline" href="https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/evidence/backup-restore-parameter-table.json">34/38–39 backup/restore table</a> has 92 parameter records, including credentials and certificates; the metadata does not prove redaction or successful restore. Do not infer that any parent is read-only or that every inner leaf is fully decoded.</p></section>
-<section class="mt-10 rounded border p-5"><h2 class="text-xl font-bold">Source pin</h2><p class="mt-2 leading-7">iRMC S6 02.63S <code>libipmipdkcmds.so.1.53.20</code> SHA-256 <code>35839f7ab40993898666425d50e18654d68791c7dfe3bb5a3c3496e4daa23804</code>. The packaged command table SHA-256 is <code>6c25538d508e398135855d59550148b3fd93cdcc045bc9556e4f79c335f72dfa</code>. The operation catalog retains source JSON hashes. Public references: <a class="text-blue-700 underline" href="https://support.ts.fujitsu.com/Search/SWP1267156.asp">Fujitsu iRMC S6 Concepts &amp; Interfaces</a> and <a class="text-blue-700 underline" href="https://github.com/chu11/freeipmi-mirror">FreeIPMI's Fujitsu definitions</a>; older-generation selectors are not assumed to work on this image.</p></section>
-</main><script>for(const [input,body] of [['top-filter','top-rows'],['operation-filter','operation-rows']]){{document.getElementById(input).addEventListener('input',e=>{{const q=e.target.value.toLowerCase();for(const row of document.getElementById(body).rows)row.hidden=!row.dataset.search.includes(q)}})}}</script></body></html>
-'''
-if "--check" in sys.argv[1:]:
-    assert OUTPUT.read_text() == document, "Fujitsu zipmi reference is out of sync"
-    print("Fujitsu zipmi reference OK: 367 named entries")
-else:
+
+def response_length(value: object) -> str:
+    if not isinstance(value, dict):
+        return "See response summary"
+    if value.get("success_total_bytes") is not None:
+        total = value["success_total_bytes"]
+        if isinstance(total, int):
+            return f"{max(0, total - 1)} data bytes after completion code"
+        return f"Recovered total including completion code: {total}"
+    return "Unknown"
+
+
+def prefix_fields(prefix: bytes) -> list[dict]:
+    if len(prefix) == 4 and prefix[:3] == bytes.fromhex("80 28 00"):
+        names = ("iana_0", "iana_1", "iana_2", "selector")
+    elif prefix and prefix[0] in (0x52, 0xDC):
+        names = ("group", "selector")[:len(prefix)]
+    else:
+        names = tuple(f"prefix_{index}" for index in range(len(prefix)))
+    return [
+        {"offset": str(index), "name": name, "type": "u8",
+         "meaning": f"Must be 0x{byte:02x}"}
+        for index, (name, byte) in enumerate(zip(names, prefix, strict=True))
+    ]
+
+
+def response_fields(operation) -> list[dict] | None:
+    if operation.netfn != 0x2E or operation.cmd != 0x01:
+        return None
+    selector = operation.prefix[-1]
+    value = {
+        0x15: ("reason", "u8", "Last power-on reason"),
+        0x16: ("reason", "u8", "Next or last power-off reason"),
+        0x18: ("runtime_power_field", "u32le", "Runtime power field"),
+        0x1D: ("inhibit", "u8", "Power-off inhibit state"),
+    }.get(selector)
+    if value is None:
+        return None
+    name, kind, meaning = value
+    width = 4 if kind == "u32le" else 1
+    return [
+        {"offset": "0", "name": "iana_0", "type": "u8", "meaning": "Must be 0x80"},
+        {"offset": "1", "name": "iana_1", "type": "u8", "meaning": "Must be 0x28"},
+        {"offset": "2", "name": "iana_2", "type": "u8", "meaning": "Must be 0x00"},
+        {"offset": "3", "name": "length", "type": "u8", "meaning": f"Must be {width}"},
+        {"offset": "4" if width == 1 else "4–7", "name": name, "type": kind,
+         "meaning": meaning},
+    ]
+
+
+def safety(effect: str, *, proven_read: bool = False) -> str:
+    """Map free-form recovery notes conservatively onto the shared vocabulary."""
+    text = effect.lower()
+    if any(term in text for term in (
+        "firmware flash", "firmware-flash", "firmware update", "firmware upload",
+        "image flashing", "tftp flash worker", "flash/dual-image", "secure erase",
+        "delete user", "deletes selected", "creates/deletes user", "clear-all",
+        "destructive reset", "reset of memory pda", "restore nvram", "clear idprom",
+        "clear fru", "clear battery-backed", "restores variable default",
+    )):
+        return "destructive"
+    if any(term in text for term in (
+        "credential", "password", "private key", "certificate", "licensing key",
+        "raw test", "raw peci", "peci multi", "i2c write/read", "account",
+        "user privilege", "user identity", "sso session", "sensitive fingerprint",
+    )):
+        return "sensitive"
+    pure_read = (proven_read or text == "read"
+                 or text.startswith(("read ", "reads ", "none; reads", "none; returns",
+                                     "read/compute")))
+    if pure_read and not any(term in text for term in (
+        "side effect", "advances", "refreshes", "delete", "clear", "write", "set ",
+        "mutat", "consume",
+    )):
+        return "read-only"
+    if any(term in text for term in (
+        "host power/reset", "request host power-off", "role change", "start/stop",
+        "service interruption", "network side effect", "calls onrequestasrrshutdown",
+        "shutdown state",
+    )):
+        return "disruptive"
+    if any(term in text for term in (
+        "mutation", "mutating", "writes", "write ", "sets ", "set ", "stores ",
+        "clears ", "clear ", "changes ", "change ", "persists ", "persistent iel add",
+        "allocates ", "initiates ", "trigger ", "force ", "updates ", "update ",
+    )):
+        return "state-changing"
+    if any(term in text for term in ("unknown", "unresolved", "undetermined", "backend-dependent",
+                                     "mixed/unknown", "side effects depend")):
+        return "unknown"
+    return "unknown"
+
+
+def execution(operation) -> str:
+    if not operation.runnable:
+        return "No distinct named route"
+    return "Requires --unsafe" if operation.requires_unsafe else "Allowed by default"
+
+
+def operation_send(operation, policy: str) -> str:
+    if policy == "No distinct named route":
+        return "Not available through zipmi over LAN"
+    tokens = ["zipmi", "oem", "fujitsu"]
+    if policy == "Requires --unsafe":
+        tokens.append("--unsafe")
+    tokens.append(shlex.quote(operation.name))
+    total = None
+    if operation.exact_safe_length is not None:
+        total = operation.exact_safe_length
+    elif isinstance(operation.request, dict):
+        accepted = operation.request.get("accepted_total_bytes")
+        selector_length = operation.request.get("selector_specific_length")
+        total = accepted if isinstance(accepted, int) else selector_length
+        total = total if isinstance(total, int) else None
+    elif summary(operation.request).replace(" ", "") in {
+        "[52,01]", "[52,a5]", "[dc]",
+    }:
+        total = len(operation.prefix)
+    if total is None:
+        tokens.append("<remaining payload bytes>")
+    elif total > len(operation.prefix):
+        tokens.append(f"<{total - len(operation.prefix)} payload bytes>")
+    return " ".join(tokens)
+
+
+def direct_send(info: dict) -> str:
+    tokens = ["zipmi", "oem", "fujitsu", "--unsafe", shlex.quote(info["name"])]
+    exact = info.get("request_min")
+    if exact is None:
+        tokens.append("<payload bytes>")
+    elif exact:
+        tokens.append(f"<{exact} payload bytes>")
+    return " ".join(tokens)
+
+
+def availability(value: str) -> str:
+    if value == "registered; platform-dependent":
+        return "Registered; availability depends on platform hardware and enabled features"
+    if value == "0f only":
+        return "Registered only on host-interface channel 0x0f"
+    if value == "standard DCMI branch":
+        return "Registered through the standard DCMI group-extension branch"
+    return f"Registered when: {value}"
+
+
+def reference_page() -> dict:
+    listing = _vendor_listing("fujitsu")
+    top = {key: info for key, info in listing.items() if len(key) == 2}
+    operation_pairs = {(item.netfn, item.cmd) for item in FUJITSU_OPERATIONS}
+    live_doc = json.loads(LIVE.read_text())
+    live_by_wire = {
+        (int(item["netfn"], 16), int(item["cmd"], 16), bytes.fromhex(item["request"])): item
+        for item in live_doc["results"]
+    }
+    response_codecs = {
+        (netfn, cmd, bytes(request()))
+        for netfn, cmd, _offset, _selectors, (request, response) in FUJITSU_SELECTOR_PAYLOADS
+        if request is not None and response is not None
+    }
+    rows = []
+
+    for key, info in sorted(top.items()):
+        if key in operation_pairs:
+            continue
+        effect = info["security"]
+        request = info["request"]
+        response = info["response"]
+        rows.append({
+            "id": f"{key[0]:02x}/{key[1]:02x}", "name": info["name"],
+            "purpose": effect, "send": direct_send(info),
+            "safety": safety(effect), "safety_note": f"Recovered effect: {effect}",
+            "execution": "Requires --unsafe",
+            "request": {"status": layout_status(request), "length": request,
+                        "summary": request, "fields": None},
+            "response": {"status": layout_status(response), "length": response,
+                         "summary": response, "fields": None},
+            "privilege": info["priv"], "interface": "IPMI LAN/session transport; LUN 0",
+            "availability": availability(info["activation"]),
+            "completion_codes": "Not separately documented", "live": False,
+            "live_text": "Not live-tested as this distinct operation",
+            "evidence": "; ".join(part for part in (info["lib"], info.get("src"),
+                                                     info["confidence"]) if part),
+            "confidence": info["confidence"],
+        })
+
+    for item in FUJITSU_OPERATIONS:
+        key = (item.netfn, item.cmd)
+        parent = top[key]
+        policy = execution(item)
+        request_summary = summary(item.request)
+        response_summary = summary(item.response)
+        live = live_by_wire.get((item.netfn, item.cmd, item.prefix))
+        complete_response = (item.netfn, item.cmd, item.prefix) in response_codecs
+        rows.append({
+            "id": f'{item.netfn:02x}/{item.cmd:02x} ' + " ".join(f"{byte:02x}" for byte in item.prefix),
+            "name": item.name, "purpose": item.effect,
+            "send": operation_send(item, policy),
+            "safety": safety(item.effect, proven_read=not item.requires_unsafe),
+            "safety_note": f"Recovered effect: {item.effect}", "execution": policy,
+            "request": {
+                "status": layout_status(request_summary, complete=item.exact_safe_length == 4),
+                "length": ("4 payload bytes on the named route; firmware may accept trailing bytes"
+                           if item.exact_safe_length == 4 else request_length(item.request)),
+                "summary": request_summary,
+                "fields": prefix_fields(item.prefix),
+            },
+            "response": {
+                "status": layout_status(response_summary, complete=complete_response),
+                "length": response_length(item.response), "summary": response_summary,
+                "fields": response_fields(item) if complete_response else None,
+            },
+            "privilege": {2: "User", 3: "Operator", 4: "Administrator"}.get(
+                item.privilege, f"Raw privilege {item.privilege}"),
+            "interface": ("Host interface, channel 0x0f" if not item.runnable
+                          else "IPMI LAN/session transport; LUN 0"),
+            "availability": availability(item.activation),
+            "completion_codes": "Not separately documented",
+            "live": live is not None,
+            "live_text": (f'{live_doc["runId"]}; CC 0x{live["completionCode"]:02x}; data '
+                          f'{live["response"] or "(empty)"}' if live else "Not live-tested"),
+            "evidence": "; ".join(part for part in (
+                item.source, f'parent handler {parent["name"]}', parent["lib"],
+                parent.get("src"), item.status,
+            ) if part),
+            "confidence": ("Decoded leaf contract; field descriptions may remain prose"
+                           if item.status == "decoded" else "Partial leaf contract"),
+        })
+
+    command_pairs = sorted(top)
+    if (len(command_pairs), len(rows), len(live_by_wire)) != (135, 355, 22):
+        raise SystemExit("unexpected Fujitsu iRMC reference denominator")
+    expected_execution = {
+        "Allowed by default": 22,
+        "Requires --unsafe": 331,
+        "No distinct named route": 2,
+    }
+    if {name: sum(row["execution"] == name for row in rows)
+            for name in expected_execution} != expected_execution:
+        raise SystemExit("unexpected Fujitsu execution counts")
+    return {
+        "artifact_marker": ARTIFACT_MARKER,
+        "title": "Fujitsu iRMC S6 02.63S OEM IPMI command reference",
+        "scope": ("Firmware-bound reference for the PRIMERGY RX2540 M7 iRMC S6 02.63S "
+                  "dispatcher and its recovered selector operations."),
+        "provenance": [
+            ("Controller", "Fujitsu iRMC S6"),
+            ("Firmware", "02.63S; SDR 03.67"),
+            ("Platform", "PRIMERGY RX2540 M7"),
+            ("IPMI dispatcher library", "<code>libipmipdkcmds.so.1.53.20</code>"),
+            ("Dispatcher library SHA-256", "<code>35839f7ab40993898666425d50e18654d68791c7dfe3bb5a3c3496e4daa23804</code>"),
+            ("Packaged command table SHA-256", "<code>6c25538d508e398135855d59550148b3fd93cdcc045bc9556e4f79c335f72dfa</code>"),
+        ],
+        "links": [
+            {"label": "zBMC firmware analysis and emulation notes",
+             "href": "https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/index.html"},
+            {"label": "zBMC firmware-bound handler reference",
+             "href": "https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/irmc-s6-oem-reference.html"},
+        ],
+        "operations": rows,
+        "commands": command_pairs,
+        "gaps": ("The firmware dispatcher inventory is closed at 148 registration records, 138 "
+                 "LUN-aware identities, and 135 NetFn/Cmd addresses. This table folds 12 parent "
+                 "dispatch names into their 232 selector/group leaves and retains 123 direct "
+                 "commands, for 355 operation rows. Three distinct LUN-3 FRU handlers are not "
+                 "exposed as LAN names after the target returned 0xc0 on LUN 3. The 232 leaf count "
+                 "does not expand F5/A4's 40 inner selectors, E0/04's 50 maintenance subcommands, "
+                 "or the 92 backup/restore parameter records; those nested inventories remain in "
+                 "the linked firmware evidence."),
+        "live_evidence": (f'The emulated iRMC run {live_doc["runId"]} captured all 22 reviewed '
+                          "fixed four-byte read requests. Twenty-one returned completion code 0x00; "
+                          "2e/e0 selector 00 returned 0x01. No state-changing request was sent."),
+        "sources": [
+            '<a href="../zipmi/data/sources/fujitsu-irmc-s6-command-tables.tsv">Packaged dispatcher table</a>',
+            '<a href="../zipmi/data/sources/fujitsu-irmc-s6-operations.json">Recovered operation catalog</a>',
+            '<a href="evidence/20260926T204500Z-fujitsu-irmc-safe-live-22.json">Captured safe live requests</a>',
+            '<a href="https://support.ts.fujitsu.com/Search/SWP1267156.asp">Fujitsu iRMC S6 Concepts &amp; Interfaces</a>',
+        ],
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    document = render_reference(reference_page())
+    if args.check:
+        if not OUTPUT.exists() or OUTPUT.read_text() != document:
+            print("Fujitsu iRMC generated reference is stale", file=sys.stderr)
+            return 1
+        return 0
     OUTPUT.write_text(document)
-    print("wrote Fujitsu zipmi reference: 367 named entries")
+    print(f"wrote {OUTPUT}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

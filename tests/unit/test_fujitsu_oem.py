@@ -1,8 +1,13 @@
+# z-artifact: 759a3cab-a685-4bae-93d4-136671843a93
 """Firmware-bound iRMC S6 dispatch-table invariants."""
 from collections import Counter
 from hashlib import sha256
 from importlib.resources import files
 from argparse import Namespace
+from pathlib import Path
+import re
+import subprocess
+import sys
 
 from zipmi.cli.oem_cmds import _cmd_oem_help, _vendor_listing, cmd_oem_run
 from zipmi.scapy_ipmi.oem.fujitsu import (
@@ -10,6 +15,60 @@ from zipmi.scapy_ipmi.oem.fujitsu import (
     FUJITSU_SELECTOR_PAYLOADS, FUJITSU_TOP_LEVEL,
 )
 from zipmi.scapy_ipmi.oem._registry import lookup_payload
+
+
+def test_generated_irmc_reference_uses_shared_standard() -> None:
+    root = Path(__file__).parents[2]
+    subprocess.run(
+        [sys.executable, "scripts/generate_fujitsu_irmc_reference.py", "--check"],
+        cwd=root, check=True,
+    )
+    reference = (root / "docs/fujitsu-irmc-s6-command-reference.html").read_text()
+
+    assert '<link rel="stylesheet" href="assets/oem-command-reference.css">' in reference
+    assert "135</strong>Unique NetFn/Cmd addresses" in reference
+    assert "355</strong>Documented operations" in reference
+    assert ("22 / 331 / 2</strong>Named operation route: default / --unsafe / "
+            "no distinct route" in reference)
+    assert "22</strong>Operations with captured live requests" in reference
+    assert reference.count('<tr data-search="') == 355
+    assert reference.count('<details class="evidence"><summary>Recovered from</summary>') == 355
+    assert Counter(re.findall(r'data-execution="([^"]+)"', reference)) == {
+        "Allowed by default": 22,
+        "Requires --unsafe": 331,
+        "No distinct named route": 2,
+    }
+    assert Counter(re.findall(r'data-live="([^"]+)"', reference)) == {
+        "false": 333, "true": 22,
+    }
+    assert Counter(re.findall(r'data-request="([^"]+)"', reference)) == {
+        "Partial": 296, "Unknown": 37, "Complete": 22,
+    }
+    assert Counter(re.findall(r'data-response="([^"]+)"', reference)) == {
+        "Partial": 296, "Unknown": 55, "Complete": 4,
+    }
+    assert Counter(re.findall(r'data-safety="([^"]+)"', reference)) == {
+        "read-only": 116, "state-changing": 105, "unknown": 102,
+        "sensitive": 14, "disruptive": 7, "destructive": 11,
+    }
+
+    assert "148 registration records, 138 LUN-aware identities" in reference
+    assert "F5/A4&#x27;s 40 inner selectors" in reference
+    assert "E0/04&#x27;s 50 maintenance subcommands" in reference
+    assert "92 backup/restore parameter records" in reference
+    assert "35839f7ab40993898666425d50e18654d68791c7dfe3bb5a3c3496e4daa23804" in reference
+    assert "6c25538d508e398135855d59550148b3fd93cdcc045bc9556e4f79c335f72dfa" in reference
+    assert "20260926T200725Z-7ecec0c7-f88e-4945-b3b2-2fe97bcb9e3a" in reference
+    assert "zipmi oem fujitsu &#x27;iRMC_Get last power-on reason_01_15&#x27;" in reference
+    assert "zipmi oem fujitsu --unsafe OEMFTSChassisControl &lt;1 payload bytes&gt;" in reference
+    assert "Not available through zipmi over LAN" in reference
+    assert "parent handler OEMFTSBiosCmds" in reference
+    assert "destructive reset of memory PDA data" in reference
+    assert "performs I2C write/read" in reference
+    assert 'id="operation-scrollbar"' in reference
+    assert "document.createTreeWalker" in reference
+    assert "Top-level dispatch names" not in reference
+    assert "Selector and group operations" not in reference
 
 
 def test_pinned_irmc_s6_dispatch_table() -> None:
