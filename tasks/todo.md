@@ -1,5 +1,24 @@
 # ⭐ TOP PRIORITY (2026-08-14): per-OEM columns across the whole command table
 
+## Task — Shared OEM table interaction follow-up (2026-09-27)
+
+- [x] Keep the horizontal scrollbar available while reading long operation tables.
+- [x] Collapse verbose recovery evidence behind a native disclosure control.
+- [x] Highlight search matches and reveal matches inside collapsed details.
+- [x] Regenerate both shared-format references and verify behavior in a browser and test suite.
+
+### Review
+
+- The synchronized table scrollbar now docks to the viewport bottom only while the reader is below
+  its normal position and the operations table continues below the viewport. Proportional syncing
+  keeps the table aligned even when borders make the two scroll ranges differ slightly.
+- Every operation's recovery evidence is collapsed behind a native `Recovered from` disclosure.
+  Search uses rendered row text, highlights every matching fragment, and opens disclosures that
+  contain a match; clearing or changing the search removes marks and closes only auto-opened details.
+- Browser proof at 1400×900 confirmed the fixed scrollbar, both-direction endpoint sync, 335
+  collapsed Lenovo evidence blocks, hidden request-field matches, recovery-evidence highlighting,
+  automatic expansion, and zero page errors.
+
 ## Review — OEM Command Reference Standard v1 pilot (2026-09-26)
 
 - Converted Advantech ASMB-787 to the shared light-theme renderer, semantic stylesheet,

@@ -38,7 +38,9 @@ input, select, button { min-height: 2.7rem; padding: .55rem .7rem; border: 1px s
 input:focus, select:focus, button:focus, a:focus { outline: 3px solid #93c5fd; outline-offset: 2px; }
 button { cursor: pointer; font-weight: 700; }
 .table-wrap { margin-top: 1rem; overflow: auto; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); }
+.table-scrollbar-slot.has-floating-scrollbar { height: 1rem; }
 .table-scrollbar { height: 1rem; overflow-x: scroll; overflow-y: hidden; scrollbar-color: #64748b #e2e8f0; }
+.table-scrollbar.is-floating { position: fixed; bottom: 0; z-index: 4; border-top: 1px solid var(--border); background: var(--surface); box-shadow: 0 -.25rem .75rem rgb(15 23 42 / 15%); }
 .table-scrollbar > div { height: 1px; }
 .table-scrollbar::-webkit-scrollbar { height: .8rem; }
 .table-scrollbar::-webkit-scrollbar-track { border-radius: 999px; background: #e2e8f0; }
@@ -59,6 +61,8 @@ thead th { position: sticky; top: 0; z-index: 1; background: #e2e8f0; }
 tbody th { min-width: 18rem; font-weight: 400; }
 details { margin-top: .45rem; }
 summary { cursor: pointer; font-weight: 650; }
+.evidence > p { margin: .4rem 0 0; }
+mark.search-hit { padding: 0 .08em; border-radius: .12rem; background: #fde047; color: inherit; }
 .field-table { margin-top: .5rem; font-size: .78rem; }
 .field-table th, .field-table td { padding: .35rem .45rem; }
 .field-table thead th { position: static; background: #f1f5f9; }

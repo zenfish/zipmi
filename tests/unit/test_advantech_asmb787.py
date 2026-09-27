@@ -92,8 +92,13 @@ def test_generated_html_contains_every_exact_operation():
     assert 'id="operation-scroll-left"' not in reference
     assert 'id="operation-scroll-right"' not in reference
     assert 'id="operation-scrollbar"' in reference
+    assert 'id="operation-scrollbar-slot"' in reference
     assert 'id="operation-table-wrap"' in reference
     assert "querySelectorAll('#operation-rows > tr')" in reference
+    assert reference.count('<details class="evidence"><summary>Recovered from</summary>') == 462
+    assert "document.createTreeWalker" in reference
+    assert "details.dataset.searchOpened" in reference
+    assert "function syncScroll(source,target)" in reference
     assert "Research artifact ID" in reference
     assert "Original rootfs SHA-256" not in reference
     assert "33 of 462 operations" in reference
@@ -101,6 +106,8 @@ def test_generated_html_contains_every_exact_operation():
     assert "main h2 { margin: 2.5rem 0 .75rem; font-size: 1.125rem !important" in stylesheet
     assert ".operation-table { min-width: 108rem; table-layout: fixed; }" in stylesheet
     assert ".table-scrollbar::-webkit-scrollbar" in stylesheet
+    assert ".table-scrollbar.is-floating { position: fixed; bottom: 0" in stylesheet
+    assert "mark.search-hit" in stylesheet
     assert "overflow-wrap: anywhere" in stylesheet
     assert 'id="operation-filter"' in reference
     assert all(f'id="{name}-filter"' in reference for name in (

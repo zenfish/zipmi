@@ -107,7 +107,8 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
             f'<td class="stack"><p><strong>Privilege:</strong> {_e(op["privilege"])}</p><p><strong>Interface:</strong> {_e(op["interface"])}</p>'
             f'<p><strong>Available on this firmware:</strong> {_e(op["availability"])}</p><p><strong>Completion codes:</strong> <code>{_e(op["completion_codes"])}</code></p></td>'
             f'<td class="stack"><p><strong>Named operation route:</strong> {_e(op["execution"])}</p><p><strong>Captured live request:</strong> {_e(op["live_text"])}</p>'
-            f'<p><strong>Recovered from:</strong> {_e(op["evidence"])}</p><p><strong>Confidence:</strong> {_e(op["confidence"])}</p></td></tr>'
+            f'<details class="evidence"><summary>Recovered from</summary><p>{_e(op["evidence"])}</p></details>'
+            f'<p><strong>Confidence:</strong> {_e(op["confidence"])}</p></td></tr>'
         )
     safety_options = "".join(f'<option value="{name}">{name.title()}</option>' for name in SAFETY)
     layout_options = '<option value="">All</option>' + "".join(f'<option>{name}</option>' for name in ("Complete", "Partial", "Unknown", "Conflicting"))
@@ -134,21 +135,25 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 <label><span>Live evidence</span><select id="live-filter"><option value="">All</option><option value="true">Live-tested only</option></select></label>
 <button id="clear-filters" type="button">Clear filters</button></div>
 <p id="operation-count" class="muted" aria-live="polite"></p>
-<div id="operation-scrollbar" class="table-scrollbar" role="region" aria-label="Horizontal scrollbar for the operations table" tabindex="0"><div aria-hidden="true">&nbsp;</div></div>
+<div id="operation-scrollbar-slot" class="table-scrollbar-slot"><div id="operation-scrollbar" class="table-scrollbar" role="region" aria-label="Horizontal scrollbar for the operations table" tabindex="0"><div aria-hidden="true">&nbsp;</div></div></div>
 <div id="operation-table-wrap" class="table-wrap" role="region" aria-label="OEM operations" tabindex="0"><table class="operation-table"><caption>Commands to send, payload layouts, safety, availability, zipmi support, and evidence.</caption><thead><tr><th>#</th><th>Operation</th><th>Safety</th><th>Send with zipmi</th><th>Request data</th><th>Response data</th><th>Access &amp; availability</th><th>zipmi support &amp; evidence</th></tr></thead><tbody id="operation-rows">{"".join(operation_rows)}</tbody></table></div></section>
 <section aria-labelledby="sources"><h2 id="sources">Sources</h2><ul>{source_items}</ul></section>
 </main><script>
 const ids=['operation-filter','safety-filter','request-filter','response-filter','execution-filter','live-filter'];
 const controls=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
 const rows=[...document.querySelectorAll('#operation-rows > tr')],count=document.getElementById('operation-count');
-function filterRows(){{let shown=0;for(const row of rows){{const visible=row.dataset.search.includes(controls['operation-filter'].value.toLowerCase())&&(!controls['safety-filter'].value||row.dataset.safety===controls['safety-filter'].value)&&(!controls['request-filter'].value||row.dataset.request===controls['request-filter'].value)&&(!controls['response-filter'].value||row.dataset.response===controls['response-filter'].value)&&(!controls['execution-filter'].value||row.dataset.execution===controls['execution-filter'].value)&&(!controls['live-filter'].value||row.dataset.live===controls['live-filter'].value);row.hidden=!visible;if(visible)shown++;}}count.textContent=`${{shown}} of ${{rows.length}} operations shown`;}}
+function clearSearchState(){{for(const mark of document.querySelectorAll('mark.search-hit'))mark.replaceWith(mark.textContent);for(const details of document.querySelectorAll('details[data-search-opened]')){{details.open=false;details.removeAttribute('data-search-opened');}}}}
+function highlightMatches(root,query){{const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];while(walker.nextNode())if(walker.currentNode.data.toLowerCase().includes(query))nodes.push(walker.currentNode);for(const node of nodes){{const text=node.data,lower=text.toLowerCase(),fragment=document.createDocumentFragment();let start=0,index;while((index=lower.indexOf(query,start))!==-1){{fragment.append(text.slice(start,index));const mark=document.createElement('mark');mark.className='search-hit';mark.textContent=text.slice(index,index+query.length);fragment.append(mark);start=index+query.length;}}fragment.append(text.slice(start));node.replaceWith(fragment);}}}}
+function filterRows(){{clearSearchState();const query=controls['operation-filter'].value.trim().toLowerCase();let shown=0;for(const row of rows){{const text=row.textContent.toLowerCase();const visible=(!query||text.includes(query))&&(!controls['safety-filter'].value||row.dataset.safety===controls['safety-filter'].value)&&(!controls['request-filter'].value||row.dataset.request===controls['request-filter'].value)&&(!controls['response-filter'].value||row.dataset.response===controls['response-filter'].value)&&(!controls['execution-filter'].value||row.dataset.execution===controls['execution-filter'].value)&&(!controls['live-filter'].value||row.dataset.live===controls['live-filter'].value);row.hidden=!visible;if(visible){{shown++;if(query){{highlightMatches(row,query);for(const details of row.querySelectorAll('details'))if(!details.open&&[...details.querySelectorAll('mark.search-hit')].some(mark=>!mark.closest('summary'))){{details.open=true;details.dataset.searchOpened='';}}}}}}}}count.textContent=`${{shown}} of ${{rows.length}} operations shown`;}}
 for(const control of Object.values(controls))control.addEventListener(control.tagName==='INPUT'?'input':'change',filterRows);
 document.getElementById('clear-filters').addEventListener('click',()=>{{for(const control of Object.values(controls))control.value='';filterRows();controls['operation-filter'].focus();}});filterRows();
-const tableWrap=document.getElementById('operation-table-wrap'),topScrollbar=document.getElementById('operation-scrollbar');
-topScrollbar.addEventListener('scroll',()=>tableWrap.scrollLeft=topScrollbar.scrollLeft);
-tableWrap.addEventListener('scroll',()=>topScrollbar.scrollLeft=tableWrap.scrollLeft);
-function updateOverflow(){{topScrollbar.hidden=tableWrap.scrollWidth<=tableWrap.clientWidth+8;topScrollbar.firstElementChild.style.width=`${{tableWrap.scrollWidth}}px`;}}
-window.addEventListener('resize',updateOverflow);requestAnimationFrame(updateOverflow);
+const tableWrap=document.getElementById('operation-table-wrap'),topScrollbar=document.getElementById('operation-scrollbar'),scrollbarSlot=document.getElementById('operation-scrollbar-slot');
+function syncScroll(source,target){{const sourceMax=source.scrollWidth-source.clientWidth,targetMax=target.scrollWidth-target.clientWidth;target.scrollLeft=sourceMax?source.scrollLeft/sourceMax*targetMax:0;}}
+topScrollbar.addEventListener('scroll',()=>syncScroll(topScrollbar,tableWrap));
+tableWrap.addEventListener('scroll',()=>syncScroll(tableWrap,topScrollbar));
+function updateFloatingScrollbar(){{const tableRect=tableWrap.getBoundingClientRect(),slotRect=scrollbarSlot.getBoundingClientRect();const floating=!topScrollbar.hidden&&slotRect.bottom<0&&tableRect.bottom>window.innerHeight;topScrollbar.classList.toggle('is-floating',floating);scrollbarSlot.classList.toggle('has-floating-scrollbar',floating);if(floating){{const left=Math.max(0,tableRect.left);topScrollbar.style.left=`${{left}}px`;topScrollbar.style.width=`${{Math.min(tableRect.width,window.innerWidth-left)}}px`;}}else{{topScrollbar.style.removeProperty('left');topScrollbar.style.removeProperty('width');}}}}
+function updateOverflow(){{topScrollbar.hidden=tableWrap.scrollWidth<=tableWrap.clientWidth+8;topScrollbar.firstElementChild.style.width=`${{tableWrap.scrollWidth}}px`;updateFloatingScrollbar();}}
+window.addEventListener('scroll',updateFloatingScrollbar,{{passive:true}});window.addEventListener('resize',updateOverflow);requestAnimationFrame(updateOverflow);
 </script></body></html>'''
 
 
