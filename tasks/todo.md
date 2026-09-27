@@ -16,6 +16,9 @@
   placeholders, bounded the operation table to the page width, restored heading scale after the
   Tailwind reset, simplified support labels, removed the rootfs hash, and explained the limited
   live-test denominator.
+- Second follow-up: operation context now precedes the send command; all 192 supported named routes
+  use readable `zipmi oem` syntax while 270 operation-only rows retain raw fallbacks. A synchronized
+  top scrollbar and conditional overflow hint make hidden right-side columns discoverable.
 
 We now have full handler catalogs for several OEM stacks (ASMB-787/AMI,
 iDRAC9, iDRAC6/Dell, OpenBMC ×9, Supermicro stub). `docs/command-table.md`

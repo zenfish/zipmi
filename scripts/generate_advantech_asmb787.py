@@ -486,29 +486,54 @@ def response_length(value: str) -> str:
     return f"{value} including completion code; data length unresolved"
 
 
-def zipmi_raw_command(operation: dict) -> str:
-    """Render a copyable raw command, using placeholders only for caller data."""
-    netfn, cmd = operation["command"]
-    tokens = ["zipmi", "raw", f"0x{netfn:02x}", f"0x{cmd:02x}"]
+def request_argument_tokens(operation: dict, skip_bytes: int = 0) -> list[str]:
+    """Render caller-supplied request bytes after an optional named-route prefix."""
     request = operation["request"]
     fields = request.get("fields")
     if fields is not None:
+        tokens = []
+        widths = {"u8": 1, "u16le": 2, "u32le": 4}
         for field in fields:
+            width = field["length"] if "length" in field else widths[field["kind"]]
+            if skip_bytes >= width:
+                skip_bytes -= width
+                continue
+            if skip_bytes:
+                tokens.append(f"<{width - skip_bytes} remaining bytes of {field['name']}>")
+                skip_bytes = 0
+                continue
             if "constant" in field:
                 tokens.append(f"0x{field['constant']:02x}")
             elif field["kind"] == "bytes":
                 tokens.append(f"<{field['name']}:{field['length']} bytes>")
             else:
                 tokens.append(f"<{field['name']}:{field['kind']}>")
-        return " ".join(tokens)
+        return tokens
     prefix = operation.get("prefix") or []
-    tokens.extend(f"0x{value:02x}" for value in prefix)
+    tokens = [f"0x{value:02x}" for value in prefix[skip_bytes:]]
     if request["length"].isdigit():
-        remaining = int(request["length"]) - len(prefix)
+        remaining = int(request["length"]) - max(len(prefix), skip_bytes)
         if remaining > 0:
             tokens.append(f"<{remaining} remaining data bytes>")
     else:
         tokens.append("<payload bytes>")
+    return tokens
+
+
+def zipmi_command(operation: dict, parent: dict, execution: str) -> str:
+    """Prefer the supported named OEM route; fall back to an explicit raw request."""
+    prefix = operation.get("prefix")
+    if execution != "No distinct named route":
+        name = operation["id"] if prefix is not None else parent["handler"]
+        tokens = ["zipmi", "oem", "advantech-asmb787"]
+        if execution == "Requires --unsafe":
+            tokens.append("--unsafe")
+        tokens.append(name)
+        tokens.extend(request_argument_tokens(operation, len(prefix or [])))
+        return " ".join(tokens)
+    netfn, cmd = operation["command"]
+    tokens = ["zipmi", "raw", f"0x{netfn:02x}", f"0x{cmd:02x}"]
+    tokens.extend(request_argument_tokens(operation))
     return " ".join(tokens)
 
 
@@ -565,7 +590,7 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
         response = operation["response"]
         rendered_operations.append({
             "id": operation["id"],
-            "send": zipmi_raw_command(operation),
+            "send": zipmi_command(operation, parent, execution),
             "name": operation_name(operation["id"]),
             "purpose": purpose,
             "safety": safety_class(operation),

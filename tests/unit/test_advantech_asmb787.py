@@ -82,14 +82,24 @@ def test_generated_html_contains_every_exact_operation():
     assert "200 operations" in reference and "104 operations" in reference
     assert "108 operations" in reference and "14 operations" in reference
     assert "22 operations" in reference
-    assert "Send with zipmi" in reference
-    assert "zipmi raw 0x30 0x03 0x00" in reference
-    assert "zipmi raw 0x32 0x37 &lt;mode:u8&gt; &lt;transport:u8&gt;" in reference
+    assert ("<th>#</th><th>Operation</th><th>Safety</th><th>Send with zipmi</th>"
+            "<th>Request data</th>" in reference)
+    assert ("<code class=\"command\">zipmi oem advantech-asmb787 --unsafe "
+            "ControlSysErrLED.action_0</code>" in reference)
+    assert reference.count('<code class="command">zipmi oem advantech-asmb787') == 192
+    assert reference.count('<code class="command">zipmi raw') == 270
+    assert 'id="operation-scroll-controls"' in reference
+    assert 'id="operation-scroll-left"' in reference
+    assert 'id="operation-scroll-right"' in reference
+    assert 'id="operation-scrollbar"' in reference
+    assert 'id="operation-table-wrap"' in reference
+    assert "querySelectorAll('#operation-rows > tr')" in reference
     assert "Research artifact ID" in reference
     assert "Original rootfs SHA-256" not in reference
     assert "33 of 462 operations" in reference
     assert "main > h1" in stylesheet and "font-weight: 800 !important" in stylesheet
     assert ".operation-table { min-width: 108rem; table-layout: fixed; }" in stylesheet
+    assert ".table-scrollbar::-webkit-scrollbar" in stylesheet
     assert "overflow-wrap: anywhere" in stylesheet
     assert 'id="operation-filter"' in reference
     assert all(f'id="{name}-filter"' in reference for name in (

@@ -99,9 +99,9 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
             f'<tr data-search="{_e(search)}" data-safety="{_e(op["safety"])}" '
             f'data-request="{_e(op["request"]["status"])}" data-response="{_e(op["response"]["status"])}" '
             f'data-execution="{_e(op["execution"])}" data-live="{str(op["live"]).lower()}">'
-            f'<td>{index}</td><td><code class="command">{_e(op["send"])}</code></td>'
-            f'<th scope="row"><strong>{_e(op["name"])}</strong><div class="wire muted">{_e(op["id"])}</div><p>{_e(op["purpose"])}</p></th>'
+            f'<td>{index}</td><th scope="row"><strong>{_e(op["name"])}</strong><div class="wire muted">{_e(op["id"])}</div><p>{_e(op["purpose"])}</p></th>'
             f'<td>{_badge(op["safety"])}{("<p class=\"muted\">" + _e(op["safety_note"]) + "</p>") if op.get("safety_note") else ""}</td>'
+            f'<td><code class="command">{_e(op["send"])}</code></td>'
             f'<td>{_layout("Request", op["request"])}</td><td>{_layout("Response", op["response"])}</td>'
             f'<td class="stack"><p><strong>Privilege:</strong> {_e(op["privilege"])}</p><p><strong>Interface:</strong> {_e(op["interface"])}</p>'
             f'<p><strong>Available on this firmware:</strong> {_e(op["availability"])}</p><p><strong>Completion codes:</strong> <code>{_e(op["completion_codes"])}</code></p></td>'
@@ -139,16 +139,25 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 <label><span>Live evidence</span><select id="live-filter"><option value="">All</option><option value="true">Live-tested only</option></select></label>
 <button id="clear-filters" type="button">Clear filters</button></div>
 <p id="operation-count" class="muted" aria-live="polite"></p>
-<div class="table-wrap" role="region" aria-label="OEM operations" tabindex="0"><table class="operation-table"><caption>Commands to send, payload layouts, safety, availability, zipmi support, and evidence.</caption><thead><tr><th>#</th><th>Send with zipmi</th><th>Operation</th><th>Safety</th><th>Request data</th><th>Response data</th><th>Access &amp; availability</th><th>zipmi support &amp; evidence</th></tr></thead><tbody id="operation-rows">{"".join(operation_rows)}</tbody></table></div></section>
+<div id="operation-scroll-controls" class="scroll-controls"><span>More columns are available to the right.</span><button id="operation-scroll-left" type="button">← Scroll left</button><button id="operation-scroll-right" type="button">Scroll right →</button></div>
+<div id="operation-scrollbar" class="table-scrollbar" role="region" aria-label="Horizontal scrollbar for the operations table" tabindex="0"><div aria-hidden="true">&nbsp;</div></div>
+<div id="operation-table-wrap" class="table-wrap" role="region" aria-label="OEM operations" tabindex="0"><table class="operation-table"><caption>Commands to send, payload layouts, safety, availability, zipmi support, and evidence.</caption><thead><tr><th>#</th><th>Operation</th><th>Safety</th><th>Send with zipmi</th><th>Request data</th><th>Response data</th><th>Access &amp; availability</th><th>zipmi support &amp; evidence</th></tr></thead><tbody id="operation-rows">{"".join(operation_rows)}</tbody></table></div></section>
 <section aria-labelledby="commands"><h2 id="commands">Top-level command addresses</h2><div class="table-wrap"><table><caption>Firmware dispatcher entries beneath the operations above.</caption><thead><tr><th>Command address</th><th>Firmware handler / module</th><th>Available on this firmware</th><th>Minimum privilege</th><th>Operations below it</th><th>Evidence</th></tr></thead><tbody id="command-rows">{command_rows}</tbody></table></div></section>
 <section aria-labelledby="sources"><h2 id="sources">Sources</h2><ul>{source_items}</ul></section>
 </main><script>
 const ids=['operation-filter','safety-filter','request-filter','response-filter','execution-filter','live-filter'];
 const controls=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
-const rows=[...document.querySelectorAll('#operation-rows tr')],count=document.getElementById('operation-count');
+const rows=[...document.querySelectorAll('#operation-rows > tr')],count=document.getElementById('operation-count');
 function filterRows(){{let shown=0;for(const row of rows){{const visible=row.dataset.search.includes(controls['operation-filter'].value.toLowerCase())&&(!controls['safety-filter'].value||row.dataset.safety===controls['safety-filter'].value)&&(!controls['request-filter'].value||row.dataset.request===controls['request-filter'].value)&&(!controls['response-filter'].value||row.dataset.response===controls['response-filter'].value)&&(!controls['execution-filter'].value||row.dataset.execution===controls['execution-filter'].value)&&(!controls['live-filter'].value||row.dataset.live===controls['live-filter'].value);row.hidden=!visible;if(visible)shown++;}}count.textContent=`${{shown}} of ${{rows.length}} operations shown`;}}
 for(const control of Object.values(controls))control.addEventListener(control.tagName==='INPUT'?'input':'change',filterRows);
 document.getElementById('clear-filters').addEventListener('click',()=>{{for(const control of Object.values(controls))control.value='';filterRows();controls['operation-filter'].focus();}});filterRows();
+const tableWrap=document.getElementById('operation-table-wrap'),topScrollbar=document.getElementById('operation-scrollbar'),scrollControls=document.getElementById('operation-scroll-controls');
+topScrollbar.addEventListener('scroll',()=>tableWrap.scrollLeft=topScrollbar.scrollLeft);
+tableWrap.addEventListener('scroll',()=>topScrollbar.scrollLeft=tableWrap.scrollLeft);
+document.getElementById('operation-scroll-left').addEventListener('click',()=>tableWrap.scrollBy({{left:-tableWrap.clientWidth*.75,behavior:'smooth'}}));
+document.getElementById('operation-scroll-right').addEventListener('click',()=>tableWrap.scrollBy({{left:tableWrap.clientWidth*.75,behavior:'smooth'}}));
+function updateOverflow(){{const overflow=tableWrap.scrollWidth>tableWrap.clientWidth+8;topScrollbar.hidden=!overflow;scrollControls.hidden=!overflow;topScrollbar.firstElementChild.style.width=`${{tableWrap.scrollWidth}}px`;}}
+window.addEventListener('resize',updateOverflow);requestAnimationFrame(updateOverflow);
 </script></body></html>'''
 
 
