@@ -71,9 +71,9 @@ def test_generated_html_contains_every_exact_operation():
     stylesheet = (docs / "assets/oem-command-reference.css").read_text()
     assert '<link rel="stylesheet" href="assets/oem-command-reference.css">' in reference
     assert "<style" not in reference
-    assert "187</strong>Top-level command addresses" in reference
+    assert "187</strong>Unique NetFn/Cmd addresses" in reference
     assert "462</strong>Documented operations" in reference
-    assert "143 / 319 / 0 / 0</strong>Request layout: complete / partial / unknown / conflicting" in reference
+    assert "145 / 317 / 0 / 0</strong>Request layout: complete / partial / unknown / conflicting" in reference
     assert "204 / 258 / 0 / 0</strong>Response layout: complete / partial / unknown / conflicting" in reference
     assert ("75 / 117 / 270</strong>Named operation route: default / --unsafe / "
             "no distinct route" in reference)
@@ -88,16 +88,17 @@ def test_generated_html_contains_every_exact_operation():
             "ControlSysErrLED.action_0</code>" in reference)
     assert reference.count('<code class="command">zipmi oem advantech-asmb787') == 192
     assert reference.count('<code class="command">zipmi raw') == 270
-    assert 'id="operation-scroll-controls"' in reference
-    assert 'id="operation-scroll-left"' in reference
-    assert 'id="operation-scroll-right"' in reference
+    assert 'id="operation-scroll-controls"' not in reference
+    assert 'id="operation-scroll-left"' not in reference
+    assert 'id="operation-scroll-right"' not in reference
     assert 'id="operation-scrollbar"' in reference
     assert 'id="operation-table-wrap"' in reference
     assert "querySelectorAll('#operation-rows > tr')" in reference
     assert "Research artifact ID" in reference
     assert "Original rootfs SHA-256" not in reference
     assert "33 of 462 operations" in reference
-    assert "main > h1" in stylesheet and "font-weight: 800 !important" in stylesheet
+    assert "main > h1 { margin: 0; font-size: 1.5rem !important" in stylesheet
+    assert "main h2 { margin: 2.5rem 0 .75rem; font-size: 1.125rem !important" in stylesheet
     assert ".operation-table { min-width: 108rem; table-layout: fixed; }" in stylesheet
     assert ".table-scrollbar::-webkit-scrollbar" in stylesheet
     assert "overflow-wrap: anywhere" in stylesheet
@@ -105,6 +106,12 @@ def test_generated_html_contains_every_exact_operation():
     assert all(f'id="{name}-filter"' in reference for name in (
         "safety", "request", "response", "execution", "live"))
     assert "<td class=\"wire\">0</td><td class=\"wire\">mode</td>" in reference
+    assert ("AMIGetRISConf &lt;media_mask:u8&gt; &lt;selector:u8&gt;" in reference
+            and "Exactly one configured remote-image slot" in reference)
+    assert "Access requirement unknown (firmware value 0x81)" in reference
+    assert "Registered automatically when the IPMI service starts" in reference
+    assert "Top-level command addresses" not in reference
+    assert "Operations below it" not in reference
     assert "Writes ptpd configuration" in reference
     assert "Queries AMI YAFU Get Flash Info; response layout:" in reference
     assert "20260926T031044Z-cc48e36e-4cc4-4f24-8052-6baa12c24fa2" in reference
@@ -119,7 +126,7 @@ def test_generated_html_contains_every_exact_operation():
             self.current = None
             self.nested_rows = 0
             self.nested_bodies = 0
-            self.rows = {"operation-rows": [], "command-rows": []}
+            self.rows = {"operation-rows": []}
 
         def handle_starttag(self, tag, attrs):
             attrs = dict(attrs)
@@ -148,14 +155,13 @@ def test_generated_html_contains_every_exact_operation():
     parser = TableRows()
     parser.feed(reference)
     operations = parser.rows["operation-rows"]
-    commands = parser.rows["command-rows"]
     assert len(operations) == 462 and {row["cells"] for row in operations} == {8}
     assert Counter(row["data-safety"] for row in operations) == {
         "read-only": 200, "sensitive": 104, "state-changing": 108,
         "disruptive": 14, "destructive": 22, "unknown": 14,
     }
     assert Counter(row["data-request"] for row in operations) == {
-        "Complete": 143, "Partial": 319,
+        "Complete": 145, "Partial": 317,
     }
     assert Counter(row["data-response"] for row in operations) == {
         "Complete": 204, "Partial": 258,
@@ -171,7 +177,6 @@ def test_generated_html_contains_every_exact_operation():
     assert Counter(row["data-safety"] for row in live) == {
         "read-only": 32, "sensitive": 1,
     }
-    assert len(commands) == 187 and {row["cells"] for row in commands} == {6}
 
 
 def test_corrected_cmd_handler_layout_values():
@@ -342,8 +347,8 @@ def test_exact_operation_contracts_and_codecs_are_generated():
 
     assert len(ASMB787_OPERATIONS) == 462
     assert {tuple(row["command"]) for row in ASMB787_OPERATIONS} == set(ASMB787_COMMANDS)
-    assert sum(row["codec_state"] == "verified" for row in ASMB787_OPERATIONS) == 81
-    assert len(ASMB787_PAYLOADS) == 81
+    assert sum(row["codec_state"] == "verified" for row in ASMB787_OPERATIONS) == 82
+    assert len(ASMB787_PAYLOADS) == 82
     assert all(row["codec_state"] == "raw-exact" for row in ASMB787_OPERATIONS
                if row["id"].startswith("AMISetNTPCfg."))
     assert (0x32, 0xA8) not in ASMB787_PAYLOADS

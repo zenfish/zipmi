@@ -12,9 +12,9 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--text); font: 15px/1.55 ui-sans-serif, system-ui, sans-serif; }
 main { max-width: 112rem; margin: auto; padding: 2rem; }
-main > h1 { margin: 0; font-size: clamp(2.2rem, 4vw, 3.25rem) !important; font-weight: 800 !important; line-height: 1.08; }
-main h2 { margin: 2.5rem 0 .75rem; font-size: 1.45rem !important; font-weight: 750 !important; line-height: 1.2; }
-main h3 { margin: 1.5rem 0 .5rem; font-size: 1.05rem !important; font-weight: 700 !important; }
+main > h1 { margin: 0; font-size: 1.5rem !important; font-weight: 800 !important; line-height: 1.2; }
+main h2 { margin: 2.5rem 0 .75rem; font-size: 1.125rem !important; font-weight: 750 !important; line-height: 1.25; }
+main h3 { margin: 1.5rem 0 .5rem; font-size: 1rem !important; font-weight: 700 !important; }
 p { max-width: 90rem; }
 a { color: var(--accent); text-underline-offset: .15em; }
 code, .wire { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; word-break: break-word; }
@@ -38,9 +38,6 @@ input, select, button { min-height: 2.7rem; padding: .55rem .7rem; border: 1px s
 input:focus, select:focus, button:focus, a:focus { outline: 3px solid #93c5fd; outline-offset: 2px; }
 button { cursor: pointer; font-weight: 700; }
 .table-wrap { margin-top: 1rem; overflow: auto; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); }
-.scroll-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 1rem 0 .25rem; color: var(--muted); font-size: .85rem; font-weight: 650; }
-.scroll-controls span { margin-right: auto; }
-.scroll-controls button { min-height: 2.1rem; padding: .25rem .7rem; }
 .table-scrollbar { height: 1rem; overflow-x: scroll; overflow-y: hidden; scrollbar-color: #64748b #e2e8f0; }
 .table-scrollbar > div { height: 1px; }
 .table-scrollbar::-webkit-scrollbar { height: .8rem; }
@@ -70,4 +67,4 @@ summary { cursor: pointer; font-weight: 650; }
 [hidden] { display: none !important; }
 @media (max-width: 75rem) { .filters { grid-template-columns: 1fr 1fr; } main { padding: 1rem; } }
 @media (max-width: 42rem) { .filters { grid-template-columns: 1fr; } }
-@media print { .filters, .scroll-controls, .table-scrollbar, button, script { display: none !important; } main { max-width: none; padding: 0; } thead th { position: static; } }
+@media print { .filters, .table-scrollbar, button, script { display: none !important; } main { max-width: none; padding: 0; } thead th { position: static; } }

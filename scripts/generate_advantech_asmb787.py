@@ -280,6 +280,11 @@ def field_descriptors(layout: str, expected_length: str) -> list[dict] | None:
         if match:
             fields.append({"name": match.group(1), "kind": match.group(2)})
             continue
+        match = re.fullmatch(r"([A-Za-z_]\w*)\((one bit)\)", token)
+        if match:
+            fields.append({"name": match.group(1), "kind": "u8",
+                           "meaning": match.group(2)})
+            continue
         match = re.fullmatch(r"([A-Za-z_]\w*)(?:=\([^)]*\))?", token)
         if match:
             fields.append({"name": match.group(1), "kind": "u8"})
@@ -469,7 +474,8 @@ def normalized_fields(fields: list[dict] | None, *, response: bool = False) -> l
     widths = {"u8": 1, "u16le": 2, "u32le": 4}
     for field in source:
         width = field["length"] if "length" in field else widths[field["kind"]]
-        meaning = f"Must be 0x{field['constant']:02x}" if "constant" in field else "See operation semantics"
+        meaning = (f"Must be 0x{field['constant']:02x}" if "constant" in field
+                   else field.get("meaning", "See operation semantics"))
         result.append({
             "offset": str(offset) if width == 1 else f"{offset}–{offset + width - 1}",
             "name": field["name"],
@@ -539,16 +545,22 @@ def zipmi_command(operation: dict, parent: dict, execution: str) -> str:
 
 def availability(value: str) -> str:
     if value == "statically registered in owning dispatcher table":
-        return "Always present in this firmware"
+        return "Built into the main IPMI service"
     if value.startswith("runtime registered:"):
-        return "Module loaded in this firmware"
+        return "Registered automatically when the IPMI service starts"
     if value.startswith("not runtime registered:"):
-        return "Module present but not loaded"
+        return "Present on disk but not registered; feature disabled"
     if "explicitly enabled" in value:
-        return "Present; runtime availability unproved"
+        return "Enabled in this firmware; startup registration not proved"
     if "absent from extracted" in value:
         return "Disabled in this firmware"
     raise SystemExit(f"unknown activation status: {value}")
+
+
+def privilege(value: str) -> str:
+    if value.startswith("special/raw "):
+        return f"Access requirement unknown (firmware value {value.removeprefix('special/raw ')})"
+    return value
 
 
 def compatibility_markdown() -> str:
@@ -588,6 +600,25 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
             purpose += " The external effect is not established by current evidence."
         request = operation["request"]
         response = operation["response"]
+        request_fields = normalized_fields(request.get("fields"))
+        response_fields = normalized_fields(response.get("fields"), response=True)
+        if operation["id"] == "AMIGetRISConf":
+            request_fields[0]["meaning"] = ("Exactly one configured remote-image slot: "
+                                             "0x01, 0x02, 0x04, 0x08, or 0x10")
+            request_fields[1]["meaning"] = ("0x00 image; 0x01 path; 0x02 host; 0x03 user; "
+                                             "0x04 password; 0x05 share type; 0x06 domain; "
+                                             "0x07 retry; 0x08 interval; 0x09 mounted; "
+                                             "0x0a service status")
+            response_fields = [
+                {"offset": "0", "name": "media_mask", "type": "u8",
+                 "meaning": "Echoed remote-image slot mask"},
+                {"offset": "1", "name": "selector", "type": "u8",
+                 "meaning": "Echoed selector from the request"},
+                {"offset": "2…", "name": "value", "type": "selector-dependent",
+                 "meaning": ("Selected value: image/path/user/domain 256 bytes; host 63; "
+                             "password 32 zero bytes; share type 6; retry/interval/mounted/"
+                             "service status 1")},
+            ]
         rendered_operations.append({
             "id": operation["id"],
             "send": zipmi_command(operation, parent, execution),
@@ -601,20 +632,18 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
                 "status": layout_status(request.get("fields"), request["layout"]),
                 "length": f'{request["length"]} payload bytes',
                 "summary": request["layout"],
-                "fields": normalized_fields(request.get("fields")),
+                "fields": request_fields,
             },
             "response": {
                 "status": layout_status(response.get("fields"), response["layout"]),
                 "length": response_length(response["length_including_cc"]),
                 "summary": response["layout"].removeprefix("cc;") or "no response data",
-                "fields": normalized_fields(response.get("fields"), response=True),
+                "fields": response_fields,
             },
-            "privilege": parent["privilege"],
+            "privilege": privilege(parent["privilege"]),
             "interface": parent["interface_semantics"],
             "availability": availability(parent["activation_status"]),
             "completion_codes": ", ".join(operation["completion_codes"]),
-            "request_builder": "Available" if operation["codec_state"] == "verified" else "Not available",
-            "response_parser": "Available" if operation["codec_state"] == "verified" else "Not available",
             "live": bool(live),
             "live_text": (f'{live["run_id"]}; CC {live["completion_code"]}; data '
                           f'{live["response_data_hex"] or "(empty)"}' if live else "Not live-tested"),
@@ -626,7 +655,7 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
         "handler": row["handler"],
         "module": row["module"],
         "availability": availability(row["activation_status"]),
-        "privilege": row["privilege"],
+        "privilege": privilege(row["privilege"]),
         "operation_count": operation_counts[(int(row["netfn"], 0), int(row["cmd"], 0))],
         "evidence": f'{row["table"]} entry {row["entry_address"]}; SHA-256 {row["module_sha256"]}',
     } for row in rows]
@@ -649,7 +678,8 @@ def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
         }],
         "operations": rendered_operations,
         "commands": rendered_commands,
-        "gaps": ("The 187 top-level command-address inventory is closed for this firmware. "
+        "gaps": ("The 187-address inventory is closed for this firmware. One address is one unique "
+                 "NetFn/Cmd pair; several payload-selected operations can share an address. "
                  "Variable, union, checksum, and selector-dependent layouts remain Partial. "
                  "Combined behaviors are not split unless their selector boundary is proven."),
         "live_evidence": ("33 of 462 operations have captured requests and responses from the emulated "

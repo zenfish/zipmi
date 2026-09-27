@@ -77,7 +77,7 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
     live_count = sum(op["live"] for op in operations)
 
     metrics = [
-        (len(page["commands"]), "Top-level command addresses"),
+        (len(page["commands"]), "Unique NetFn/Cmd addresses"),
         (len(operations), "Documented operations"),
         (f'{request_counts["Complete"]} / {request_counts["Partial"]} / {request_counts["Unknown"]} / {request_counts["Conflicting"]}', "Request layout: complete / partial / unknown / conflicting"),
         (f'{response_counts["Complete"]} / {response_counts["Partial"]} / {response_counts["Unknown"]} / {response_counts["Conflicting"]}', "Response layout: complete / partial / unknown / conflicting"),
@@ -105,16 +105,9 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
             f'<td>{_layout("Request", op["request"])}</td><td>{_layout("Response", op["response"])}</td>'
             f'<td class="stack"><p><strong>Privilege:</strong> {_e(op["privilege"])}</p><p><strong>Interface:</strong> {_e(op["interface"])}</p>'
             f'<p><strong>Available on this firmware:</strong> {_e(op["availability"])}</p><p><strong>Completion codes:</strong> <code>{_e(op["completion_codes"])}</code></p></td>'
-            f'<td class="stack"><p><strong>Named operation route:</strong> {_e(op["execution"])}</p><p><strong>Build request from named fields:</strong> {_e(op["request_builder"])}</p>'
-            f'<p><strong>Decode response into named fields:</strong> {_e(op["response_parser"])}</p><p><strong>Captured live request:</strong> {_e(op["live_text"])}</p>'
-            f'<p><strong>Evidence:</strong> {_e(op["evidence"])}</p><p><strong>Confidence:</strong> {_e(op["confidence"])}</p></td></tr>'
+            f'<td class="stack"><p><strong>Named operation route:</strong> {_e(op["execution"])}</p><p><strong>Captured live request:</strong> {_e(op["live_text"])}</p>'
+            f'<p><strong>Recovered from:</strong> {_e(op["evidence"])}</p><p><strong>Confidence:</strong> {_e(op["confidence"])}</p></td></tr>'
         )
-
-    command_rows = "".join(
-        f'<tr><td class="wire">{_e(cmd["wire"])}</td><td><strong>{_e(cmd["handler"])}</strong><br><span class="muted">{_e(cmd["module"])}</span></td>'
-        f'<td>{_e(cmd["availability"])}</td><td>{_e(cmd["privilege"])}</td><td>{_e(cmd["operation_count"])}</td><td>{_e(cmd["evidence"])}</td></tr>'
-        for cmd in page["commands"]
-    )
     safety_options = "".join(f'<option value="{name}">{name.title()}</option>' for name in SAFETY)
     layout_options = '<option value="">All</option>' + "".join(f'<option>{name}</option>' for name in ("Complete", "Partial", "Unknown", "Conflicting"))
     execution_options = '<option value="">All</option>' + "".join(f'<option>{name}</option>' for name in EXECUTION)
@@ -139,10 +132,8 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 <label><span>Live evidence</span><select id="live-filter"><option value="">All</option><option value="true">Live-tested only</option></select></label>
 <button id="clear-filters" type="button">Clear filters</button></div>
 <p id="operation-count" class="muted" aria-live="polite"></p>
-<div id="operation-scroll-controls" class="scroll-controls"><span>More columns are available to the right.</span><button id="operation-scroll-left" type="button">← Scroll left</button><button id="operation-scroll-right" type="button">Scroll right →</button></div>
 <div id="operation-scrollbar" class="table-scrollbar" role="region" aria-label="Horizontal scrollbar for the operations table" tabindex="0"><div aria-hidden="true">&nbsp;</div></div>
 <div id="operation-table-wrap" class="table-wrap" role="region" aria-label="OEM operations" tabindex="0"><table class="operation-table"><caption>Commands to send, payload layouts, safety, availability, zipmi support, and evidence.</caption><thead><tr><th>#</th><th>Operation</th><th>Safety</th><th>Send with zipmi</th><th>Request data</th><th>Response data</th><th>Access &amp; availability</th><th>zipmi support &amp; evidence</th></tr></thead><tbody id="operation-rows">{"".join(operation_rows)}</tbody></table></div></section>
-<section aria-labelledby="commands"><h2 id="commands">Top-level command addresses</h2><div class="table-wrap"><table><caption>Firmware dispatcher entries beneath the operations above.</caption><thead><tr><th>Command address</th><th>Firmware handler / module</th><th>Available on this firmware</th><th>Minimum privilege</th><th>Operations below it</th><th>Evidence</th></tr></thead><tbody id="command-rows">{command_rows}</tbody></table></div></section>
 <section aria-labelledby="sources"><h2 id="sources">Sources</h2><ul>{source_items}</ul></section>
 </main><script>
 const ids=['operation-filter','safety-filter','request-filter','response-filter','execution-filter','live-filter'];
@@ -151,12 +142,10 @@ const rows=[...document.querySelectorAll('#operation-rows > tr')],count=document
 function filterRows(){{let shown=0;for(const row of rows){{const visible=row.dataset.search.includes(controls['operation-filter'].value.toLowerCase())&&(!controls['safety-filter'].value||row.dataset.safety===controls['safety-filter'].value)&&(!controls['request-filter'].value||row.dataset.request===controls['request-filter'].value)&&(!controls['response-filter'].value||row.dataset.response===controls['response-filter'].value)&&(!controls['execution-filter'].value||row.dataset.execution===controls['execution-filter'].value)&&(!controls['live-filter'].value||row.dataset.live===controls['live-filter'].value);row.hidden=!visible;if(visible)shown++;}}count.textContent=`${{shown}} of ${{rows.length}} operations shown`;}}
 for(const control of Object.values(controls))control.addEventListener(control.tagName==='INPUT'?'input':'change',filterRows);
 document.getElementById('clear-filters').addEventListener('click',()=>{{for(const control of Object.values(controls))control.value='';filterRows();controls['operation-filter'].focus();}});filterRows();
-const tableWrap=document.getElementById('operation-table-wrap'),topScrollbar=document.getElementById('operation-scrollbar'),scrollControls=document.getElementById('operation-scroll-controls');
+const tableWrap=document.getElementById('operation-table-wrap'),topScrollbar=document.getElementById('operation-scrollbar');
 topScrollbar.addEventListener('scroll',()=>tableWrap.scrollLeft=topScrollbar.scrollLeft);
 tableWrap.addEventListener('scroll',()=>topScrollbar.scrollLeft=tableWrap.scrollLeft);
-document.getElementById('operation-scroll-left').addEventListener('click',()=>tableWrap.scrollBy({{left:-tableWrap.clientWidth*.75,behavior:'smooth'}}));
-document.getElementById('operation-scroll-right').addEventListener('click',()=>tableWrap.scrollBy({{left:tableWrap.clientWidth*.75,behavior:'smooth'}}));
-function updateOverflow(){{const overflow=tableWrap.scrollWidth>tableWrap.clientWidth+8;topScrollbar.hidden=!overflow;scrollControls.hidden=!overflow;topScrollbar.firstElementChild.style.width=`${{tableWrap.scrollWidth}}px`;}}
+function updateOverflow(){{topScrollbar.hidden=tableWrap.scrollWidth<=tableWrap.clientWidth+8;topScrollbar.firstElementChild.style.width=`${{tableWrap.scrollWidth}}px`;}}
 window.addEventListener('resize',updateOverflow);requestAnimationFrame(updateOverflow);
 </script></body></html>'''
 

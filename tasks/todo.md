@@ -18,7 +18,12 @@
   live-test denominator.
 - Second follow-up: operation context now precedes the send command; all 192 supported named routes
   use readable `zipmi oem` syntax while 270 operation-only rows retain raw fallbacks. A synchronized
-  top scrollbar and conditional overflow hint make hidden right-side columns discoverable.
+  top scrollbar makes hidden right-side columns discoverable.
+- Third follow-up: reduced the title and section-heading scale; removed redundant scroll instructions
+  and the reverse-engineering-only dispatcher table; clarified registration, privilege, and source
+  labels; and recovered the exact two-byte `AMIGetRISConf` request plus its selector-dependent response.
+  Proof: 22 focused tests pass; browser checks report 24px/18px headings, visible overflow scrollbar,
+  synchronized horizontal scrolling, complete RIS request fields, and no secondary command table.
 
 We now have full handler catalogs for several OEM stacks (ASMB-787/AMI,
 iDRAC9, iDRAC6/Dell, OpenBMC ×9, Supermicro stub). `docs/command-table.md`
