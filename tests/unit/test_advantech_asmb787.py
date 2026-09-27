@@ -97,6 +97,7 @@ def test_generated_html_contains_every_exact_operation():
     assert "querySelectorAll('#operation-rows > tr')" in reference
     assert reference.count('<details class="evidence"><summary>Recovered from</summary>') == 462
     assert "document.createTreeWalker" in reference
+    assert "for(const parent of parents)parent.normalize()" in reference
     assert "details.dataset.searchOpened" in reference
     assert "function syncScroll(source,target)" in reference
     assert "Research artifact ID" in reference
