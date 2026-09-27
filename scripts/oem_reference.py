@@ -161,8 +161,3 @@ function updateFloatingScrollbar(){{const tableRect=tableWrap.getBoundingClientR
 function updateOverflow(){{topScrollbar.hidden=tableWrap.scrollWidth<=tableWrap.clientWidth+8;updateFloatingScrollbar();}}
 window.addEventListener('scroll',updateFloatingScrollbar,{{passive:true}});window.addEventListener('resize',updateOverflow);requestAnimationFrame(updateOverflow);
 </script></body></html>'''
-
-
-def redirect_page(title: str, canonical_name: str, stylesheet_href: str = "assets/oem-command-reference.css") -> str:
-    target = _e(canonical_name)
-    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0; url={target}"><link rel="canonical" href="{target}"><link rel="stylesheet" href="{_e(stylesheet_href)}"><title>{_e(title)}</title></head><body><main><h1>{_e(title)}</h1><p>This compatibility URL has moved to <a href="{target}">{target}</a>.</p></main></body></html>'''

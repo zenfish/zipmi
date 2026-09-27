@@ -13,7 +13,7 @@ import re
 import sys
 from pathlib import Path
 
-from oem_reference import redirect_page, render_reference
+from oem_reference import render_reference
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -23,8 +23,6 @@ CONTRACTS_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-oem-contracts.js
 HEADER_SOURCE = ROOT / "zipmi/data/sources/advantech-asmb787-header-contracts.csv"
 MODULE = ROOT / "zipmi/scapy_ipmi/oem/advantech_asmb787_generated.py"
 DOC = ROOT / "docs/advantech-asmb787-command-reference.html"
-LEGACY_DOC = ROOT / "docs/advantech_ASMB787-command-reference.html"
-DOC_MD = ROOT / "docs/advantech_ASMB787-command-reference.md"
 BASE_FIELDS = (
     "netfn", "cmd", "selector", "selector_status", "handler", "module",
     "table", "category", "table_address", "entry_address", "privilege_raw",
@@ -563,17 +561,6 @@ def privilege(value: str) -> str:
     return value
 
 
-def compatibility_markdown() -> str:
-    return """# Advantech ASMB-787 OEM IPMI command reference
-
-The canonical human-readable reference is
-[the HTML command reference](advantech-asmb787-command-reference.html).
-
-This compatibility pointer replaces the former duplicate Markdown table. The generated CSV and
-JSON files under `zipmi/data/sources/` remain the machine-readable sources of truth.
-"""
-
-
 def reference_page(rows: list[dict[str, str]], operations: list[dict]) -> dict:
     by_key = {(int(row["netfn"], 0), int(row["cmd"], 0)): row for row in rows}
     operation_counts = Counter(tuple(operation["command"]) for operation in operations)
@@ -722,11 +709,6 @@ def main() -> int:
     ok = emit(SOURCE, source_text(rows), args.check)
     ok &= emit(MODULE, module_text(rows, operations), args.check)
     ok &= emit(DOC, render_reference(reference_page(rows, operations)), args.check)
-    ok &= emit(LEGACY_DOC, redirect_page(
-        "Advantech ASMB-787 OEM IPMI command reference",
-        DOC.name,
-    ), args.check)
-    ok &= emit(DOC_MD, compatibility_markdown(), args.check)
     if args.check and not ok:
         print("ASMB-787 generated files are stale", file=sys.stderr)
         return 1

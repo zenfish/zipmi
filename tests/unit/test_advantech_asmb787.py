@@ -55,16 +55,6 @@ def test_sibling_header_context_preserves_all_dispatch_rows():
         "a726253a-edfa-5f2e-baa0-4c1d31af48ab"}
 
 
-def test_legacy_reference_urls_point_to_canonical_html():
-    docs = Path(__file__).parents[2] / "docs"
-    markdown = (docs / "advantech_ASMB787-command-reference.md").read_text()
-    redirect = (docs / "advantech_ASMB787-command-reference.html").read_text()
-    assert "advantech-asmb787-command-reference.html" in markdown
-    assert not any(line.startswith("| `0x") for line in markdown.splitlines())
-    assert '<link rel="canonical" href="advantech-asmb787-command-reference.html">' in redirect
-    assert 'http-equiv="refresh"' in redirect
-
-
 def test_generated_html_contains_every_exact_operation():
     docs = Path(__file__).parents[2] / "docs"
     reference = (docs / "advantech-asmb787-command-reference.html").read_text()
