@@ -4,7 +4,7 @@ Auto-generated from the Dell fullfw RE. **DO NOT EDIT BY HAND.**
 Regenerate with:
 
 ```
-python -m zipmi.parsers.md_table --markdown > docs/dell-command-table.md
+python -m zipmi.parsers.md_table --markdown > docs/idrac6-command-table.md
 ```
 
 Source: `Dell/iDRAC6 full-firmware IPMI command dump (author's private firmware-RE corpus, not in this repo)`

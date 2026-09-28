@@ -1,5 +1,20 @@
 # ⭐ TOP PRIORITY (2026-08-14): per-OEM columns across the whole command table
 
+## Task — Use generation-specific iDRAC6 document names (2026-09-27)
+
+- [x] Rename the packaged firmware analysis to `idrac6-fullfw-ipmi-commands.md`.
+- [x] Rename the compact table to `idrac6-command-table.md`.
+- [x] Update parser defaults, regeneration instructions, tests, and every documentation link.
+- [x] Confirm that no iDRAC6 command-reference exists yet.
+- [x] Verify generation, focused tests, lint, whitespace, and documentation synchronization.
+
+### Review
+
+- The source and compact-table names now identify iDRAC6 explicitly, matching the iDRAC9/iDRAC10 namespace.
+- No compatibility aliases were retained: these are repository-internal documentation paths, and all tracked consumers were updated atomically.
+- iDRAC6 remains the only completed firmware dispatch inventory without a Standard v1 HTML operation reference; it is the strongest next documentation target.
+- Proof: 220 focused iDRAC6 tests and all 2,375 repository tests pass; Ruff, whitespace, doc-sync, and generator-path checks pass.
+
 ## Task — Pin iDRAC6 firmware provenance (2026-09-27)
 
 - [x] Locate every known `fullfw` copy and prove they are byte-identical.
@@ -103,7 +118,7 @@ same as the ASMB787 column just added.
   - ASMB787 (AMI) — `docs/advantech-asmb787-command-reference.html` (DONE; corrected 187-row firmware dispatch catalog)
   - iDRAC9 — `docs/idrac9-command-table.md` (name-only; needs NetFn/cmd bytes
     from `G_asOEMIPMIReqeustHandleTable` — not yet cracked)
-  - iDRAC6 — `docs/dell-command-table.md` (has NetFn/cmd — ready to columnize)
+  - iDRAC6 — `docs/idrac6-command-table.md` (has NetFn/cmd — ready to columnize)
   - OpenBMC vendors — from `oem/*.py` (netfn,cmd) maps
 - Also: compare a **Supermicro/Tyan AMI-MegaRAC** firmware against its own
   dispatcher. ASMB-787 `raw 0x32 0x66` is Administrator-gated; the former

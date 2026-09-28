@@ -2,7 +2,7 @@
 zipmi.parsers.md_table — parse Dell fullfw RE markdown dispatch tables.
 
 WHAT     Reads the iDRAC6 firmware (fullfw) reverse-engineering notes
-         (fullfw-ipmi-commands.md) (Dan's
+         (idrac6-fullfw-ipmi-commands.md) (Dan's
          hand-curated dispatch + live-probe tables, 283 rows) and returns
          structured DispatchEntry records keyed by (netfn, cmd).
 
@@ -21,7 +21,7 @@ USAGE    Run as a module to regenerate the static output:
 OUTPUT   list[DispatchEntry] — see DispatchEntry dataclass below.
 
 RELATED  zipmi/scapy_ipmi/oem/dell.py (consumes the codegen),
-         iDRAC6 firmware (fullfw) reverse-engineering notes (fullfw-ipmi-commands.md, source).
+         iDRAC6 firmware (fullfw) reverse-engineering notes (idrac6-fullfw-ipmi-commands.md, source).
 """
 
 from __future__ import annotations
@@ -278,7 +278,7 @@ _NETFN_LABELS = {
 
 
 def emit_markdown(entries: list[DispatchEntry], source_path: str, firmware_sha: str = "") -> str:
-    """Render the dispatch entries as a docs/dell-command-table.md doc.
+    """Render the dispatch entries as a docs/idrac6-command-table.md doc.
 
     Mirrors the same row schema as docs/command-table.md (Cmd | Name |
     Priv | Sessionless | Live R710 | Notes) so a reader can scan one
@@ -291,7 +291,7 @@ def emit_markdown(entries: list[DispatchEntry], source_path: str, firmware_sha: 
     lines.append("Regenerate with:")
     lines.append("")
     lines.append("```")
-    lines.append("python -m zipmi.parsers.md_table --markdown > docs/dell-command-table.md")
+    lines.append("python -m zipmi.parsers.md_table --markdown > docs/idrac6-command-table.md")
     lines.append("```")
     lines.append("")
     lines.append(f"Source: `{source_path}`")
@@ -359,7 +359,7 @@ def emit_markdown(entries: list[DispatchEntry], source_path: str, firmware_sha: 
 
 def main(argv: list[str] | None = None) -> int:
     args = list(argv or sys.argv)
-    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "fullfw-ipmi-commands.md")
+    src = str(Path(__file__).resolve().parent.parent / "data" / "sources" / "idrac6-fullfw-ipmi-commands.md")
     fmt = "py"
     if "--markdown" in args:
         fmt = "md"

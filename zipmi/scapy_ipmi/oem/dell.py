@@ -67,7 +67,7 @@ class DellGetPowerCapReq(Packet):
 
 # --- registration --------------------------------------------------------
 #
-# Cherry-picked for now. Codegen from fullfw-ipmi-commands.md to populate
+# Cherry-picked for now. Codegen from idrac6-fullfw-ipmi-commands.md to populate
 # the rest is a follow-on (parsers/md_table.py).
 
 DELL_IANA = 674

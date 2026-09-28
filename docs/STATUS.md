@@ -19,7 +19,7 @@ play-by-play; this doc is the bird's-eye view.
 | 7 | System Boot Options + OEM dispatch registry + Dell/SM modules | `0656676` |
 | 8 | RAKP1 mutation fuzzer | `4d2f6c8` |
 | 9 | Dell fullfw codegen — 192 entries from RE markdown | `6a47302` |
-| 10 | `docs/dell-command-table.md` auto-generated from same parser | `d31a079` |
+| 10 | `docs/idrac6-command-table.md` auto-generated from same parser | `d31a079` |
 | 11 | doc-sync cleanup after codegen | `20ef102` |
 | 12 | iDRAC9 handler catalog (313 entries) + Supermicro OEM expansion + Dell attack primitives | `23d5aea` |
 | 13 | iDRAC9 dispatch-table codegen — 271 (NetFn, cmd, priv) tuples from rootfs ELF static parse | `c12aa52` (RE) + this commit |
@@ -114,7 +114,7 @@ or set `ZIPMI_TARGET / ZIPMI_USER / ZIPMI_PASS` env vars.
 ## Done since first STATUS.md draft
 
 * OEM Dell codegen — `parsers/md_table.py` → 192 entries in both
-  `oem/dell_generated.py` and `docs/dell-command-table.md`.
+  `oem/dell_generated.py` and `docs/idrac6-command-table.md`.
 * `fuzz/rakp_mut.py` — RAKP1 mutation harness landed (commit `4d2f6c8`).
 * iDRAC9 handler catalog — 313 named entries in `oem/idrac9_generated.py`,
   now rendered to `docs/idrac9-command-table.html` with the operation-level view in

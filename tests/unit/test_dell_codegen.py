@@ -17,7 +17,7 @@ from zipmi.parsers.md_table import firmware_sha256
 
 
 def test_source_pins_fullfw_sha256():
-    source = Path(__file__).parents[2] / "zipmi/data/sources/fullfw-ipmi-commands.md"
+    source = Path(__file__).parents[2] / "zipmi/data/sources/idrac6-fullfw-ipmi-commands.md"
     assert firmware_sha256(source.read_text()) == (
         "67f17aa14eda9e5d96b96825b93536a228db031acda90122eb353fba56dd3465"
     )

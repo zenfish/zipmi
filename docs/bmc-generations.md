@@ -43,7 +43,7 @@ targets even when they share an IPMI generation.
 
 - **One server, one BMC, one chassis.**
 - BMC has direct PCIe / I2C / LPC paths to a single host motherboard.
-- OEM cmd surface is what's documented in `dell/fullfw-ipmi-commands.md` and
+- OEM cmd surface is what's documented in `zipmi/data/sources/idrac6-fullfw-ipmi-commands.md` and
   what `dell_generated.py` covers (192 entries from T710 / iDRAC6 1.70).
 - This is what zipmi's Dell support has been live-verified against.
 

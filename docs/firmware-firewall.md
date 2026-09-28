@@ -47,13 +47,13 @@ re-authenticating per query.
 - `DISABLED` / `<-- blocked` — in the support mask but cleared in Get Command Enables:
   a command the firewall is actively blocking. This is the audit-relevant column.
 - OEM NetFns (`≥0x2E`) with no name catalog print a slot count instead of 128 `<OEM>` lines;
-  map opcodes to the vendor's `.so` handler tables (see `docs/dell-command-table.md`,
+  map opcodes to the vendor's `.so` handler tables (see `docs/idrac6-command-table.md`,
   `docs/idrac9-command-table.html`).
 
 ## Where it fits
 
 Between the two views zipmi already had: the *static* spec/vendor coverage
-(`command-table.md`, `dell-command-table.md`, `idrac9-command-table.html`) and the *brute* "what responds"
+(`command-table.md`, `idrac6-command-table.md`, `idrac9-command-table.html`) and the *brute* "what responds"
 (`fuzz sweep`). The firewall is the BMC's **own declaration** of its surface — the middle.
 `--probe` reconciles declaration vs reality.
 
