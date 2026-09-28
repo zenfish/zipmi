@@ -54,13 +54,21 @@ def _status(command: dict, direction: str) -> str:
     return "Complete" if command["confidence"].startswith("high") else "Partial"
 
 
+def _prefix(key: tuple[int, ...], command: dict) -> bytes:
+    return command["prefix"] if "prefix" in command else bytes(key[2:])
+
+
+def _identity(key: tuple[int, ...], command: dict) -> bytes:
+    return command.get("route_identity", _prefix(key, command))
+
+
 def _send(key: tuple[int, ...], command: dict) -> str:
     words = ["zipmi", "oem", "ieit"]
     if command["safety"] != "read-only":
         words.append("--unsafe")
     words.append(shlex.quote(command["name"]))
     low, high = command["request_length"]
-    fixed = len(key) - 2
+    fixed = len(_prefix(key, command))
     remaining_low = None if low is None else max(0, low - fixed)
     remaining_high = None if high is None else max(0, high - fixed)
     if remaining_low or remaining_high:
@@ -84,8 +92,8 @@ def _live_results() -> dict[tuple[int, int, bytes], dict]:
     return results
 
 
-def _live(key: tuple[int, ...], results: dict) -> tuple[bool, str]:
-    probe = results.get((key[0], key[1], bytes(key[2:])))
+def _live(key: tuple[int, ...], command: dict, results: dict) -> tuple[bool, str]:
+    probe = results.get((key[0], key[1], _prefix(key, command)))
     if probe is None:
         return False, "No retained live request for this exact operation"
     detail = probe["result"]
@@ -98,22 +106,31 @@ def _live(key: tuple[int, ...], results: dict) -> tuple[bool, str]:
 
 def _evidence(command: dict) -> str:
     registrations = command["registrations"]
-    return "; ".join(
+    evidence = [
         f"{registration['binary']}:{registration['table']}[{registration['table_index']}] "
         f"→ {registration['handler']}"
         for registration in registrations
-    )
+    ]
+    source = command.get("source_contract", {})
+    if command.get("operation_id"):
+        evidence.append(command["operation_id"])
+    if source.get("target_evidence_ref"):
+        evidence.append(source["target_evidence_ref"])
+    evidence.extend(source.get("evidence", ()))
+    return "; ".join(evidence)
 
 
 def operation_rows() -> list[dict]:
     results = _live_results()
     rows = []
     for key, command in IEIT_COMMANDS.items():
-        live, live_text = _live(key, results)
+        live, live_text = _live(key, command, results)
+        identity = _identity(key, command)
+        source_id = command.get("operation_id") or command.get("source_contract", {}).get("id")
         rows.append({
-            "id": f"{key[0]:02x}/{key[1]:02x}" + (
-                " data " + " ".join(f"{byte:02x}" for byte in key[2:])
-                if len(key) > 2 else ""
+            "id": (source_id or f"{key[0]:02x}/{key[1]:02x}") + (
+                " selector " + " ".join(f"{byte:02x}" for byte in identity)
+                if identity and not source_id else ""
             ),
             "name": command["name"],
             "purpose": command["purpose"],
@@ -150,7 +167,8 @@ def operation_rows() -> list[dict]:
 
 def reference_page() -> dict:
     operations = operation_rows()
-    selector_routes = sum(len(key) > 2 for key in IEIT_COMMANDS)
+    selector_routes = sum(bool(_identity(key, command))
+                          for key, command in IEIT_COMMANDS.items())
     return {
         "artifact_marker": REFERENCE_ARTIFACT,
         "title": "IEIT NF5468M6 OEM IPMI command reference",
@@ -166,12 +184,14 @@ def reference_page() -> dict:
             ("IEIT PDK provider", "<code>/usr/local/lib/libipmipdkcmds.so.6.1.0</code>"),
             ("IEIT PDK SHA-256", f"<code>{IEIT_PDK_SHA256}</code>"),
             ("Registration closure", "324 rows / 323 unique NetFn/Cmd addresses"),
+            ("AMI NetFn 0x32", "183 registrations / 470 target-decompiled operations"),
+            ("IEIT PDK NetFn 0x3c", "129 registrations / 282 normalized operations"),
             ("Selector routes", str(selector_routes)),
             ("Known collision", "NetFn 0x30 / Cmd 0xe2 has IEIT common-interface and Intel PNM providers"),
         ],
         "links": [{"label": "Compact IEIT NF5468M6 command table", "href": "ieit-nf5468m6-command-table.html"}],
         "operations": operations,
-        "commands": list(IEIT_COMMANDS),
+        "commands": sorted({(key[0], key[1]) for key in IEIT_COMMANDS}),
         "gaps": (
             "External or indirect handler boundaries are labeled explicitly. Runtime data can replace "
             "the embedded BIOS translation table, and framework registration order does not statically "
@@ -186,6 +206,8 @@ def reference_page() -> dict:
             '<a href="../zipmi/data/sources/ieit-nf5468m6-dispatch.json">Extracted dispatch ledger</a>',
             '<a href="../zipmi/data/sources/ieit-nf5468m6-netfn30-34-38.json">Platform/BIOS selector analysis</a>',
             '<a href="../zipmi/data/sources/ieit-nf5468m6-pdk-contracts.json">IEIT NetFn 0x3c analysis</a>',
+            '<a href="../zipmi/data/sources/ieit-nf5468m6-ami-netfn32-contracts.json">AMI NetFn 0x32 analysis</a>',
+            '<a href="../zipmi/data/sources/ieit-nf5468m6-aux-contracts.json">PNM, HPM, chassis, and ATS analysis</a>',
             '<a href="../zipmi/data/sources/ieit-nf5468m6-live-evidence.json">Safe live evidence</a>',
             '<a href="../zipmi/scapy_ipmi/oem/ieit.py">Packaged target implementation</a>',
         ],
@@ -195,11 +217,14 @@ def reference_page() -> dict:
 def compact_page() -> dict:
     rows = []
     for key, command in IEIT_COMMANDS.items():
+        identity = _identity(key, command)
         rows.append({
             "address": f"0x{key[0]:02x} / 0x{key[1]:02x}",
             "qualifier": (
-                "data prefix " + " ".join(f"{byte:02x}" for byte in key[2:])
-                if len(key) > 2 else "top-level registration"
+                "selector " + " ".join(f"{byte:02x}" for byte in identity)
+                + (f" at byte {command['selector_offset']}"
+                   if command.get("selector_offset") not in (None, 0) else "")
+                if identity else "top-level registration"
             ),
             "handler": command["name"],
             "privilege": command["privilege"],
@@ -220,11 +245,15 @@ def compact_page() -> dict:
             (324, "Firmware registration rows"),
             (323, "Unique NetFn/Cmd addresses"),
             (len(rows), "Named operation routes"),
-            (sum(len(key) > 2 for key in IEIT_COMMANDS), "Selector-specific routes"),
+            (sum(bool(_identity(key, command))
+                 for key, command in IEIT_COMMANDS.items()), "Selector-specific routes"),
         ],
         "rows": rows,
         "sources": [
             {"href": "../zipmi/data/sources/ieit-nf5468m6-dispatch.json", "label": "Dispatch ledger"},
+            {"href": "../zipmi/data/sources/ieit-nf5468m6-ami-netfn32-contracts.json", "label": "AMI contracts"},
+            {"href": "../zipmi/data/sources/ieit-nf5468m6-pdk-contracts.json", "label": "IEIT PDK contracts"},
+            {"href": "../zipmi/data/sources/ieit-nf5468m6-aux-contracts.json", "label": "Auxiliary contracts"},
             {"href": "ieit-nf5468m6-command-reference.html", "label": "Detailed command reference"},
         ],
     }

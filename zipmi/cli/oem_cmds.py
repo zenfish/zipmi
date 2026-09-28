@@ -845,11 +845,21 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
         out = {
             key: {
                 "name": entry["name"],
+                "aliases": tuple(
+                    registration["handler"] for registration in entry["registrations"]
+                ),
                 "priv": entry["privilege"],
                 "desc": entry["purpose"],
                 "live": entry.get("live"),
                 "missing": False,
-                "prefix": bytes(key[2:]) if len(key) > 2 else None,
+                "prefix": (entry["prefix"] if "prefix" in entry
+                           else bytes(key[2:]) if len(key) > 2 else None),
+                "selector": entry.get("selector") or None,
+                "selector_offset": entry.get("selector_offset"),
+                "validator": entry.get("validator"),
+                "route_identity": (entry["route_identity"]
+                                   if "route_identity" in entry
+                                   else entry.get("selector") or bytes(key[2:])),
                 "request": entry["request"],
                 "response": entry["response"],
                 "security": entry["side_effects"],
@@ -858,7 +868,10 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "confidence": entry["confidence"],
                 "request_min": entry["request_length"][0],
                 "request_max": entry["request_length"][1],
-                "requires_unsafe": entry["safety"] != "read-only",
+                "requires_unsafe": (
+                    entry["safety"] != "read-only"
+                    or entry["confidence"].startswith("unresolved")
+                ),
             }
             for key, entry in IEIT_COMMANDS.items()
         }
@@ -1126,7 +1139,9 @@ def _vendor_listing_data(vendor: str) -> dict:
             "missing": bool(info.get("missing")),
         }
         if info.get("selector_offset") is not None:
-            command["selector"] = list(key[2:])
+            command["selector"] = list(
+                info.get("selector") or (
+                    info["route_identity"] if "route_identity" in info else key[2:]))
             command["selectorOffset"] = info["selector_offset"]
         if info.get("operations"):
             command["operations"] = [
@@ -1171,7 +1186,8 @@ def _print_vendor_listing(vendor: str) -> None:
         #   (netfn, cmd, sub)               — single-byte sub-cmd dispatch
         #   (netfn, cmd, b0, b1, ...)       — multi-byte prefix dispatch
         netfn, cmd = key[0], key[1]
-        prefix_bytes = key[2:]
+        prefix_bytes = (info["route_identity"]
+                        if "route_identity" in info else key[2:])
         shown_pfx = prefix_bytes[:4]
         addr_parts = [f"0x{netfn:02x}", f"0x{cmd:02x}"]
         addr_parts.extend(f"0x{b:02x}" for b in shown_pfx)
@@ -1421,7 +1437,8 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
               file=sys.stderr)
         for key, info in sorted(hits):
             nf, c = key[0], key[1]
-            prefix = key[2:]
+            prefix = (info["route_identity"]
+                      if "route_identity" in info else key[2:])
             wire = " ".join([f"0x{nf:02x}", f"0x{c:02x}"]
                             + [f"0x{b:02x}" for b in prefix])
             print(f"  {wire}  {info['name']}", file=sys.stderr)
@@ -1478,6 +1495,34 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
                     f"got {payload_len}"
                 )
             return 2
+        if vendor == "ieit" and info.get("selector_offset") is not None:
+            selector = info.get("selector") or b""
+            offset = info["selector_offset"]
+            if selector and data_bytes[offset:offset + len(selector)] != selector:
+                expected = " ".join(f"{byte:02x}" for byte in selector)
+                _msg.error(
+                    f"{info['name']} requires selector {expected} "
+                    f"at payload offset {offset}"
+                )
+                return 2
+        if vendor == "ieit":
+            validator = info.get("validator")
+            invalid = (
+                validator == "chassis-identify" and len(data_bytes) == 2
+                and data_bytes[1] not in (0, 1)
+            ) or (
+                validator == "pnm-reading" and (
+                    len(data_bytes) % 3 or any(
+                        data_bytes[index] != 0
+                        for index in range(2, len(data_bytes), 3)
+                    )
+                )
+            ) or (
+                validator == "pnm-power-state" and bool(data_bytes[0] & 0x0d)
+            )
+            if invalid:
+                _msg.error(f"{info['name']} payload violates its recovered field constraints")
+                return 2
 
     if vendor == "idrac10":
         payload_len = len(data_bytes)
@@ -1588,7 +1633,8 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         print(f"# {len(hits)} matches for {query!r}; listing each:")
     for key, info in hits:
         netfn, cmd = key[0], key[1]
-        identity = key[2:]
+        identity = (info["route_identity"]
+                    if "route_identity" in info else key[2:])
         prefix = info.get("prefix") or b""
         prefix_s = " ".join(f"0x{b:02x}" for b in prefix) or "(none)"
         print(f"\n## {info['name']}")

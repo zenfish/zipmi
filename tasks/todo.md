@@ -1,12 +1,12 @@
 # Task — Complete IEIT NF5468M6 MegaRAC OEM support (2026-09-28)
 
 - [x] Pin firmware/rootfs/provider provenance and recover the complete registration denominator.
-- [ ] Reverse-engineer every top-level and selector-dispatched OEM contract, privilege, activation, and side effect.
-- [ ] Implement target-specific codecs, bounded named routes, and safety gates without conflating OpenBMC Inspur.
-- [ ] Capture safe live evidence on the zBMC IEIT target; do not run mutating commands.
-- [ ] Generate the paired command reference and compact command table in the shared house style.
-- [ ] Add focused closure/codec/CLI/doc tests and link the target from public documentation.
-- [ ] Run generator, documentation, focused/full-suite, independent-review, and artifact-provenance checks.
+- [x] Reverse-engineer every top-level and selector-dispatched OEM contract, privilege, activation, and side effect.
+- [x] Implement target-specific codecs, bounded named routes, and safety gates without conflating OpenBMC Inspur.
+- [x] Capture safe live evidence on the zBMC IEIT target; do not run mutating commands.
+- [x] Generate the paired command reference and compact command table in the shared house style.
+- [x] Add focused closure/codec/CLI/doc tests and link the target from public documentation.
+- [x] Run generator, documentation, focused/full-suite, independent-review, and artifact-provenance checks.
 
 ### Acceptance specification
 
@@ -21,7 +21,12 @@
 
 ### Review
 
-Pending.
+- Closed all 324 firmware registration rows / 323 unique wire addresses across 86 AMI core, 97 enabled-plugin, 137 IEIT PDK, three Intel PNM, and one HPM OEM registrations.
+- Exposed 950 unique named routes: 470 target-decompiled AMI NetFn `0x32` operations, 282 normalized IEIT PDK operations, six auxiliary contracts, and the platform/BIOS selector map. All 277 PDK selector evidence leaves are represented exactly once.
+- Fixed the independent review's three findings: public-name collisions now use real wire identity, the encrypted-license route retains its one-byte minimum, and PNM/chassis field constraints fail locally. No internal route sentinel is public.
+- Retained safe live proof only. Read-only probes confirmed the target identity and selected routes; the `0x30/e2` collision timed out and wedged IPMI, so it is documented as disruptive and gated. No mutating request was sent. The disposable guest was stopped and its run archived afterward.
+- Paired HTML pages render 950 rows without page overflow; wide tables use their intended scroll container and 331 long safety notes remain collapsed by default.
+- Proof: 16 focused tests and all 2,385 repository tests pass; all seven OEM reference generators, shared table generator, doc sync, JSON parsing, and `git diff --check` pass. Artifact sweep reports `dirty=0`; strict mode still flags the pre-existing Lenovo duplicate handle and external orphaned KISS record. The full suite retains two pre-existing Scapy deprecation warnings.
 
 # Task — Collapse long OEM safety notes consistently (2026-09-28)
 
@@ -349,3 +354,12 @@ Versions 0.2.10 → 0.2.13, all pushed.
   Channel Security Keys, Clear SEL, SEL/SDR Add/Delete, Platform Event Message.
 - Inert-on-zoo (implement, assert cc): serial PPP/callback, forwarded commands.
 - Naming/resolver feature (spec approved, deferred): slug dispatch + `search`.
+
+## 2026-09-28 — IEIT AMI NetFn 0x32 handler analysis review
+
+- [x] Recovered all 183 unique registrations: 86 core and 97 plugin rows across 39 activated plugins.
+- [x] Decompiled every registered target handler; resolved `AMIGetFwVersion` through its `libversionmgt.so.6.2.0` provider.
+- [x] Normalized 470 operations with stable IDs, selector offsets/bytes, conservative auto-prefixing, request/response bounds, target-observed completion codes, and safety/effect classifications.
+- [x] Kept 142 indirect/runtime-defined cases as explicit raw-exact boundaries instead of claiming an unproven older-firmware schema.
+- [x] Verified unique registrations and operation IDs, complete per-row coverage, selector-prefix invariants, activation provenance, and JSON integrity.
+- Evidence artifact: `zipmi/data/sources/ieit-nf5468m6-ami-netfn32-contracts.json` (`artifact_uuid` `0c40022e-8a43-49f4-a6f9-1281f6b7e4b2`).

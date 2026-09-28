@@ -99,6 +99,35 @@
       "retained_response": "",
       "safety": "disruptive",
       "note": "The nominal getter can block the single emulated IPMI service when its ME backend is absent. It must require --unsafe despite read-like names and privileges."
+    },
+    {
+      "netfn": "0x30",
+      "cmd": "0x01",
+      "handler": "OemGetflashstatus",
+      "request_hex": "",
+      "result": "success after cold-start recovery",
+      "retained_response": "00",
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x30",
+      "cmd": "0xa2",
+      "handler": "CommerSetChipSecurity query",
+      "request_hex": "3f3f5345435552495459",
+      "result": "success after cold-start recovery",
+      "retained_response": "30 30",
+      "safety": "read-only",
+      "note": "The fixed ??SECURITY token queried protocol 0x1e state; ASCII 00 means disabled."
+    },
+    {
+      "netfn": "0x38",
+      "cmd": "0x11",
+      "handler": "CommerReadBiosCfg",
+      "request_hex": "0000",
+      "result": "completion-code 0xd3 after cold-start recovery",
+      "retained_response": "",
+      "safety": "read-only",
+      "note": "The command dispatched and reported the documented missing current-settings JSON backend in emulation."
     }
   ],
   "retention": "No credentials, SNMP communities, BIOS-password material, or mutating command responses were captured."

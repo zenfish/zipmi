@@ -1,0 +1,547 @@
+{
+  "artifact_uuid": "c442e2d6-fc97-4198-8a32-65d8a83f3e66",
+  "artifact": "IEIT NF5468M6 auxiliary IPMI OEM contracts",
+  "analysis_date": "2026-09-28",
+  "scope": [
+    "NetFn 0x00 Cmd 0x04 chassis identify override",
+    "NetFn 0x3e Cmd 0x51 Intel ATS slot IPMB tunnel",
+    "Intel PNM NetFn 0x30 Cmds 0xe2/0xe3/0xe9",
+    "AMI HPM high-payload NetFn 0x3e Cmd 0x82"
+  ],
+  "sources": [
+    {
+      "path": "/tmp/zipmi-ieit-analysis.3gIvEK/lib/libipmipdkcmds.so.6.1.0",
+      "sha256": "250ccbd0943a4a5d07f679c99254fb7677b91efb526530df609aab995a27c2ab",
+      "role": "IEIT PDK registrations and wrappers"
+    },
+    {
+      "path": "/tmp/smm-decompiled/libipmipdkcmds.so.6.1.0.c",
+      "role": "Ghidra decompilation of IEIT PDK provider"
+    },
+    {
+      "path": "/tmp/zipmi-ieit-analysis.3gIvEK/lib/libcommer_common_interface.so.1.0",
+      "sha256": "8eaab6ec65ab543a10f6a64cf98dd331fc28934261f9e38c49310a5ce503368c",
+      "role": "IEIT interface indirection"
+    },
+    {
+      "path": "/tmp/zipmi-ieit-analysis.3gIvEK/lib/libcommer_common_feature.so.1.0.0",
+      "sha256": "6514de2401a2d0449fae1f216d51df1307ff6297ebe3ccc57a126b94b76667ac",
+      "role": "NF5468M6 Intel slot-IPMB backend"
+    },
+    {
+      "path": "/tmp/zipmi-ieit-analysis.3gIvEK/lib/libipminmsupport.so.6.6",
+      "sha256": "c3d4bf628af2654830cb35c8f82f31f7521025cf69a99d2102d7c674a74b6a78",
+      "role": "Intel PNM provider"
+    },
+    {
+      "path": "/tmp/zipmi-ieit-analysis.3gIvEK/lib/libipmihpm.so.6.22.10",
+      "sha256": "feb97db47503c5b6451bd1cc945dd14cd823dedaf35e2a78724d538ff8561648",
+      "role": "AMI HPM and high-payload provider"
+    }
+  ],
+  "handler_record_format": {
+    "size": 16,
+    "command_offset": 0,
+    "privilege_offset": 1,
+    "handler_pointer_offset": 4,
+    "dispatcher_request_length_offset": 8,
+    "variable_length_marker": "0xff",
+    "privileges": {
+      "0x02": "user",
+      "0x03": "operator",
+      "0x04": "administrator"
+    }
+  },
+  "contracts": [
+    {
+      "id": "ieit-chassis-identify",
+      "netfn": "0x00",
+      "command": "0x04",
+      "name": "Chassis Identify (IEIT override)",
+      "provider": "libipmipdkcmds.so.6.1.0",
+      "handler": "CommerGetChassisIdentify",
+      "privilege": {
+        "value": "0x03",
+        "name": "operator"
+      },
+      "registration": {
+        "table": "g_Oem_Chassis_CmdHndlr",
+        "table_va": "0x4781c",
+        "record_hex": "04030000cc440100ff00aaaaffff0000",
+        "dispatcher_request_length": "variable",
+        "activation": "exported OEM override merged into the core Chassis NetFn; no feature gate recovered"
+      },
+      "request": {
+        "length": {
+          "minimum": 0,
+          "maximum": 2
+        },
+        "forms": [
+          {
+            "length": 0,
+            "meaning": "turn identify/UID on with internal interval 15"
+          },
+          {
+            "length": 1,
+            "fields": [
+              {
+                "offset": 0,
+                "name": "interval",
+                "meaning": {
+                  "0": "turn UID off",
+                  "1-255": "store interval and turn UID on; value 1 additionally sleeps for the platform delay"
+                }
+              }
+            ]
+          },
+          {
+            "length": 2,
+            "fields": [
+              {
+                "offset": 0,
+                "name": "interval",
+                "meaning": "used only when force byte is zero"
+              },
+              {
+                "offset": 1,
+                "name": "force_identify",
+                "allowed": [
+                  0,
+                  1
+                ],
+                "meaning": {
+                  "0": "apply interval behavior",
+                  "1": "call UID setter with 0xff for forced/indefinite identify"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "response": {
+        "success": {
+          "length": 1,
+          "bytes": [
+            "0x00 completion code"
+          ]
+        },
+        "errors": [
+          {
+            "completion_code": "0xc7",
+            "condition": "request longer than 2 bytes",
+            "handler_return": "-1 after storing C7"
+          },
+          {
+            "completion_code": "0xcc",
+            "condition": "second byte has any bit other than bit0 set"
+          }
+        ]
+      },
+      "effects": [
+        "calls external CommerSetUidStatus callback with 0, 1, or 0xff",
+        "updates internal identify interval and pending-state globals"
+      ],
+      "safety": "state-changing front-panel UID/identify control; operationally low risk, but not read-only",
+      "external_boundary": "CommerSetUidStatus is an intf_handle callback at libcommer_common_interface.so.1.0:0x19574; physical LED implementation is outside analyzed provider",
+      "evidence": [
+        "libipmipdkcmds table VA 0x4781c; relocation at 0x47820",
+        "decompile lines 9504-9545"
+      ]
+    },
+    {
+      "id": "intel-ats-slot-ipmb",
+      "netfn": "0x3e",
+      "command": "0x51",
+      "name": "Intel ATS Slot IPMB Command",
+      "provider": "libipmipdkcmds.so.6.1.0 plus NF5468M6 common-feature backend",
+      "handler": "IntelATSSlotIpmbCmd -> CommerAtsSlotIpmbCmdingInterface -> Common_SendIntelSlotIpmbCmd",
+      "privilege": {
+        "value": "0x04",
+        "name": "administrator"
+      },
+      "registration": {
+        "table": "g_Intel_CmdHndlr",
+        "table_va": "0x46f6c",
+        "metadata": "g_Intel @ 0x24dd8 = 51 01 00",
+        "record_hex": "5104000040df0000ff00aaaaffff0000",
+        "dispatcher_request_length": "variable",
+        "activation": "Netfntbl entry (0x3e,g_Intel); platform intf_handle slot +0x43c supplies backend"
+      },
+      "request": {
+        "length": {
+          "minimum": 5,
+          "maximum": "transport payload limit"
+        },
+        "fields": [
+          {
+            "offset": 0,
+            "size": 1,
+            "name": "reserved",
+            "meaning": "ignored by NF5468M6 backend"
+          },
+          {
+            "offset": 1,
+            "size": 1,
+            "name": "route",
+            "bitfields": [
+              {
+                "bits": "2:0",
+                "name": "riser_or_route_id"
+              },
+              {
+                "bits": "5:3",
+                "name": "slot_or_channel_id"
+              },
+              {
+                "bits": "7:6",
+                "name": "ignored"
+              }
+            ]
+          },
+          {
+            "offset": 2,
+            "size": 1,
+            "name": "target_ipmb_slave_address"
+          },
+          {
+            "offset": 3,
+            "size": 1,
+            "name": "target_netfn",
+            "meaning": "shifted left by 2 before raw-IPMI send"
+          },
+          {
+            "offset": 4,
+            "size": 1,
+            "name": "target_command"
+          },
+          {
+            "offset": 5,
+            "size": "remaining request",
+            "name": "target_request_data"
+          }
+        ]
+      },
+      "response": {
+        "success": {
+          "layout": [
+            {
+              "offset": 0,
+              "name": "outer_completion_code",
+              "value": "0x00"
+            },
+            {
+              "offset": 1,
+              "size": "remaining response",
+              "name": "target_ipmi_response",
+              "meaning": "includes target completion code followed by target data"
+            }
+          ],
+          "length": "1 + target response length"
+        },
+        "errors": [
+          {
+            "completion_code": "0xc7",
+            "condition": "request shorter than 5 bytes"
+          },
+          {
+            "completion_code": "0x85",
+            "condition": "route/riser/slot cannot be mapped to discovered Intel PCIe hardware"
+          },
+          {
+            "completion_code": "0x82",
+            "condition": "I2C lock, switch routing, box-node session, or raw IPMI transport failure"
+          },
+          {
+            "completion_code": "target-defined",
+            "condition": "target responds; target CC is preserved at response byte 1 while outer CC remains 0"
+          }
+        ]
+      },
+      "effects": [
+        "discovers Intel PCIe devices (vendor 0x8086), selects riser/PCIe I2C switch, acquires I2C lock, creates internal IPMI session, forwards arbitrary target NetFn/Cmd/payload, then tears route/session down"
+      ],
+      "safety": "high-risk arbitrary internal-IPMB tunnel; forwarded command may read, mutate, reset, or update downstream devices; routing failures can disturb I2C/PCIe access",
+      "external_boundary": "Interface layer only indirect-calls intf_handle+0x43c. Exact NF5468M6 backend recovered from Common_SendIntelSlotIpmbCmd; downstream command semantics remain target-defined.",
+      "evidence": [
+        "wrapper decompile lines 5010-5026",
+        "common interface ARM 0x24bb0-0x24bc8",
+        "common feature ARM 0x5c664-0x5cd83"
+      ]
+    },
+    {
+      "id": "intel-pnm-get-reading",
+      "netfn": "0x30",
+      "command": "0xe2",
+      "name": "Intel PNM OEM Get Reading",
+      "provider": "libipminmsupport.so.6.6",
+      "handler": "PnmOemGetReading",
+      "privilege": {
+        "value": "0x02",
+        "name": "user"
+      },
+      "registration": {
+        "table": "g_PNM_CmdHndlr",
+        "table_va": "0x136e8",
+        "record_hex": "e202000018490000ff00aaaaffff0000",
+        "dispatcher_request_length": "variable",
+        "activation": "library feature metadata is CONFIG_SPX_FEATURE_INTEL_INTELLIGENT_POWER_NODE_MANAGER; callback set selected by g_corefeatures[0x33c]"
+      },
+      "request": {
+        "unit_size": 3,
+        "minimum_units": 1,
+        "modes": [
+          {
+            "name": "legacy",
+            "condition": "g_corefeatures[0x33c] != 1",
+            "length": 3,
+            "descriptor": {
+              "byte0": "reading type in bits7:4, subtype in bits3:0",
+              "byte1": "must be 0",
+              "byte2": "must be 0"
+            },
+            "valid_selectors": [
+              {
+                "type": "0x0",
+                "subtype": "0x0"
+              },
+              {
+                "type": "0x1",
+                "subtype": "0x0"
+              },
+              {
+                "type": "0x2",
+                "subtype": "0x0-0xf"
+              }
+            ],
+            "backend": "g_PDKHandle+0x1dc(type, subtype, out_u16, context)"
+          },
+          {
+            "name": "extended",
+            "condition": "g_corefeatures[0x33c] == 1",
+            "length": "positive multiple of 3",
+            "descriptor": {
+              "byte0": "reading type in bits7:4, subtype in bits3:0",
+              "byte1": "backend parameter",
+              "byte2": "must be 0"
+            },
+            "valid_selectors": [
+              {
+                "type": "0x0-0x6 or 0x8",
+                "subtype": "0x0"
+              },
+              {
+                "type": "0x7",
+                "subtype": "0x0-0xf"
+              }
+            ],
+            "backend": "g_PDKHandle+0x1e0(type, subtype, byte1, 0, out_u16, context)"
+          }
+        ]
+      },
+      "response": {
+        "success": {
+          "per_descriptor": [
+            {
+              "offset": 0,
+              "name": "record_status",
+              "value": "0x00 on backend success; 0xff if callback missing/fails"
+            },
+            {
+              "offset": 1,
+              "name": "selector_echo",
+              "value": "request byte0"
+            },
+            {
+              "offset": 2,
+              "size": 2,
+              "name": "reading",
+              "encoding": "little-endian unsigned 16-bit"
+            }
+          ],
+          "length": "4 * descriptor count"
+        },
+        "errors": [
+          {
+            "completion_code": "0xc7",
+            "condition": "zero length, legacy length !=3, or extended length not divisible by3"
+          },
+          {
+            "completion_code": "0xcc",
+            "condition": "reserved/parameter/subtype constraint violated"
+          },
+          {
+            "completion_code": "0xc9",
+            "condition": "reading type exceeds mode range"
+          }
+        ]
+      },
+      "effects": [
+        "invokes Intel NM/platform reading backend for every descriptor"
+      ],
+      "safety": "nominally read-only but backend-blocking; ME/NM callback can hang the IPMI service. Treat as unsafe for unattended probing.",
+      "external_boundary": "Actual measurement meanings and hardware access live behind g_PDKHandle callbacks and are not present in libipminmsupport. No names are assigned beyond numeric type/subtype.",
+      "collision": "IEIT g_Oem_NetFn30_CmdHndlr also registers 0x30/0xe2. Runtime merge winner is unresolved; local IEIT empty-request behavior differs from PNM C7 validation.",
+      "evidence": [
+        "libipminmsupport ARM 0x4918-0x4af8",
+        "g_PNM_CmdHndlr VA 0x136e8"
+      ]
+    },
+    {
+      "id": "intel-pnm-power-state-change",
+      "netfn": "0x30",
+      "command": "0xe3",
+      "name": "Intel PNM OEM ME Power State Change",
+      "provider": "libipminmsupport.so.6.6",
+      "handler": "PnmOemMePowerStateChange",
+      "privilege": {
+        "value": "0x02",
+        "name": "user"
+      },
+      "registration": {
+        "table": "g_PNM_CmdHndlr",
+        "table_va": "0x136f8",
+        "record_hex": "e3020000084b00000100aaaaffff0000",
+        "dispatcher_request_length": 1,
+        "activation": "CONFIG_SPX_FEATURE_INTEL_INTELLIGENT_POWER_NODE_MANAGER"
+      },
+      "request": {
+        "length": 1,
+        "fields": [
+          {
+            "offset": 0,
+            "name": "state_flags",
+            "validity": "(value & 0x0d) == 0; bits 0,2,3 must be zero",
+            "backend_argument": "low nibble, therefore 0x0 or 0x2; upper nibble is accepted but not passed"
+          }
+        ]
+      },
+      "response": {
+        "success": {
+          "length": 1,
+          "bytes": [
+            "0x00 completion code"
+          ]
+        },
+        "errors": [
+          {
+            "completion_code": "0xcc",
+            "condition": "any of bits 0,2,3 set"
+          }
+        ]
+      },
+      "effects": [
+        "if callback exists, invokes g_PDKHandle+0x1e4(low_nibble, context)",
+        "if callback is absent, still returns success"
+      ],
+      "safety": "state-changing ME/platform power-state notification; backend-defined effects and availability",
+      "external_boundary": "Power-state semantics live entirely behind optional g_PDKHandle+0x1e4 callback.",
+      "evidence": [
+        "libipminmsupport ARM 0x4b08-0x4b44",
+        "g_PNM_CmdHndlr VA 0x136f8"
+      ]
+    },
+    {
+      "id": "intel-pnm-platform-power-characterization-notification",
+      "netfn": "0x30",
+      "command": "0xe9",
+      "name": "Intel PNM OEM Platform Power Characterization Notification",
+      "provider": "libipminmsupport.so.6.6",
+      "handler": "PnmOemPlatformPowerCharacterizationNotification",
+      "privilege": {
+        "value": "0x02",
+        "name": "user"
+      },
+      "registration": {
+        "table": "g_PNM_CmdHndlr",
+        "table_va": "0x13708",
+        "record_hex": "e90200004c4b00000100aaaaffff0000",
+        "dispatcher_request_length": 1,
+        "activation": "CONFIG_SPX_FEATURE_INTEL_INTELLIGENT_POWER_NODE_MANAGER"
+      },
+      "request": {
+        "length": 1,
+        "fields": [
+          {
+            "offset": 0,
+            "name": "opaque_input",
+            "meaning": "ignored"
+          }
+        ]
+      },
+      "response": {
+        "success": {
+          "length": 5,
+          "bytes": [
+            "0x00 completion code",
+            "0x88",
+            "0x13",
+            "0x00",
+            "0x00"
+          ]
+        },
+        "errors": []
+      },
+      "effects": [],
+      "safety": "read-only/fixed response in this build; despite its name, handler performs no notification callback",
+      "external_boundary": "none in handler",
+      "evidence": [
+        "libipminmsupport ARM 0x4b4c-0x4b70",
+        "g_PNM_CmdHndlr VA 0x13708"
+      ]
+    },
+    {
+      "id": "ami-hpm-increase-payload-size",
+      "netfn": "0x3e",
+      "command": "0x82",
+      "name": "AMI HPM Increase Payload Size",
+      "provider": "libipmihpm.so.6.22.10",
+      "handler": "IncreasePayloadSize",
+      "privilege": {
+        "value": "0x02",
+        "name": "user"
+      },
+      "registration": {
+        "table": "g_HighPayload_CmdHndlr",
+        "table_va": "0x0bc08",
+        "record_hex": "82020000fc900000ff00aaaaffff0000",
+        "dispatcher_request_length": "variable",
+        "metadata": "g_corehpmoem @ 0x1d0f8 = 82 01 00; HPM metadata associates g_HighPayload_CmdHndlr with NetFn 0x3e",
+        "activation": "SUPPORT_HPM_IFC feature gate in g_HPMMetaInfo"
+      },
+      "request": {
+        "length": "any length accepted; bytes ignored"
+      },
+      "response": {
+        "success": {
+          "length": 1,
+          "bytes": [
+            "0x00 completion code"
+          ]
+        },
+        "errors": []
+      },
+      "effects": [],
+      "safety": "handler is a no-op acknowledgement and is safe itself; command presence is part of firmware-update/high-payload infrastructure, whose other HPM commands are destructive",
+      "external_boundary": "No external call or payload-size mutation occurs inside IncreasePayloadSize; any transport payload negotiation behavior must be implemented by the surrounding IPMI framework and was not attributed to this handler.",
+      "evidence": [
+        "g_HighPayload_CmdHndlr VA 0xbc08; relocation 0xbc0c",
+        "IncreasePayloadSize ARM 0x90fc-0x9108",
+        "g_HPMMetaInfo data 0x1c93f-0x1cbc5, terminating metadata bytes include NetFn 0x3e"
+      ]
+    }
+  ],
+  "completion_codes": {
+    "0x00": "success",
+    "0x82": "provider-specific downstream routing/session/transport failure",
+    "0x85": "provider-specific invalid/unmapped riser slot",
+    "0xc7": "request data length invalid",
+    "0xc9": "parameter out of range",
+    "0xcc": "invalid data field",
+    "0xff": "per-reading backend unavailable/failure"
+  },
+  "runtime_caveats": [
+    "NetFn 0x30 Cmd 0xe2 has competing IEIT-local and PNM registrations; isolated provider tables cannot prove runtime selection order.",
+    "An empty live 0x30/0xe2 probe timed out and was followed by broader IPMI timeouts. Do not use this route for unattended activation tests.",
+    "NetFn 0x3e is shared by Intel, AMI/HPM, and other providers; command IDs disambiguate these two registrations but activation still depends on feature/library loading."
+  ]
+}

@@ -21,8 +21,16 @@ _SOURCE = Path(__file__).parents[2] / "data/sources/ieit-nf5468m6-dispatch.json"
 _PLATFORM_SOURCE = (
     Path(__file__).parents[2] / "data/sources/ieit-nf5468m6-netfn30-34-38.json"
 )
+_PDK_SOURCE = Path(__file__).parents[2] / "data/sources/ieit-nf5468m6-pdk-contracts.json"
+_AUX_SOURCE = Path(__file__).parents[2] / "data/sources/ieit-nf5468m6-aux-contracts.json"
+_AMI_SOURCE = (
+    Path(__file__).parents[2] / "data/sources/ieit-nf5468m6-ami-netfn32-contracts.json"
+)
 _CATALOG = json.loads(_SOURCE.read_text())
 _PLATFORM_CATALOG = json.loads(_PLATFORM_SOURCE.read_text())
+_PDK_CATALOG = json.loads(_PDK_SOURCE.read_text())
+_AUX_CATALOG = json.loads(_AUX_SOURCE.read_text())
+_AMI_CATALOG = json.loads(_AMI_SOURCE.read_text())
 
 if _CATALOG["firmware_sha256"] != IEIT_FIRMWARE_SHA256:
     raise RuntimeError("IEIT dispatch source does not match the pinned firmware")
@@ -73,7 +81,178 @@ def _update(address: tuple[int, int], **contract) -> None:
 
 def _leaf(address: tuple[int, int], prefix: bytes, **contract) -> None:
     base = IEIT_COMMANDS[address]
-    IEIT_COMMANDS[(*address, *prefix)] = {**base, **contract}
+    IEIT_COMMANDS[(*address, *prefix)] = {
+        **base, "prefix": prefix, "selector": prefix, **contract,
+    }
+
+
+def _json_summary(value: object) -> str:
+    return json.dumps(value, separators=(",", ":"), ensure_ascii=True)
+
+
+def _operation_bounds(operation: dict) -> tuple[int | None, int | None]:
+    """Return only bounds proved by the normalized PDK contract."""
+    request = operation["request"]
+    length = request.get("length")
+    if isinstance(length, int):
+        bounds = (length, length)
+    elif length == "2 or 3":
+        bounds = (2, 3)
+    elif isinstance(length, str) and length.startswith("at least 32"):
+        bounds = (32, None)
+    elif isinstance(length, str) and length.startswith("binary only ensures len<=3"):
+        bounds = (0, 3)
+    elif isinstance(length, str) and length[:1].isdigit():
+        bounds = (int(length.split()[0].split("+")[0]), None)
+    elif isinstance(request.get("minimum_length"), int):
+        bounds = (request["minimum_length"], None)
+    elif isinstance(request.get("minimum_length"), str):
+        bounds = (int(request["minimum_length"].split()[1]), None)
+    else:
+        policy = request.get("registration_policy", {})
+        bounds = ((policy["length"],) * 2
+                  if policy.get("kind") == "exact" else (None, None))
+    prefix_length = len(operation.get("auto_prefix", ()))
+    if prefix_length and (bounds[0] is None or bounds[0] < prefix_length):
+        bounds = (prefix_length, bounds[1])
+    return bounds
+
+
+def _pdk_contract(registration: dict, operation: dict) -> dict:
+    top = registration["reviewed_top_level_contract"]
+    source_safety = operation["safety"]["class"]
+    safety = "sensitive" if source_safety == "sensitive-read-or-write" else source_safety
+    confidence = operation["confidence"]
+    prefix = bytes(int(value, 0) for value in operation.get("auto_prefix", ()))
+    selector = (bytes([int(operation["selector_hex"], 0)])
+                if operation.get("selector_hex") is not None else b"")
+    return {
+        **_contract(_BY_ADDRESS[(int(operation["netfn"], 0), int(operation["cmd"], 0))]),
+        "name": operation["identity"],
+        "purpose": operation["identity"] + ".",
+        "privilege": {2: "User", 3: "Operator", 4: "Administrator"}.get(
+            operation["privilege"], str(operation["privilege"])),
+        "request": _json_summary(operation["request"]),
+        "response": _json_summary(operation["response"]),
+        "request_length": _operation_bounds(operation),
+        "completion_codes": [
+            f"{code} {meaning}" for code, meaning in top["completion_codes"].items()
+        ],
+        "activation": "Statically registered by the pinned IEIT PDK provider.",
+        "side_effects": (
+            "None identified; read-only handler."
+            if safety == "read-only" else
+            f"Firmware classifies this operation as {source_safety}; review its request contract before sending."
+        ),
+        "safety": safety,
+        "confidence": confidence,
+        "request_status": (
+            "Complete" if confidence == "reviewed-binary-exact"
+            else "Unknown" if confidence.startswith("unresolved") else "Partial"
+        ),
+        "response_status": (
+            "Complete" if confidence == "reviewed-binary-exact"
+            else "Unknown" if confidence.startswith("unresolved") else "Partial"
+        ),
+        "prefix": prefix,
+        "selector": selector,
+        "route_identity": prefix or selector,
+        "selector_offset": operation.get("selector_offset"),
+        "operation_id": operation["operation_id"],
+        "source_contract": operation,
+    }
+
+
+def _aux_bounds(request: dict) -> tuple[int | None, int | None]:
+    length = request.get("length")
+    if isinstance(length, int):
+        return length, length
+    if isinstance(length, dict):
+        high = length.get("maximum")
+        return length.get("minimum"), high if isinstance(high, int) else None
+    if request.get("unit_size"):
+        return request["unit_size"] * request.get("minimum_units", 1), None
+    return None, None
+
+
+def _aux_contract(source: dict) -> dict:
+    address = (int(source["netfn"], 0), int(source["command"], 0))
+    safe = source["id"] in {
+        "intel-pnm-platform-power-characterization-notification",
+        "ami-hpm-increase-payload-size",
+    }
+    errors = source["response"].get("errors", ())
+    return {
+        **_contract(_BY_ADDRESS[address]),
+        "name": source["name"],
+        "purpose": source["name"] + ".",
+        "privilege": source["privilege"]["name"].title(),
+        "request": _json_summary(source["request"]),
+        "response": _json_summary(source["response"]),
+        "request_length": _aux_bounds(source["request"]),
+        "request_fields": [],
+        "response_fields": [],
+        "completion_codes": [
+            f"{error['completion_code']} {error['condition']}" for error in errors
+        ],
+        "activation": source["registration"]["activation"],
+        "side_effects": "; ".join(source.get("effects", ())) or "None.",
+        "safety": "read-only" if safe else "sensitive",
+        "confidence": "high binary-reviewed auxiliary contract",
+        "request_status": "Complete",
+        "response_status": "Complete",
+        "prefix": b"",
+        "selector": b"",
+        "route_identity": b"",
+        "validator": {
+            "ieit-chassis-identify": "chassis-identify",
+            "intel-pnm-get-reading": "pnm-reading",
+            "intel-pnm-power-state-change": "pnm-power-state",
+        }.get(source["id"]),
+        "source_contract": source,
+    }
+
+
+def _ami_contract(registration: dict, operation: dict) -> dict:
+    address = (registration["netfn"], registration["cmd"])
+    prefix = bytes.fromhex(operation["auto_prefix"] or "")
+    selector = bytes.fromhex(operation["selector_hex"] or "")
+    effect = {
+        "safe": "read-only",
+        "mutates": "state-changing",
+        "security-sensitive": "sensitive",
+        "destructive": "destructive",
+    }[operation["effect"]]
+    request = operation["request"]
+    response = operation["response"]
+    raw = operation["contract_kind"] == "raw-exact"
+    return {
+        **_contract(_BY_ADDRESS[address]),
+        "name": operation["name"],
+        "purpose": operation["side_effects"],
+        "privilege": registration["privilege"],
+        "request": _json_summary(request),
+        "response": _json_summary(response),
+        "request_length": (request["min_bytes"], request["max_bytes"]),
+        "response_length_text": (
+            f"Exactly {response['exact_bytes']} bytes including completion code"
+            if response["exact_bytes"] is not None else
+            f"{response['min_bytes']}–{response['max_bytes']} bytes including completion code"
+        ),
+        "completion_codes": [f"0x{code}" for code in operation["completion_codes"]],
+        "activation": registration["activation"],
+        "side_effects": operation["side_effects"],
+        "safety": effect,
+        "confidence": operation["confidence"],
+        "request_status": "Complete",
+        "response_status": "Partial" if raw else "Complete",
+        "prefix": prefix,
+        "selector": selector,
+        "route_identity": prefix or selector,
+        "selector_offset": operation["selector_offset"],
+        "operation_id": operation["operation_id"],
+        "source_contract": operation,
+    }
 
 
 _update(
@@ -192,9 +371,82 @@ for _group in sorted({_record["group"] for _record in _records}):
         request_length=(2, 2), safety="read-only", side_effects="None.", confidence="high",
     )
 
+# Add contracts recovered from the non-AMI/non-PDK provider layers.  Preserve
+# the 0x30/0xe2 collision summary and add PNM as a separately named wire route.
+for _aux_source in _AUX_CATALOG["contracts"]:
+    _aux_address = (int(_aux_source["netfn"], 0), int(_aux_source["command"], 0))
+    _aux_route = ((*_aux_address, 0x101)
+                  if _aux_source["id"] == "intel-pnm-get-reading"
+                  else _aux_address)
+    IEIT_COMMANDS[_aux_route] = _aux_contract(_aux_source)
+
+# Expand every AMI NetFn 0x32 registration into its target-proven operations.
+for _ami_registration in _AMI_CATALOG["registrations"]:
+    for _ami_operation in _ami_registration["normalized_operations"]:
+        _ami_operation_contract = _ami_contract(_ami_registration, _ami_operation)
+        _ami_address = (_ami_registration["netfn"], _ami_registration["cmd"])
+        _ami_prefix = _ami_operation_contract["prefix"]
+        _ami_selector = _ami_operation_contract["selector"]
+        if _ami_prefix:
+            _ami_route = (*_ami_address, *_ami_prefix)
+        elif _ami_selector:
+            _ami_route = (
+                *_ami_address,
+                0x100 + _ami_operation_contract["selector_offset"],
+                *_ami_selector,
+            )
+        else:
+            _ami_route = _ami_address
+        IEIT_COMMANDS[_ami_route] = _ami_operation_contract
+
+# Add the semantic operations recovered from all 129 IEIT PDK registrations.
+# A selector after caller-controlled bytes cannot be auto-prefixed; the key's
+# >0xff sentinel only disambiguates that named route inside this dictionary.
+for _pdk_registration in _PDK_CATALOG["registrations"]:
+    for _operation in _pdk_registration["operations"]:
+        _netfn = int(_operation["netfn"], 0)
+        _cmd = int(_operation["cmd"], 0)
+        _operation_contract = _pdk_contract(_pdk_registration, _operation)
+        _prefix = _operation_contract["prefix"]
+        _selector = _operation_contract["selector"]
+        if _prefix:
+            _route = (_netfn, _cmd, *_prefix)
+        elif _selector:
+            _route = (
+                _netfn, _cmd,
+                0x100 + _operation_contract["selector_offset"],
+                *_selector,
+            )
+        else:
+            _route = (_netfn, _cmd)
+        IEIT_COMMANDS[_route] = _operation_contract
+
+# A documented name must resolve to exactly one route.  Disambiguate repeated
+# short operation names with real wire identity, never the >0xff dictionary
+# sentinel used for selectors that occur after caller-controlled bytes.
+_routes_by_name: dict[str, list[tuple[int, ...]]] = defaultdict(list)
+for _route, _operation_contract in IEIT_COMMANDS.items():
+    _routes_by_name[_operation_contract["name"]].append(_route)
+for _routes in _routes_by_name.values():
+    if len(_routes) < 2:
+        continue
+    for _route in _routes:
+        _operation_contract = IEIT_COMMANDS[_route]
+        _identity = _operation_contract.get("route_identity")
+        if _identity is None:
+            _identity = bytes(_route[2:])
+        _suffix = f"_{_route[0]:02X}_{_route[1]:02X}"
+        if _identity:
+            _offset = _operation_contract.get("selector_offset")
+            if _offset not in (None, 0):
+                _suffix += f"_AT{_offset}"
+            _suffix += "_" + "_".join(f"{byte:02X}" for byte in _identity)
+        _operation_contract["name"] += _suffix
+
 IEIT_CMD_NAMES: dict[tuple[int, ...], str] = {
     address: f"IEIT {contract['name']}"
     for address, contract in IEIT_COMMANDS.items()
+    if all(byte <= 0xff for byte in address)
 }
 
 register("ieit", None, IEIT_CMD_NAMES)
