@@ -1,3 +1,28 @@
+# Task — Complete IEIT NF5468M6 MegaRAC OEM support (2026-09-28)
+
+- [x] Pin firmware/rootfs/provider provenance and recover the complete registration denominator.
+- [ ] Reverse-engineer every top-level and selector-dispatched OEM contract, privilege, activation, and side effect.
+- [ ] Implement target-specific codecs, bounded named routes, and safety gates without conflating OpenBMC Inspur.
+- [ ] Capture safe live evidence on the zBMC IEIT target; do not run mutating commands.
+- [ ] Generate the paired command reference and compact command table in the shared house style.
+- [ ] Add focused closure/codec/CLI/doc tests and link the target from public documentation.
+- [ ] Run generator, documentation, focused/full-suite, independent-review, and artifact-provenance checks.
+
+### Acceptance specification
+
+- Firmware: NF5468M6 BMC 7.26.05 image SHA-256 `b7915aa4be2661d47d78cca6265dc11d8d06c23cc199e0ff80a2adc3ccd7c7d1`.
+- Registration closure: 324 rows / 323 unique `(NetFn, Cmd)` addresses across AMI core, 39 enabled AMI plugins, IEIT PDK, PNM, and HPM OEM tables.
+- Collision: preserve both providers for `0x30/0xe2`; do not silently overwrite one registration.
+- Leaf closure: enumerate every statically recoverable selector/subcommand branch beneath those registrations and state any genuinely runtime-defined boundary.
+- Contract closure: each operation records request/response fields and bounds, privilege, completion codes, activation, side effects, safety gate, binary/source evidence, and confidence.
+- Execution: read-only operations may run normally; every mutating, disruptive, destructive, credential-bearing, or unresolved operation requires `--unsafe`; malformed requests fail locally.
+- Documentation: generate both Standard v1 HTML views from the same catalog and expose IEIT separately from OpenBMC `inspur` and generic MegaRAC/YAFU.
+- Validation: retain only safe live captures; generator freshness, focused tests, doc sync, full suite, artifact sweep, and independent review must pass.
+
+### Review
+
+Pending.
+
 # Task — Collapse long OEM safety notes consistently (2026-09-28)
 
 - [x] Render safety notes over 80 characters as native disclosures in the shared reference renderer.
