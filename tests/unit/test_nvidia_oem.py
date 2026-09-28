@@ -30,6 +30,8 @@ def test_nvidia_catalog_and_reference_are_closed():
     assert reference.count('<tr data-search="') == 8
     assert reference.count('data-safety="read-only"') == 6
     assert reference.count('data-safety="sensitive"') == 2
+    assert reference.count('<details class="safety-note"><summary>Safety details</summary>') == 3
+    assert '<p class="muted">No persistent or service effect.</p>' in reference
     assert table.count('<tr data-search="') == 8
     assert "hostusb0" in reference and "looks up usb0" in reference
     assert "Calvin" in reference and "1000" in reference

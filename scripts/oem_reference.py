@@ -16,6 +16,7 @@ SAFETY = {
 }
 LAYOUT = ("Complete", "Partial", "Unknown", "Conflicting")
 EXECUTION = ("Allowed by default", "Requires --unsafe", "No distinct named route")
+SAFETY_NOTE_DISCLOSURE_LENGTH = 80
 
 
 def validate_reference(page: dict) -> None:
@@ -43,6 +44,18 @@ def _e(value) -> str:
 
 def _badge(value: str) -> str:
     return f'<span class="badge {value}">{_e(value.title())}</span>'
+
+
+def _safety_note(note: str | None) -> str:
+    if not note:
+        return ""
+    escaped = _e(note)
+    if len(note) <= SAFETY_NOTE_DISCLOSURE_LENGTH:
+        return f'<p class="muted">{escaped}</p>'
+    return (
+        '<details class="safety-note"><summary>Safety details</summary>'
+        f'<p class="muted">{escaped}</p></details>'
+    )
 
 
 def _fields(fields: list[dict] | None) -> str:
@@ -94,8 +107,7 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
     operation_rows = []
     for index, op in enumerate(operations, 1):
         search = " ".join(str(value) for value in (op["send"], op["id"], op["name"], op["purpose"], op["safety"], op["evidence"])).lower()
-        safety_note = (f'<p class="muted">{_e(op["safety_note"])}</p>'
-                       if op.get("safety_note") else "")
+        safety_note = _safety_note(op.get("safety_note"))
         operation_rows.append(
             f'<tr data-search="{_e(search)}" data-safety="{_e(op["safety"])}" '
             f'data-request="{_e(op["request"]["status"])}" data-response="{_e(op["response"]["status"])}" '

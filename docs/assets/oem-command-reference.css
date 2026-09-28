@@ -59,7 +59,7 @@ thead th { position: sticky; top: 0; z-index: 1; background: #e2e8f0; }
 tbody th { min-width: 18rem; font-weight: 400; }
 details { margin-top: .45rem; }
 summary { cursor: pointer; font-weight: 650; }
-.evidence > p { margin: .4rem 0 0; }
+.evidence > p, .safety-note > p { margin: .4rem 0 0; }
 mark.search-hit { padding: 0 .08em; border-radius: .12rem; background: #fde047; color: inherit; }
 .field-table { margin-top: .5rem; font-size: .78rem; }
 .field-table th, .field-table td { padding: .35rem .45rem; }

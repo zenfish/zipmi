@@ -1,3 +1,17 @@
+# Task — Collapse long OEM safety notes consistently (2026-09-28)
+
+- [x] Render safety notes over 80 characters as native disclosures in the shared reference renderer.
+- [x] Regenerate every checked-in OEM command reference that uses the shared renderer.
+- [x] Add focused regression coverage for both inline and collapsed safety notes.
+- [x] Run generator freshness checks, focused/full tests, documentation sync, and final diff review.
+
+### Review
+
+- Notes of 80 characters or fewer remain inline; longer notes use the existing native `Safety details` disclosure.
+- Regenerated Fujitsu, iDRAC9, iDRAC10, Lenovo, MegaRAC/YAFU, and NVIDIA references. Advantech remained byte-identical because none of its notes exceeds 80 characters.
+- Search opens a matching closed disclosure without closing disclosures the reader opened manually.
+- Proof: all eight generator `--check` commands pass; 56 focused tests and 2379 full-suite tests pass; independent review found no issues.
+
 # Task — Complete NVIDIA GB200 OpenBMC OEM support (2026-09-28)
 
 - [x] Pin the exact GB200 firmware/provider provenance and close the OEM handler inventory.
