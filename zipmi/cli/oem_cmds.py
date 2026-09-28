@@ -88,6 +88,10 @@ VENDORS: dict[str, dict] = {
         "iana": None,
         "blurb": "AMI YAFU flash + memory protocol (NetFn 0x32) — cross-vendor AMI-lineage",
     },
+    "ieit": {
+        "iana": None,
+        "blurb": "IEIT NF5468M6 BMC 7.26.05 — 324 firmware-proven OEM registrations",
+    },
     "lenovo": {
         "iana": 2,
         "blurb": "Lenovo IMM/XCC 6.92 — 225 decoded server-side OEM command identities",
@@ -184,7 +188,7 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "idrac10":
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
-    if vendor in ("lenovo", "fujitsu"):
+    if vendor in ("lenovo", "fujitsu", "ieit"):
         listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if vendor in ("advantech-asmb787", "supermicro", "supermicro-x11",
@@ -836,6 +840,29 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             for key, e in MEGARAC_COMMANDS.items()
         }
         return _normalize_listing(out, "megarac")
+    if vendor == "ieit":
+        from ..scapy_ipmi.oem.ieit import IEIT_COMMANDS
+        out = {
+            key: {
+                "name": entry["name"],
+                "priv": entry["privilege"],
+                "desc": entry["purpose"],
+                "live": entry.get("live"),
+                "missing": False,
+                "prefix": bytes(key[2:]) if len(key) > 2 else None,
+                "request": entry["request"],
+                "response": entry["response"],
+                "security": entry["side_effects"],
+                "completion_codes": entry["completion_codes"],
+                "activation": entry["activation"],
+                "confidence": entry["confidence"],
+                "request_min": entry["request_length"][0],
+                "request_max": entry["request_length"][1],
+                "requires_unsafe": entry["safety"] != "read-only",
+            }
+            for key, entry in IEIT_COMMANDS.items()
+        }
+        return _normalize_listing(out, "ieit")
     if vendor == "advantech-asmb787":
         from ..scapy_ipmi.oem.advantech_asmb787 import ASMB787_COMMANDS, ASMB787_OPERATIONS
         out = {}
@@ -1435,7 +1462,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             )
             return 2
 
-    if vendor == "nvidia":
+    if vendor in ("nvidia", "ieit"):
         payload_len = len(data_bytes)
         req_min = info.get("request_min")
         req_max = info.get("request_max")
@@ -1715,7 +1742,7 @@ def _add_vendor_parser(
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
     if vendor_key in (
         "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu",
-        "megarac", "yafu", "nvidia",
+        "megarac", "yafu", "nvidia", "ieit",
     ):
         sp.add_argument(
             "--unsafe", action="store_true",

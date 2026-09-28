@@ -1,0 +1,105 @@
+{
+  "artifact_uuid": "b6d9f26c-b028-4bea-9dc3-2b907f40ec23",
+  "schema": "zipmi.ieit.live-evidence.v1",
+  "captured_utc_window": "2026-09-28T20:33:00Z/2026-09-28T20:41:00Z",
+  "target": "IEIT NF5468M6 BMC 7.26.05 zBMC guest",
+  "firmware_sha256": "b7915aa4be2661d47d78cca6265dc11d8d06c23cc199e0ff80a2adc3ccd7c7d1",
+  "zbmc_run_id": "20260928T202608Z-61582447-e87a-488c-a9ab-22f9a1a08e3a",
+  "recovery": "The disposable snapshot guest was stopped after the 0x30/0xe2 timeout and cold-started as run 20260928T204206Z-5ac8ce3b-b3ad-4ceb-b112-e0447a1efb56; no persistent firmware image was modified.",
+  "transport": "RMCP+ cipher suite 17",
+  "address_note": "The guest configured 10.250.0.41; the stale descriptor/watcher probed 10.0.6.67 and therefore reported a readiness timeout even though the guest answered on the configured address.",
+  "probes": [
+    {
+      "netfn": "0x06",
+      "cmd": "0x01",
+      "request_hex": "",
+      "result": "success",
+      "retained_response": "Product ID 0x0202; device available",
+      "safety": "standard read-only Get Device ID"
+    },
+    {
+      "netfn": "0x06",
+      "cmd": "0x0a",
+      "request_hex": "0e",
+      "result": "completion-code 0xc1",
+      "retained_response": "",
+      "safety": "standard read-only Get Command Support probe",
+      "note": "The firmware-firewall query is not implemented and cannot establish the target denominator."
+    },
+    {
+      "netfn": "0x32",
+      "cmd": "0x67",
+      "handler": "AMIGetLogConf",
+      "request_hex": "",
+      "result": "success",
+      "retained_response": "omitted configuration blob",
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x32",
+      "cmd": "0x7e",
+      "handler": "AMIGetSELPolicy",
+      "request_hex": "",
+      "result": "success",
+      "retained_response": "01",
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x32",
+      "cmd": "0xa2",
+      "handler": "AMIGetDebugMsgStatus",
+      "request_hex": "",
+      "result": "success",
+      "retained_response": "00",
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x32",
+      "cmd": "0xae",
+      "handler": "AMIGetHostLockFeatureStatus",
+      "request_hex": "",
+      "result": "success",
+      "retained_response": "01",
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x32",
+      "cmd": "0xbc",
+      "handler": "AMIGetHostAutoLockStatus",
+      "request_hex": "",
+      "result": "success",
+      "retained_response": "00",
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x32",
+      "cmd": "0xe2",
+      "handler": "AMIGetExtendedLogConf",
+      "request_hex": "",
+      "result": "completion-code 0xff",
+      "retained_response": "",
+      "safety": "read-only",
+      "note": "The handler dispatched but its emulated backend returned Unspecified Error."
+    },
+    {
+      "netfn": "0x3c",
+      "cmd": "0x7e",
+      "handler": "CommerGetFirmwareFirewallCfg",
+      "request_hex": "",
+      "result": "success",
+      "retained_response": "00",
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x30",
+      "cmd": "0xe2",
+      "handler": "CommerMEOEMGetReading / PnmOemGetReading collision",
+      "request_hex": "",
+      "result": "transport timeout after 20 seconds; subsequent IPMI requests also timed out",
+      "retained_response": "",
+      "safety": "disruptive",
+      "note": "The nominal getter can block the single emulated IPMI service when its ME backend is absent. It must require --unsafe despite read-like names and privileges."
+    }
+  ],
+  "retention": "No credentials, SNMP communities, BIOS-password material, or mutating command responses were captured."
+}

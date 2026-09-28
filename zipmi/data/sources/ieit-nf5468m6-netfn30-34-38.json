@@ -1,0 +1,1014 @@
+{
+  "artifact_uuid": "25a8ead9-5b92-4be6-bda8-939f68ca0d3f",
+  "artifact": "IEIT IPMI OEM NetFn 0x34/0x38 reverse-engineering map",
+  "source": {
+    "binary": "/tmp/zipmi-ieit-analysis.3gIvEK/lib/libipmipdkcmds.so.6.1.0",
+    "sha256": "250ccbd0943a4a5d07f679c99254fb7677b91efb526530df609aab995a27c2ab",
+    "decompile": "/tmp/smm-decompiled/libipmipdkcmds.so.6.1.0.c"
+  },
+  "handler_record_format": {
+    "size": 16,
+    "cmd_offset": 0,
+    "privilege_offset": 1,
+    "function_pointer_offset": 4,
+    "dispatcher_request_length_offset": 8,
+    "variable_length_marker": 255,
+    "privileges": {
+      "2": "user",
+      "4": "administrator"
+    }
+  },
+  "commands": [
+    {
+      "netfn": "0x34",
+      "cmd": "0x1a",
+      "privilege": "administrator",
+      "handler": "CommerSetPCIEI2CSwitchStatus",
+      "dispatcher_length": "variable",
+      "actual_request": {
+        "length": 1,
+        "fields": [
+          {
+            "offset": 0,
+            "name": "operation",
+            "selectors": {
+              "0x09": "disable device scans 0x10 and 0x0a; switch I2C mux to SmartNIC",
+              "0x0a": "enable device scans 0x10 and 0x0a (mux not restored)"
+            }
+          }
+        ]
+      },
+      "response": "completion code only",
+      "completion_codes": {
+        "0x00": "success",
+        "0xc7": "request length invalid",
+        "0xcc": "invalid selector"
+      },
+      "safety": "disruptive live hardware routing/device-scan mutation"
+    },
+    {
+      "netfn": "0x38",
+      "cmd": "0x11",
+      "privilege": "user",
+      "handler": "CommerReadBiosCfg",
+      "dispatcher_length": "variable",
+      "actual_request": {
+        "length": 2,
+        "fields": [
+          {
+            "offset": 0,
+            "name": "group/type"
+          },
+          {
+            "offset": 1,
+            "name": "item/offset",
+            "special": {
+              "0xff": "all present items in group"
+            }
+          }
+        ]
+      },
+      "success_response_including_cc": [
+        "0x00 completion",
+        "0x00 reserved",
+        "count",
+        "count state bytes"
+      ],
+      "return_length": "count+3; count <=33",
+      "completion_codes": {
+        "0x00": "success",
+        "0xc4": "more than 33 results",
+        "0xc7": "request length invalid",
+        "0xc9": "invalid/no matching group or item",
+        "0xd3": "current JSON unavailable/malformed",
+        "other": "propagated live getter status"
+      },
+      "safety": "read-only"
+    },
+    {
+      "netfn": "0x38",
+      "cmd": "0x12",
+      "privilege": "administrator",
+      "handler": "CommerWriteBiosCfg",
+      "dispatcher_length": "variable",
+      "actual_request": {
+        "minimum_length": 3,
+        "trailing_bytes": "accepted and ignored",
+        "fields": [
+          {
+            "offset": 0,
+            "name": "group/type"
+          },
+          {
+            "offset": 1,
+            "name": "item/offset"
+          },
+          {
+            "offset": 2,
+            "name": "state"
+          }
+        ]
+      },
+      "response": "completion code only",
+      "completion_codes": {
+        "0x00": "success",
+        "0xc7": "request shorter than 3",
+        "0xc9": "invalid/no matching group,item,state tuple",
+        "0xd3": "future JSON unavailable/malformed",
+        "other": "propagated live setter status"
+      },
+      "safety": "mutating; usually pending BIOS JSON, selected records mutate live power/network/SOL state"
+    }
+  ],
+  "bios_translation": {
+    "embedded_record_count": 88,
+    "record_base_file_offset": "0x0002a82c",
+    "record_stride": "0x205",
+    "record_fields": {
+      "group": "+0x02",
+      "item": "+0x03",
+      "attribute_name": "+0x04 NUL-terminated",
+      "state": "+0x104",
+      "meaning": "+0x105 NUL-terminated"
+    },
+    "runtime_translation_file": "/extlog/redfish/bios/redfish_ipmi_trans.json",
+    "runtime_schema_keys": [
+      "Attributes",
+      "Type",
+      "Offset",
+      "Value",
+      "IPMI"
+    ],
+    "current_settings_file": "/extlog/redfish/bios/bios_current_settings.json",
+    "future_settings_file": "/extlog/redfish/bios/bios_future_settings.json",
+    "caveat": "Accepted tuples are data-driven; runtime translation JSON can change/replace the embedded/default build map.",
+    "records": [
+      {
+        "record_index": 0,
+        "record_file_offset": "0x0002a82c",
+        "group": 0,
+        "item": 0,
+        "state": 0,
+        "attribute": "Processor0Ht",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 1,
+        "record_file_offset": "0x0002aa31",
+        "group": 0,
+        "item": 0,
+        "state": 1,
+        "attribute": "Processor0Ht",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 2,
+        "record_file_offset": "0x0002ac36",
+        "group": 0,
+        "item": 1,
+        "state": 0,
+        "attribute": "ProcessorVmx",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 3,
+        "record_file_offset": "0x0002ae3b",
+        "group": 0,
+        "item": 1,
+        "state": 1,
+        "attribute": "ProcessorVmx",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 4,
+        "record_file_offset": "0x0002b040",
+        "group": 0,
+        "item": 2,
+        "state": 0,
+        "attribute": "ProcessorEist",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 5,
+        "record_file_offset": "0x0002b245",
+        "group": 0,
+        "item": 2,
+        "state": 1,
+        "attribute": "ProcessorEist",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 6,
+        "record_file_offset": "0x0002b44a",
+        "group": 0,
+        "item": 3,
+        "state": 0,
+        "attribute": "TurboModeEn",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 7,
+        "record_file_offset": "0x0002b64f",
+        "group": 0,
+        "item": 3,
+        "state": 1,
+        "attribute": "TurboModeEn",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 8,
+        "record_file_offset": "0x0002b854",
+        "group": 0,
+        "item": 4,
+        "state": 0,
+        "attribute": "PackageCstateReport",
+        "meaning": "C0/C1 state"
+      },
+      {
+        "record_index": 9,
+        "record_file_offset": "0x0002ba59",
+        "group": 0,
+        "item": 4,
+        "state": 1,
+        "attribute": "PackageCstateReport",
+        "meaning": "C2 state"
+      },
+      {
+        "record_index": 10,
+        "record_file_offset": "0x0002bc5e",
+        "group": 0,
+        "item": 4,
+        "state": 2,
+        "attribute": "PackageCstateReport",
+        "meaning": "C6(non Retention) state"
+      },
+      {
+        "record_index": 11,
+        "record_file_offset": "0x0002be63",
+        "group": 0,
+        "item": 4,
+        "state": 3,
+        "attribute": "PackageCstateReport",
+        "meaning": "C6(Retention) state"
+      },
+      {
+        "record_index": 12,
+        "record_file_offset": "0x0002c068",
+        "group": 0,
+        "item": 4,
+        "state": 4,
+        "attribute": "PackageCstateReport",
+        "meaning": "No Limit"
+      },
+      {
+        "record_index": 13,
+        "record_file_offset": "0x0002c26d",
+        "group": 0,
+        "item": 4,
+        "state": 5,
+        "attribute": "PackageCstateReport",
+        "meaning": "Auto"
+      },
+      {
+        "record_index": 14,
+        "record_file_offset": "0x0002c472",
+        "group": 0,
+        "item": 5,
+        "state": 0,
+        "attribute": "ProcessorC1E",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 15,
+        "record_file_offset": "0x0002c677",
+        "group": 0,
+        "item": 5,
+        "state": 1,
+        "attribute": "ProcessorC1E",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 16,
+        "record_file_offset": "0x0002c87c",
+        "group": 0,
+        "item": 6,
+        "state": 0,
+        "attribute": "C6En",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 17,
+        "record_file_offset": "0x0002ca81",
+        "group": 0,
+        "item": 6,
+        "state": 1,
+        "attribute": "C6En",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 18,
+        "record_file_offset": "0x0002cc86",
+        "group": 0,
+        "item": 6,
+        "state": 2,
+        "attribute": "C6En",
+        "meaning": "Auto"
+      },
+      {
+        "record_index": 19,
+        "record_file_offset": "0x0002ce8b",
+        "group": 0,
+        "item": 7,
+        "state": 0,
+        "attribute": "AcpiTstatesEn",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 20,
+        "record_file_offset": "0x0002d090",
+        "group": 0,
+        "item": 7,
+        "state": 1,
+        "attribute": "AcpiTstatesEn",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 21,
+        "record_file_offset": "0x0002d295",
+        "group": 1,
+        "item": 0,
+        "state": 0,
+        "attribute": "Numaen",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 22,
+        "record_file_offset": "0x0002d49a",
+        "group": 1,
+        "item": 0,
+        "state": 1,
+        "attribute": "Numaen",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 23,
+        "record_file_offset": "0x0002d69f",
+        "group": 1,
+        "item": 1,
+        "state": 0,
+        "attribute": "Snc",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 24,
+        "record_file_offset": "0x0002d8a4",
+        "group": 1,
+        "item": 1,
+        "state": 2,
+        "attribute": "Snc",
+        "meaning": "Enable SNC2 (2-clusters)"
+      },
+      {
+        "record_index": 25,
+        "record_file_offset": "0x0002daa9",
+        "group": 1,
+        "item": 3,
+        "state": 0,
+        "attribute": "Mirrormode",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 26,
+        "record_file_offset": "0x0002dcae",
+        "group": 1,
+        "item": 3,
+        "state": 1,
+        "attribute": "Mirrormode",
+        "meaning": "Full Mirror Mode"
+      },
+      {
+        "record_index": 27,
+        "record_file_offset": "0x0002deb3",
+        "group": 1,
+        "item": 3,
+        "state": 3,
+        "attribute": "Mirrormode",
+        "meaning": "Partial Mirror Mode"
+      },
+      {
+        "record_index": 28,
+        "record_file_offset": "0x0002e0b8",
+        "group": 1,
+        "item": 4,
+        "state": 0,
+        "attribute": "MemSparingEn",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 29,
+        "record_file_offset": "0x0002e2bd",
+        "group": 1,
+        "item": 4,
+        "state": 1,
+        "attribute": "MemSparingEn",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 30,
+        "record_file_offset": "0x0002e4c2",
+        "group": 1,
+        "item": 5,
+        "state": 0,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 31,
+        "record_file_offset": "0x0002e6c7",
+        "group": 1,
+        "item": 5,
+        "state": 1,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "1200"
+      },
+      {
+        "record_index": 32,
+        "record_file_offset": "0x0002e8cc",
+        "group": 1,
+        "item": 5,
+        "state": 2,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "1"
+      },
+      {
+        "record_index": 33,
+        "record_file_offset": "0x0002ead1",
+        "group": 1,
+        "item": 5,
+        "state": 3,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "500"
+      },
+      {
+        "record_index": 34,
+        "record_file_offset": "0x0002ecd6",
+        "group": 1,
+        "item": 5,
+        "state": 4,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "1000"
+      },
+      {
+        "record_index": 35,
+        "record_file_offset": "0x0002eedb",
+        "group": 1,
+        "item": 5,
+        "state": 5,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "2000"
+      },
+      {
+        "record_index": 36,
+        "record_file_offset": "0x0002f0e0",
+        "group": 1,
+        "item": 5,
+        "state": 6,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "5000"
+      },
+      {
+        "record_index": 37,
+        "record_file_offset": "0x0002f2e5",
+        "group": 1,
+        "item": 5,
+        "state": 7,
+        "attribute": "OemMemoryCeAccumulation",
+        "meaning": "10000"
+      },
+      {
+        "record_index": 38,
+        "record_file_offset": "0x0002f4ea",
+        "group": 1,
+        "item": 6,
+        "state": 0,
+        "attribute": "OemMemoryCeStorm",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 39,
+        "record_file_offset": "0x0002f6ef",
+        "group": 1,
+        "item": 6,
+        "state": 1,
+        "attribute": "OemMemoryCeStorm",
+        "meaning": "120"
+      },
+      {
+        "record_index": 40,
+        "record_file_offset": "0x0002f8f4",
+        "group": 1,
+        "item": 6,
+        "state": 2,
+        "attribute": "OemMemoryCeStorm",
+        "meaning": "60"
+      },
+      {
+        "record_index": 41,
+        "record_file_offset": "0x0002faf9",
+        "group": 1,
+        "item": 6,
+        "state": 3,
+        "attribute": "OemMemoryCeStorm",
+        "meaning": "240"
+      },
+      {
+        "record_index": 42,
+        "record_file_offset": "0x0002fcfe",
+        "group": 1,
+        "item": 6,
+        "state": 4,
+        "attribute": "OemMemoryCeStorm",
+        "meaning": "1200"
+      },
+      {
+        "record_index": 43,
+        "record_file_offset": "0x0002ff03",
+        "group": 2,
+        "item": 0,
+        "state": 0,
+        "attribute": "PwrEnergyPerf",
+        "meaning": "Performance"
+      },
+      {
+        "record_index": 44,
+        "record_file_offset": "0x00030108",
+        "group": 2,
+        "item": 0,
+        "state": 1,
+        "attribute": "PwrEnergyPerf",
+        "meaning": "Balanced Performance"
+      },
+      {
+        "record_index": 45,
+        "record_file_offset": "0x0003030d",
+        "group": 2,
+        "item": 0,
+        "state": 2,
+        "attribute": "PwrEnergyPerf",
+        "meaning": "Balanced Power"
+      },
+      {
+        "record_index": 46,
+        "record_file_offset": "0x00030512",
+        "group": 2,
+        "item": 0,
+        "state": 3,
+        "attribute": "PwrEnergyPerf",
+        "meaning": "Power"
+      },
+      {
+        "record_index": 47,
+        "record_file_offset": "0x00030717",
+        "group": 2,
+        "item": 1,
+        "state": 0,
+        "attribute": "StateAfterG3",
+        "meaning": "Power Off"
+      },
+      {
+        "record_index": 48,
+        "record_file_offset": "0x0003091c",
+        "group": 2,
+        "item": 1,
+        "state": 1,
+        "attribute": "StateAfterG3",
+        "meaning": "Last State"
+      },
+      {
+        "record_index": 49,
+        "record_file_offset": "0x00030b21",
+        "group": 2,
+        "item": 1,
+        "state": 2,
+        "attribute": "StateAfterG3",
+        "meaning": "Power On"
+      },
+      {
+        "record_index": 50,
+        "record_file_offset": "0x00030d26",
+        "group": 3,
+        "item": 0,
+        "state": 0,
+        "attribute": "IioVtdSupport",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 51,
+        "record_file_offset": "0x00030f2b",
+        "group": 3,
+        "item": 0,
+        "state": 1,
+        "attribute": "IioVtdSupport",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 52,
+        "record_file_offset": "0x00031130",
+        "group": 3,
+        "item": 1,
+        "state": 0,
+        "attribute": "SataDevice",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 53,
+        "record_file_offset": "0x00031335",
+        "group": 3,
+        "item": 1,
+        "state": 1,
+        "attribute": "SataDevice",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 54,
+        "record_file_offset": "0x0003153a",
+        "group": 3,
+        "item": 2,
+        "state": 0,
+        "attribute": "SataType",
+        "meaning": "AHCI"
+      },
+      {
+        "record_index": 55,
+        "record_file_offset": "0x0003173f",
+        "group": 3,
+        "item": 2,
+        "state": 1,
+        "attribute": "SataType",
+        "meaning": "RAID"
+      },
+      {
+        "record_index": 56,
+        "record_file_offset": "0x00031944",
+        "group": 3,
+        "item": 3,
+        "state": 0,
+        "attribute": "SsataDevice",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 57,
+        "record_file_offset": "0x00031b49",
+        "group": 3,
+        "item": 3,
+        "state": 1,
+        "attribute": "SsataDevice",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 58,
+        "record_file_offset": "0x00031d4e",
+        "group": 3,
+        "item": 4,
+        "state": 0,
+        "attribute": "SsataType",
+        "meaning": "AHCI"
+      },
+      {
+        "record_index": 59,
+        "record_file_offset": "0x00031f53",
+        "group": 3,
+        "item": 4,
+        "state": 1,
+        "attribute": "SsataType",
+        "meaning": "RAID"
+      },
+      {
+        "record_index": 60,
+        "record_file_offset": "0x00032158",
+        "group": 3,
+        "item": 5,
+        "state": 0,
+        "attribute": "PciSriov",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 61,
+        "record_file_offset": "0x0003235d",
+        "group": 3,
+        "item": 5,
+        "state": 1,
+        "attribute": "PciSriov",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 62,
+        "record_file_offset": "0x00032562",
+        "group": 5,
+        "item": 0,
+        "state": 0,
+        "attribute": "SharelinkSup",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 63,
+        "record_file_offset": "0x00032767",
+        "group": 5,
+        "item": 0,
+        "state": 1,
+        "attribute": "SharelinkSup",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 65,
+        "record_file_offset": "0x0003296c",
+        "group": 5,
+        "item": 1,
+        "state": 0,
+        "attribute": "ConsoleRedirection0",
+        "meaning": "Disabled"
+      },
+      {
+        "record_index": 66,
+        "record_file_offset": "0x00032b71",
+        "group": 5,
+        "item": 1,
+        "state": 1,
+        "attribute": "ConsoleRedirection0",
+        "meaning": "Enabled"
+      },
+      {
+        "record_index": 67,
+        "record_file_offset": "0x00032d76",
+        "group": 5,
+        "item": 2,
+        "state": 0,
+        "attribute": "TerminalType0",
+        "meaning": "VT100"
+      },
+      {
+        "record_index": 68,
+        "record_file_offset": "0x00032f7b",
+        "group": 5,
+        "item": 2,
+        "state": 1,
+        "attribute": "TerminalType0",
+        "meaning": "VT100+"
+      },
+      {
+        "record_index": 69,
+        "record_file_offset": "0x00033180",
+        "group": 5,
+        "item": 2,
+        "state": 2,
+        "attribute": "TerminalType0",
+        "meaning": "VT-UTF8"
+      },
+      {
+        "record_index": 70,
+        "record_file_offset": "0x00033385",
+        "group": 5,
+        "item": 2,
+        "state": 3,
+        "attribute": "TerminalType0",
+        "meaning": "ANSI"
+      },
+      {
+        "record_index": 71,
+        "record_file_offset": "0x0003358a",
+        "group": 5,
+        "item": 3,
+        "state": 0,
+        "attribute": "Bitspersecond0",
+        "meaning": "9600"
+      },
+      {
+        "record_index": 72,
+        "record_file_offset": "0x0003378f",
+        "group": 5,
+        "item": 3,
+        "state": 1,
+        "attribute": "Bitspersecond0",
+        "meaning": "19200"
+      },
+      {
+        "record_index": 73,
+        "record_file_offset": "0x00033994",
+        "group": 5,
+        "item": 3,
+        "state": 2,
+        "attribute": "Bitspersecond0",
+        "meaning": "38400"
+      },
+      {
+        "record_index": 74,
+        "record_file_offset": "0x00033b99",
+        "group": 5,
+        "item": 3,
+        "state": 3,
+        "attribute": "Bitspersecond0",
+        "meaning": "57600"
+      },
+      {
+        "record_index": 75,
+        "record_file_offset": "0x00033d9e",
+        "group": 5,
+        "item": 3,
+        "state": 4,
+        "attribute": "Bitspersecond0",
+        "meaning": "115200"
+      },
+      {
+        "record_index": 76,
+        "record_file_offset": "0x00033fa3",
+        "group": 5,
+        "item": 4,
+        "state": 0,
+        "attribute": "FlowControl0",
+        "meaning": "None"
+      },
+      {
+        "record_index": 77,
+        "record_file_offset": "0x000341a8",
+        "group": 5,
+        "item": 4,
+        "state": 1,
+        "attribute": "FlowControl0",
+        "meaning": "Hardware RTS/CTS"
+      },
+      {
+        "record_index": 78,
+        "record_file_offset": "0x000343ad",
+        "group": 5,
+        "item": 5,
+        "state": 0,
+        "attribute": "DataBits0",
+        "meaning": "7"
+      },
+      {
+        "record_index": 79,
+        "record_file_offset": "0x000345b2",
+        "group": 5,
+        "item": 5,
+        "state": 1,
+        "attribute": "DataBits0",
+        "meaning": "8"
+      },
+      {
+        "record_index": 80,
+        "record_file_offset": "0x000347b7",
+        "group": 5,
+        "item": 6,
+        "state": 0,
+        "attribute": "Parity0",
+        "meaning": "None"
+      },
+      {
+        "record_index": 81,
+        "record_file_offset": "0x000349bc",
+        "group": 5,
+        "item": 6,
+        "state": 1,
+        "attribute": "Parity0",
+        "meaning": "Even"
+      },
+      {
+        "record_index": 82,
+        "record_file_offset": "0x00034bc1",
+        "group": 5,
+        "item": 6,
+        "state": 2,
+        "attribute": "Parity0",
+        "meaning": "Odd"
+      },
+      {
+        "record_index": 83,
+        "record_file_offset": "0x00034dc6",
+        "group": 5,
+        "item": 6,
+        "state": 3,
+        "attribute": "Parity0",
+        "meaning": "Mark"
+      },
+      {
+        "record_index": 84,
+        "record_file_offset": "0x00034fcb",
+        "group": 5,
+        "item": 6,
+        "state": 4,
+        "attribute": "Parity0",
+        "meaning": "Space"
+      },
+      {
+        "record_index": 85,
+        "record_file_offset": "0x000351d0",
+        "group": 5,
+        "item": 7,
+        "state": 0,
+        "attribute": "StopBits0",
+        "meaning": "1"
+      },
+      {
+        "record_index": 86,
+        "record_file_offset": "0x000353d5",
+        "group": 5,
+        "item": 7,
+        "state": 1,
+        "attribute": "StopBits0",
+        "meaning": "2"
+      },
+      {
+        "record_index": 87,
+        "record_file_offset": "0x000355da",
+        "group": 6,
+        "item": 0,
+        "state": 1,
+        "attribute": "BootOptionFilteringPolicy",
+        "meaning": "Legacy only"
+      },
+      {
+        "record_index": 88,
+        "record_file_offset": "0x000357df",
+        "group": 6,
+        "item": 0,
+        "state": 2,
+        "attribute": "BootOptionFilteringPolicy",
+        "meaning": "UEFI only"
+      }
+    ]
+  },
+  "netfn30_ownership": {
+    "local_g_NetFn30": {
+      "metadata_offset": "0x24f88",
+      "metadata_hex": "e20100010102a20100000000",
+      "handler_table": "g_Oem_NetFn30_CmdHndlr @ 0x477dc",
+      "commands": [
+        {
+          "cmd": "0xe2",
+          "privilege": "user",
+          "handler": "CommerMEOEMGetReading",
+          "length": "variable"
+        },
+        {
+          "cmd": "0x01",
+          "privilege": "user",
+          "handler": "OemGetflashstatus",
+          "length": 0
+        },
+        {
+          "cmd": "0xa2",
+          "privilege": "administrator",
+          "handler": "CommerSetChipSecurity",
+          "length": "variable"
+        }
+      ]
+    },
+    "local_g_pnm": {
+      "metadata_offset": "0x24f74",
+      "metadata_hex": "000000",
+      "meaning": "empty/sentinel-only metadata; no local PNM handler table"
+    },
+    "external_pnm": {
+      "binary": "/tmp/zipmi-ieit-analysis.3gIvEK/lib/libipminmsupport.so.6.6",
+      "handler_table": "g_PNM_CmdHndlr @ 0x136e8",
+      "commands": [
+        {
+          "cmd": "0xe2",
+          "privilege": "user",
+          "handler": "PnmOemGetReading",
+          "length": "variable"
+        },
+        {
+          "cmd": "0xe3",
+          "privilege": "user",
+          "handler": "PnmOemMePowerStateChange",
+          "length": 1
+        },
+        {
+          "cmd": "0xe9",
+          "privilege": "user",
+          "handler": "PnmOemPlatformPowerCharacterizationNotification",
+          "length": 1
+        }
+      ],
+      "e2_static_contract": {
+        "request": "one 3-byte descriptor on legacy mode; one or more 3-byte descriptors on newer feature mode; zero length is rejected",
+        "descriptor": [
+          "byte0: reading type in high nibble, subtype in low nibble",
+          "byte1: parameter",
+          "byte2: parameter"
+        ],
+        "response": "one 4-byte record per descriptor: status, echoed byte0, 16-bit reading (little endian)",
+        "backend": "indirect function pointers in g_PDKHandle (+0x1dc legacy or +0x1e0 newer); a missing/failing backend stores per-record status 0xff",
+        "evidence": "libipminmsupport.so.6.6 ARM 0x4918-0x4af8"
+      }
+    },
+    "collision": {
+      "tuple": "NetFn 0x30 / Cmd 0xe2",
+      "static_fact": "both local IEIT wrapper table and external PNM table register this tuple",
+      "resolution": "not provable from provider tables alone; registration/merge order is in host IPMI framework",
+      "live_observation": "At 10.250.0.41 a zero-payload request timed out after 20 seconds and subsequent IPMI requests also timed out. This does not identify the winner: the local IEIT common-interface handler returns response length 0 for an empty request (which can suppress a reply), while external PNM validates zero length to C7 before calling ME. The later global timeouts show the service became unhealthy.",
+      "safety": "treat 0x30/0xe2 as disruptive/backend-blocking or no-response-capable and do not probe live without recovery controls"
+    }
+  }
+}
