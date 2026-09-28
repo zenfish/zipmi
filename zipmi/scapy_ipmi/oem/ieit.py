@@ -87,7 +87,7 @@ _update(
     purpose="Enable, disable, or query protocol 0x1e using an ASCII control token.",
     request="Exactly one 10-byte ASCII token: 00SECURITY, 11SECURITY, or ??SECURITY.",
     response="Set: no data. Query: two duplicate ASCII state bytes (00 or 11).",
-    request_length=(10, 10), safety="security-sensitive",
+    request_length=(10, 10), safety="sensitive",
     side_effects="Enable/disable changes the BMC protocol policy.", confidence="high",
 )
 for _token, _operation, _safety, _effect in (

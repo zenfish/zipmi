@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from argparse import Namespace
 from collections import Counter
 from contextlib import contextmanager
@@ -34,6 +36,17 @@ def test_ieit_dispatch_denominator_and_collision_are_preserved() -> None:
         "intel-pnm": 3,
         "ami-hpm-oem": 1,
     }
+    subprocess.run(
+        [sys.executable, "scripts/generate_ieit_nf5468m6_reference.py", "--check"],
+        cwd=ROOT, check=True,
+    )
+    reference = (ROOT / "docs/ieit-nf5468m6-command-reference.html").read_text()
+    table = (ROOT / "docs/ieit-nf5468m6-command-table.html").read_text()
+    assert reference.count('<tr data-search="') == 453
+    assert table.count('<tr data-search="') == 453
+    assert "324</strong>Firmware registration rows" in table
+    assert "323</strong>Unique NetFn/Cmd addresses" in table
+    assert "250ccbd0943a4a5d07f679c99254fb7677b91efb526530df609aab995a27c2ab" in reference
 
 
 def test_ieit_target_is_separate_from_openbmc_inspur() -> None:
