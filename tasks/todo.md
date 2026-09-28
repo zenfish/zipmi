@@ -1,3 +1,21 @@
+# Task — Complete NVIDIA GB200 OpenBMC OEM support (2026-09-28)
+
+- [x] Pin the exact GB200 firmware/provider provenance and close the OEM handler inventory.
+- [x] Encode every NVIDIA OEM request/response contract, safety class, and named CLI route.
+- [x] Add focused contract, CLI, generation, and documentation tests.
+- [x] Generate the Standard v1 command reference and compact command table in the shared house style.
+- [x] Link NVIDIA from the public OEM documentation index and keep generated counts synchronized.
+- [x] Run focused tests, generators in `--check` mode, documentation/whitespace checks, and the full suite.
+- [x] Review the final diff for the smallest coherent implementation and record proof below.
+
+### Review
+
+- Closed all eight registrations in the pinned GB200 provider; all have request/response codecs, Admin privilege, completion codes, activation, side effects, and bounded named routes.
+- Both BIOS credential operations fail closed without `--unsafe`; real argparse/help execution and the fixed `0x01` selector are regression-tested.
+- Preserved the 2026-07-22 live verifier-disclosure proof without retaining raw credential material. Current safe live probing was intentionally skipped because debby's launcher has unrelated local modifications and its NVIDIA VM was operator-stopped.
+- Independent review found and fixed the missing NVIDIA argparse flag, type-1 partial hash overwrite, exception-only persistence error, and source-provenance overclaim.
+- Proof: `23 passed` focused; `2379 passed` full suite; generator `--check`, `scripts/check_doc_sync.py`, JSON parse, and `git diff --check` pass. Ruff is not installed in this environment.
+
 # ⭐ TOP PRIORITY (2026-08-14): per-OEM columns across the whole command table
 
 ## Task — Use generation-specific iDRAC6 document names (2026-09-27)

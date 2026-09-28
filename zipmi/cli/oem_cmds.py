@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
 import sys
 
 from .. import _msg
@@ -464,17 +465,31 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
         import importlib
         mod = importlib.import_module(f"zipmi.scapy_ipmi.oem.{spec[0]}")
         names = getattr(mod, spec[1])
+        contracts = getattr(mod, f"{vendor.upper()}_COMMANDS", {})
         prefix = re.compile(rf"^{re.escape(vendor)}\s+", re.IGNORECASE)
-        return {
-            key: {
+        out = {}
+        for key, nm in names.items():
+            contract = contracts.get(key, {})
+            request_min, request_max = contract.get("request_length", (None, None))
+            out[key] = {
                 "name": prefix.sub("", nm),
-                "priv": None, "desc": "", "live": None, "missing": False,
+                "priv": contract.get("privilege"),
+                "desc": contract.get("purpose", ""),
+                "live": contract.get("live"), "missing": False,
                 # baked fixed-prefix bytes (key[2:]) — auto-supplied on send so
                 # the user drops the mandatory selector/IANA (see nvidia/intel/fb).
                 "prefix": bytes(key[2:]) if len(key) > 2 else None,
+                "request": contract.get("request_fields"),
+                "response": contract.get("response_fields"),
+                "security": contract.get("side_effects"),
+                "completion_codes": contract.get("completion_codes"),
+                "activation": contract.get("activation"),
+                "confidence": contract.get("confidence"),
+                "request_min": request_min, "request_max": request_max,
+                "requires_unsafe": contract.get("safety") != "read-only"
+                if contract else False,
             }
-            for key, nm in names.items()
-        }
+        return out
     if vendor == "idrac6":
         from ..scapy_ipmi.oem.dell_generated import DELL_DISPATCH
         from ..scapy_ipmi.oem.dell import (
@@ -1420,6 +1435,23 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             )
             return 2
 
+    if vendor == "nvidia":
+        payload_len = len(data_bytes)
+        req_min = info.get("request_min")
+        req_max = info.get("request_max")
+        if ((req_min is not None and payload_len < req_min)
+                or (req_max is not None and payload_len > req_max)):
+            if req_min == req_max:
+                required = req_min - len(prefix)
+                suffix = " data bytes after the fixed prefix" if prefix else " payload bytes"
+                _msg.error(f"{info['name']} requires exactly {required}{suffix}; got {len(raw_data)}")
+            else:
+                _msg.error(
+                    f"{info['name']} requires {req_min}–{req_max} payload bytes; "
+                    f"got {payload_len}"
+                )
+            return 2
+
     if vendor == "idrac10":
         payload_len = len(data_bytes)
         req_min = info.get("request_min")
@@ -1482,15 +1514,12 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             _msg.error(f"{info['name']} requires exactly {exact} payload bytes; got {len(data_bytes)}")
             return 2
 
-    if vendor in (
-        "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu", "megarac", "yafu",
-    ):
-        if info.get("requires_unsafe") and not getattr(args, "unsafe", False):
-            _msg.error(
-                f"{info['name']} is state-changing or has an unproved payload "
-                "schema; add --unsafe to acknowledge named raw execution"
-            )
-            return 2
+    if info.get("requires_unsafe") and not getattr(args, "unsafe", False):
+        _msg.error(
+            f"{info['name']} is state-changing, sensitive, or has an unproved "
+            "payload schema; add --unsafe to acknowledge named raw execution"
+        )
+        return 2
 
     # Send. Imports kept inside to avoid module-load-time circular imports.
     import zipmi
@@ -1605,8 +1634,8 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         prefix_args = " ".join(f"0x{b:02x}" for b in prefix)
         print(f"\n  Invoke:")
         unsafe = " --unsafe" if info.get("requires_unsafe") else ""
-        print(f"    zipmi -H <bmc> -U <user> -P <pw> oem {vendor}{unsafe} "
-              f"{info['name']} <args...>")
+        print(f"    zipmi -H <bmc> -U <user> -P <pw> oem {_display_verb(vendor)}{unsafe} "
+              f"{shlex.quote(info['name'])} <args...>")
         if prefix_args:
             print(f"    zipmi -H <bmc> -U <user> -P <pw> raw "
                   f"0x{netfn:02x} 0x{cmd:02x} {prefix_args} <args...>")
@@ -1686,11 +1715,11 @@ def _add_vendor_parser(
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
     if vendor_key in (
         "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu",
-        "megarac", "yafu",
+        "megarac", "yafu", "nvidia",
     ):
         sp.add_argument(
             "--unsafe", action="store_true",
-            help="acknowledge state-changing or schema-unknown named raw execution",
+            help="acknowledge sensitive, state-changing, or schema-unknown named raw execution",
         )
     sp.add_argument("cmd_name", nargs="?",
                     help=f"{cmd_noun} name (substring match; omit to list)")

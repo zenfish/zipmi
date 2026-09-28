@@ -17,7 +17,7 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code, which worked with me over the last half-year on this project — in all aspects of the package.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2809<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->2809<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -417,6 +417,12 @@ bytes via `zipmi raw`.
 
 Source-of-truth (hahah... well, for some value of truth) per vendor:
 
+- **NVIDIA GB200 NVL OpenBMC**: [firmware-bound OEM reference](docs/nvidia-gb200-command-reference.html)
+  and [compact registration table](docs/nvidia-gb200-command-table.html) close all eight
+  raw NetFn `0x3c` registrations, including exact request/response codecs and
+  fail-closed named routes. The retained live proof documents authenticated
+  disclosure of the BIOS admin-password salt and PBKDF2 verifier; both BIOS
+  credential commands require `--unsafe`.
 - **Fujitsu iRMC S6 02.63S**: [firmware-bound zipmi reference](docs/fujitsu-irmc-s6-command-reference.html)
   and [compact registration table](docs/fujitsu-irmc-s6-command-table.html)
   lists 135 top-level dispatch names and 232 selector/group operations, with
@@ -516,7 +522,7 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   | `inspur` | 37945¹ | 0x3C | inspur-ipmi-oem |
   | `foxconn` | — | 0x34 | foxconn-ipmi-oem |
   | `wistron` | — | 0x30 | wistron-ipmi-oem |
-  | `nvidia` | — | group 0x3C / NetFn 0x2C | phosphor-host-ipmid oem/nvidia |
+  | `nvidia` | — | raw NetFn 0x3C | phosphor-host-ipmid oem/nvidia |
 
   ¹ informational; NOT on the wire (raw vendor NetFns carry no IANA — only
   Google uses the real NetFn 0x2E + IANA group form). `zipmi.load_vendor("openbmc")`
