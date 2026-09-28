@@ -3,17 +3,14 @@
 
 from __future__ import annotations
 
-import html
+from oem_disclosure import escape as _e
+from oem_disclosure import field as _field
 
 
 FIELDS = (
     "address", "qualifier", "handler", "privilege", "request",
     "activation", "evidence",
 )
-
-
-def _e(value: object) -> str:
-    return html.escape(str(value), quote=True)
 
 
 def render_command_table(page: dict) -> str:
@@ -40,12 +37,12 @@ def render_command_table(page: dict) -> str:
         search = " ".join(str(row[field]) for field in FIELDS).lower()
         rows.append(
             f'<tr data-search="{_e(search)}"><td>{index}</td>'
-            f'<td><code class="nowrap">{_e(row["address"])}</code></td>'
-            f'<td><code>{_e(row["qualifier"])}</code></td>'
-            f'<th scope="row"><code>{_e(row["handler"])}</code></th>'
-            f'<td>{_e(row["privilege"])}</td><td>{_e(row["request"])}</td>'
-            f'<td>{_e(row["activation"])}</td>'
-            f'<td><details><summary>Show evidence</summary><p>{_e(row["evidence"])}</p></details></td></tr>'
+            f'<td>{_field(row["address"], tag="code", class_name="nowrap")}</td>'
+            f'<td>{_field(row["qualifier"], tag="code")}</td>'
+            f'<th scope="row">{_field(row["handler"], "Show handler", tag="code")}</th>'
+            f'<td>{_field(row["privilege"])}</td><td>{_field(row["request"], "Show request")}</td>'
+            f'<td>{_field(row["activation"], "Show activation")}</td>'
+            f'<td>{_field(row["evidence"], "Show evidence", tag="p", class_name="muted")}</td></tr>'
         )
     sources = "".join(
         f'<li><a href="{_e(source["href"])}">{_e(source["label"])}</a></li>'
@@ -61,16 +58,23 @@ def render_command_table(page: dict) -> str:
 <section aria-labelledby="provenance"><h2 id="provenance">Firmware and evidence provenance</h2><div class="table-wrap"><table><tbody>{provenance}</tbody></table></div></section>
 <section aria-labelledby="summary"><h2 id="summary">Inventory summary</h2><div class="summary">{metrics}</div></section>
 <section aria-labelledby="identities"><h2 id="identities">Registered command identities</h2>
-<div class="panel"><label for="identity-filter"><strong>Search identities</strong></label><input id="identity-filter" class="mt-2 w-full" type="search" placeholder="address, prefix or LUN, handler, privilege, activation, evidence"><p id="identity-count" class="muted" aria-live="polite"></p></div>
+<div class="panel"><label for="identity-filter"><strong>Search identities</strong></label><input id="identity-filter" class="mt-2 w-full" type="search" placeholder="address, prefix or LUN, handler, privilege, activation, evidence"></div>
+<div class="table-tools"><p id="identity-count" class="muted" aria-live="polite"></p><button id="identity-expand-all" class="expand-all" type="button" aria-controls="identity-rows" aria-expanded="false" disabled>Expand all</button></div>
 <div id="identity-scrollbar-slot" class="table-scrollbar-slot"><div id="identity-scrollbar" class="table-scrollbar" role="scrollbar" aria-label="Horizontal scrollbar for the command identity table" aria-controls="identity-table-wrap" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" tabindex="0"><div class="table-scrollbar-track"><div id="identity-scrollbar-thumb" class="table-scrollbar-thumb"></div></div></div></div>
 <div id="identity-table-wrap" class="table-wrap" role="region" aria-label="Firmware command identities" tabindex="0"><table class="operation-table"><caption>One row per retained firmware registration. Duplicate addresses remain visible when firmware registers distinct handlers, prefixes, or LUNs.</caption><thead><tr><th>#</th><th>NetFn / Cmd</th><th>Prefix / LUN</th><th>Handler</th><th>Privilege</th><th>Request constraint</th><th>Activation</th><th>Evidence</th></tr></thead><tbody id="identity-rows">{"".join(rows)}</tbody></table></div></section>
 <section aria-labelledby="sources"><h2 id="sources">Sources</h2><ul>{sources}</ul></section>
 </main><script>
-const filter=document.getElementById('identity-filter'),rows=[...document.querySelectorAll('#identity-rows > tr')],count=document.getElementById('identity-count');
+const filter=document.getElementById('identity-filter'),rows=[...document.querySelectorAll('#identity-rows > tr')],count=document.getElementById('identity-count'),expandAll=document.getElementById('identity-expand-all');
 function clearHighlights(){{const parents=new Set();for(const mark of document.querySelectorAll('mark.search-hit')){{parents.add(mark.parentNode);mark.replaceWith(mark.textContent);}}for(const parent of parents)parent.normalize();for(const details of document.querySelectorAll('details[data-search-opened]')){{details.open=false;details.removeAttribute('data-search-opened');}}}}
 function highlight(root,query){{const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];while(walker.nextNode())if(walker.currentNode.data.toLowerCase().includes(query))nodes.push(walker.currentNode);for(const node of nodes){{const text=node.data,lower=text.toLowerCase(),fragment=document.createDocumentFragment();let start=0,index;while((index=lower.indexOf(query,start))!==-1){{fragment.append(text.slice(start,index));const mark=document.createElement('mark');mark.className='search-hit';mark.textContent=text.slice(index,index+query.length);fragment.append(mark);start=index+query.length;}}fragment.append(text.slice(start));node.replaceWith(fragment);}}}}
-function applyFilter(){{clearHighlights();const query=filter.value.trim().toLowerCase();let shown=0;for(const row of rows){{const visible=!query||row.textContent.toLowerCase().includes(query);row.hidden=!visible;if(visible){{shown++;if(query){{highlight(row,query);for(const details of row.querySelectorAll('details'))if(details.querySelector('mark.search-hit')){{details.open=true;details.dataset.searchOpened='';}}}}}}}}count.textContent=`${{shown}} of ${{rows.length}} registrations shown`;}}
-filter.addEventListener('input',applyFilter);applyFilter();
+function visibleDisclosures(){{return rows.filter(row=>!row.hidden).flatMap(row=>[...row.querySelectorAll('details[data-bulk-disclosure]')]);}}
+function updateExpandAll(){{const disclosures=visibleDisclosures(),allOpen=disclosures.length>0&&disclosures.every(details=>details.open);expandAll.disabled=disclosures.length===0;expandAll.textContent=allOpen?'Collapse all':'Expand all';expandAll.setAttribute('aria-expanded',String(allOpen));}}
+let expandAllUpdatePending=false;
+function queueExpandAllUpdate(){{if(expandAllUpdatePending)return;expandAllUpdatePending=true;requestAnimationFrame(()=>{{expandAllUpdatePending=false;updateExpandAll();}});}}
+function applyFilter(){{clearHighlights();const query=filter.value.trim().toLowerCase();let shown=0;for(const row of rows){{const visible=!query||row.textContent.toLowerCase().includes(query);row.hidden=!visible;if(visible){{shown++;if(query){{highlight(row,query);for(const details of row.querySelectorAll('details'))if(details.querySelector('mark.search-hit')){{details.open=true;details.dataset.searchOpened='';}}}}}}}}count.textContent=`${{shown}} of ${{rows.length}} registrations shown`;queueExpandAllUpdate();}}
+filter.addEventListener('input',applyFilter);
+expandAll.addEventListener('click',()=>{{const disclosures=visibleDisclosures(),open=!disclosures.every(details=>details.open);for(const details of disclosures){{details.open=open;details.removeAttribute('data-search-opened');}}queueExpandAllUpdate();}});
+for(const details of document.querySelectorAll('details[data-bulk-disclosure]'))details.addEventListener('toggle',queueExpandAllUpdate);applyFilter();
 const tableWrap=document.getElementById('identity-table-wrap'),topScrollbar=document.getElementById('identity-scrollbar'),scrollbarSlot=document.getElementById('identity-scrollbar-slot'),scrollThumb=document.getElementById('identity-scrollbar-thumb');
 function scrollMetrics(){{const maximum=Math.max(0,tableWrap.scrollWidth-tableWrap.clientWidth),trackWidth=topScrollbar.clientWidth,thumbWidth=Math.min(trackWidth,Math.max(40,trackWidth*tableWrap.clientWidth/tableWrap.scrollWidth));return{{maximum,thumbWidth,travel:Math.max(0,trackWidth-thumbWidth)}};}}
 function updateThumb(){{const{{maximum,thumbWidth,travel}}=scrollMetrics();scrollThumb.style.width=`${{thumbWidth}}px`;scrollThumb.style.transform=`translateX(${{maximum?tableWrap.scrollLeft/maximum*travel:0}}px)`;topScrollbar.setAttribute('aria-valuemax',Math.round(maximum));topScrollbar.setAttribute('aria-valuenow',Math.round(tableWrap.scrollLeft));}}

@@ -37,6 +37,10 @@ code, .wire { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular
 input, select, button { min-height: 2.7rem; padding: .55rem .7rem; border: 1px solid #94a3b8; border-radius: .4rem; background: white; color: var(--text); font: inherit; }
 input:focus, select:focus, button:focus, a:focus, .table-scrollbar:focus { outline: 3px solid #93c5fd; outline-offset: 2px; }
 button { cursor: pointer; font-weight: 700; }
+button:disabled { cursor: default; border-color: #cbd5e1; background: #e2e8f0; color: #94a3b8; }
+.table-tools { display: flex; gap: .75rem; align-items: center; justify-content: space-between; margin-top: .75rem; }
+.table-tools > p { margin: 0; }
+.expand-all { min-height: 2.2rem; padding: .35rem .65rem; }
 .table-wrap { margin-top: 1rem; overflow: auto; border: 1px solid var(--border); border-radius: .5rem; background: var(--surface); }
 .table-scrollbar-slot.has-floating-scrollbar { height: 1.25rem; }
 .table-scrollbar { height: 1.25rem; padding: .3125rem .125rem; cursor: pointer; touch-action: none; }
@@ -59,7 +63,7 @@ thead th { position: sticky; top: 0; z-index: 1; background: #e2e8f0; }
 tbody th { min-width: 18rem; font-weight: 400; }
 details { margin-top: .45rem; }
 summary { cursor: pointer; font-weight: 650; }
-.evidence > p, .safety-note > p { margin: .4rem 0 0; }
+.cell-disclosure > :not(summary) { margin: .4rem 0 0; }
 mark.search-hit { padding: 0 .08em; border-radius: .12rem; background: #fde047; color: inherit; }
 .field-table { margin-top: .5rem; font-size: .78rem; }
 .field-table th, .field-table td { padding: .35rem .45rem; }
@@ -69,4 +73,4 @@ mark.search-hit { padding: 0 .08em; border-radius: .12rem; background: #fde047; 
 [hidden] { display: none !important; }
 @media (max-width: 75rem) { .filters { grid-template-columns: 1fr 1fr; } main { padding: 1rem; } }
 @media (max-width: 42rem) { .filters { grid-template-columns: 1fr; } }
-@media print { .filters, .table-scrollbar, button, script { display: none !important; } main { max-width: none; padding: 0; } thead th { position: static; } }
+@media print { .filters, .table-tools, .table-scrollbar, button, script, .cell-disclosure > summary { display: none !important; } .cell-disclosure > :not(summary) { display: block !important; } main { max-width: none; padding: 0; } thead th { position: static; } }

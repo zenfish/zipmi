@@ -41,6 +41,13 @@ def row_count(document: str) -> int:
 
 
 def test_compact_command_tables_are_generated_and_searchable() -> None:
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from oem_disclosure import DISCLOSURE_BYTES, field
+
+    assert DISCLOSURE_BYTES == 80
+    assert "data-bulk-disclosure" not in field("é" * 40)
+    assert 'data-bulk-disclosure><summary>Show full value</summary><span>' in field("é" * 41)
+    assert "&lt;" in field("<" * 81)
     subprocess.run(
         [sys.executable, str(ROOT / "scripts/generate_oem_command_tables.py"), "--check"],
         cwd=ROOT, check=True,
@@ -50,10 +57,20 @@ def test_compact_command_tables_are_generated_and_searchable() -> None:
         "lenovo-xcc-command-table.html",
         "fujitsu-irmc-s6-command-table.html",
         "idrac10-command-table.html",
+        "idrac9-command-table.html",
+        "ieit-nf5468m6-command-table.html",
+        "megarac-command-table.html",
+        "nvidia-gb200-command-table.html",
     ):
         document = page(name)
         assert '<link rel="stylesheet" href="assets/oem-command-reference.css">' in document
         assert 'id="identity-filter"' in document
+        assert ('id="identity-expand-all" class="expand-all" type="button" '
+                'aria-controls="identity-rows" aria-expanded="false" disabled'
+                in document)
+        assert "row=>!row.hidden" in document
+        assert "details[data-bulk-disclosure]" in document
+        assert "expandAllUpdatePending" in document
         assert 'id="identity-scrollbar"' in document
         assert "updateFloatingScrollbar" in document
         assert "document.createTreeWalker" in document

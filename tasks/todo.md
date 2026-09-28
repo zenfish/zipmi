@@ -1,3 +1,21 @@
+# Task — Collapse long values across all OEM tables (2026-09-28)
+
+- [x] Add one shared UTF-8 byte threshold for long field values in both OEM renderers.
+- [x] Render long values as accessible native disclosures without changing search text.
+- [x] Add a visible-row Expand all / Collapse all control with a real disabled state.
+- [x] Regenerate every paired OEM reference and compact command table.
+- [x] Add renderer interaction regressions and visually verify representative dense/sparse pages.
+- [x] Run every generator, doc sync, focused/full tests, artifact sweep, and independent review.
+
+### Review
+
+- Values over 80 UTF-8 bytes now use native `<details>` disclosures in every operation and identity row field; short values retain their existing inline markup.
+- Expand all / Collapse all affects length-based disclosures in visible rows only. It leaves Request/Response schema disclosures independent and becomes disabled gray when the visible result set has nothing to expand.
+- Regenerated all eight paired references and compact tables: Advantech, Fujitsu, iDRAC9, iDRAC10, IEIT, Lenovo, MegaRAC/YAFU, and NVIDIA. Version is 0.6.7.
+- Browser proof on the 950-row IEIT reference: all 3,714 long fields expand in 0.47–0.66 seconds and collapse in 0.84–0.90 seconds without page overflow; a one-row result with no long values disables the control.
+- The independent review's initial quadratic toggle-state finding was fixed by coalescing state scans to one per animation frame; re-review found no remaining issues.
+- Proof: 63 focused tests and all 2,385 repository tests pass; all nine generator checks, doc sync, Python compilation, and `git diff --check` pass. Artifact sweep reports `dirty=0`; strict mode retains pre-existing duplicate generated/build handles and the external orphaned KISS record.
+
 # Task — Complete IEIT NF5468M6 MegaRAC OEM support (2026-09-28)
 
 - [x] Pin firmware/rootfs/provider provenance and recover the complete registration denominator.

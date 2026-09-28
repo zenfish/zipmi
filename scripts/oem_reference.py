@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-import html
+from oem_disclosure import escape as _e
+from oem_disclosure import field as _field
 
 
 SAFETY = {
@@ -16,9 +17,6 @@ SAFETY = {
 }
 LAYOUT = ("Complete", "Partial", "Unknown", "Conflicting")
 EXECUTION = ("Allowed by default", "Requires --unsafe", "No distinct named route")
-SAFETY_NOTE_DISCLOSURE_LENGTH = 80
-
-
 def validate_reference(page: dict) -> None:
     """Reject incomplete renderer input at the documentation boundary."""
     required = {"title", "scope", "provenance", "links", "operations", "commands", "gaps", "live_evidence"}
@@ -38,10 +36,6 @@ def validate_reference(page: dict) -> None:
             raise ValueError(f"unknown execution policy: {operation['id']}")
 
 
-def _e(value) -> str:
-    return html.escape(str(value), quote=True)
-
-
 def _badge(value: str) -> str:
     return f'<span class="badge {value}">{_e(value.title())}</span>'
 
@@ -49,13 +43,7 @@ def _badge(value: str) -> str:
 def _safety_note(note: str | None) -> str:
     if not note:
         return ""
-    escaped = _e(note)
-    if len(note) <= SAFETY_NOTE_DISCLOSURE_LENGTH:
-        return f'<p class="muted">{escaped}</p>'
-    return (
-        '<details class="safety-note"><summary>Safety details</summary>'
-        f'<p class="muted">{escaped}</p></details>'
-    )
+    return _field(note, "Safety details", tag="p", class_name="muted")
 
 
 def _fields(fields: list[dict] | None) -> str:
@@ -64,8 +52,8 @@ def _fields(fields: list[dict] | None) -> str:
     if not fields:
         return '<p class="muted">No fields.</p>'
     rows = "".join(
-        f"<tr><td class=\"wire\">{_e(field['offset'])}</td><td class=\"wire\">{_e(field['name'])}</td>"
-        f"<td>{_e(field['type'])}</td><td>{_e(field['meaning'])}</td></tr>"
+        f"<tr><td class=\"wire\">{_field(field['offset'])}</td><td class=\"wire\">{_field(field['name'])}</td>"
+        f"<td>{_field(field['type'])}</td><td>{_field(field['meaning'])}</td></tr>"
         for field in fields
     )
     return ('<table class="field-table"><thead><tr><th>Offset</th><th>Name</th><th>Type / size</th>'
@@ -73,9 +61,9 @@ def _fields(fields: list[dict] | None) -> str:
 
 
 def _layout(title: str, layout: dict) -> str:
-    return (f'<div class="stack"><p><strong>Status:</strong> {_e(layout["status"])}</p>'
-            f'<p><strong>Length:</strong> {_e(layout["length"])}</p>'
-            f'<p><strong>Summary:</strong> <code>{_e(layout["summary"])}</code></p>'
+    return (f'<div class="stack"><div><strong>Status:</strong> {_field(layout["status"])}</div>'
+            f'<div><strong>Length:</strong> {_field(layout["length"])}</div>'
+            f'<div><strong>Summary:</strong> {_field(layout["summary"], tag="code")}</div>'
             f'<details><summary>{title} fields</summary>{_fields(layout["fields"])}</details></div>')
 
 
@@ -112,15 +100,15 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
             f'<tr data-search="{_e(search)}" data-safety="{_e(op["safety"])}" '
             f'data-request="{_e(op["request"]["status"])}" data-response="{_e(op["response"]["status"])}" '
             f'data-execution="{_e(op["execution"])}" data-live="{str(op["live"]).lower()}">'
-            f'<td>{index}</td><th scope="row"><strong>{_e(op["name"])}</strong><div class="wire muted">{_e(op["id"])}</div><p>{_e(op["purpose"])}</p></th>'
+            f'<td>{index}</td><th scope="row">{_field(op["name"], "Show operation", tag="strong")}<div class="wire muted">{_field(op["id"], "Show identity")}</div>{_field(op["purpose"], "Show purpose", tag="p")}</th>'
             f'<td>{_badge(op["safety"])}{safety_note}</td>'
-            f'<td><code class="command">{_e(op["send"])}</code></td>'
+            f'<td>{_field(op["send"], "Show command", tag="code", class_name="command")}</td>'
             f'<td>{_layout("Request", op["request"])}</td><td>{_layout("Response", op["response"])}</td>'
-            f'<td class="stack"><p><strong>Privilege:</strong> {_e(op["privilege"])}</p><p><strong>Interface:</strong> {_e(op["interface"])}</p>'
-            f'<p><strong>Available on this firmware:</strong> {_e(op["availability"])}</p><p><strong>Completion codes:</strong> <code>{_e(op["completion_codes"])}</code></p></td>'
-            f'<td class="stack"><p><strong>Named operation route:</strong> {_e(op["execution"])}</p><p><strong>Captured live request:</strong> {_e(op["live_text"])}</p>'
-            f'<details class="evidence"><summary>Recovered from</summary><p>{_e(op["evidence"])}</p></details>'
-            f'<p><strong>Confidence:</strong> {_e(op["confidence"])}</p></td></tr>'
+            f'<td class="stack"><div><strong>Privilege:</strong> {_field(op["privilege"])}</div><div><strong>Interface:</strong> {_field(op["interface"], "Show interface")}</div>'
+            f'<div><strong>Available on this firmware:</strong> {_field(op["availability"], "Show availability")}</div><div><strong>Completion codes:</strong> {_field(op["completion_codes"], "Show completion codes", tag="code")}</div></td>'
+            f'<td class="stack"><div><strong>Named operation route:</strong> {_field(op["execution"])}</div><div><strong>Captured live request:</strong> {_field(op["live_text"], "Show live result")}</div>'
+            f'{_field(op["evidence"], "Recovered from", tag="p", class_name="muted")}'
+            f'<div><strong>Confidence:</strong> {_field(op["confidence"], "Show confidence")}</div></td></tr>'
         )
     safety_options = "".join(f'<option value="{name}">{name.title()}</option>' for name in SAFETY)
     layout_options = '<option value="">All</option>' + "".join(f'<option>{name}</option>' for name in ("Complete", "Partial", "Unknown", "Conflicting"))
@@ -146,19 +134,25 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 <label>Execution<select id="execution-filter">{execution_options}</select></label>
 <label><span>Live evidence</span><select id="live-filter"><option value="">All</option><option value="true">Live-tested only</option></select></label>
 <button id="clear-filters" type="button">Clear filters</button></div>
-<p id="operation-count" class="muted" aria-live="polite"></p>
+<div class="table-tools"><p id="operation-count" class="muted" aria-live="polite"></p><button id="operation-expand-all" class="expand-all" type="button" aria-controls="operation-rows" aria-expanded="false" disabled>Expand all</button></div>
 <div id="operation-scrollbar-slot" class="table-scrollbar-slot"><div id="operation-scrollbar" class="table-scrollbar" role="scrollbar" aria-label="Horizontal scrollbar for the operations table" aria-controls="operation-table-wrap" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" tabindex="0"><div class="table-scrollbar-track"><div id="operation-scrollbar-thumb" class="table-scrollbar-thumb"></div></div></div></div>
 <div id="operation-table-wrap" class="table-wrap" role="region" aria-label="OEM operations" tabindex="0"><table class="operation-table"><caption>Commands to send, payload layouts, safety, availability, zipmi support, and evidence.</caption><thead><tr><th>#</th><th>Operation</th><th>Safety</th><th>Send with zipmi</th><th>Request data</th><th>Response data</th><th>Access &amp; availability</th><th>zipmi support &amp; evidence</th></tr></thead><tbody id="operation-rows">{"".join(operation_rows)}</tbody></table></div></section>
 <section aria-labelledby="sources"><h2 id="sources">Sources</h2><ul>{source_items}</ul></section>
 </main><script>
 const ids=['operation-filter','safety-filter','request-filter','response-filter','execution-filter','live-filter'];
 const controls=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
-const rows=[...document.querySelectorAll('#operation-rows > tr')],count=document.getElementById('operation-count');
+const rows=[...document.querySelectorAll('#operation-rows > tr')],count=document.getElementById('operation-count'),expandAll=document.getElementById('operation-expand-all');
 function clearSearchState(){{const parents=new Set();for(const mark of document.querySelectorAll('mark.search-hit')){{parents.add(mark.parentNode);mark.replaceWith(mark.textContent);}}for(const parent of parents)parent.normalize();for(const details of document.querySelectorAll('details[data-search-opened]')){{details.open=false;details.removeAttribute('data-search-opened');}}}}
 function highlightMatches(root,query){{const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];while(walker.nextNode())if(walker.currentNode.data.toLowerCase().includes(query))nodes.push(walker.currentNode);for(const node of nodes){{const text=node.data,lower=text.toLowerCase(),fragment=document.createDocumentFragment();let start=0,index;while((index=lower.indexOf(query,start))!==-1){{fragment.append(text.slice(start,index));const mark=document.createElement('mark');mark.className='search-hit';mark.textContent=text.slice(index,index+query.length);fragment.append(mark);start=index+query.length;}}fragment.append(text.slice(start));node.replaceWith(fragment);}}}}
-function filterRows(){{clearSearchState();const query=controls['operation-filter'].value.trim().toLowerCase();let shown=0;for(const row of rows){{const text=row.textContent.toLowerCase();const visible=(!query||text.includes(query))&&(!controls['safety-filter'].value||row.dataset.safety===controls['safety-filter'].value)&&(!controls['request-filter'].value||row.dataset.request===controls['request-filter'].value)&&(!controls['response-filter'].value||row.dataset.response===controls['response-filter'].value)&&(!controls['execution-filter'].value||row.dataset.execution===controls['execution-filter'].value)&&(!controls['live-filter'].value||row.dataset.live===controls['live-filter'].value);row.hidden=!visible;if(visible){{shown++;if(query){{highlightMatches(row,query);for(const details of row.querySelectorAll('details'))if(!details.open&&[...details.querySelectorAll('mark.search-hit')].some(mark=>!mark.closest('summary'))){{details.open=true;details.dataset.searchOpened='';}}}}}}}}count.textContent=`${{shown}} of ${{rows.length}} operations shown`;requestAnimationFrame(updateFloatingScrollbar);}}
+function visibleDisclosures(){{return rows.filter(row=>!row.hidden).flatMap(row=>[...row.querySelectorAll('details[data-bulk-disclosure]')]);}}
+function updateExpandAll(){{const disclosures=visibleDisclosures(),allOpen=disclosures.length>0&&disclosures.every(details=>details.open);expandAll.disabled=disclosures.length===0;expandAll.textContent=allOpen?'Collapse all':'Expand all';expandAll.setAttribute('aria-expanded',String(allOpen));}}
+let expandAllUpdatePending=false;
+function queueExpandAllUpdate(){{if(expandAllUpdatePending)return;expandAllUpdatePending=true;requestAnimationFrame(()=>{{expandAllUpdatePending=false;updateExpandAll();}});}}
+function filterRows(){{clearSearchState();const query=controls['operation-filter'].value.trim().toLowerCase();let shown=0;for(const row of rows){{const text=row.textContent.toLowerCase();const visible=(!query||text.includes(query))&&(!controls['safety-filter'].value||row.dataset.safety===controls['safety-filter'].value)&&(!controls['request-filter'].value||row.dataset.request===controls['request-filter'].value)&&(!controls['response-filter'].value||row.dataset.response===controls['response-filter'].value)&&(!controls['execution-filter'].value||row.dataset.execution===controls['execution-filter'].value)&&(!controls['live-filter'].value||row.dataset.live===controls['live-filter'].value);row.hidden=!visible;if(visible){{shown++;if(query){{highlightMatches(row,query);for(const details of row.querySelectorAll('details'))if(!details.open&&[...details.querySelectorAll('mark.search-hit')].some(mark=>!mark.closest('summary'))){{details.open=true;details.dataset.searchOpened='';}}}}}}}}count.textContent=`${{shown}} of ${{rows.length}} operations shown`;queueExpandAllUpdate();requestAnimationFrame(updateFloatingScrollbar);}}
 for(const control of Object.values(controls))control.addEventListener(control.tagName==='INPUT'?'input':'change',filterRows);
-document.getElementById('clear-filters').addEventListener('click',()=>{{for(const control of Object.values(controls))control.value='';filterRows();controls['operation-filter'].focus();}});filterRows();
+document.getElementById('clear-filters').addEventListener('click',()=>{{for(const control of Object.values(controls))control.value='';filterRows();controls['operation-filter'].focus();}});
+expandAll.addEventListener('click',()=>{{const disclosures=visibleDisclosures(),open=!disclosures.every(details=>details.open);for(const details of disclosures){{details.open=open;details.removeAttribute('data-search-opened');}}queueExpandAllUpdate();}});
+for(const details of document.querySelectorAll('details[data-bulk-disclosure]'))details.addEventListener('toggle',queueExpandAllUpdate);filterRows();
 const tableWrap=document.getElementById('operation-table-wrap'),topScrollbar=document.getElementById('operation-scrollbar'),scrollbarSlot=document.getElementById('operation-scrollbar-slot'),scrollThumb=document.getElementById('operation-scrollbar-thumb');
 function scrollMetrics(){{const maximum=Math.max(0,tableWrap.scrollWidth-tableWrap.clientWidth),trackWidth=topScrollbar.clientWidth,thumbWidth=Math.min(trackWidth,Math.max(40,trackWidth*tableWrap.clientWidth/tableWrap.scrollWidth));return{{maximum,thumbWidth,travel:Math.max(0,trackWidth-thumbWidth)}};}}
 function updateThumb(){{const{{maximum,thumbWidth,travel}}=scrollMetrics();scrollThumb.style.width=`${{thumbWidth}}px`;scrollThumb.style.transform=`translateX(${{maximum?tableWrap.scrollLeft/maximum*travel:0}}px)`;topScrollbar.setAttribute('aria-valuemax',Math.round(maximum));topScrollbar.setAttribute('aria-valuenow',Math.round(tableWrap.scrollLeft));}}

@@ -1,3 +1,4 @@
+# z-artifact: 303ab139-c1f0-49ee-8b0d-89df0a4eb966
 """ASMB-787 canonical catalog, corrected layout, and named raw bytes."""
 
 from __future__ import annotations
@@ -86,7 +87,9 @@ def test_generated_html_contains_every_exact_operation():
     assert 'id="operation-scrollbar-slot"' in reference
     assert 'id="operation-table-wrap"' in reference
     assert "querySelectorAll('#operation-rows > tr')" in reference
-    assert reference.count('<details class="evidence"><summary>Recovered from</summary>') == 462
+    assert '<summary>Recovered from</summary>' in reference
+    assert 'id="operation-expand-all"' in reference
+    assert "details[data-bulk-disclosure]" in reference
     assert "document.createTreeWalker" in reference
     assert "for(const parent of parents)parent.normalize()" in reference
     assert "details.dataset.searchOpened" in reference
