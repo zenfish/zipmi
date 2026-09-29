@@ -1489,7 +1489,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             )
             return 2
 
-    if vendor in ("nvidia", "ieit", "supermicro-x14"):
+    if vendor in ("intel", "nvidia", "ieit", "supermicro-x14"):
         payload_len = len(data_bytes)
         req_min = info.get("request_min")
         req_max = info.get("request_max")
@@ -1799,7 +1799,7 @@ def _add_vendor_parser(
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
     if vendor_key in (
         "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu",
-        "megarac", "yafu", "nvidia", "ieit", "supermicro-x14",
+        "megarac", "yafu", "intel", "nvidia", "ieit", "supermicro-x14",
     ):
         sp.add_argument(
             "--unsafe", action="store_true",
