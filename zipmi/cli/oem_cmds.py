@@ -1533,6 +1533,12 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             if invalid:
                 _msg.error(f"{info['name']} payload violates its recovered field constraints")
                 return 2
+        if vendor == "supermicro-x14" and info.get("validator") == "x14-asset-tag":
+            # Group byte is auto-prefixed; body is offset, count, then count bytes.
+            offset, count = data_bytes[1:3]
+            if count > 16 or offset > 62 or offset + count > 63 or len(data_bytes) != count + 3:
+                _msg.error(f"{info['name']} payload violates its recovered asset-tag bounds")
+                return 2
 
     if vendor == "idrac10":
         payload_len = len(data_bytes)
