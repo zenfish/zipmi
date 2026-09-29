@@ -1,3 +1,45 @@
+# Task — Close vanilla OpenBMC, then Supermicro X14 (2026-09-28)
+
+## Phase 1 — Vanilla AST2600 OpenBMC
+
+- [x] Pin the exact zBMC image/source provenance and prove the complete IPMI registration denominator.
+- [x] Prove the absence of vendor OEM providers and registrations statically and from retained safe live evidence.
+- [x] Represent vanilla OpenBMC explicitly in zipmi without conflating it with the nine-flavor `openbmc` umbrella.
+- [x] Generate paired Standard v1 HTML reference/table pages that document the zero-OEM closure and standard/DCMI boundary.
+- [x] Add discovery, CLI, generator, documentation, and zero-row rendering regressions.
+- [x] Verify generators, browser behavior, doc sync, focused/full tests, artifacts, and independent review; commit phase 1 before X14.
+
+### Phase 1 acceptance specification
+
+- The zero-command claim must be tied to the exact firmware artifact and upstream source revision, not inferred from manufacturer ID 0 alone.
+- Static provider/config inventory and the existing exhaustive live sweep must agree: no raw OEM NetFn or IANA-group handler is registered.
+- `openbmc` remains the vendor-flavor index; the vanilla target must not load or advertise the 130 commands from unrelated vendor providers.
+- Both generated pages must remain useful with zero rows: provenance, denominator, method, boundary, sources, disabled Expand all, and no fake commands.
+
+## Phase 2 — Supermicro X14
+
+- [ ] Pin X14 firmware/provider provenance and close the complete registration and selector denominator.
+- [ ] Recover every request/response layout, privilege, activation condition, completion code, side effect, and hidden branch.
+- [ ] Replace catalog-only metadata with bounded codecs and safely gated named routes.
+- [ ] Capture only non-mutating live evidence on the working zBMC target.
+- [ ] Generate paired Standard v1 HTML reference/table pages and public documentation links.
+- [ ] Run focused/full verification, artifact sweep, browser checks, and independent review.
+
+### Review
+
+#### Phase 1 — Vanilla OpenBMC
+
+- Bound the result to zBMC image SHA-256 `11b89cbb7a4b129529de26ff0b80030f1f7bdfb0e206a4a5207bd6d55a13c908`, upstream OpenBMC commit `5d179dab3c66c8b89e059eeb17b038a2beb435d3`, and build `20260717214914`.
+- Recovered 81 static standard/DCMI registration call sites from five provider payloads, with zero OEM call sites, no vendor provider, and no JFFS2 override. Historical runtime handler counts from an older full image are deliberately excluded.
+- Fresh zBMC run `20260929T002237Z-e63d50b0-0ecd-47e2-b425-d5196e8565a9` returned CC `c1` for all 4,864 bounded OEM probes with no alternate completion codes or transport errors, then stopped cleanly.
+- Kept `zipmi oem openbmc` as the nine-flavor vendor-provider index. Vanilla remains standard IPMI/DCMI only and does not advertise those 130 unrelated OEM commands.
+- Generated both Standard v1 zero-row pages. Chrome showed `0 of 0` and disabled gray Expand all controls on each page with the intended table-local horizontal overflow.
+- Independent review found and verified fixes for static-call-site wording, current-versus-historical runtime provenance, the sibling-repository artifact path, and README grammar. Focused tests pass (`25 passed`); full suite passes (`2,386 passed`); generator freshness, JSON parsing, doc sync, Python compilation, and whitespace checks pass. Artifact sweep reaches `dirty=0`; strict mode retains pre-existing duplicate handles and an external orphaned KISS record.
+
+#### Phase 2 — Supermicro X14
+
+Pending.
+
 # Task — Collapse long values across all OEM tables (2026-09-28)
 
 - [x] Add one shared UTF-8 byte threshold for long field values in both OEM renderers.

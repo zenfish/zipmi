@@ -384,7 +384,7 @@ firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 | `ieit` | — | 950 | 950 | [IEIT NF5468M6 compact table](ieit-nf5468m6-command-table.html) · [operation reference](ieit-nf5468m6-command-reference.html) |
 | `lenovo` | 2 | 307 | 307 | `zipmi/data/sources/lenovo-xcc-commands.json` |
 | `fujitsu` | 10368 | 367 | 367 | [iRMC S6 firmware-bound reference](fujitsu-irmc-s6-command-reference.html) |
-| `openbmc` | mixed | 130 | 130 | 9 flavors: Intel, Meta, Google, Ampere, OpenPOWER, Inspur, Foxconn, Wistron, Nvidia |
+| `openbmc` | mixed | 130 | 130 | 9 vendor flavors; [vanilla evb-ast2600 has zero OEM registrations](openbmc-vanilla-command-reference.html) ([table](openbmc-vanilla-command-table.html)) |
 
 Counts use the same `_vendor_stats()` path as `zipmi oem`; run
 `python scripts/update_readme_stats.py` after catalog changes. The doc-sync

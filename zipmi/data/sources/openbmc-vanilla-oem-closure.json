@@ -1,0 +1,104 @@
+{
+  "target": "Vanilla upstream OpenBMC on evb-ast2600",
+  "image": {
+    "repository": "zbmc",
+    "path": "zbmc/firmware/evb-ast2600.static.mtd",
+    "size": 67108864,
+    "sha256": "11b89cbb7a4b129529de26ff0b80030f1f7bdfb0e206a4a5207bd6d55a13c908",
+    "squashfs_offset": "0x00a00000",
+    "jffs2_offset": "0x02a00000"
+  },
+  "build": {
+    "openbmc_commit": "5d179dab3c66c8b89e059eeb17b038a2beb435d3",
+    "version": "3.1.0-dev-294-g5d179dab3c",
+    "build_id": "20260717214914",
+    "machine": "evb-ast2600"
+  },
+  "device_id": {
+    "manufacturer_iana": 0,
+    "product_id": 0,
+    "config_sha256": "85970b617eec318fdcaa77db57aeb9c73b0bf01c477c036469b897ee25f959bf"
+  },
+  "providers": [
+    {
+      "name": "libipmi20.so.0.1",
+      "sha256": "afbf935c6d58644173790195d3dd69bcf3c326b57fd7f8819d8cd60377f0f653",
+      "registration_call_sites": 68,
+      "role": "Standard IPMI and DCMI"
+    },
+    {
+      "name": "libstrgfnhandler.so.1.0",
+      "sha256": "4a1ac99a8f7580bd7f8aad7fe1860c745f19827dbc41cdcaa5f55e42b55b1219",
+      "registration_call_sites": 1,
+      "role": "Standard Write FRU"
+    },
+    {
+      "name": "libsysintfcmds.so.0.1",
+      "sha256": "6deb52b7c8475d9bcb9e5be387515ed7ff12d54cda62e6362838f9ccfd5e305b",
+      "registration_call_sites": 4,
+      "role": "Standard application and system-interface commands"
+    },
+    {
+      "name": "libusercmds.so.0.1",
+      "sha256": "dc6631be4cc38f995b514a25f709e7fe9f1067f45de13abebcae3e54cab9fac8",
+      "registration_call_sites": 8,
+      "role": "Standard user and channel commands"
+    },
+    {
+      "name": "libwhitelist.so.0.1",
+      "sha256": "aa137d38cc85be56d06ff0cacb2f1d85f7078622a9e4a69b8e16971d7bf97ea5",
+      "registration_call_sites": 0,
+      "role": "Command filter only"
+    }
+  ],
+  "registration_census": {
+    "total_call_sites": 81,
+    "direct": {
+      "0x00": 11,
+      "0x04": 8,
+      "0x06": 36,
+      "0x0a": 11,
+      "0x0c": 2
+    },
+    "groups": {
+      "0xdc": 13
+    },
+    "oem_handler_calls": 0
+  },
+  "live_evidence": {
+    "observed": "2026-09-29",
+    "zbmc_run_id": "20260929T002237Z-e63d50b0-0ecd-47e2-b425-d5196e8565a9",
+    "cipher_suite": 17,
+    "firmware_revision": "3.01",
+    "manufacturer_iana": 0,
+    "product_id": 0,
+    "direct_oem_netfns": [
+      "0x30",
+      "0x32",
+      "0x34",
+      "0x36",
+      "0x38",
+      "0x3a",
+      "0x3c",
+      "0x3e"
+    ],
+    "direct_probes": 2048,
+    "iana_prefixes": {
+      "bogus": 16777215,
+      "intel": 343,
+      "dell": 674,
+      "nvidia": 5703,
+      "ibm": 2,
+      "google": 11129,
+      "facebook": 40981,
+      "ampere": 40092,
+      "hpe": 11,
+      "openbmc": 49871,
+      "dmtf": 412
+    },
+    "iana_group_probes": 2816,
+    "completion_code_c1": 4864,
+    "other_completion_codes": 0,
+    "errors": 0
+  }
+}

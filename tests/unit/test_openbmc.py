@@ -1,3 +1,4 @@
+# z-artifact: 30303848-e6d9-4886-85ae-9a4581950f43
 """
 test_openbmc.py — OpenBMC OEM plugin + RMCP+ cipher-17 regression tests.
 
@@ -17,6 +18,11 @@ RELATED  scapy_ipmi/oem/openbmc.py, scapy_ipmi/crypto.py,
 """
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
@@ -284,3 +290,41 @@ def test_openbmc_umbrella_loads_all():
     assert lookup_cmd_name(0x30, 0x5F) == "Intel Set Special User Password"
     assert lookup_cmd_name(0x34, 0x03) == "Foxconn Get System PCIe Info"
     assert lookup_cmd_name(0x3C, 0x18) == "Ampere SCP Write Register Map"
+
+
+def test_vanilla_openbmc_zero_oem_closure_is_generated():
+    """The exact evb image is a zero-OEM baseline, not a tenth flavor."""
+    root = Path(__file__).parents[2]
+    source = json.loads(
+        (root / "zipmi/data/sources/openbmc-vanilla-oem-closure.json").read_text()
+    )
+    assert source["image"]["sha256"] == (
+        "11b89cbb7a4b129529de26ff0b80030f1f7bdfb0e206a4a5207bd6d55a13c908"
+    )
+    assert source["registration_census"] == {
+        "total_call_sites": 81,
+        "direct": {"0x00": 11, "0x04": 8, "0x06": 36, "0x0a": 11, "0x0c": 2},
+        "groups": {"0xdc": 13},
+        "oem_handler_calls": 0,
+    }
+    assert sum(provider["registration_call_sites"] for provider in source["providers"]) == 81
+    assert source["live_evidence"]["completion_code_c1"] == 4864
+    assert source["live_evidence"]["other_completion_codes"] == 0
+    assert source["live_evidence"]["errors"] == 0
+
+    subprocess.run(
+        [sys.executable, "scripts/generate_openbmc_vanilla_reference.py", "--check"],
+        cwd=root, check=True,
+    )
+    reference = (root / "docs/openbmc-vanilla-command-reference.html").read_text()
+    table = (root / "docs/openbmc-vanilla-command-table.html").read_text()
+    assert '<tr data-search="' not in reference
+    assert '<tr data-search="' not in table
+    assert "0</strong>Documented operations" in reference
+    assert "0</strong>OEM registration rows" in table
+    assert 'id="operation-expand-all"' in reference and "disabled>Expand all" in reference
+    assert 'id="identity-expand-all"' in table and "disabled>Expand all" in table
+
+    from zipmi.scapy_ipmi.oem.openbmc import OPENBMC_VENDORS
+
+    assert "vanilla" not in OPENBMC_VENDORS
