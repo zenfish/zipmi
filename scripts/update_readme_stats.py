@@ -18,13 +18,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TARGETS = (ROOT / "README.md", ROOT / "docs/command-table.md")
 MARKER = re.compile(r"(<!--OEM-COUNT-->)(\d+)(<!--/OEM-COUNT-->)")
+NAMED_MARKER = re.compile(
+    r"(<!--OEM-NAMED-COUNT-->)(\d+)(<!--/OEM-NAMED-COUNT-->)"
+)
 
 
 def main() -> int:
     sys.path.insert(0, str(ROOT))
     from zipmi.cli.oem_cmds import oem_command_totals
 
-    known, _named = oem_command_totals()
+    known, named = oem_command_totals()
     changed = []
     for path in TARGETS:
         text = path.read_text()
@@ -33,6 +36,7 @@ def main() -> int:
                   file=sys.stderr)
             return 1
         updated = MARKER.sub(rf"\g<1>{known}\g<3>", text)
+        updated = NAMED_MARKER.sub(rf"\g<1>{named}\g<3>", updated)
         if updated != text:
             path.write_text(updated)
             changed.append(str(path.relative_to(ROOT)))

@@ -1099,6 +1099,7 @@ def _find_cmd(
 ) -> list[tuple[tuple[int, int], dict]]:
     """Resolve user input to listing entries.
 
+    Phase 0: literal case-insensitive full match on the displayed name.
     Phase 1: literal case-insensitive substring on the displayed name —
       this is what the user actually typed, so if they wrote
       `CmdGetChassisCapabilities` we should NOT silently match
@@ -1114,6 +1115,10 @@ def _find_cmd(
 
     qlow = query.lower().strip()
     if qlow:
+        exact = [(k, v) for k, v in listing.items()
+                 if any(qlow == name.lower() for name in names(v))]
+        if len(exact) == 1:
+            return exact
         literal = [(k, v) for k, v in listing.items()
                    if any(qlow in name.lower() for name in names(v))]
         if len(literal) == 1:
@@ -1385,6 +1390,32 @@ def cmd_oem_list_vendors(args: argparse.Namespace) -> int:
     return 0
 
 
+def _valid_x14_cm_provision(subcommand: int, operands: bytes) -> bool:
+    if subcommand == 0x00:
+        return len(operands) == 0 or (len(operands) == 1 and operands[0] in (1, 3, 4))
+    if subcommand == 0x05:
+        return len(operands) == 2 and operands[0] in (0, 1) and operands[1] in (0, 1, 2)
+    if subcommand in (0x06, 0x08):
+        return len(operands) == 2
+    if subcommand == 0x07:
+        return len(operands) == 1 and operands[0] <= 3
+    if subcommand == 0x09:
+        return len(operands) in (1, 2)
+    if subcommand == 0x0F:
+        return (len(operands) == 1 and operands[0] == 0) or (
+            len(operands) == 2 and operands[0] in (0, 1)
+        )
+    if subcommand == 0x20:
+        return len(operands) == 1 and operands[0] in (0, 1, 2, 3, 4, 5, 8, 9)
+    if subcommand == 0x21:
+        return len(operands) in (1, 2) and operands[0] <= 5
+    if subcommand == 0x86:
+        return len(operands) == 1
+    if subcommand == 0x87:
+        return not operands
+    return len(operands) <= 2
+
+
 def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
     """`zipmi <vendor> [cmd-name [data ...]]`.
 
@@ -1538,6 +1569,11 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             offset, count = data_bytes[1:3]
             if count > 16 or offset > 62 or offset + count > 63 or len(data_bytes) != count + 3:
                 _msg.error(f"{info['name']} payload violates its recovered asset-tag bounds")
+                return 2
+        if vendor == "supermicro-x14" and info.get("validator") == "x14-cm-provision":
+            operands = data_bytes[len(prefix):]
+            if not _valid_x14_cm_provision(info["cm_subcommand"], operands):
+                _msg.error(f"{info['name']} operands violate the recovered provisioning subcommand contract")
                 return 2
 
     if vendor == "idrac10":

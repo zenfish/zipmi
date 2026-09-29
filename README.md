@@ -4,7 +4,7 @@ zipmi is a pure-Python IPMI/BMC stack — an `ipmitool`-style CLI plus a library
 
 - **Every IPMI field is real, not an opaque blob.** Dissect, build, corrupt, fuzz, and replay any packet with full byte-level visibility — the thing `ipmitool` and `pyghmi` don't give you. Drop into the middle of a session and ask "what does this byte mean?" or "what if I flip field X?"
 
-- **Deep OEM coverage: <!--OEM-COUNT-->3759<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html), [AMI MegaRAC/YAFU](docs/megarac-command-reference.html), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes. The [vanilla OpenBMC baseline](docs/openbmc-vanilla-command-reference.html) separately proves that its OEM set is empty.
+- **Deep OEM coverage: <!--OEM-COUNT-->3964<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html), [AMI MegaRAC/YAFU](docs/megarac-command-reference.html), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes. The [vanilla OpenBMC baseline](docs/openbmc-vanilla-command-reference.html) separately proves that its OEM set is empty.
 
 - **Security research batteries included.** Full IPMI 2.0 cipher suites 0–14 + 17, cipher-0 and RAKP-hash checks, unauthenticated `bmc-id` fingerprinting, plus a built-in virtual BMC and fuzzers to test against with no hardware.
 
@@ -17,7 +17,7 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code, which worked with me over the last half-year on this project — in all aspects of the package.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->3759<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->3964<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [Supermicro X14](docs/supermicro-x14-command-reference.html) / [table](docs/supermicro-x14-command-table.html) · [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -417,6 +417,14 @@ bytes via `zipmi raw`.
 
 Source-of-truth (hahah... well, for some value of truth) per vendor:
 
+- **Supermicro X14SBSC-RoT BMC 01.01.06.07**: [firmware-bound OEM reference](docs/supermicro-x14-command-reference.html)
+  and [compact provider table](docs/supermicro-x14-command-table.html) close 116 executed
+  registrations / 115 unique wire identities across five provider ELFs. The detailed
+  reference expands 150 hidden primary selectors and includes the 11 delegated Intel
+  Node Manager operations, for 244 documented operation rows. Named routes validate
+  recovered bounds and require `--unsafe` for every non-read-only operation; two
+  system-interface-only credential/certificate commands are documented but not exposed
+  over the LAN CLI.
 - **IEIT NF5468M6 BMC 7.26.05**: [firmware-bound OEM reference](docs/ieit-nf5468m6-command-reference.html)
   and [compact operation table](docs/ieit-nf5468m6-command-table.html) preserve 324
   registration rows / 323 unique NetFn-command addresses across the AMI core,

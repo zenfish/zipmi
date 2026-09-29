@@ -1,3 +1,4 @@
+<!-- z-artifact: f287c41e-78e4-4b82-b4c8-4b8df71f8586 -->
 # Lessons
 
 Format: `YYYY-MM-DD | trigger | wrong move | right move | why`
@@ -42,3 +43,4 @@ Format: `YYYY-MM-DD | trigger | wrong move | right move | why`
 2026-09-28 | NVIDIA GB200 OEM completion | treated the eight-command zipmi catalog as the full prior evidence set | search project memory and the PhD corpus before new firmware analysis, then promote existing live security findings into zipmi | implementation metadata and authoritative research live in separate repositories
 2026-09-28 | IEIT AMI OEM coverage | treated same-name MegaRAC handlers as sufficient schema reuse before proving target behavior | decompile every target handler and downgrade unmatched layouts to explicit raw-exact boundaries | shared symbol names are useful seeds, not firmware-specific protocol proof
 2026-09-28 | choosing iDRAC6 as the next OEM target | treated a recovered dispatch inventory as implementation-ready despite broken hardware access and no working zBMC model | defer iDRAC6 until the real target or emulator works and rank candidates by executable verification path as well as recovered coverage | documentation closure cannot substitute for a functioning validation target
+2026-09-29 | X14 safety and live evidence | assumed incomplete requests were non-mutating when one empty vector reached a state-changing backend | inspect the exact leaf handler before probing and classify CLI safety from setter intent and backend calls | a short payload can still invoke mutation, and its safety label controls `--unsafe`

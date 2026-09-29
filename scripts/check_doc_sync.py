@@ -169,7 +169,7 @@ def check_oem_count() -> list[str]:
         from zipmi.cli.oem_cmds import (  # type: ignore
             VENDORS, _openbmc_vendor_keys, _vendor_stats, oem_command_totals,
         )
-        known, _named = oem_command_totals()
+        known, named = oem_command_totals()
     except Exception as e:
         return [f"could not compute OEM totals: {e}"]
     finally:
@@ -182,6 +182,15 @@ def check_oem_count() -> list[str]:
         elif any(int(count) != known for count in counts):
             errs.append(f"{path.relative_to(ROOT)} OEM-COUNT is stale; live total is {known} "
                         f"— run `make readme-stats`")
+
+        named_counts = re.findall(
+            r"<!--OEM-NAMED-COUNT-->(\d+)<!--/OEM-NAMED-COUNT-->", path.read_text()
+        )
+        if named_counts and any(int(count) != named for count in named_counts):
+            errs.append(
+                f"{path.relative_to(ROOT)} OEM-NAMED-COUNT is stale; live total is {named} "
+                "— run `make readme-stats`"
+            )
 
     table = (ROOT / "docs/command-table.md").read_text()
     openbmc = set(_openbmc_vendor_keys())

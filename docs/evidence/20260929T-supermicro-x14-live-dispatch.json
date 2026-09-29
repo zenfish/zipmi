@@ -1,0 +1,26 @@
+{
+  "schema": "zipmi.supermicro-x14.live-dispatch.v1",
+  "observed": "2026-09-29T00:47:26Z",
+  "target": "zBMC supermicro-x14 at 10.0.8.14",
+  "run_id": "20260929T004726Z-90bbc3db-d22b-4660-a34b-e64abb8c8016",
+  "method": "Authenticated RMCP+ requests with deliberately incomplete or empty post-prefix bodies. Most probes were incomplete dispatch checks; the empty RAS 0x32/0x23 request reached RasSetData and may have changed state.",
+  "interpretation": "A completion code other than 0xc1 proves that netipmid forwarded the request to an active host-ipmid handler. It does not prove successful execution of the full command contract.",
+  "probes": [
+    {"family": "Supermicro selector dispatcher", "netfn": "0x30", "commands": ["0x51", "0x68", "0x70", "0xa0", "0xad"], "request": "empty", "completion_code": "0xc7"},
+    {"family": "DMTF group 0x52", "netfn": "0x2c", "group": "0x52", "commands": ["0x01", "0x02", "0x03"], "request": "group byte only", "completion_code": "0xc7"},
+    {"family": "DCMI group 0xdc", "netfn": "0x2c", "group": "0xdc", "commands": ["0x01"], "request": "group byte only", "completion_code": "0xc7"},
+    {"family": "RAS", "netfn": "0x32", "commands": ["0x22"], "request": "empty", "completion_code": "0xff", "note": "Read-only handshake reached its backend path."},
+    {"family": "RAS", "netfn": "0x32", "commands": ["0x23"], "request": "empty", "completion_code": "0xff", "note": "RasSetData backend was reached; state effect is unknown. This was not a safe/non-mutating probe."},
+    {"family": "RAS", "netfn": "0x32", "commands": ["0x24"], "request": "empty", "completion_code": "0xc7"},
+    {"family": "Intel Node Manager", "netfn": "0x2e", "iana_prefix": "57 01 00", "commands": ["0xc0", "0xc1", "0xc2", "0xc7", "0xc8", "0xc9", "0xcb", "0xd0", "0xd1", "0xf2"], "request": "IANA prefix only", "completion_code": "0xc7"},
+    {"family": "Intel Node Manager", "netfn": "0x2e", "iana_prefix": "57 01 00", "commands": ["0xca"], "request": "IANA prefix only", "completion_code": "0xff", "note": "Get Version reached active-software-version lookup."},
+    {"family": "SMC Sensor override", "netfn": "0x04", "commands": ["0x25"], "request": "empty", "completion_code": "0xc7"},
+    {"family": "SMC Storage override", "netfn": "0x0a", "commands": ["0x10"], "request": "empty", "completion_code": "0xc7"}
+  ],
+  "final_state": {
+    "state": "stopped",
+    "cause": "operator requested shutdown",
+    "elapsed_seconds": 490,
+    "restart_after_stop": false
+  }
+}

@@ -367,7 +367,7 @@ OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
 explicit `zipmi.load_vendor("<vendor>")`.
 
-**<!--OEM-COUNT-->3759<!--/OEM-COUNT--> known commands · 3687 named commands**
+**<!--OEM-COUNT-->3964<!--/OEM-COUNT--> known commands · <!--OEM-NAMED-COUNT-->3892<!--/OEM-NAMED-COUNT--> named commands**
 across 11 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
 firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 
@@ -378,13 +378,13 @@ firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 | `idrac9` | 674 | 349 | 277 | [iDRAC9 compact firmware table](idrac9-command-table.html) · [operation reference](idrac9-command-reference.html) |
 | `idrac10` | 674 | 581 | 581 | `zipmi/data/sources/idrac10-commands.json` |
 | `supermicro-x11` | 10876 | 477 | 477 | firmware/JAR-derived catalog |
-| `supermicro-x14` | — | 39 | 39 | OpenBMC + SMC OEM catalog |
+| `supermicro-x14` | — | 233 | 233 | [X14 compact provider table](supermicro-x14-command-table.html) · [operation reference](supermicro-x14-command-reference.html) |
 | `megarac` | — | 95 | 95 | [MegaRAC/YAFU compact table](megarac-command-table.html) · [operation reference](megarac-command-reference.html) |
 | `yafu` | — | 42 | 42 | AMI YAFU NetFn 0x32 catalog |
 | `ieit` | — | 950 | 950 | [IEIT NF5468M6 compact table](ieit-nf5468m6-command-table.html) · [operation reference](ieit-nf5468m6-command-reference.html) |
 | `lenovo` | 2 | 307 | 307 | `zipmi/data/sources/lenovo-xcc-commands.json` |
 | `fujitsu` | 10368 | 367 | 367 | [iRMC S6 firmware-bound reference](fujitsu-irmc-s6-command-reference.html) |
-| `openbmc` | mixed | 130 | 130 | 9 vendor flavors; [vanilla evb-ast2600 has zero OEM registrations](openbmc-vanilla-command-reference.html) ([table](openbmc-vanilla-command-table.html)) |
+| `openbmc` | mixed | 141 | 141 | 9 vendor flavors; [vanilla evb-ast2600 has zero OEM registrations](openbmc-vanilla-command-reference.html) ([table](openbmc-vanilla-command-table.html)) |
 
 Counts use the same `_vendor_stats()` path as `zipmi oem`; run
 `python scripts/update_readme_stats.py` after catalog changes. The doc-sync

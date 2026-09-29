@@ -1,3 +1,4 @@
+<!-- z-artifact: 1eb9bf8a-7cb1-472d-b49b-5999b9e99e61 -->
 # Task — Close vanilla OpenBMC, then Supermicro X14 (2026-09-28)
 
 ## Phase 1 — Vanilla AST2600 OpenBMC
@@ -18,12 +19,12 @@
 
 ## Phase 2 — Supermicro X14
 
-- [ ] Pin X14 firmware/provider provenance and close the complete registration and selector denominator.
-- [ ] Recover every request/response layout, privilege, activation condition, completion code, side effect, and hidden branch.
-- [ ] Replace catalog-only metadata with bounded codecs and safely gated named routes.
-- [ ] Capture only non-mutating live evidence on the working zBMC target.
-- [ ] Generate paired Standard v1 HTML reference/table pages and public documentation links.
-- [ ] Run focused/full verification, artifact sweep, browser checks, and independent review.
+- [x] Pin X14 firmware/provider provenance and close the complete registration and selector denominator.
+- [ ] Resolve every remaining Partial request/response layout and semantic field/action detail.
+- [x] Add bounded codecs and safety-gated named routes where contracts are sufficiently recovered; keep unresolved parent/mutation paths disabled or unsafe-gated.
+- [ ] Obtain exclusively non-mutating live reachability evidence; retained dispatch evidence includes one 0x32/0x23 request that reached `RasSetData`, with unknown possible state effect.
+- [x] Generate paired Standard v1 HTML reference/table pages and public documentation links.
+- [x] Run focused/full verification, artifact registration, browser checks, and independent review for the current milestone.
 
 ### Phase 2 acceptance specification
 
@@ -49,7 +50,11 @@
 
 #### Phase 2 — Supermicro X14
 
-Pending.
+- Closed provenance to BMC image `8af1ba767ed0363653537ee6e2fab3fabd66d838e397903cb99e9cd00caaa792`, rootfs `d9767ced6fc5301ae02d1fb918314bc1c182c6de4baac2376b3914a0a1eb8afa`, and all five provider ELFs; reconciled 116 executed registrations / 115 wire identities, 66 OEM/group identities, and the hidden selector census.
+- Added 22 individually named CM Provision child routes with local operand checks; kept its parent route unrunnable. Fixed the eight unsafe labels, recovered request/response bounds, corrected DCMI record order, and added the exact big-endian 16-bit CM response codec. Unrecovered layouts/actions remain marked Partial rather than inferred.
+- Generated 244 detailed operation rows and 116 registration rows. Registered current contracts as `001eba16-182a-58ce-85ef-610509da11b2` and dispatch evidence as `26cdea4a-d4ff-55a8-a9c3-d859ddf77af2`. The evidence is explicitly not wholly non-mutating: empty RAS 0x32/0x23 reached `RasSetData`; no further live probes were sent.
+- Verification for the current milestone: focused X14 tests pass (10); repository full-suite runs each pass 2,399 tests but the same unrelated `test_user_matrix_json_against_vbmc` integration test races server startup and gets `ConnectionRefusedError`; that test passes in isolation. Doc sync, generator freshness, browser checks, artifact registration, and final independent code/docs review pass. Do not report a clean full-suite pass.
+- **Not complete:** the acceptance requirement to resolve all Partial semantics/layouts and collect only non-mutating runtime evidence is still unmet. Do not describe X14 as fully supported until those are closed or explicitly scoped by the user.
 
 # Task — Collapse long values across all OEM tables (2026-09-28)
 
