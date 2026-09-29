@@ -25,6 +25,17 @@
 - [ ] Generate paired Standard v1 HTML reference/table pages and public documentation links.
 - [ ] Run focused/full verification, artifact sweep, browser checks, and independent review.
 
+### Phase 2 acceptance specification
+
+- Bind every claim to BMC image SHA-256 `8af1ba767ed0363653537ee6e2fab3fabd66d838e397903cb99e9cd00caaa792`, rootfs SHA-256 `d9767ced6fc5301ae02d1fb918314bc1c182c6de4baac2376b3914a0a1eb8afa`, and each contributing provider ELF.
+- Reconcile the primary provider's 68 real registrations: 52 OEM/group identities and 16 standard-command overrides. Wrapper-mediated registrations must not be discarded, and wrapper bodies must not be double-counted.
+- Reconcile all five target providers: 116 executed registrations / 115 unique wire identities, including 66 OEM/group-extension identities (52 primary, three RAS, and 11 delegated Intel Node Manager).
+- Expand every statically recoverable selector beneath multiplexed handlers into a named operation. Keep top-level registrations, selector operations, standard overrides, and delegated Intel Node Manager commands as distinct counts.
+- Document provider ownership explicitly: Supermicro primary, RAS, Intel Node Manager, and standard Sensor/SDR/Storage overrides. Do not duplicate Intel NM commands already owned by `openbmc-intel` or count standard overrides as new OEM commands.
+- A route is runnable only when its exact request framing and safe bounds are recovered. Read-only operations may run normally; mutating, disruptive, destructive, credential-bearing, or unresolved operations require `--unsafe`.
+- Live validation is limited to non-mutating requests. Retain completion-code evidence showing that primary, RAS, DMTF-group, and Intel NM handlers are reachable through RMCP+ forwarding, and stop the disposable guest afterward.
+- Generate both Standard v1 HTML views from one structured catalog, preserving unknowns instead of inferring contracts from names or strings.
+
 ### Review
 
 #### Phase 1 — Vanilla OpenBMC

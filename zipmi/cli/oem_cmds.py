@@ -737,12 +737,22 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
         return _normalize_listing(out, vendor)
     if vendor == "supermicro-x14":
         from ..scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14
-        out: dict[tuple, dict] = {
-            key: {"name": e["name"], "priv": e.get("priv"), "desc": e.get("desc", ""),
-                  "live": None, "missing": False,
-                  "prefix": bytes(key[2:]) if len(key) > 2 else None}
-            for key, e in SUPERMICRO_X14.items()
-        }
+        out: dict[tuple, dict] = {}
+        for key, entry in SUPERMICRO_X14.items():
+            row = dict(entry)
+            bounds = row.get("request_length", (None, None))
+            row.update({
+                "priv": row.get("priv", row.get("privilege")),
+                "desc": row.get("desc", row.get("purpose", "")),
+                "live": row.get("live"),
+                "missing": False,
+                "prefix": row.get("prefix", bytes(key[2:]) if len(key) > 2 else None),
+                "request_min": bounds[0],
+                "request_max": bounds[1],
+                "requires_unsafe": row.get(
+                    "requires_unsafe", row.get("safety") != "read-only"),
+            })
+            out[key] = row
         return _normalize_listing(out, "supermicro-x14")
     if vendor in ("supermicro", "supermicro-x11"):
         from ..scapy_ipmi.oem.supermicro import SM_TOP_CMDS, SM_SUBCMDS
@@ -1479,7 +1489,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             )
             return 2
 
-    if vendor in ("nvidia", "ieit"):
+    if vendor in ("nvidia", "ieit", "supermicro-x14"):
         payload_len = len(data_bytes)
         req_min = info.get("request_min")
         req_max = info.get("request_max")
@@ -1574,13 +1584,14 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
                 )
                 return 2
 
+    if not info.get("runnable", True):
+        _msg.error(
+            f"{info['name']} is a parent dispatch or host-interface-only route; "
+            "no supported LAN execution contract"
+        )
+        return 2
+
     if vendor == "fujitsu":
-        if not info.get("runnable", True):
-            _msg.error(
-                f"{info['name']} is a parent dispatch or host-interface-only route; "
-                "no supported LAN execution contract"
-            )
-            return 2
         exact = info.get("request_min")
         if exact is not None and len(data_bytes) != exact:
             _msg.error(f"{info['name']} requires exactly {exact} payload bytes; got {len(data_bytes)}")
@@ -1700,7 +1711,7 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
                 print(f"  Live status:  {live}")
         if info.get("missing"):
             print(f"  Status:       (not present in this fw)")
-        if vendor == "fujitsu" and not info.get("runnable", True):
+        if not info.get("runnable", True):
             print("\n  Invoke: not runnable over LAN (parent dispatch or host-interface route)")
             continue
         # Suggest example invocation.
@@ -1788,7 +1799,7 @@ def _add_vendor_parser(
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
     if vendor_key in (
         "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu",
-        "megarac", "yafu", "nvidia", "ieit",
+        "megarac", "yafu", "nvidia", "ieit", "supermicro-x14",
     ):
         sp.add_argument(
             "--unsafe", action="store_true",
