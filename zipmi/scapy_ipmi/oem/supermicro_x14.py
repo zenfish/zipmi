@@ -1,3 +1,4 @@
+# z-artifact: ec8dde41-8f9a-4538-9d30-be9d495f9344
 """Firmware-bound Supermicro X14SBSC-RoT / E601MS OEM IPMI support.
 
 The source catalog closes the five provider ELFs in BMC firmware 01.01.06.07.
@@ -365,35 +366,35 @@ def _cm_provision_commands() -> list[tuple[tuple[int, ...], dict]]:
     source = next(row for row in _PRIMARY["operations"] if row["handler"] == "OEMGetCMProvision")
     request_specs = {
         0x00: (2, 3, "Provision-state query/action; optional operand a accepts 1, 3, or 4; operand b is forbidden.", "state-changing", 1, 4, "Provision-state result varies by operand: one byte or big-endian u32; exact D-Bus method remains unresolved.", "136-237"),
-        0x01: (2, 4, "Returns a D-Bus boolean; optional operands are ignored. Method identity is unresolved.", "state-changing", 1, 1, "u8 boolean; method identity unresolved.", "357-378"),
-        0x02: (2, 4, "Reads a D-Bus u32 and returns its low byte; optional operands are ignored.", "read-only", 1, 1, "u8 truncated from D-Bus u32.", "379-414"),
+        0x01: (2, 4, "Invokes doProvisioning; optional operands are ignored.", "state-changing", 1, 1, "u8 D-Bus boolean returned by doProvisioning.", "357-378"),
+        0x02: (2, 4, "Reads getProvisioningTaskStatus as a D-Bus u32 and returns its low byte; optional operands are ignored.", "read-only", 1, 1, "u8 low byte of getProvisioningTaskStatus D-Bus u32.", "379-414"),
         0x03: (2, 4, "Returns the three-byte RoT CPLD version; optional operands are ignored.", "read-only", 3, 3, "bytes[3] raw RoT CPLD version.", "415-424"),
-        0x05: (4, 4, "D-Bus operation with operands; exact method/action mapping unresolved.", "state-changing", 1, 1, "u8 inverted D-Bus boolean.", "427-461"),
-        0x06: (4, 4, "Reads firmware inventory; operand a selects a result form and operand b is accepted.", "read-only", 0, None, "Response varies by operand: four version bytes, zero/three parsed bytes, or raw string bytes.", "462-608"),
+        0x05: (4, 4, "Invokes validateImage with operands a and b.", "state-changing", 1, 1, "u8 inverted D-Bus boolean returned by validateImage.", "427-461"),
+        0x06: (4, 4, "Reads getFWInventory; operand a selects a result form and operand b is accepted.", "read-only", 0, None, "Response varies by operand: four version bytes, zero/three parsed bytes, or raw string bytes.", "462-608"),
         0x07: (3, 3, "Reads the indexed provisioning task status; operand a is 0..3.", "read-only", 2, 2, "u16be task status.", "609-675"),
-        0x08: (4, 4, "Two-operand D-Bus operation; exact action mapping unresolved.", "state-changing", 2, 2, "u16be operation result.", "676-711"),
+        0x08: (4, 4, "Invokes getAntiRBID with operands a and b.", "state-changing", 2, 2, "u16be result returned by getAntiRBID.", "676-711"),
         0x09: (3, 4, "Reads a RoT CPLD register selected by operand a; operand b is ignored.", "sensitive", 1, 1, "u8 register value.", "712-723"),
         0x0A: (2, 4, "Returns constant 0x01; optional operands are ignored.", "read-only", 1, 1, "fixed u8 0x01.", "724-734"),
         0x0F: (3, 4, "Operand a=0 queries D-Boot status; a=1 dumps D-Boot using operand b and changes state.", "state-changing", 1, 1, "u8 D-Boot status/result.", "743-797"),
-        0x20: (3, 3, "Security/protection query; operand a accepts 0..5, 8, or 9; operand b is forbidden.", "sensitive", 1, 1, "u8 security status; values normalized from D-Bus result.", "830-911"),
-        0x21: (3, 4, "Reads security state; operand a is 0..5 and operand b is ignored.", "sensitive", 1, 1, "u8 security-state boolean/result.", "912-959"),
-        0x30: (2, 4, "Aggregates provisioning/security flags; optional operands are ignored.", "read-only", 1, 1, "u8 packed status bitfield.", "988-1075"),
+        0x20: (3, 3, "Invokes upBackupGoldenImage; operand a selects a supported field (0..5, 8, or 9); operand b is forbidden.", "state-changing", 1, 1, "u8 normalized D-Bus result for the selected upBackupGoldenImage field.", "830-911"),
+        0x21: (3, 4, "Invokes eraseImage using operand a (0..5); operand b is ignored.", "destructive", 1, 1, "u8 security-state result returned by eraseImage.", "912-959"),
+        0x30: (2, 4, "Aggregates getI2CMapProtection, getBmcConsoleLockout, getBmcJtagLockout, getAttestValidation, getROTState, and readCPLDFeatbit; optional operands are ignored.", "read-only", 1, 1, "u8 packed status bitfield; per-source bit positions remain unresolved.", "988-1075"),
         0x54: (2, 4, "Clears CMOS through CPLD control and logs the action; optional operands are ignored.", "destructive", 0, 0, "No response data.", "1146-1176"),
         0x55: (2, 4, "Cycles AC power through CPLD control and logs the action; optional operands are ignored.", "disruptive", 0, 0, "No response data.", "1177-1225"),
-        0x84: (2, 4, "Reads an OTP/security boolean; optional operands are ignored.", "sensitive", 1, 1, "u8 boolean.", "1318-1339"),
-        0x85: (2, 4, "Reads an OTP/security boolean; optional operands are ignored.", "sensitive", 1, 1, "u8 boolean.", "1340-1361"),
+        0x84: (2, 4, "Reads the isOTP D-Bus boolean; optional operands are ignored.", "sensitive", 1, 1, "u8 boolean returned by isOTP.", "1318-1339"),
+        0x85: (2, 4, "Invokes the clearRaProvision D-Bus action; optional operands are ignored.", "destructive", 1, 1, "u8 boolean returned by clearRaProvision.", "1340-1361"),
         0x86: (3, 3, "Reads OTP key material; operand a is required and operand b is forbidden.", "sensitive", 0, None, "Variable key bytes; exact string length depends on backend.", "1362-1392"),
         0x87: (2, 2, "Reads the OTP serial number; operands are forbidden.", "sensitive", 0, None, "Variable serial-number bytes.", "1393-1424"),
         0xDB: (2, 4, "Returns no data except when operand a=5, which returns a padded/truncated 256-byte file.", "sensitive", 0, 256, "Empty response or exactly 256 bytes for operand a=5.", "281-350"),
         0xFF: (2, 4, "Returns constant 0x03; optional operands are ignored.", "read-only", 1, 1, "fixed u8 0x03.", "281-290"),
     }
     names = {
-        0x00: "Get Provision State", 0x01: "Get Provision Flag", 0x02: "Get Security State Byte",
-        0x03: "Get RoT CPLD Version", 0x05: "Run Provision Action", 0x06: "Get Firmware Inventory",
-        0x07: "Get Provision Task Status", 0x08: "Run Provision Operation", 0x09: "Read RoT CPLD Register",
-        0x0A: "Get Provision Capability", 0x0F: "Query or Dump D-Boot", 0x20: "Get Security Protection Status",
-        0x21: "Get Provision Lock State", 0x30: "Get Provision Summary", 0x54: "Clear CMOS",
-        0x55: "Cycle AC Power", 0x84: "Get OTP Enable State", 0x85: "Get OTP Provision State",
+        0x00: "Get Provision State", 0x01: "Run Provisioning", 0x02: "Get Provision Task Status Byte",
+        0x03: "Get RoT CPLD Version", 0x05: "Validate Image", 0x06: "Get Firmware Inventory",
+        0x07: "Get Provision Task Status by Index", 0x08: "Get Anti-RBID", 0x09: "Read RoT CPLD Register",
+        0x0A: "Get Provision Capability", 0x0F: "Query or Dump D-Boot", 0x20: "Update Backup Golden Image",
+        0x21: "Erase Image", 0x30: "Get Provision Summary", 0x54: "Clear CMOS",
+        0x55: "Cycle AC Power", 0x84: "Check OTP State", 0x85: "Clear RA Provisioning",
         0x86: "Get OTP Key Material", 0x87: "Get OTP Serial Number", 0xDB: "Read Provision File",
         0xFF: "Get Provision Status Code",
     }

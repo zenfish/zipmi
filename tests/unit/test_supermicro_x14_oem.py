@@ -56,7 +56,7 @@ def test_x14_generated_references_are_closed_and_current():
     assert table.count('<tr data-search="') == 116
     assert "65</strong>Unique NetFn/Cmd addresses" in reference
     assert "244</strong>Documented operations" in reference
-    assert "183 / 61 / 0 / 0</strong>Request layout:" in reference
+    assert "187 / 57 / 0 / 0</strong>Request layout:" in reference
     assert "180 / 64 / 0 / 0</strong>Response layout:" in reference
     assert "116</strong>Executed registration rows" in table
     assert "115</strong>Unique wire identities" in table
@@ -129,14 +129,42 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
 
     unsafe_handlers = {
         "OEMGetSetLANMode", "SetSystemEventFlag", "FakeSensorData",
-        "BIOSSetTimertoTriggerPowerOn", "OEMGetSetBBPTimoutSetting",
-        "OEMSetGetLinkConf", "OEMSetGetACPowerOn", "OEMGetPSUInfo",
+        "OEMSetGetLinkConf", "OEMSetGetACPowerOn",
     }
     assert all(
         row["safety_class"] != "read-only"
         for row in rows if row["handler"] in unsafe_handlers
     )
     assert unsafe_handlers <= {row["handler"] for row in rows}
+    no_op_handlers = {
+        "NotifyBMCSensorStart", "BIOSSetTimertoTriggerPowerOn",
+        "OEMGetSetBBPTimoutSetting", "OEMGetSetTDM",
+    }
+    assert all(
+        row["safety_class"] == "read-only"
+        for row in rows if row["handler"] in no_op_handlers
+    )
+    psu = next(row for row in rows if row["handler"] == "OEMGetPSUInfo")
+    assert psu["safety_class"] == "read-only"
+    assert psu["runnable_status"] == "authenticated-read-query"
+    assert "read-to-clear" in psu["semantic_safety_note"]
+    nvme = next(row for row in rows if row["handler"] == "OEMGetSetNVMeSSDParameters")
+    assert nvme["response"]["maximum_bytes"] == 216
+    assert any("0xD4 system lockdown" in code for code in nvme["completion_codes"])
+    brcm_bitmap = next(row for row in rows if row["handler"] == "GetBRCMHDDBitmap")
+    assert [(field["offset"], field["type"]) for field in brcm_bitmap["response"]["fields"]] == [
+        (0, "bytes[32]"), (32, "bytes[8]"), (40, "bytes[32]"), (72, "bytes[8]"),
+    ]
+    assert "backend property meaning unresolved" in brcm_bitmap["response"]["fields"][2]["meaning"]
+    closed_stubs = {
+        "NotifyBMCSensorStart", "BIOSLicenseSource", "BIOSSetTimertoTriggerPowerOn",
+        "GetRiserCardID", "OEMGetSetBBPTimoutSetting", "OEMGetSetTDM",
+        "SetIPProtocolStatus",
+    }
+    assert all(
+        row["semantic_unresolved_reason"] is None
+        for row in rows if row["handler"] in closed_stubs
+    )
 
 
 def test_x14_recovered_request_bounds_are_closed_where_proven():
@@ -169,6 +197,9 @@ def test_x14_recovered_request_bounds_are_closed_where_proven():
         "GetBRCMCompactSpecificHDDInfo": (89, 89),
         "GetBRCMSpecificLogicalDriveInfo": (54, 54),
         "GetBRCMCompactSpecificLogicalDriveInfo": (45, 45),
+        "BiosSWHandShake": (0, 48),
+        "LicenseFileAction": (0, 2),
+        "OEMGetSetSyslogInfo": (0, 0),
         "OEMGetSetTDM": (0, 8),
         "OEMGetSMCCPLDVersions": (3, 3),
         "GetSMCCPLDVersions": (3, 3),
@@ -179,6 +210,8 @@ def test_x14_recovered_request_bounds_are_closed_where_proven():
             rows[handler]["response"]["minimum_bytes"],
             rows[handler]["response"]["maximum_bytes"],
         ) == bounds
+    assert rows["LicenseFileAction"]["safety_class"] == "destructive"
+    assert rows["OEMGetSetSyslogInfo"]["safety_class"] == "read-only"
 
 
 def test_x14_cm_provision_parent_disabled_and_child_census_closed():
@@ -268,6 +301,12 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
     assert cmd_oem_run(safe, "supermicro-x14") == 0
     assert sent == [(0x30, 0x68, b"\x02")]
 
+    no_op = argparse.Namespace(
+        cmd_name="BIOSSetTimertoTriggerPowerOn", data=["0"], unsafe=False, json=False,
+    )
+    assert cmd_oem_run(no_op, "supermicro-x14") == 0
+    assert sent[-1] == (0x30, 0x68, b"\x55\x00")
+
     mutating = argparse.Namespace(cmd_name="ClearChassisIntrusion", data=[], unsafe=False, json=False)
     assert cmd_oem_run(mutating, "supermicro-x14") == 2
     assert "add --unsafe" in capsys.readouterr().err
@@ -275,8 +314,7 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
     from zipmi.scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14, X14_CATALOG
     unsafe_handlers = {
         "OEMGetSetLANMode", "SetSystemEventFlag", "FakeSensorData",
-        "BIOSSetTimertoTriggerPowerOn", "OEMGetSetBBPTimoutSetting",
-        "OEMSetGetLinkConf", "OEMSetGetACPowerOn", "OEMGetPSUInfo",
+        "OEMSetGetLinkConf", "OEMSetGetACPowerOn",
     }
     for row in X14_CATALOG["primary"]["operations"]:
         if row["handler"] not in unsafe_handlers:
@@ -292,7 +330,8 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
         )
         assert cmd_oem_run(denied, "supermicro-x14") == 2
         assert "add --unsafe" in capsys.readouterr().err
-    assert len(sent) == 1
+    assert len(sent) == 2
+    assert sent[1] == (0x30, 0x68, b"\x55\x00")
 
     sensitive = argparse.Namespace(
         cmd_name="OEMGetPayload", data=["0", "0", "0", "0"], unsafe=False, json=False,
@@ -329,17 +368,21 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
     assert "add --unsafe" in capsys.readouterr().err
 
     invalid_task = argparse.Namespace(
-        cmd_name="Get Provision Task Status", data=["4"], unsafe=False, json=False,
+        cmd_name="Get Provision Task Status by Index", data=["4"], unsafe=False, json=False,
     )
     assert cmd_oem_run(invalid_task, "supermicro-x14") == 2
     assert "recovered provisioning subcommand contract" in capsys.readouterr().err
-    assert len(sent) == 2
+    assert len(sent) == 3
 
     task_status = argparse.Namespace(
-        cmd_name="Get Provision Task Status", data=["3"], unsafe=False, json=False,
+        cmd_name="Get Provision Task Status by Index", data=["3"], unsafe=False, json=False,
     )
     assert cmd_oem_run(task_status, "supermicro-x14") == 0
     assert sent[-1] == (0x30, 0x51, b"\x28\x07\x03")
+
+    clear_ra = argparse.Namespace(cmd_name="Clear RA Provisioning", data=[], unsafe=False, json=False)
+    assert cmd_oem_run(clear_ra, "supermicro-x14") == 2
+    assert "add --unsafe" in capsys.readouterr().err
 
 
 def test_x14_every_advertised_exact_name_resolves_to_its_wire_key():

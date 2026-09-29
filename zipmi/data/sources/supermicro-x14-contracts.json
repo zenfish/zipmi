@@ -1568,7 +1568,7 @@
         },
         "runnable_conditions": "Administrator session; query-only arguments; avoid production hardware buses when body touches I2C/GPIO/files",
         "runnable_status": "authenticated-read-query",
-        "safety": "read-oriented by symbol name; may still access hardware/files",
+        "safety": "hardware reads; PMBus read-to-clear behavior remains device-specific",
         "selector": "0x02",
         "selector_offset": 0,
         "safety_class": "read-only",
@@ -2517,14 +2517,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
-        "runnable_status": "lab-only-mutation",
-        "safety": "mutating/admin; do not probe on production without per-operation review",
+        "runnable_conditions": "Administrator session; handler consumes the request and performs no state access or mutation",
+        "runnable_status": "authenticated-read-query",
+        "safety": "target-confirmed no-op",
         "selector": "0x3a",
         "selector_offset": 0,
-        "safety_class": "state-changing",
-        "semantic_safety_note": "implemented-no-op | No state access or mutation in target body.",
-        "semantic_unresolved_reason": "The 15-byte legacy payload subfields are unrecoverable from this target because the handler never reads them.",
+        "safety_class": "read-only",
+        "semantic_safety_note": "No state access or mutation in target body.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x0009af70",
@@ -2533,7 +2533,7 @@
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
         },
-        "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
+        "semantic_confidence": "high: exact 15-byte input consumption and empty success are confirmed; legacy payload is ignored"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -2778,11 +2778,11 @@
           "0xD4 system lockdown enabled"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "Reads current IPv4/IPv6 DROP-rule state, inserts or deletes INPUT DROP rules with iptables/ip6tables, and saves both rule sets.",
+        "effects": "Maps mode 0 to IPv4Only, 1 to IPv6Only, and 2 to DualStack; mode 3 aliases 0. Reads current IPv4/IPv6 DROP-rule state, inserts or deletes INPUT DROP rules with iptables/ip6tables, and saves both rule sets.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
-          "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/SetIPProtocolStatus.c",
+        "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/SetIPProtocolStatus.c",
           "map_builder_ghidra": "0x66cd4",
           "map_builder_raw": "0x56cd4",
           "selector_store": "0x0005779c"
@@ -2806,8 +2806,8 @@
               "name": "ip_protocol_mode",
               "offset": 1,
               "type": "u8",
-              "meaning": "network protocol/filter mode",
-              "constraints": "0..3; value 3 is normalized to 0"
+              "meaning": "IF_Mode: 0=IPv4Only, 1=IPv6Only, 2=DualStack; value 3 is normalized to 0 (IPv4Only) before use",
+              "constraints": "0..3"
             }
           ],
           "maximum_bytes_including_selector": 2,
@@ -2833,16 +2833,19 @@
         "selector_offset": 0,
         "safety_class": "disruptive",
         "semantic_safety_note": "network-lockout-risk | May drop remote management traffic; lab console access required. Blocked by SysLockdownEnable.",
-        "semantic_unresolved_reason": "The numeric mode-to-IPv4/IPv6 policy names live in the external IF_Mode helper and cannot be proven from this provider alone.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x000bc584",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/SetIPProtocolStatus.c",
+          "external_helper": "smci::network::UtilGetIFModeToInterface(IF_Mode), libsmci.so.0.0.1 vaddr 0x0006d4e8",
+          "external_library_sha256": "3b1af6002ffaef53d61f1564be20b4c089427cee06161aaecf8cd947665feadf",
+          "external_library_build_id": "38315acbaaf0c6a44dec5675d4707b6f3843d235",
           "selector_store": "0x0005779c",
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
         },
-        "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
+        "semantic_confidence": "high: provider handler and pinned libsmci IF_Mode helper behavior recovered"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -3340,18 +3343,30 @@
           },
           "excludes_completion_code": true,
           "fields": [
-            {
-              "name": "physical_drive_present_bitmap",
-              "offset": 0,
-              "type": "bytes[40]",
-              "meaning": "320-bit bitmap indexed by physical-drive device ID"
-            },
-            {
-              "name": "physical_drive_secondary_bitmap",
-              "offset": 40,
-              "type": "bytes[40]",
-              "meaning": "second 320-bit per-drive bitmap set from a D-Bus method result"
-            }
+      {
+        "name": "physical_drive_present_bitmap",
+        "offset": 0,
+        "type": "bytes[32]",
+        "meaning": "256-bit bitmap; sets bit n for each enumerated physical-drive object whose Index low byte is n"
+      },
+      {
+        "name": "reserved_zero_0",
+        "offset": 32,
+        "type": "bytes[8]",
+        "meaning": "zero-filled padding"
+      },
+      {
+        "name": "physical_drive_secondary_bitmap",
+        "offset": 40,
+        "type": "bytes[32]",
+        "meaning": "256-bit bitmap; sets bit n when the per-drive backend result equals 1; backend property meaning unresolved"
+      },
+      {
+        "name": "reserved_zero_1",
+        "offset": 72,
+        "type": "bytes[8]",
+        "meaning": "zero-filled padding"
+      }
           ],
           "fields_abi": [
             "bytes[remainder]"
@@ -3373,6 +3388,9 @@
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x000b19b0",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/GetBRCMHDDBitmap.c",
+          "backend_provider": "storagebroadcom",
+          "backend_provider_sha256": "5132797e2a16a3f5fd5f726921bcab11e2263a8a9294c8f8f1c40bbb094b9625",
+          "backend_provider_build_id": "26104ea841153fb7a845bc3d8c3d47971bdb68d1",
           "selector_store": "0x000578a8",
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
@@ -4208,14 +4226,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; query-only arguments; avoid production hardware buses when body touches I2C/GPIO/files",
+        "runnable_conditions": "Administrator session; handler ignores the argument and returns empty success",
         "runnable_status": "authenticated-read-query",
-        "safety": "read-oriented by symbol name; may still access hardware/files",
+        "safety": "target-confirmed no-op",
         "selector": "0x54",
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "implemented-no-op | No state access.",
-        "semantic_unresolved_reason": "Legacy value meanings cannot be recovered because the target body never reads the byte.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x0009aff8",
@@ -4224,7 +4242,7 @@
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
         },
-        "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
+        "semantic_confidence": "high: one-byte input is ignored and the handler returns empty success"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -4303,14 +4321,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
-        "runnable_status": "lab-only-mutation",
-        "safety": "mutating/admin; do not probe on production without per-operation review",
+        "runnable_conditions": "Administrator session; argument is ignored by the target handler",
+        "runnable_status": "authenticated-read-query",
+        "safety": "target-confirmed no-op",
         "selector": "0x55",
         "selector_offset": 0,
-        "safety_class": "state-changing",
-        "semantic_safety_note": "implemented-no-op with power-control intent | Unsafe-gate the legacy setter despite the current no-op implementation.",
-        "semantic_unresolved_reason": "Timer units and legacy behavior cannot be recovered because the target body never reads the byte.",
+        "safety_class": "read-only",
+        "semantic_safety_note": "The target handler ignores the argument and makes no power-state change.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x0009b008",
@@ -4319,7 +4337,7 @@
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
         },
-        "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
+        "semantic_confidence": "high: one-byte input is ignored and the handler returns empty success"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -4398,14 +4416,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; query-only arguments; avoid production hardware buses when body touches I2C/GPIO/files",
+        "runnable_conditions": "Administrator session; handler ignores the argument and returns empty success",
         "runnable_status": "authenticated-read-query",
-        "safety": "read-oriented by symbol name; may still access hardware/files",
+        "safety": "target-confirmed no-op",
         "selector": "0x5b",
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "implemented-no-op | No state access.",
-        "semantic_unresolved_reason": "No riser-card ID is returned by this target; the legacy request meaning cannot be refined from an unused argument.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x0009b018",
@@ -4414,7 +4432,7 @@
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
         },
-        "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
+        "semantic_confidence": "high: one-byte input is ignored and no ID is returned"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -4616,14 +4634,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
-        "runnable_status": "lab-only-mutation",
-        "safety": "mutating/admin; do not probe on production without per-operation review",
+        "runnable_conditions": "Administrator session; both arguments are ignored by the target handler",
+        "runnable_status": "authenticated-read-query",
+        "safety": "target-confirmed no-op",
         "selector": "0x62",
         "selector_offset": 0,
-        "safety_class": "state-changing",
-        "semantic_safety_note": "implemented-no-op with state-changing intent | Unsafe-gate the legacy BBP timeout setter.",
-        "semantic_unresolved_reason": "Operation values and timeout units cannot be recovered because the target body never reads either byte.",
+        "safety_class": "read-only",
+        "semantic_safety_note": "The target handler ignores both arguments and changes no timeout state.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x0009a5f4",
@@ -4632,7 +4650,7 @@
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
         },
-        "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
+        "semantic_confidence": "high: both one-byte arguments are ignored and the handler returns empty success"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -4749,7 +4767,7 @@
               "name": "link_speed_capability",
               "offset": 0,
               "type": "u8",
-              "meaning": "smci::core::PltLanSpeedSupport result",
+        "meaning": "smci::core::PltLanSpeedSupport returns 0x59 on this pinned X14 build; bit-name mapping remains unavailable",
               "presence": "operation == 2"
             },
             {
@@ -4780,6 +4798,9 @@
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x000bcdb8",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMSetGetLinkConf.c",
+          "external_helper": "smci::core::PltLanSpeedSupport at libsmci.so.0.0.1 vaddr 0x000d2ffc; disassembly mov r0,#0x59; bx lr",
+          "external_library_sha256": "3b1af6002ffaef53d61f1564be20b4c089427cee06161aaecf8cd947665feadf",
+          "external_library_build_id": "38315acbaaf0c6a44dec5675d4707b6f3843d235",
           "selector_store": "0x00057b58",
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
@@ -4972,7 +4993,7 @@
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
-          "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/SetFPLEDControl.c",
+        "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/SetFPLEDControl.c",
           "map_builder_ghidra": "0x66cd4",
           "map_builder_raw": "0x56cd4",
           "selector_store": "0x00057bcc"
@@ -5592,10 +5613,11 @@
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
           "0xCC invalid selector (parent dispatcher)",
-          "0xCC invalid field (written by handler body)"
+          "0xCC invalid field (written by handler body)",
+          "0xD4 system lockdown enabled for SET"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "get reads com.Supermicro.nvme / nvmebp status and info properties including LocateStatus, Date, Channel, ClassCode, serial/model, PCIe link and power fields; set invokes one of four NVMe backplane actions selected by subcommand (including Locate/Dislocate/setButtonEnabled/RedLed) with slot and parameter bytes",
+        "effects": "GET returns fixed 21-, 16-, or 12-byte property records for subcommands 0, 2, or 0xff; subcommand 1 returns a count byte plus a requested slice of a 215-byte record. SET checks SysLockdownEnable and returns 0xD4 when enabled; otherwise accepts subcommands 0..4 and dispatches NVMe/backplane actions. Successful SET has no payload.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
@@ -5640,7 +5662,7 @@
               "offset": 4,
               "name": "subcommand",
               "type": "u8",
-              "constraints": "0..7"
+              "constraints": "GET: 0, 1, 2, 0xff; SET: 0..4"
             },
             {
               "offset": 5,
@@ -5675,13 +5697,13 @@
               "offset": 0,
               "name": "nvme_result",
               "type": "bytes[remainder]",
-              "constraints": "get subcommand 0 returns a 21-byte summary; get subcommand 1 returns count/offset paged data; setters return empty"
+              "constraints": "GET subcommand 0 returns 21 bytes; 1 returns a count byte plus up to 215 paged bytes; 2 returns 16 bytes; 0xff returns 12 bytes; successful SET returns empty"
             }
           ],
           "fields_abi": [
             "bytes[remainder]"
           ],
-          "maximum_bytes": 256,
+          "maximum_bytes": 216,
           "maximum_note": null,
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
@@ -5693,7 +5715,7 @@
         "selector_offset": 0,
         "safety_class": "state-changing",
         "semantic_safety_note": "mixed; setters change NVMe/backplane LED or state",
-        "semantic_unresolved_reason": "The exact byte layout of every subcommand-specific response beyond observed 21-byte and 215-byte buffers is not fully recoverable because D-Bus property names are compared through relocated literals.",
+        "semantic_unresolved_reason": "The response record byte-to-property mapping and SET subcommand-to-action mapping are not fully recoverable from relocated D-Bus literals.",
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetNVMeSSDParameters.c",
           "handler_address": "0x000bd23c",
@@ -6401,7 +6423,7 @@
           "0xFF unspecified error (written by handler body)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "queries entity-manager PSU channel/address/max count; reads SerialNum, ModelName, FwVer or invokes com.smci.psu.info GetPSURaw; may perform caller-supplied PMBus transaction",
+        "effects": "queries entity-manager PSU channel/address/max count; for first trailing byte 0xD0..0xDF, 0xE0..0xED, or 0xF0..0xF6 reads SerialNum, ModelName, or FwVer substrings respectively; otherwise invokes com.smci.psu.info GetPSURaw with body byte4 and read length, appending returned bytes. No write API is called; a PMBus read may still have device-specific read-to-clear effects.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
@@ -6428,7 +6450,7 @@
               "offset": 1,
               "name": "psu_request",
               "type": "bytes[remainder]",
-              "constraints": "byte0 PSU index (1-based); byte1 PMBus command; byte2 slave address; byte3 read length; remaining bytes optional write data/length according to command path"
+              "constraints": "handler body byte0 PSU index (1-based; config MaxNumber=2); byte1 channel/operation field normalized as (value-1)>>1 (entity-manager Bus=3 maps to 7 or 8); byte2 encoded address (raw path requires high nibble 0x7); byte3 read length (0..16); body byte4 onward trailing data (1..10 bytes; first byte selects identity substring for D0..DF/E0..ED/F0..F6; remaining bytes are not forwarded)"
             }
           ],
           "maximum_bytes_including_selector": 15,
@@ -6445,7 +6467,7 @@
               "offset": 0,
               "name": "psu_data",
               "type": "bytes[remainder]",
-              "constraints": "raw PMBus response or PSU identity data"
+              "constraints": "0..read_length bytes; identity substring for selectors D0..DF (SerialNum), E0..ED (ModelName), F0..F6 (FwVer), otherwise returned bytes from GetPSURaw"
             }
           ],
           "fields_abi": [
@@ -6456,14 +6478,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; query-only arguments; avoid production hardware buses when body touches I2C/GPIO/files",
-        "runnable_status": "lab-only-mutation",
+        "runnable_conditions": "Administrator session; hardware read; PMBus reads may have device-specific read-to-clear effects",
+        "runnable_status": "authenticated-read-query",
         "safety": "read-oriented by symbol name; may still access hardware/files",
         "selector": "0x79",
         "selector_offset": 0,
-        "safety_class": "state-changing",
-        "semantic_safety_note": "hardware access; request may include PMBus writes and is not safe to classify as read-only",
-        "semantic_unresolved_reason": "PMBus request variants have closed outer length 6..15, but operation-specific write-data structure depends on the command path.",
+        "safety_class": "read-only",
+        "semantic_safety_note": "hardware reads only; a queried PMBus register may have device-specific read-to-clear behavior",
+        "semantic_unresolved_reason": "The operation/channel enum, encoded address mapping, and precise config bounds need further confirmation; the trailing-data selector ranges and returned string-property slices are statically established.",
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetPSUInfo.c",
           "handler_address": "0x000c3db4",
@@ -11576,9 +11598,9 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
-        "runnable_status": "lab-only-mutation",
-        "safety": "mutating/admin; body review required before live probe",
+        "runnable_conditions": "Administrator session; GET returns a fixed zero buffer; SET checks length and lockdown but stores no data",
+        "runnable_status": "authenticated-read-query",
+        "safety": "target-confirmed compatibility no-op",
         "selector": "0x00",
         "selector_offset": 0,
         "safety_class": "read-only",
@@ -13945,7 +13967,7 @@
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "read-only | Authenticated Administrator request.",
-        "semantic_unresolved_reason": "The exact selector 2 packed average ordering is obscured by optimized JSON access.",
+        "semantic_unresolved_reason": "Selector 2 reads JSON averages from /Hour/11/Avg, /Day/11/Avg, and /Week/13/Avg in that call order, but optimized tuple writes do not prove their response byte/field packing.",
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x000f88a8",
@@ -14466,12 +14488,12 @@
               "constraints": "0=get, 1=set",
               "meaning": "Wire field for operation: 0=get, 1=set."
             },
-            {
-              "name": "tdm_record",
-              "offset": 2,
-              "type": "optional bytes[remainder]",
-              "constraints": "set requires exactly 8 bytes",
-              "meaning": "Wire field for tdm record: set requires exactly 8 bytes."
+      {
+        "name": "set_payload",
+        "offset": 2,
+        "type": "optional bytes[remainder]",
+        "constraints": "set requires exactly 8 bytes",
+        "meaning": "Set requires exactly eight bytes; this target validates length but does not read or store the payload."
             }
           ],
           "maximum_bytes_including_selector": null,
@@ -14500,14 +14522,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
-        "runnable_status": "lab-only-mutation",
-        "safety": "mutating/admin; body review required before live probe",
+        "runnable_conditions": "Administrator session; GET returns a fixed zero buffer; SET checks length and lockdown but stores no data",
+        "runnable_status": "authenticated-read-query",
+        "safety": "target-confirmed compatibility no-op",
         "selector": "0x1b",
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "read-only/no-op | Authenticated Administrator request.",
-        "semantic_unresolved_reason": "The eight-byte legacy TDM layout is not used by this target and therefore has no recoverable field semantics.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x00105814",
@@ -14517,7 +14539,7 @@
           "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
-        "semantic_confidence": "medium: exact selector/typed ABI/bounds/activation and stated effects are target-evidenced; noted semantic boundary remains"
+        "semantic_confidence": "high: target returns eight zero bytes on GET; SET checks length and lockdown but does not read or store the payload"
       },
       {
         "activation": "unconditional static child-map construction",
@@ -14581,7 +14603,7 @@
           "0xD4 insufficient privilege (written by handler body)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "Compatibility handler validates the record and SystemLockdown but does not read or change syslog configuration.",
+        "effects": "Compatibility no-op: validates operation/legacy fields, reads SysLockdownEnable for operation 1, and returns an empty success payload; it does not read or change syslog configuration.",
         "evidence": {
           "assembly": "/tmp/othermaps-all.asm",
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetSyslogInfo.c",
@@ -14627,15 +14649,7 @@
             "vtable_signature": "_std::tuple_unsigned_char__std::optional_std::tuple_std::vector_unsigned_char__std.allocator_unsigned_char_____________std::shared_ptr_ipmi::Context___unsigned_char__std::optional_std::vector_unsigned_char__std::allocator_unsigned_char_______"
           },
           "excludes_completion_code": true,
-          "fields": [
-            {
-              "name": "syslog_record",
-              "offset": 0,
-              "type": "bytes[remainder]",
-              "constraints": "zero-filled compatibility response",
-              "meaning": "Wire field for syslog record: zero-filled compatibility response."
-            }
-          ],
+          "fields": [],
           "fields_abi": [
             "bytes[remainder]"
           ],
@@ -14644,14 +14658,14 @@
           "minimum_bytes": 0,
           "status": "closed from exact SubIpmiHandler return template"
         },
-        "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
-        "runnable_status": "lab-only-mutation",
-        "safety": "mutating/admin; body review required before live probe",
+        "runnable_conditions": "Administrator session; no state change",
+        "runnable_status": "authenticated-read-query",
+        "safety": "authenticated read-only compatibility no-op",
         "selector": "0x1c",
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "read-only/no-op | Authenticated Administrator request.",
-        "semantic_unresolved_reason": "Optimized vector construction obscures the exact zero-response length, and the legacy record fields are unused.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x00105af4",
@@ -14661,7 +14675,7 @@
           "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
-        "semantic_confidence": "medium: exact selector/typed ABI/bounds/activation and stated effects are target-evidenced; noted semantic boundary remains"
+        "semantic_confidence": "high: exact validation, lockdown read, empty success payload, and no-mutation behavior are target-evidenced"
       },
       {
         "activation": "unconditional static child-map construction",
@@ -20942,7 +20956,7 @@
           "0xCC invalid selector (parent dispatcher)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "reads or writes /var/oob/bios_swhandshake-style persistent handshake record; set validates payload length <=48",
+        "effects": "GET returns a 48-byte /var/oob/bios_swhandshake record or 48 zero bytes if missing/wrong-sized; SET zero-fills 48 bytes, copies the supplied 0..48-byte prefix, and writes the persistent file",
         "evidence": {
           "assembly": "/tmp/maps-70a0.asm",
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/BiosSWHandShake.c",
@@ -20993,7 +21007,8 @@
               "offset": 0,
               "name": "bios_software_handshake",
               "type": "bytes[48]",
-              "meaning": "Bios software handshake."
+              "meaning": "48-byte handshake record.",
+              "presence": "operation == 0 (GET); SET returns no payload"
             }
           ],
           "fields_abi": [
@@ -21001,8 +21016,8 @@
           ],
           "maximum_bytes": 48,
           "maximum_note": null,
-          "minimum_bytes": 48,
-          "status": "closed from exact SubIpmiHandler return template"
+          "minimum_bytes": 0,
+          "status": "operation-dependent success: 48-byte GET body; empty SET body"
         },
         "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
         "runnable_status": "lab-only-mutation",
@@ -21011,13 +21026,13 @@
         "selector_offset": 0,
         "safety_class": "state-changing",
         "semantic_safety_note": "persistent BIOS handshake mutation for set",
-        "semantic_unresolved_reason": "Short get/set payload padding/copy semantics are complex but the fixed 48-byte response and maximum are exact.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/BiosSWHandShake.c",
           "handler_address": "0x0015fab8",
           "handler_size": "0x388"
         },
-        "semantic_confidence": "medium"
+        "semantic_confidence": "high"
       },
       {
         "activation": "unconditional static child-map construction",
@@ -21146,10 +21161,11 @@
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
-          "0xCC invalid selector (parent dispatcher)"
+          "0xCC invalid selector, wrong body length, or missing license file",
+          "0xC1 invalid operation"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "operation 0 calls license_check(mask 5); operation 1 constructs a slot-specific license path, removes/updates license material and emits MEL events",
+        "effects": "Operation 0 calls license_check(mask 5) and returns its two-byte result; operation 1 unlinks /usr/share/license_file/<slot>, then reads D-Bus metadata and emits MEL events, returning no success payload. A missing slot file returns 0xCC.",
         "evidence": {
           "assembly": "/tmp/maps-70a0.asm",
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/LicenseFileAction.c",
@@ -21182,7 +21198,7 @@
               "offset": 2,
               "name": "license_slot",
               "type": "u8",
-              "meaning": "License slot.",
+              "meaning": "Slot/index used to construct /usr/share/license_file/<slot> for operation 1.",
               "constraints": "exactly two payload bytes required"
             }
           ],
@@ -21200,13 +21216,15 @@
               "offset": 0,
               "name": "license_result_low",
               "type": "u8",
-              "meaning": "License result low."
+              "meaning": "Low byte of license_check(mask 5) result: 0x04 if flag 4 is active, else 0x01 if flag 1 is active, else 0x00.",
+              "presence": "operation == 0"
             },
             {
               "offset": 1,
               "name": "license_result_high",
               "type": "u8",
-              "meaning": "License result high."
+              "meaning": "High byte of the operation-0 result; zero for the observed mask-5 helper.",
+              "presence": "operation == 0"
             }
           ],
           "fields_abi": [
@@ -21214,23 +21232,23 @@
           ],
           "maximum_bytes": 2,
           "maximum_note": null,
-          "minimum_bytes": 2,
-          "status": "closed from exact SubIpmiHandler return template"
+          "minimum_bytes": 0,
+          "status": "Operation 0 returns 2 bytes; operation 1 returns no success data"
         },
-        "runnable_conditions": "Administrator session; isolated lab BMC; snapshot/rollback required",
+        "runnable_conditions": "Administrator session; operation 1 deletes license material before its D-Bus metadata read; use an isolated lab BMC with a snapshot/rollback",
         "runnable_status": "lab-only-mutation",
-        "safety": "body-confirmed mutation; lab-only until operation-specific rollback is understood",
+        "safety": "destructive license-file unlink on operation 1; --unsafe required",
         "selector": "0x36",
         "selector_offset": 0,
-        "safety_class": "sensitive",
-        "semantic_safety_note": "security-sensitive license file mutation for operation 1",
-        "semantic_unresolved_reason": "Operation-1 sub-actions after path construction are extensive and slot-dependent.",
+        "safety_class": "destructive",
+        "semantic_safety_note": "operation 0 is a read-only license mask query; operation 1 unlinks a slot file before querying metadata, with no proven lockdown guard",
+        "semantic_unresolved_reason": "Exact product-license meanings for returned flags and MEL sub-action mapping remain vendor-private.",
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/LicenseFileAction.c",
           "handler_address": "0x001604b4",
           "handler_size": "0x8c0"
         },
-        "semantic_confidence": "medium"
+        "semantic_confidence": "high for operation branches, file deletion order, response bounds and numeric mask behavior; medium for product-specific flag/event names"
       },
       {
         "activation": "unconditional static child-map construction",
