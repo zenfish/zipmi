@@ -5499,7 +5499,7 @@
               "offset": 0,
               "name": "scaled_adc_reading",
               "type": "u8",
-              "constraints": "D-Bus double converted to an 8-bit ADC-scale value"
+              "constraints": "((int64_t)((D-Bus Value / 2.5) * 1023.0)) >> 2, truncated to u8"
             }
           ],
           "fields_abi": [
@@ -5517,15 +5517,16 @@
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "read-only telemetry",
-        "semantic_unresolved_reason": "Exact engineering unit/scaling constant is compiled as a floating literal not recovered symbolically.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetADCValues.c",
           "handler_address": "0x000c3730",
           "handler_size": "0x2f4",
-          "assembly": "/tmp/x14-sub68.asm",
+          "assembly": "provider ELF function VA 0x000b3730; scaling double literal at VA 0x000b3a78 decodes little-endian to 1023.0",
+          "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "strings": "target provider .rodata via strings -t x"
         },
-        "semantic_confidence": "medium"
+        "semantic_confidence": "high"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",

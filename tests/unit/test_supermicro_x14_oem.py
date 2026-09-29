@@ -112,7 +112,7 @@ def test_x14_group_routes_preserve_real_identity_and_interface_limits():
 def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     import re
 
-    from zipmi.scapy_ipmi.oem.supermicro_x14 import X14_CATALOG
+    from zipmi.scapy_ipmi.oem.supermicro_x14 import X14_CATALOG, X14_PRIMARY_PROVIDER_SHA256
 
     rows = X14_CATALOG["primary"]["operations"]
     assert len(rows) == 150
@@ -151,6 +151,10 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     nvme = next(row for row in rows if row["handler"] == "OEMGetSetNVMeSSDParameters")
     assert nvme["response"]["maximum_bytes"] == 216
     assert any("0xD4 system lockdown" in code for code in nvme["completion_codes"])
+    adc = next(row for row in rows if row["handler"] == "OEMGetADCValues")
+    assert adc["semantic_unresolved_reason"] is None
+    assert "1023.0" in adc["response"]["fields"][0]["constraints"]
+    assert adc["semantic_evidence"]["provider_sha256"] == X14_PRIMARY_PROVIDER_SHA256
     brcm_bitmap = next(row for row in rows if row["handler"] == "GetBRCMHDDBitmap")
     assert [(field["offset"], field["type"]) for field in brcm_bitmap["response"]["fields"]] == [
         (0, "bytes[32]"), (32, "bytes[8]"), (40, "bytes[32]"), (72, "bytes[8]"),

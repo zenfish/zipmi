@@ -196,7 +196,7 @@ def reference_page() -> dict:
             ("Primary provider build ID", f"<code>{X14_PRIMARY_PROVIDER_BUILD_ID}</code>"),
             ("Primary analysis artifact", "<code>0272c7fd-d925-59f2-84fe-599de43926eb</code>"),
             ("Prior semantic-input archive", "<code>851806d6-8607-5cfd-807e-a8191ff9e94a</code> (superseded by current catalog)"),
-            ("Current contract catalog", "<code>bcfe54b0-6f4b-5e42-b8c7-a013e9ce08e4</code>"),
+            ("Current contract catalog", "<code>b6b01e08-aa1f-5e20-9541-11fa042e10ad</code>"),
             ("Auxiliary analysis artifact", "<code>503c7d17-fa17-5a55-9e43-bba44155ebd5</code>"),
             ("Live dispatch evidence", "<code>26cdea4a-d4ff-55a8-a9c3-d859ddf77af2</code>; includes one state-effect-unknown RAS set request"),
             ("All provider SHA-256 values", f"<code>{provider_hashes}</code>"),
