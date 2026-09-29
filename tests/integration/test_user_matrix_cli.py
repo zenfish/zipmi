@@ -24,6 +24,16 @@ def _free_port() -> int:
     return p
 
 
+def _run_when_vbmc_ready(command: list[str], srv: subprocess.Popen) -> subprocess.CompletedProcess:
+    deadline = time.monotonic() + 10
+    while True:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=30)
+        if ("ConnectionRefusedError" not in result.stderr
+                or srv.poll() is not None or time.monotonic() >= deadline):
+            return result
+        time.sleep(0.1)
+
+
 def test_user_matrix_json_against_vbmc():
     port = _free_port()
     srv = subprocess.Popen(
@@ -31,12 +41,10 @@ def test_user_matrix_json_against_vbmc():
          "--vpersona", "dell_idrac6", "--vport", str(port)],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        time.sleep(1.5)
-        out = subprocess.run(
+        out = _run_when_vbmc_ready(
             [sys.executable, "-m", "zipmi.cli.zipmi", "-H", "127.0.0.1",
              "-p", str(port), "-U", "root", "-P", "calvin",
-             "user-matrix", "list", "--json"],
-            capture_output=True, text=True, timeout=30)
+             "user-matrix", "list", "--json"], srv)
         assert out.returncode == 0, out.stderr
         data = json.loads(out.stdout)                 # must be well-formed JSON
         assert data["target"] == "127.0.0.1"
@@ -58,12 +66,10 @@ def test_scan_all_json_runs_full_grid():
          "--vpersona", "dell_idrac6", "--vport", str(port)],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        time.sleep(1.5)
-        out = subprocess.run(
+        out = _run_when_vbmc_ready(
             [sys.executable, "-m", "zipmi.cli.zipmi", "-H", "127.0.0.1",
              "-p", str(port), "-U", "root", "-P", "calvin",
-             "scan", "all", "--json"],
-            capture_output=True, text=True, timeout=30)
+             "scan", "all", "--json"], srv)
         data = json.loads(out.stdout)                 # clean JSON, no text noise
         # scan all --json now emits one {steps:[...]} envelope; the grid lives
         # under the user-matrix step's result.
