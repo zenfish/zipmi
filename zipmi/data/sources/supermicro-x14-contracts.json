@@ -4732,7 +4732,7 @@
           "0xD4 system lockdown enabled for operation 1"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "Operation 0 returns a constant placeholder.; Operation 1 checks SysLockdownEnable but performs no write.; Operation 2 returns the fixed capability mask 0x59. The Supermicro X14/H14 BMC manual lists Auto negotiation, 100M half-duplex, 100M full-duplex, and 1G full-duplex as selectable link speeds; the retained artifacts do not map those choices to individual mask bits.",
+        "effects": "Operation 0 returns a constant placeholder.; Operation 1 checks SysLockdownEnable but performs no write.; Operation 2 returns the fixed capability mask 0x59: bit 0 Auto negotiation, bit 3 100M half-duplex, bit 4 100M full-duplex, and bit 6 1G full-duplex.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
@@ -4789,7 +4789,7 @@
               "name": "link_speed_capability",
               "offset": 0,
               "type": "u8",
-          "meaning": "fixed raw capability mask 0x59 from smci::core::PltLanSpeedSupport on this pinned X14 build; the X14/H14 manual lists four selectable speeds, but individual mask-bit labels are unavailable",
+          "meaning": "fixed capability mask 0x59: bit 0 Auto negotiation; bit 3 100M half-duplex; bit 4 100M full-duplex; bit 6 1G full-duplex",
               "presence": "operation == 2"
             },
             {
@@ -4815,7 +4815,7 @@
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "read-only | All branches are constant responses or queries; operation 1 checks lockdown without changing configuration.",
-        "semantic_unresolved_reason": "The fixed capability mask 0x59 is proven; individual bit labels remain unavailable in the pinned artifacts.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x000bcdb8",
@@ -4823,6 +4823,22 @@
           "external_helper": "smci::core::PltLanSpeedSupport at libsmci.so.0.0.1 vaddr 0x000d2ffc; disassembly mov r0,#0x59; bx lr",
           "external_library_sha256": "3b1af6002ffaef53d61f1564be20b4c089427cee06161aaecf8cd947665feadf",
           "external_library_build_id": "38315acbaaf0c6a44dec5675d4707b6f3843d235",
+          "capability_bit_map": {
+            "0x01": "Auto negotiation",
+            "0x08": "100M half-duplex",
+            "0x10": "100M full-duplex",
+            "0x40": "1G full-duplex"
+          },
+          "bmcweb_decoder": {
+            "path": "/usr/bin/bmcweb",
+            "call_site": "0x00126304",
+            "speed_groups": {
+              "mask 0x06": "10M",
+              "mask 0x18": "100M",
+              "mask 0x60": "1000M"
+            },
+            "ui_consumer": "/usr/share/www/page/config_network.www emits half/full choices per returned speed group"
+          },
           "manual_context": {
             "title": "Super BMC User's Manual for X14 and H14 Series",
             "url": "https://www.supermicro.com/manuals/other/BMC_IPMI_X14_H14.pdf",
@@ -4830,13 +4846,13 @@
             "listed_link_speed_choices": [
               "Auto negotiation", "100M half-duplex", "100M full-duplex", "1G full-duplex"
             ],
-            "limit": "The manual documents the selectable choices, not their mapping to PltLanSpeedSupport mask bits."
+            "ordinal_context": "Supermicro's established link-mode values are 0 Auto, 1 10M half, 2 10M full, 3 100M half, and 4 100M full; the mask uses the corresponding bit positions. The pinned bmcweb groups bits 5..6 as 1000M, and this image exposes only 1G full-duplex, establishing bit 6."
           },
           "selector_store": "0x00057b58",
           "dispatcher_assembly": "/tmp/x14-sub68.asm",
           "supporting_strings": "strings -a -t x on target provider; relevant literals are cited in effects/field meanings"
         },
-        "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
+        "semantic_confidence": "high: selector, ABI lengths/layout, control flow, fixed response offsets, capability-bit meanings, effects, and body-written completion codes are independently evidenced"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -5650,11 +5666,12 @@
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
           "0xCC invalid selector (parent dispatcher)",
-          "0xCC invalid field (written by handler body)",
-          "0xD4 system lockdown enabled for SET"
+    "0xCC invalid field (written by handler body)",
+    "0xD4 system lockdown enabled for SET",
+    "0xFF unspecified error (SET action 4 calls absent D-Bus method Remove; typed-handler wrapper catches SdBusError)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "GET uses D-Bus service com.Supermicro.nvme and objects rooted at /com/Supermicro/Nvme/NvmeBp/, reading action/status/info interfaces com.Supermicro.nvmebp.action, .status, .info, and com.Supermicro.nvme.info. GET returns fixed 21-, 16-, or 12-byte property records for subcommands 0, 2, or 0xff; subcommand 1 returns a count byte plus a requested slice of a 215-byte record. The 215-byte backing record is zero-filled before property copies: mapped fields are ClassCode 0..2, VendorId 3..4, SerialNum 5..24, ModelNum 25..64, Port0MaxLinkSpeed 65, Port0MaxLinkWidth 66, Port1MaxLinkSpeed 67, Port1MaxLinkWidth 68, InitialPwrRequirement 69, MaxPowerRequirement 72, CapabilityListPtr 75..76, Manufacturer 77..84, temperature bytes 102..103 and 128, NSS-present flag bit 1 at 125, NSS 126, SmartWarning 127, and PDLU 129; all other bytes are zero. The handler clips page_count with 8-bit subtraction but does not validate page_offset <= 215 before copying; offsets above 215 can trigger an out-of-bounds copy from the BMC process. zipmi's named route rejects those offsets. In the 21-byte subcommand 0 record, byte 1 is constant 1; LocateStatus u32 is split low half at bytes 2..3 and high half at 17..18; Presence u32 is split low half at bytes 4..5 and high half at 19..20; Channel is at offset 0, Id is little-endian u16 at offsets 6..7, Ver u8 at offset 8, and Date is parsed into bytes 9..11. The 16-byte subcommand 2 record contains LocateStatus, Presence, Remove, and RemoveBeforeButton as u32le values split into low/high u16 halves at (0..1, 8..9), (2..3, 10..11), (4..5, 12..13), and (6..7, 14..15), respectively. The 12-byte subcommand 0xff record contains LocateStatus, Presence, and LastPresence as u16le at offsets 0, 2, and 4; bytes 6..11 remain zero from response initialization. SET checks SysLockdownEnable and returns 0xD4 when enabled; otherwise it maps 0=Locate, 1=Dislocate, 2=setButtonEnabled, 3=RedLed, and 4=Remove on the NVMe backplane action interface. Successful SET has no payload; the internal physical effect of Remove is not established by the handler.",
+  "effects": "GET uses D-Bus service com.Supermicro.nvme and objects rooted at /com/Supermicro/Nvme/NvmeBp/, reading action/status/info interfaces com.Supermicro.nvmebp.action, .status, .info, and com.Supermicro.nvme.info. GET returns fixed 21-, 16-, or 12-byte property records for subcommands 0, 2, or 0xff; subcommand 1 returns a count byte plus a requested slice of a 215-byte record. The 215-byte backing record is zero-filled before property copies: mapped fields are ClassCode 0..2, VendorId 3..4, SerialNum 5..24, ModelNum 25..64, Port0MaxLinkSpeed 65, Port0MaxLinkWidth 66, Port1MaxLinkSpeed 67, Port1MaxLinkWidth 68, InitialPwrRequirement 69, MaxPowerRequirement 72, CapabilityListPtr 75..76, Manufacturer 77..84, temperature bytes 102..103 and 128, NSS-present flag bit 1 at 125, NSS 126, SmartWarning 127, and PDLU 129; all other bytes are zero. The handler clips page_count with 8-bit subtraction but does not validate page_offset <= 215 before copying; offsets above 215 can trigger an out-of-bounds copy from the BMC process. zipmi's named route rejects those offsets. In the 21-byte subcommand 0 record, byte 1 is constant 1; LocateStatus u32 is split low half at bytes 2..3 and high half at 17..18; Presence u32 is split low half at bytes 4..5 and high half at 19..20; Channel is at offset 0, Id is little-endian u16 at offsets 6..7, Ver u8 at offset 8, and Date is parsed into bytes 9..11. The 16-byte subcommand 2 record contains LocateStatus, Presence, Remove, and RemoveBeforeButton as u32le values split into low/high u16 halves at (0..1, 8..9), (2..3, 10..11), (4..5, 12..13), and (6..7, 14..15), respectively. The 12-byte subcommand 0xff record contains LocateStatus, Presence, and LastPresence as u16le at offsets 0, 2, and 4; bytes 6..11 remain zero from response initialization. SET checks SysLockdownEnable and returns 0xD4 when enabled; otherwise it maps 0=Locate, 1=Dislocate, 2=setButtonEnabled, 3=RedLed, and 4=Remove on the NVMe backplane action interface. The matching daemon implements actions 0..3 but does not register Remove; action 4 therefore raises SdBusError and the typed-handler wrapper returns 0xFF with no payload. Successful implemented SET actions return no payload.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
@@ -5752,7 +5769,7 @@
         "selector_offset": 0,
         "safety_class": "state-changing",
         "semantic_safety_note": "mixed; setters change NVMe/backplane LED or state",
-        "semantic_unresolved_reason": "Exact provider references establish the property maps and zero-filled subcommand 1 backing record, and the SET action mapping. For SET value 4, the provider attempts D-Bus method Remove, but the matching retained smci-nvme daemon does not register Remove on com.Supermicro.nvmebp.action (it registers Locate, Dislocate, RedLed, isLocate, and setButtonEnabled); the call therefore has no matching method on this image, and no physical removal/eject effect is established.",
+  "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetNVMeSSDParameters.c",
           "handler_address": "0x000bd23c",
@@ -5766,8 +5783,9 @@
             "3": "0x000ade00 -> RedLed",
             "4": "0x000af3f4 -> Remove"
           },
-          "matching_daemon_action_registration": "smci-nvme SHA-256 7fed6e7b8da3847d0906cd3c17e7c40bba2c8e0e861a14ac0617e517eb6bf5c3; NvmeBPDbus::CreateAction raw 0x00038874 binds com.Supermicro.nvmebp.action and registers Locate (0x38c68), Dislocate (0x38e28), RedLed (0x38fe4), isLocate (0x39104), setButtonEnabled (0x39224); no Remove registration",
-          "remove_string_usage": "Remove string at 0x000f2368 is read in updateButtonTask status handling; no target-backed call path connects it to an action method or the daemon's separate MCTP eject/release flow",
+    "matching_daemon_action_registration": "smci-nvme SHA-256 7fed6e7b8da3847d0906cd3c17e7c40bba2c8e0e861a14ac0617e517eb6bf5c3; NvmeBPDbus::CreateAction raw 0x00038874 binds com.Supermicro.nvmebp.action and registers Locate (0x38c68), Dislocate (0x38e28), RedLed (0x38fe4), isLocate (0x39104), setButtonEnabled (0x39224); no Remove registration",
+    "remove_string_usage": "Remove string at 0x000f2368 is read in updateButtonTask status handling; no target-backed call path connects it to an action method or the daemon's separate MCTP eject/release flow",
+    "remove_failure_mapping": "The provider's synchronous call to the unregistered Remove method raises sdbusplus::exception::SdBusError. The exact ipmid build (SHA-256 41e94006fab4184db17398c35701599bfa7751e710f5ec04b27e0aaaf813fb0d; phosphor-host-ipmid commit 0ce6a5771d00f8c37f43daf722ed6774324342a8) catches std::exception in IpmiHandler::executeCallback and returns ccUnspecifiedError (0xFF) with no payload.",
           "get_subcommand_0_property_call_sites_raw": {
             "LocateStatus": "0x000ad904; output halves at offsets 2 and 17",
             "Presence": "0x000ad910; output halves at offsets 4 and 19",
@@ -6488,10 +6506,10 @@
           "0xC7 request data length invalid (typed decoder)",
           "0xCC invalid selector (parent dispatcher)",
           "0xC7 request data length invalid (written by handler body)",
-          "0xFF unspecified error (written by handler body)"
+          "0xFF unspecified error (typed-handler wrapper catches std::exception)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "queries EntityManager PMBusAddr, Bus, and MaxNumber; PMBusAddr is a property-presence gate, not a decoded request address. Body byte 2 must have high nibble 0x7 but its low nibble is ignored. For first trailing byte 0xD0..0xDF, 0xE0..0xED, or 0xF0..0xF6 reads SerialNum, ModelName, or FwVer substrings respectively; otherwise invokes com.smci.psu.info GetPSURaw with body byte 4 followed by body byte 3 (read length), appending returned bytes. Later trailing bytes are not forwarded to GetPSURaw. The matching pinned daemon passes the first argument unchanged as a PMBus command and the second as read length to an ioctl 0x707 transaction on /dev/i2c-%d (one-byte command write, plus requested read when nonzero); it returns the received bytes as a D-Bus byte array. The ioctl helper tries up to four times with 100 ms sleeps between mismatches; the callback retries the helper up to ten times with 100 ms sleeps after failures, then throws std::logic_error('Can't get PSURaw Data after retries.'). The provider's D-Bus/IPMI error-to-completion-code mapping remains unresolved. No write API is called; a PMBus read may still have device-specific read-to-clear effects.",
+        "effects": "queries EntityManager PMBusAddr, Bus, and MaxNumber; PMBusAddr is a property-presence gate, not a decoded request address. Body byte 2 must have high nibble 0x7 but its low nibble is ignored. For first trailing byte 0xD0..0xDF, 0xE0..0xED, or 0xF0..0xF6 reads SerialNum, ModelName, or FwVer substrings respectively; otherwise invokes com.smci.psu.info GetPSURaw with body byte 4 followed by body byte 3 (read length), appending returned bytes. Later trailing bytes are not forwarded to GetPSURaw. The matching pinned daemon passes the first argument unchanged as a PMBus command and the second as read length to an ioctl 0x707 transaction on /dev/i2c-%d (one-byte command write, plus requested read when nonzero); it returns the received bytes as a D-Bus byte array. The ioctl helper tries up to four times with 100 ms sleeps between mismatches; the callback retries the helper up to ten times with 100 ms sleeps after failures, then throws std::logic_error('Can't get PSURaw Data after retries.'). The exact matching typed-handler wrapper catches that std::logic_error or a provider-side sdbusplus::SdBusError as std::exception and returns IPMI completion code 0xFF with no payload. No write API is called; a PMBus read may still have device-specific read-to-clear effects.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
@@ -6553,14 +6571,22 @@
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "hardware reads only; a queried PMBus register may have device-specific read-to-clear behavior",
-        "semantic_unresolved_reason": "The raw PMBus command, read length, ioctl transaction, returned byte-array behavior, and both retry layers are statically recovered. The provider's final mapping from a GetPSURaw D-Bus exception/failure to an IPMI completion code or payload is not established by the retained artifacts. The preceding request byte is only a 0x70 high-nibble gate, not an address codec.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetPSUInfo.c",
           "handler_address": "0x000c3db4",
           "handler_size": "0xd80",
           "assembly": "/tmp/x14-sub68.asm",
           "strings": "target provider .rodata via strings -t x",
-          "provider_error_evidence": "Provider FUN_000c7298 (Ghidra VA 0x000c7298) calls sd_bus_call; a negative return constructs and throws sdbusplus::exception::SdBusError. The shared byte-array reply decoder FUN_000d22fc likewise throws SdBusError on container/element/exit errors. OEMGetPSUInfo contains no local catch or completion-code translation around this call; the outer IPMI framework mapping is not established by the retained provider body.",
+          "provider_error_evidence": "Provider FUN_000c7298 (Ghidra VA 0x000c7298) calls sd_bus_call; a negative return constructs and throws sdbusplus::exception::SdBusError. The shared byte-array reply decoder FUN_000d22fc likewise throws SdBusError on container/element/exit errors. OEMGetPSUInfo contains no local catch; its instantiated IpmiHandler vtable at ELF VA 0x001ea500 points to executeCallback at 0x001465bc. The matching framework source catches std::exception and returns ccUnspecifiedError (0xFF) with no payload.",
+          "framework_exception_mapping": {
+            "ipmid_path": "/usr/bin/ipmid",
+            "ipmid_sha256": "41e94006fab4184db17398c35701599bfa7751e710f5ec04b27e0aaaf813fb0d",
+            "build_source_commit": "0ce6a5771d00f8c37f43daf722ed6774324342a8",
+            "build_path_evidence": "/usr/src/debug/phosphor-ipmi-host/1.0+gitAUTOINC+0ce6a5771d-r1",
+            "source": "phosphor-host-ipmid include/ipmid/handler.hpp lines 224-300 at the exact build commit",
+            "mapping": "IpmiHandler::executeCallback catches HandlerException first and preserves its code; ordinary std::exception and catch-all paths return ccUnspecifiedError. The pinned binary's catch landing path stores 0xff and contains the matching 'Handler failed to catch exception' string."
+          },
           "matching_daemon": {
             "path": "/usr/bin/smci-pws",
             "sha256": "2453900f9b112ee1ee55576e081cc1074df0d6efd5d263ad8011bbbb580487ce",
@@ -6571,10 +6597,10 @@
             "method": "GetPSURaw",
             "callback_evidence": "smci-pws string/vtable inventory contains GetPSURaw and callback_method_instance<...lambda(unsigned char, unsigned char)> associated with StandarPowerSupply::create_psu_device_interface. Ghidra function FUN_00054818 (file offset 0x44818) unpacks the first byte as PMBus command and second as read length, calls FUN_0005f494, then appends the received bytes to a D-Bus byte array. The provider passes body byte 4 then body byte 3, so these become command then length.",
             "backend_evidence": "Ghidra FUN_0005f494 (file offset 0x5f494) opens /dev/i2c-%d, builds the target address as the callback device address shifted right one, and issues ioctl 0x707. For GetPSURaw it writes the one-byte command and optionally reads the requested byte count; success requires ioctl result 1 for command-only or 2 for command+read. The helper makes at most four ioctl attempts, sleeping 100 ms after each mismatching result except after the final attempt; open failure returns -1 immediately.",
-            "failure_evidence": "In FUN_00054818, a failed helper call is followed by a 100 ms nanosleep and retried up to ten helper calls. After the tenth failure the callback constructs std::logic_error('Can\u0027t get PSURaw Data after retries.') and throws via __cxa_throw (string at Ghidra address 0x00054ad0; file offset 0x00044ad0). The provider's final D-Bus/IPMI failure-to-completion-code mapping remains unresolved."
+            "failure_evidence": "In FUN_00054818, a failed helper call is followed by a 100 ms nanosleep and retried up to ten helper calls. After the tenth failure the callback constructs std::logic_error('Can\u0027t get PSURaw Data after retries.') and throws via __cxa_throw (string at Ghidra address 0x00054ad0; file offset 0x00044ad0). The provider receives a D-Bus error; the matching typed-handler wrapper catches the resulting std::exception and returns IPMI completion code 0xFF with no payload."
           }
         },
-        "semantic_confidence": "high for EntityManager routing, request-byte gates, raw command and read-length argument order, identity selectors, PMBus ioctl behavior, daemon return bytes, and retry rules; provider-side D-Bus/IPMI failure mapping remains unresolved"
+        "semantic_confidence": "high for EntityManager routing, request-byte gates, raw command and read-length argument order, identity selectors, PMBus ioctl behavior, daemon return bytes, retry rules, and the framework's 0xFF exception mapping"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -7994,19 +8020,19 @@
               "offset": 4,
               "name": "prl",
               "type": "u8",
-              "meaning": "Raw PRL byte, copied unchanged. Cross-source LSI MegaRAID SAS-IR MIB v1.22 interpretation: 0=RAID-0, 1=RAID-1, 3=RAID-3, 4=RAID-4, 5=RAID-5, 6=RAID-6, 15=single disk/JBOD, 17=RAID-1E/10, 21=RAID-5E, 31=concatenation, 37=RAID-5EEE; not verified for this X14 image."
+              "meaning": "SNIA DDF Primary RAID Level byte: 0x00 RAID-0, 0x01 RAID-1, 0x03 RAID-3, 0x04 RAID-4, 0x05 RAID-5, 0x06 RAID-6, 0x07 MDF RAID, 0x0f single disk, 0x11 RAID-1E, 0x15 RAID-5E, 0x1f concatenation, 0x25 RAID-5EE, 0x35 RAID-5R. Copied unchanged."
             },
             {
               "offset": 5,
               "name": "rlq",
               "type": "u8",
-              "meaning": "Raw RLQ byte, copied unchanged. The related LSI MIB names it RAID-level qualifier but provides no numeric value map."
+              "meaning": "SNIA DDF RAID Level Qualifier byte, interpreted with PRL: 0x00 simple/first-parity/adjacent/restart layout; 0x01 RAID-1 triple mirror, RAID-3/4 last-parity, or RAID-1E offset mirror; 0x02 rotating-parity-N with data restart; 0x03 rotating-parity-N with data continuation. For PRL 0x0f/0x1f it is ignored. Copied unchanged."
             },
             {
               "offset": 6,
               "name": "srl",
               "type": "u8",
-              "meaning": "Raw SRL byte, copied unchanged. Cross-source LSI MegaRAID SAS-IR MIB v1.22 interpretation: 0=stripped, 1=mirrored, 2=concatenated, 3=spanned, -1=not supported for IR2 (candidate byte 0xff); not verified for this X14 image."
+              "meaning": "SNIA DDF Secondary RAID Level byte: 0x00 striped, 0x01 mirrored, 0x02 concatenated, 0x03 spanned. Copied unchanged."
             },
             {
               "offset": 7,
@@ -8071,8 +8097,8 @@
         "selector_offset": 0,
         "safety_class": "read-only",
         "semantic_safety_note": "read-only storage inventory/status query",
-        "semantic_unresolved_reason": "The target copies PRL/RLQ/SRL as raw bytes and contains no enum table. The related LSI MegaRAID SAS-IR MIB v1.22 supplies candidate PRL/SRL meanings but does not establish that this X14 Broadcom provider uses the same enum revision; it supplies no numeric RLQ map.",
-        "semantic_confidence": "medium: exact target byte mapping and pass-through are proven; PRL/SRL value labels are related-family MIB inferences, not X14-target-proven; RLQ numeric meanings remain unknown",
+        "semantic_unresolved_reason": null,
+        "semantic_confidence": "high: exact target byte mapping and pass-through are proven; producer field names/layout and the pinned UI consumer match the authoritative SNIA DDF PRL/RLQ/SRL model",
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/GetBRCMCompactSpecificLogicalDriveInfo.c",
           "handler_address": "0x000ae374",
@@ -8081,9 +8107,29 @@
           "strings": "target provider .rodata via strings -t x",
           "byte_property_map": "ARM compare/store pairs: PRL 0x0009e9ac..0x0009e9bc -> response[4]; RLQ 0x0009eac0..0x0009eacc -> [5]; SRL 0x0009ebb0..0x0009ebbc -> [6]; StripeSize 0x0009ebe0..0x0009ebec -> [7]; NumDrives 0x0009ec1c..0x0009ec28 -> [8]; SpanDepth 0x0009ec4c..0x0009ec58 -> [9]; State 0x0009ec9c..0x0009eca8 -> [10]",
           "property_strings": "ELF .rodata VAs: 0x001a2c40 Size; 0x001a2ea0 PRL; 0x001a2ea4 RLQ; 0x001a2ea8 SRL; 0x001a2eac StripeSize; 0x001a2eb8 NumDrives; 0x001a2ec4 SpanDepth; 0x001a2fc0 userDataBlockSize; 0x001bc0a8 State. Ghidra's image base is +0x10000 (e.g., Size 0x001b2c40; PRL 0x001b2ea0; State 0x001cc0a8).",
-          "cross_source_mib": "LSI-megaRAID-SAS-IR-MIB v1.22-00, dated 2013-10-05, LSI copyright 2006-2007; https://github.com/pgmillon/observium/blob/master/mibs/lsi/LSI-megaRAID-SAS-IR-MIB. Related-family reference only; X14 enum correspondence is unverified."
+          "ddf_standard": {
+            "title": "SNIA Common RAID Disk Data Format (DDF), Version 2.0 rev 19",
+            "url": "https://www.snia.org/sites/default/files/SNIA_DDF_Technical_Position_v2.0.pdf",
+            "sections": "4.1 Primary RAID Level, 4.2 RAID Level Qualifier, 4.3 Secondary RAID Level",
+            "target_correspondence": "storagebroadcom publishes consecutive PRL/RLQ/SRL properties from the logical-drive record; the pinned sys_storage_logical.www consumes those names and combines PRL with SRL when SpanDepth != 1, matching DDF's BVD/SVD composition."
+          },
+          "prl_map": {
+            "0x00": "RAID-0", "0x01": "RAID-1", "0x03": "RAID-3", "0x04": "RAID-4",
+            "0x05": "RAID-5", "0x06": "RAID-6", "0x07": "MDF RAID", "0x0f": "single disk",
+            "0x11": "RAID-1E", "0x15": "RAID-5E", "0x1f": "concatenation",
+            "0x25": "RAID-5EE", "0x35": "RAID-5R"
+          },
+          "rlq_map": {
+            "0x00": "simple/first-parity/adjacent/restart layout (meaning depends on PRL)",
+            "0x01": "triple mirror/last-parity/offset-mirror layout (meaning depends on PRL)",
+            "0x02": "rotating parity N with data restart",
+            "0x03": "rotating parity N with data continuation"
+          },
+          "srl_map": {
+            "0x00": "striped", "0x01": "mirrored", "0x02": "concatenated", "0x03": "spanned"
+          }
         },
-        "semantic_confidence": "medium"
+        "semantic_confidence": "high"
       },
       {
         "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
@@ -11161,7 +11207,7 @@
           "0xC1 invalid command/operation (written by handler body)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "Accepts a u32 option mask. 0x00000004 and 0x02000000 call the anonymous cleanup helper at mapped VA 0x000a84cc (ELF VA 0x000984cc): it enumerates /usr/share/log, byte-prefix matches each entry path against a runtime-initialized global string, stages matching paths, and calls std::filesystem::remove on each. It then removes /usr/share/log/rsyslog_server if present and requests org.freedesktop.systemd1.Manager.ReloadUnit(\"rsyslog.service\", \"replace\"). Mask 0x00000004 additionally emits MEL event 0x7b; 0x02000000 does not. 0x01000000 removes /var/configuration/selstatus, reopens that same path in binary mode, and resizes it to 65536 bytes. Several other recognized masks return success without a visible action; unsupported values return 0xC1.",
+        "effects": "Accepts a u32 option mask. 0x00000004 and 0x02000000 call the anonymous cleanup helper at mapped VA 0x000a84cc (ELF VA 0x000984cc): it enumerates /usr/share/log, stages entries whose filename begins with ASCII `mel`, and calls std::filesystem::remove on each. It then removes /usr/share/log/rsyslog_server if present and requests org.freedesktop.systemd1.Manager.ReloadUnit(\"rsyslog.service\", \"replace\"). Mask 0x00000004 additionally emits MEL event 0x7b; 0x02000000 does not. 0x01000000 removes /var/configuration/selstatus, reopens that same path in binary mode, and resizes it to 65536 bytes. Every other recognized mask returns success without a visible action in this build; unsupported values return 0xC1.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
@@ -11214,7 +11260,7 @@
         "selector_offset": 0,
         "safety_class": "destructive",
         "semantic_safety_note": "destructive configuration reset; never probe on a production BMC",
-        "semantic_unresolved_reason": "The broader subsystem labels for option masks and the value of the runtime-initialized prefix string used to select /usr/share/log entries are unavailable from the retained stripped artifacts. The byte-prefix selection algorithm, exact fixed path (/usr/share/log/rsyslog_server), systemd ReloadUnit endpoint/arguments, and MEL 0x7b gating are recovered. Exact accepted masks and the direct 0x01000000 SEL-status-file effect are established.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/ClearConfigOption.c",
           "handler_address": "0x000a93d8",
@@ -11223,13 +11269,14 @@
             "name": "anonymous ClearConfigOption cleanup helper",
             "address": "0x000a84cc",
             "elf_address": "0x000984cc",
-      "behavior": "Enumerates /usr/share/log, extracts each directory-entry path, compares its leading bytes against a runtime-initialized global string, stages paths whose bytes match the whole string, then removes every staged path with std::filesystem::remove. The global filter object is at ELF VA 0x1ed9e0 (Ghidra VA 0x1fd9e0), in .bss; its initialized string value is not present as file-backed data in the pinned artifact. If present, the helper also removes /usr/share/log/rsyslog_server. Calls org.freedesktop.systemd1.Manager.ReloadUnit with \"rsyslog.service\" and \"replace\". Emits MEL event 0x7b only when its third argument is nonzero. ClearConfigOption passes 1 for mask 0x00000004 and 0 for mask 0x02000000.",
-      "evidence": "Pinned provider ELF Ghidra decompilation at ELF VA 0x984cc / mapped VA 0x000a84cc. The loop performs a bytewise prefix comparison using the runtime string's data pointer and length, collects matches, and calls std::filesystem::remove per match. File-backed strings resolve /usr/share/log, /usr/share/log/rsyslog_server, org.freedesktop.systemd1, /org/freedesktop/systemd1, org.freedesktop.systemd1.Manager, ReloadUnit, rsyslog.service, and replace. Function also uses std::filesystem::directory_iterator/remove, access/remove, sd_bus_default_system, and LibIpmiMel::sendMel."
+      "behavior": "Enumerates /usr/share/log, extracts each directory-entry path, compares its leading bytes against the three-byte ASCII string `mel`, stages paths whose bytes match the whole prefix, then removes every staged path with std::filesystem::remove. The lazy-initialized std::string object is at ELF VA 0x1ed9e0 (Ghidra VA 0x1fd9e0). If present, the helper also removes /usr/share/log/rsyslog_server. Calls org.freedesktop.systemd1.Manager.ReloadUnit with \"rsyslog.service\" and \"replace\". Emits MEL event 0x7b only when its third argument is nonzero. ClearConfigOption passes 1 for mask 0x00000004 and 0 for mask 0x02000000.",
+      "evidence": "Pinned provider ELF at ELF VA 0x984cc / mapped VA 0x000a84cc. The lazy-static guard at ELF VA 0x98588 protects the std::string at 0x1ed9e0; its constructor path at 0x98f48 resolves the PC-relative source at file offset 0x1b30c0 to `mel`. The loop at 0x98988 performs a bytewise prefix comparison and accepts once the reference string is exhausted, then collects matches and calls std::filesystem::remove per match. File-backed strings resolve /usr/share/log, /usr/share/log/rsyslog_server, org.freedesktop.systemd1, /org/freedesktop/systemd1, org.freedesktop.systemd1.Manager, ReloadUnit, rsyslog.service, and replace. Function also uses std::filesystem::directory_iterator/remove, access/remove, sd_bus_default_system, and LibIpmiMel::sendMel."
           },
+          "mask_label_boundary": "For every accepted mask other than the three action masks documented above, the pinned target returns success without a visible branch effect. No subsystem label is assigned because the target supplies none; the exact no-op behavior is closed without inventing intent.",
           "assembly": "/tmp/x14-sub68.asm",
           "strings": "target provider .rodata via strings -t x"
         },
-  "semantic_confidence": "high for exact branches, completion behavior, and observed filesystem/helper calls; low for option labels and indirect helper semantics"
+  "semantic_confidence": "high: exact accepted masks, branch behavior, `mel` prefix selection, filesystem effects, MEL gating, and systemd reload arguments are recovered from the pinned provider"
       },
       {
         "activation": "unconditional static child-map construction",
@@ -12589,10 +12636,10 @@
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
           "0xCC invalid selector (parent dispatcher)",
-          "0xD4 SysLockdownEnable is true for operation 1"
+          "0xD4 SysLockdownEnable is true for setter operation 1 or 2"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "Top-level operation 0 is a query whose next byte selects 0=DHCPv6/SLAAC mode state (two response bytes), 1=SLAAC status (one byte), 2=current IPv6 address/prefix list (concatenated 17-byte records), 3=DHCPv6 DUID (decoded hex octets), or 4=default IPv6 gateway (16 address bytes plus a zero terminator). Top-level operation 1 writes SLAAC/DHCPv6 mode and IPv6 network settings using PltSetIpv6SlaacStatus, PltGetSetDhcpv6Mode, and UtilSetDHCPPropertyStatus; it requires exactly 20 data bytes after the operation and first reads com.SMCI.Managers.Item.SysLockdown.SysLockdownEnable at xyz.openbmc_project.Settings:/com/SMCI/SysLockdown, returning 0xD4 when true. Operation 2 mutates configured IPv6 addresses/gateway using PltAddIpv6Addr/PltDelIpv6Addr/PltAddIpv6GatewayAddr and requires exactly 16 data bytes. Its first data byte is a mode selector 0..2; the next two bytes are each restricted to 0/1, and mode 2 additionally requires data byte 1 to be zero. Mode 0 maps DHCPv6 mode to 2 and calls PltSetIpv6SlaacStatus(true); mode 1 maps mode to 3 and calls PltSetIpv6SlaacStatus(false); mode 2 retains mode 2 and reaches that helper with its required-zero data byte 1. Data byte 2 selects PltDelIpv6Addr versus the add/reconcile path for mode 2. Operation 2 reads DNSEnabledv6 after setting the normalized DHCPv6 mode; when the property getter returns false and the normalized mode is 2, it calls the setter with false. Unknown operation/query values reject with 0xCC. Remaining setter-field meanings are unresolved; setters remain state-changing and lab-only.",
+        "effects": "Top-level operation 0 is a query whose next byte selects 0=DHCPv6/SLAAC mode state (two response bytes), 1=SLAAC status (one byte), 2=current IPv6 address/prefix list (concatenated 17-byte records), 3=DHCPv6 DUID (decoded hex octets), or 4=default IPv6 gateway (16 address bytes plus a zero terminator). Setter operations 1 and 2 first read com.SMCI.Managers.Item.SysLockdown.SysLockdownEnable at xyz.openbmc_project.Settings:/com/SMCI/SysLockdown and return 0xD4 when true. Operation 1 requires exactly 20 bytes: mode, SLAAC flag, address-action flag, 16 network-order IPv6 bytes, and prefix length. Operation 2 requires exactly 16 bytes but then executes the same 20-byte layout after erasing its first three controls: only 13 address bytes remain, translateIpv6ToStr passes three uninitialized stack bytes to inet_ntop, the handler scans four bytes beyond the vector's logical end, and it reads the prefix at out-of-bounds index 16. Thus operation 2's final IPv6 suffix and prefix are undefined target behavior. In both setters mode is 0..2 and both flags are 0/1; mode 2 additionally requires the SLAAC flag to be zero. Mode 0 selects DHCPv6 mode 2 and calls PltSetIpv6SlaacStatus(true); mode 1 selects mode 3 and calls PltSetIpv6SlaacStatus with the supplied flag; mode 2 preserves mode 2. The action flag selects PltDelIpv6Addr when nonzero or the PltAddIpv6Addr/PltAddIpv6GatewayAddr reconcile path when zero. The handler reads DNSEnabledv6 through UtilGetDHCPPropertyStatus after setting normalized DHCPv6 mode and may clear it through UtilSetDHCPPropertyStatus for normalized mode 2. Unknown operation/query values reject with 0xCC. Setters remain state-changing and lab-only.",
         "evidence": {
           "assembly": "/tmp/othermaps-all.asm",
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMCGetSetIPV6Network.c",
@@ -12625,7 +12672,7 @@
             "name": "operation_data",
             "offset": 2,
             "type": "optional bytes[remainder]",
-            "constraints": "Operation 0: query selector 0..4 followed by selector-specific data; operation 1 requires 20 bytes; operation 2 requires 16 bytes, with data byte 0 <=2 and data bytes 1 and 2 each <=1; for operation-2 mode 2, data byte 1 must equal 0. For operation 2, mode 0 maps to DHCPv6 mode 2 and SLAAC true; mode 1 maps to DHCPv6 mode 3 and SLAAC false; mode 2 preserves DHCPv6 mode 2. Data byte 2 selects delete-vs-add/reconcile for mode 2. Other operation-1 fields and remaining operation-2 meanings remain unresolved.",
+            "constraints": "Operation 0: query selector 0..4 followed by selector-specific data. Operation 1: exactly 20 bytes: mode, SLAAC flag, address-action flag, IPv6 address[16], prefix length. Operation 2: exactly 16 bytes; it validates the same first three controls but then incorrectly consumes the remaining 13 bytes as a 16-byte address plus prefix, producing out-of-bounds/undefined suffix and prefix behavior. For either setter mode <=2 and both flags <=1; mode 2 additionally requires the SLAAC flag to equal zero. The action flag selects delete when nonzero and add/reconcile when zero.",
             "meaning": "Operation-specific query selector or setter record."
             }
           ],
@@ -12661,8 +12708,8 @@
         "selector": "0x09",
         "selector_offset": 0,
         "safety_class": "state-changing",
-        "semantic_safety_note": "mixed/state-changing | Requires explicit unsafe authorization; do not probe production hardware.",
-        "semantic_unresolved_reason": "Operation 1's 20-byte setter fields and complete DHCP property map remain unresolved. Operation 2's mode/boolean bounds, mode-1 SLAAC and mode-2 delete-vs-add behavior, and exact address-byte transformation are recovered; byte 1, mode-0 byte 2, prefix handling, and the complete property map remain unresolved in the optimized handler. Query response encoding is recovered from the handler and pinned libsmci helper analysis.",
+        "semantic_safety_note": "mixed/state-changing | Requires explicit unsafe authorization; do not probe production hardware. Operation 2 has a target length-check defect that consumes uninitialized/out-of-bounds address and prefix bytes; prefer operation 1's defined 20-byte record.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x00101f8c",
@@ -12672,7 +12719,7 @@
         "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
         "strings": "target provider .rodata via strings -a -t x",
         "lockdown_gate": {
-          "operation": 1,
+          "operation": "1 and 2",
           "endpoint": {
             "service": "xyz.openbmc_project.Settings",
             "path": "/com/SMCI/SysLockdown",
@@ -12680,8 +12727,8 @@
             "property": "SysLockdownEnable",
             "type": "boolean"
           },
-          "behavior": "Before applying the 20-byte operation-1 setter, the provider reads this property; true returns completion code 0xd4 without applying the setter.",
-          "evidence": "Provider ARM disassembly at ELF VAs 0x000f21c4-0x000f227c constructs the service/path/interface/property strings, calls ipmi::getDbusProperty<bool>, and branches to the 0xd4 return when the value is true. String bytes are at provider ELF VAs 0x1a31c8 (service), 0x1a3cec (path), 0x1a3d08 (interface), and 0x1a3d2c (property)."
+          "behavior": "Before applying either setter operation, the provider reads this property; true returns completion code 0xd4 without applying the setter.",
+          "evidence": "Provider ARM disassembly at ELF VAs 0x000f21c4-0x000f227c (operation 1) and 0x000f2690-0x000f2754 (operation 2) constructs the same service/path/interface/property strings, calls ipmi::getDbusProperty<bool>, and branches to the 0xd4 return when the value is true. String bytes are at provider ELF VAs 0x1a31c8 (service), 0x1a3cf0 (path), 0x1a3d08 (interface), and 0x1a3d2c (property)."
         },
         "observed_dhcp_property_access": {
           "property": "DNSEnabledv6",
@@ -12697,7 +12744,7 @@
             }
           ],
           "property_string_elf_va": "0x001b1990",
-          "scope": "These callsites are in the top-level operation-2 path. The getter result is stored at ELF VA 0x000f2b90; the paired check at 0x000f2a4c reaches the setter at 0x000f2b5c only when the getter result is false and the normalized mode argument equals 2. Input modes 0 and 2 normalize to 2; input mode 1 normalizes to 3, as shown by the assignments at 0x000f2a00 and 0x000f2cec. Mode 2 with nonzero data byte 1 branches to the handler's 0xCC invalid-data return at 0x000f2908 before the SLAAC/mode setters."
+          "scope": "These callsites are in the common setter path reached by operations 1 and 2. The getter result is stored at ELF VA 0x000f2b90; the paired check at 0x000f2a4c reaches the setter at 0x000f2b5c only when the getter result is false and the normalized mode argument equals 2. Input modes 0 and 2 normalize to 2; input mode 1 normalizes to 3, as shown by the assignments at 0x000f2a00 and 0x000f2cec. Mode 2 with nonzero data byte 1 branches to the handler's 0xCC invalid-data return at 0x000f2908 before the SLAAC/mode setters."
         },
         "resolved_queries": {
           "0": "Calls PltGetSetDhcpv6Mode(0,0) and PltGetIpv6SlaacStatus. Returns two bytes: DHCPv6 mode normalized 3->1 and, when mode=2 with SLAAC status=1, 2->0; then the raw SLAAC status byte.",
@@ -12707,11 +12754,11 @@
           "4": "Calls PltGetDefaultGateway(6), parses the returned IPv6 string with inet_pton(AF_INET6), and appends the 16 network-order address bytes plus one zero byte from its zero-initialized helper buffer. Translation failure maps to completion code 0xff."
         },
         "resolved_setter_prefix": {
-          "operation_1": "Requires exactly 20 data bytes. The provider reads current interface mode and protocol status, merges those properties with the supplied record, and writes DHCP properties; the per-byte fields and property-name mapping remain unresolved.",
-            "operation_2": "Requires exactly 16 data bytes. Data byte 0 is a mode selector restricted to 0..2; data bytes 1 and 2 are each restricted to 0/1, with mode 2 additionally requiring byte 1 to equal zero (otherwise 0xCC). Mode 1 maps DHCPv6 mode to 3 and calls PltSetIpv6SlaacStatus with zero; mode 0 maps mode to 2 and calls PltSetIpv6SlaacStatus with one; mode 2 preserves mode 2 and reaches PltSetIpv6SlaacStatus with its required-zero byte 1. For mode 2, nonzero byte 2 selects PltDelIpv6Addr for the translated address; zero enters the address/gateway add/reconcile path. Bytes 3..15 are copied, in order, as a 13-byte vector; the helper zero-fills the final 3 bytes before inet_ntop(AF_INET6), so the translated address is bytes[3..15] followed by 00:00:00. The getter/setter branch for DNSEnabledv6 is now mapped; byte-1 purpose in mode 1, mode-0 byte 2, prefix handling, and the complete property map remain unresolved."
+          "operation_1": "Requires exactly 20 data bytes. Byte 0 is mode 0..2, byte 1 is a SLAAC boolean, byte 2 is the address action (0=add/reconcile, 1=delete), bytes 3..18 are the 16 network-order IPv6 address bytes, and byte 19 is prefix length 1..128. Mode 2 requires byte 1 to be zero. The handler reads current interface/protocol state, changes SLAAC/DHCPv6 mode, handles DNSEnabledv6, and applies the address action.",
+            "operation_2": "Requires exactly 16 data bytes and validates bytes 0..2 identically to operation 1, but incorrectly reuses operation 1's 20-byte consumer. Erasing the three control bytes leaves a 13-byte vector. translateIpv6ToStr zeroes and copies only those 13 bytes into a 16-byte-rounded stack allocation, then inet_ntop(AF_INET6) reads three uninitialized trailing bytes. The provider also scans 17 bytes from the 13-byte vector and reads prefix byte at out-of-bounds index 16. The resulting address suffix, all-zero test, and prefix are therefore undefined; this is the exact target defect, not an unknown wire encoding. The action flag still selects delete versus add/reconcile."
         },
         "setter_helper_behavior": {
-          "translateIpv6ToStr": "The matching helper at ELF VA 0x000d2c70 rounds the vector length up to an 8-byte boundary, zero-initializes that temporary buffer, copies exactly the vector length, then passes it to inet_ntop(AF_INET6). In operation 2 the provider removes the three control bytes from its exactly 16-byte operation-data vector before this call; the helper therefore receives 13 bytes and deterministically zero-pads the last 3 address bytes. This is not an out-of-bounds read."
+          "translateIpv6ToStr": "The matching helper at ELF VA 0x000d2c70 rounds the allocation size up to an 8-byte boundary, but memset zeroes only vector.size() bytes and memmove overwrites only those same bytes before inet_ntop(AF_INET6) reads 16 bytes. Operation 1 supplies 17 bytes (16-byte address plus prefix), so its address conversion is defined. Operation 2 supplies only 13 bytes, leaving the final three inet_ntop input bytes uninitialized. Helper instructions 0xd2cb0-0xd2cc8 establish the rounded allocation but length-limited memset; 0xd2d54-0xd2d64 copies only vector.size()."
         },
         "helper_binary": {
           "path": "/usr/lib/libsmci.so.0.0.1",
@@ -12724,7 +12771,7 @@
           "method": "Provider and matching helper ARM control-flow/dataflow only; no live BMC calls."
         }
         },
-        "semantic_confidence": "medium: exact selector/typed ABI/bounds/activation and stated effects are target-evidenced; noted semantic boundary remains"
+        "semantic_confidence": "high: query encodings, both setter layouts, mode/action behavior, SysLockdown gate, DNSEnabledv6 access, and operation-2 out-of-bounds defect are recovered from the pinned provider and libsmci instruction streams"
       },
       {
         "activation": "unconditional static child-map construction",
@@ -16084,7 +16131,8 @@
           "0xC7 request data length invalid (typed decoder)",
           "0xCC invalid selector (parent dispatcher)",
           "0xCC invalid field (written by handler body)",
-          "0xD6 subfunction disabled (written by handler body)"
+          "0xD6 subfunction disabled (written by handler body)",
+          "0xFF unspecified error (typed-handler wrapper catches std::exception)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
         "effects": "Child-command map includes: 0x00 absent/A=1/A=3 calls ProvisionManager.getROTState/isProvisioning/clearProvisioning; A=4 and child 0x01 call ProvisionManager.doProvisioning, which starts the asynchronous provisioning workflow when accepted. 0x03 returns 3-byte get_rot_cpld_version; 0x09 reads a CPLD register selected by operand A; shipped scripts establish selected uses: register 0x00 bit 4 enables MSMI latching, 0x01 bit 2 is temporarily asserted for surprise reset, 0x08 bits 6/7 are BMC-reset/factory-default flags, 0x0a receives 0x03 for the BoardId-7504 extended fan-delay workaround, and 0x0b is cleared at boot; a separate direct-SPI write of 0x13 to offset 0x18 documents bits 4/0 as BMC-boot-OK/exit-U-Boot, but is not proven to share the D-Bus backend. These examples are not a complete register map. 0x0a returns constant byte 1; 0x0f queries D-Boot status or invokes dumpDboot; 0x20/0x21 perform backup/golden-image update and image erase; 0x30 reads ProvisionManager.getI2CMapProtection, getBmcConsoleLockout, getBmcJtagLockout, getAttestValidation, getROTState, plus SecurityManager.readCPLDFeatbit. Its response has bit2=inverse JTAG lockout, bit3=both CPLD feature bytes != 0xff, bit4=inverse RoT state, bit6=inverse attestation validation; bits 0/1/5 are zero; the I2C and console-lockout results are not packed. 0x54/0x55 are high-impact AC-cycle/CPLD sequences that log MEL, manipulate bits 0x10/0x20 of CPLD register 0x40, sleep/invoke system() commands; 0x84/0x85 return D-Bus bytes, 0x86 calls D-Bus with operand A and returns parsed bytes, 0x87 parses a D-Bus property string; 0xdb conditionally reads a fixed file and returns bounded contents; 0xff returns byte 3. Other child values reject.",
@@ -16164,7 +16212,7 @@
         "selector_offset": 0,
         "safety_class": "destructive",
         "semantic_safety_note": "Destructive subprotocol: includes provisioning reset, image erase/update, CPLD writes, Clear CMOS, and AC-cycle actions; unsafe-gate the outer dispatcher. The pinned child 0x03 daemon may expose three uninitialized stack bytes in its response when the CPLD-device open/ioctl fails.",
-        "semantic_unresolved_reason": "Remaining retained-artifact limits are child-specific: 0x03's outer framework mapping for helper exceptions is not established; 0x06 getFWInventory and 0x08 getAntiRBID are not exported by the matching pinned ProvisionManager daemon; 0x07's provider calls do not match the pinned daemon signatures (getBmcConsoleLockout takes no arguments, and SecurityManager.readCPLDFeatbit() takes no arguments and returns int64); 0x09's low-level /dev/spitee reader is recovered, but the direct link from the IPMI-used D-Bus callback to that helper, the callback's result/error translation, and the complete register map are not established; 0x0f's backend dump effects and error behavior remain unresolved; 0x86's OTP key-byte transformation remains unknown. These limitations are documented as static evidence or explicit unknowns, not successful live behavior.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x000fc540",
@@ -16173,6 +16221,12 @@
           "selector_store": "0x5ae10",
           "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
           "strings": "target provider .rodata via strings -a -t x",
+          "framework_exception_mapping": {
+            "ipmid_sha256": "41e94006fab4184db17398c35701599bfa7751e710f5ec04b27e0aaaf813fb0d",
+            "build_source_commit": "0ce6a5771d00f8c37f43daf722ed6774324342a8",
+            "source": "phosphor-host-ipmid include/ipmid/handler.hpp lines 224-300 at the exact build commit",
+            "mapping": "The typed IpmiHandler wrapper preserves explicit HandlerException/HandlerCompletion codes; std::exception and catch-all paths return ccUnspecifiedError (0xFF) with no payload."
+          },
           "provision_manager_backend": {
             "path": "/usr/bin/smci-provision-mgr",
             "sha256": "bc25b26a97a6400770c0d844a08785e8ab50d5f9f7d9ddf549c50eaf845df8cf",
@@ -16374,8 +16428,8 @@
             "0x86": {
               "method": "getOTPKey",
               "operand": "required operand A is passed to the method; operand B is forbidden",
-              "response": "The returned D-Bus string's [begin,end) byte range is copied into the response vector; no terminating NUL is appended.",
-              "backend": "In the matching smci-provision-mgr, ProvisionManager::virtual_28 formats (operand_a << 8) | 0x20 for optee_smci_tee_service -O %ld &, waits one second, reads at most 63 characters from /tmp/otp_result, then unlinks it. Command failure, file/read failure, empty output, or a record not beginning with one non-NUL byte followed by LF is rejected. A later loop passes each source byte to ostream integer insertion, suggesting decimal ASCII rendering, but linkage of that stream to the returned D-Bus string is not proven; the exact key conversion remains unresolved."
+              "response": "After a successful daemon call, the provider copies the returned D-Bus string byte span; no terminating NUL is appended. On this pinned daemon the string is always the nine ASCII bytes `111111111`.",
+              "backend": "In the matching smci-provision-mgr, ProvisionManager::virtual_28 formats (operand_a << 8) | 0x20 for optee_smci_tee_service -O %ld &, waits one second, reads at most 63 characters from /tmp/otp_result, then unlinks it. Command failure, file/read failure, empty output, or a record not beginning with one non-NUL byte followed by LF is rejected. The daemon zeroes 60 bytes at stack offset 0x58, reads the record starting four bytes earlier at 0x54, validates byte 0 and LF at byte 4, then iterates the still-zero bytes at offsets 0x5c through 0x64 inclusive. It adds one to each and inserts each integer into the output stream, deterministically producing ASCII `111111111`. Static dataflow at daemon ELF VAs 0x1d44c-0x1d45c; no live call was made."
             },
             "0x87": {
               "method": "getOTPSerNum",
@@ -16467,7 +16521,7 @@
             }
           }
         },
-        "semantic_confidence": "high for the explicitly mapped 0x00 and 0x30 calls/results and remaining stated child behaviors; unresolved child and operand boundaries are explicit",
+        "semantic_confidence": "high: every implemented child request boundary, provider branch, response encoding, pinned-daemon match or mismatch, and stated side effect is mapped; arbitrary CPLD register meanings beyond observed firmware uses are intentionally not inferred",
         "execution_supported": false
       },
       {
@@ -16627,10 +16681,11 @@
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
           "0xCC invalid selector (parent dispatcher)",
-          "0xCC invalid field (written by handler body)"
+          "0xCC invalid field (written by handler body)",
+          "0xFF unspecified error (typed-handler wrapper catches std::exception)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "Operation 1 sends org.freedesktop.DBus.Properties.Set to service xyz.openbmc_project.State.BMC at /xyz/openbmc_project/state/bmc0, for interface xyz.openbmc_project.State.BMC, setting RequestedBMCTransition to xyz.openbmc_project.State.BMC.Transition.Reboot. This requests a BMC reboot. The legacy parameter and optional trailing payload are ignored. Other operation values return 0xCC.",
+        "effects": "Operation 1 sends org.freedesktop.DBus.Properties.Set to service xyz.openbmc_project.State.BMC at /xyz/openbmc_project/state/bmc0, for interface xyz.openbmc_project.State.BMC, setting RequestedBMCTransition to xyz.openbmc_project.State.BMC.Transition.Reboot. This requests a BMC reboot. A synchronous D-Bus failure is caught by the matching typed-handler wrapper and returned as 0xFF with no payload. The legacy parameter and optional trailing payload are ignored. Other operation values return 0xCC.",
         "evidence": {
           "assembly": "/tmp/othermaps-all.asm",
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/OEMRequestCOT.c",
@@ -16699,7 +16754,7 @@
         "selector_offset": 0,
         "safety_class": "disruptive",
         "semantic_safety_note": "operation 1 requests BMC reboot via State.BMC.RequestedBMCTransition=Reboot; requires --unsafe and an isolated lab recovery window.",
-        "semantic_unresolved_reason": "The D-Bus endpoint and requested reboot transition are resolved. The outer IPMI framework's completion-code mapping for a failed D-Bus method call, and any meaning behind the handler name COT, are not established by the retained provider artifact.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "provider_sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad",
           "handler_address": "0x000f38a8",
@@ -16711,6 +16766,12 @@
           "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
           "provider_build_id": "6f0189859aa536e9c2e1684915d57608dee9f150",
           "raw_elf_trace": "radare2 pdc at ELF VA 0x000e38a8 (Ghidra rebased VA 0x000f38a8) resolves the PC-relative strings and call arguments; the earlier unresolved note mixed rebased and ELF virtual addresses",
+          "framework_exception_mapping": {
+            "ipmid_sha256": "41e94006fab4184db17398c35701599bfa7751e710f5ec04b27e0aaaf813fb0d",
+            "build_source_commit": "0ce6a5771d00f8c37f43daf722ed6774324342a8",
+            "source": "phosphor-host-ipmid include/ipmid/handler.hpp lines 224-300 at the exact build commit",
+            "mapping": "The typed IpmiHandler wrapper catches the synchronous Properties.Set SdBusError as std::exception and returns ccUnspecifiedError (0xFF) with no payload."
+          },
           "dbus_endpoint": {
             "destination_service": "xyz.openbmc_project.State.BMC",
             "object_path": "/xyz/openbmc_project/state/bmc0",
@@ -16722,7 +16783,8 @@
               "variant_string": "xyz.openbmc_project.State.BMC.Transition.Reboot"
             }
           },
-          "response_behavior": "Empty success tuple is written after the synchronous sd_bus_call path; D-Bus call/reply failures are not translated locally in this handler. Other operation values explicitly write completion code 0xCC.",
+          "response_behavior": "Empty success tuple is written after the synchronous sd_bus_call path. D-Bus call/reply failures are not translated locally; the matching typed-handler wrapper catches the resulting std::exception and returns 0xFF with no payload. Other operation values explicitly write completion code 0xCC.",
+          "naming_note": "COT is an opaque internal handler-name acronym in the retained artifacts; its expansion is unknown, but it does not leave any request, response, validation, side-effect, or failure behavior unresolved.",
           "legacy_arguments": "The second scalar and optional byte-vector are not read by the operation-1 branch.",
           "strings": "Resolved provider .rodata strings: xyz.openbmc_project.State.BMC; /xyz/openbmc_project/state/bmc0; org.freedesktop.DBus.Properties; Set; RequestedBMCTransition; xyz.openbmc_project.State.BMC.Transition.Reboot"
         },
@@ -21950,7 +22012,7 @@
         "selector_offset": 0,
         "safety_class": "destructive",
         "semantic_safety_note": "operation 0 is a read-only license mask query; operation 1 unlinks a slot file before querying metadata, with no proven lockdown guard",
-        "semantic_unresolved_reason": "The returned mask bits are numerically mapped (bit 4 takes precedence over bit 1), but their product-license meanings remain vendor-private.",
+        "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/LicenseFileAction.c",
           "handler_address": "0x001604b4",
@@ -21960,8 +22022,13 @@
             "sha256": "3b1af6002ffaef53d61f1564be20b4c089427cee06161aaecf8cd947665feadf",
             "license_check_address": "0x71bf0",
             "oob_hook_address": "0x70f78",
-            "mask_5_result": "Tests bit 4 first and calls the OOB hook with selector \"4\"; returns 4 if true. Otherwise tests bit 1 and calls the hook with selector \"1\"; returns 1 if true, else 0.",
-            "label_limit": "The hook dispatches selectors \"4\" and \"1\" into generic OOB/configuration handling, but the pinned library does not name either as a product-license feature."
+            "numeric_hook_address": "0x710a8",
+            "mask_5_result": "Tests bit 4 first and calls the numeric OOB hook with selector 4; that branch opens /usr/share/license_file/2 and returns 4 when validation succeeds. Otherwise it tests bit 1 and calls the hook with selector 1; that branch opens /usr/share/license_file/1 and returns 1 when validation succeeds, else 0.",
+            "product_map": {
+              "0x04": "SFT-DCMS-SINGLE (license file/ID 2)",
+              "0x01": "SFT-OOB-LIC (license file/ID 1)"
+            },
+            "web_ui_evidence": "/usr/share/www/page/mntc_license_overview.www maps LicenseID 1 to SFT-OOB-LIC and LicenseID 2 to SFT-DCMS-SINGLE."
           },
           "mel_action_map": {
             "event_id": 5,
@@ -21982,7 +22049,7 @@
             "SFT-DCMS-SINGLE", "deactivated"
           ]
         },
-        "semantic_confidence": "high for operation branches, file deletion order, response bounds, numeric mask behavior, and EventId 5 MEL action labels; medium for product-specific flag meanings"
+        "semantic_confidence": "high: operation branches, file deletion order, response bounds, numeric mask behavior, selector-to-license-file paths, product labels, and EventId 5 MEL action labels are independently evidenced"
       },
       {
         "activation": "unconditional static child-map construction",

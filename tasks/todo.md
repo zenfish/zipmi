@@ -537,3 +537,21 @@ Versions 0.2.10 → 0.2.13, all pushed.
 - Review (2026-09-30): recovered the exact operation-1 IPv6 setter lockdown gate from provider PC-relative strings and its optimized body: `xyz.openbmc_project.Settings:/com/SMCI/SysLockdown`, `com.SMCI.Managers.Item.SysLockdown.SysLockdownEnable`; true returns `0xD4` before applying that setter. Added pinned addresses/evidence and a regression assertion, removed a duplicate JSON `resolved_setter_prefix` key that obscured which detail survived parsing, and regenerated both X14 docs. Focused tests, generator freshness, doc sync, JSON parsing, and whitespace checks pass. IPv6 setter fields and property mapping remain unresolved; no live BMC request sent.
 - Review (2026-09-30): verified the latest IPv6 operation-2 DHCP property evidence, regenerated both X14 pages, and reran focused tests (22 passed), generated-doc freshness, doc sync (2,412 tests), JSON parsing, and `git diff --check`; all pass. The latest attempt initially found stale generated pages, now corrected. Primary semantic unresolved row count remains 9; no live BMC request sent.
 - Review (2026-09-30): traced IPv6 operation-2 mode normalization and invalid-data gate in the pinned provider: mode 0 maps to DHCPv6 mode 2/SLAAC true; mode 1 maps to mode 3/SLAAC false; mode 2 requires data byte 1 = 0 or returns 0xCC, then uses data byte 2 for delete-vs-add/reconcile. The DNSEnabledv6 false setter condition is now exact (getter false and normalized mode 2). Tightened zipmi's CLI validator, both generated docs, and regressions. Focused tests: 22 passed; generator freshness, doc sync (2,412 tests), JSON parsing, and `git diff --check` pass. No live BMC request sent.
+
+## 2026-09-30 — Complete Supermicro X14 semantic closure
+
+- [x] Resolve `ClearConfigOption`'s runtime filename prefix and exact cleanup behavior.
+- [x] Close Broadcom compact logical-drive PRL/RLQ/SRL mappings against SNIA DDF.
+- [x] Close link-capability and license-product bit mappings from pinned callsites and UI artifacts.
+- [x] Recover IPv6 operation 1's complete 20-byte setter layout and operation 2's malformed 16-byte path.
+- [x] Close every CM Provision child boundary, pinned-daemon match/mismatch, response encoding, and side effect.
+- [x] Regenerate both X14 HTML views and prove catalog, generator, focused, and full-suite consistency.
+
+### Review
+
+- Primary X14 `semantic_unresolved_reason` count is zero across registrations and operations.
+- IPv6 operation 1 is the defined setter: mode, SLAAC flag, action flag, 16 address bytes, and prefix. Operation 2 accepts 16 bytes but reuses the 20-byte consumer, causing three uninitialized `inet_ntop` bytes plus out-of-bounds vector scan/prefix reads; zipmi documents the target defect and preserves the exact accepted boundary.
+- CM Provision child `0x86` returns fixed ASCII `111111111` on its pinned-daemon success path; mismatched children `0x06`–`0x08` remain documented as exact static incompatibilities rather than claimed successes.
+- `ClearConfigOption` deletes `/usr/share/log/mel*`, removes `rsyslog_server`, reloads rsyslog, and gates MEL event `0x7b` by mask. No mutating live BMC request was sent.
+- Accepted ClearConfig masks with no branch action intentionally remain unlabeled: their exact success/no-op behavior is closed, while the pinned target supplies no honest subsystem name to document.
+- Proof: X14 generator `--check`, JSON parse, `git diff --check`, and 22 focused tests pass; full suite passes 2,412 tests with two pre-existing Scapy deprecation warnings.

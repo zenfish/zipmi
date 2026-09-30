@@ -83,7 +83,7 @@ def test_x14_generated_references_are_closed_and_current():
     assert "0x0a value 0x03 for the BoardId-7504 extended fan-delay workaround" in table
     assert "separate /dev/spi1nand0 write of 0x13 to offset 0x18" in table
     assert "ioctl 0xc0046b01 with the register index in bits 16..23" in table
-    assert "direct linkage from the D-Bus callback remains unproven" in table
+    assert "provider directly calls smci::core::get_rot_cpld_reg" in table
     assert "child 0xdb reads /usr/share/log/3068db.log only for operand a=5" in table
     assert "child 0x0f operand B is a device selector passed to dumpDboot(B, 0)" in table
     assert "/tmp/cpld_flash_dump.bin" in table
@@ -97,8 +97,8 @@ def test_x14_generated_references_are_closed_and_current():
     assert table.count('<tr data-search="') == 116
     assert "65</strong>Unique NetFn/Cmd addresses" in reference
     assert "244</strong>Documented operations" in reference
-    assert "186 / 58 / 0 / 0</strong>Request layout:" in reference
-    assert "181 / 63 / 0 / 0</strong>Response layout:" in reference
+    assert "187 / 57 / 0 / 0</strong>Request layout:" in reference
+    assert "182 / 62 / 0 / 0</strong>Response layout:" in reference
     assert "116</strong>Executed registration rows" in table
     assert "115</strong>Unique wire identities" in table
     assert "66</strong>OEM/group identities" in table
@@ -168,7 +168,10 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     assert cot["semantic_evidence"]["dbus_endpoint"]["arguments"]["property_name"] == "RequestedBMCTransition"
     assert cot["semantic_evidence"]["dbus_endpoint"]["arguments"]["variant_string"].endswith("Transition.Reboot")
     assert "requests a BMC reboot" in cot["effects"]
-    assert "completion-code mapping" in cot["semantic_unresolved_reason"]
+    assert cot["semantic_unresolved_reason"] is None
+    assert "opaque internal handler-name acronym" in cot["semantic_evidence"]["naming_note"]
+    assert "0xFF unspecified error (typed-handler wrapper catches std::exception)" in cot["completion_codes"]
+    assert "ccUnspecifiedError" in cot["semantic_evidence"]["framework_exception_mapping"]["mapping"]
     assert cot["runnable_status"] == "lab-only-mutation"
     assert cot["safety_class"] == "disruptive"
     assert cot["semantic_evidence"]["handler_address"] == "0x000f38a8"
@@ -185,7 +188,11 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     assert mel_map["channel_context"] == {
         "ipmi_channel_type_5": "KCS", "other_channel_type": "RMCP",
     }
-    assert "product-license meanings remain vendor-private" in license_action["semantic_unresolved_reason"]
+    assert license_action["semantic_unresolved_reason"] is None
+    assert license_action["semantic_evidence"]["license_backend"]["product_map"] == {
+        "0x04": "SFT-DCMS-SINGLE (license file/ID 2)",
+        "0x01": "SFT-OOB-LIC (license file/ID 1)",
+    }
     assert all(row.get("safety_class") in {
         "read-only", "sensitive", "state-changing", "disruptive", "destructive",
     } for row in rows)
@@ -275,18 +282,16 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     assert helper["name"] == "anonymous ClearConfigOption cleanup helper"
     assert helper["address"] == "0x000a84cc"
     assert "/usr/share/log" in helper["behavior"]
-    assert "compares its leading bytes against" in helper["behavior"]
+    assert "three-byte ASCII string `mel`" in helper["behavior"]
     assert "removes every staged path with std::filesystem::remove" in helper["behavior"]
     assert "ELF VA 0x1ed9e0" in helper["behavior"]
-    assert "initialized string value is not present as file-backed data" in helper["behavior"]
     assert "/usr/share/log/rsyslog_server" in helper["behavior"]
     assert "ReloadUnit" in helper["behavior"]
-    assert "runtime-initialized prefix string" in clear_option["semantic_unresolved_reason"]
-    assert "value of the runtime-initialized prefix string" in clear_option["semantic_unresolved_reason"]
+    assert clear_option["semantic_unresolved_reason"] is None
+    assert "No subsystem label is assigned" in clear_option["semantic_evidence"]["mask_label_boundary"]
+    assert "0x98f48" in helper["evidence"] and "0x1b30c0" in helper["evidence"]
     assert "std::filesystem::directory_iterator/remove" in helper["evidence"]
     assert "passes 1 for mask 0x00000004" in helper["behavior"]
-    assert "systemd ReloadUnit endpoint/arguments" in clear_option["semantic_unresolved_reason"]
-    assert "are recovered" in clear_option["semantic_unresolved_reason"]
     assert "0x00040000" not in clear_option["request"]["fields"][1]["constraints"]
     assert "0x00080000" in clear_option["request"]["fields"][1]["constraints"]
     uid = next(row for row in X14_CATALOG["primary"]["registrations"] if row["handler"] == "GetUIDStatus")
@@ -325,7 +330,8 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     assert report_status["safety_class"] == "destructive"
     assert report_status["semantic_unresolved_reason"] is None
     psu = next(row for row in rows if row["handler"] == "OEMGetPSUInfo")
-    assert "final mapping" in psu["semantic_unresolved_reason"]
+    assert psu["semantic_unresolved_reason"] is None
+    assert "0xFF unspecified error (typed-handler wrapper catches std::exception)" in psu["completion_codes"]
     psu_daemon = psu["semantic_evidence"]["matching_daemon"]
     assert psu_daemon["sha256"] == "2453900f9b112ee1ee55576e081cc1074df0d6efd5d263ad8011bbbb580487ce"
     assert psu_daemon["method"] == "GetPSURaw"
@@ -336,11 +342,14 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     psu_provider = psu["semantic_evidence"]
     assert "sd_bus_call" in psu_provider["provider_error_evidence"]
     assert "throws sdbusplus::exception::SdBusError" in psu_provider["provider_error_evidence"]
+    psu_framework = psu_provider["framework_exception_mapping"]
+    assert psu_framework["build_source_commit"] == "0ce6a5771d00f8c37f43daf722ed6774324342a8"
+    assert "ccUnspecifiedError" in psu_framework["mapping"]
     assert "std::logic_error" in psu_daemon["failure_evidence"]
     assert "__cxa_throw" in psu_daemon["failure_evidence"]
-    assert "remains unresolved" in psu_daemon["failure_evidence"]
+    assert "returns IPMI completion code 0xFF" in psu_daemon["failure_evidence"]
     assert "throws std::logic_error" in psu["effects"]
-    assert "D-Bus/IPMI error-to-completion-code mapping remains unresolved" in psu["effects"]
+    assert "returns IPMI completion code 0xFF with no payload" in psu["effects"]
     assert [field["offset"] for field in psu["request"]["fields"]] == list(range(7))
     assert "low nibble is ignored" in psu["request"]["fields"][3]["constraints"]
     assert "second GetPSURaw byte argument" in psu["request"]["fields"][4]["constraints"]
@@ -393,10 +402,11 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     nvme_params = next(row for row in rows if row["handler"] == "OEMGetSetNVMeSSDParameters")
     assert "com.Supermicro.nvmebp.action" in nvme_params["effects"]
     assert "0=Locate, 1=Dislocate, 2=setButtonEnabled, 3=RedLed, and 4=Remove" in nvme_params["effects"]
-    assert "provider attempts D-Bus method Remove" in nvme_params["semantic_unresolved_reason"]
-    assert "does not register Remove" in nvme_params["semantic_unresolved_reason"]
-    assert "no physical removal/eject effect is established" in nvme_params["semantic_unresolved_reason"]
+    assert nvme_params["semantic_unresolved_reason"] is None
+    assert "action 4 therefore raises SdBusError" in nvme_params["effects"]
+    assert "0xFF unspecified error (SET action 4 calls absent D-Bus method Remove; typed-handler wrapper catches SdBusError)" in nvme_params["completion_codes"]
     assert "no Remove registration" in nvme_params["semantic_evidence"]["matching_daemon_action_registration"]
+    assert "returns ccUnspecifiedError (0xFF)" in nvme_params["semantic_evidence"]["remove_failure_mapping"]
     assert nvme_params["request"]["fields"][5]["constraints"].endswith("0=Locate, 1=Dislocate, 2=setButtonEnabled, 3=RedLed, 4=Remove")
     assert nvme_params["semantic_evidence"]["set_action_call_sites_raw"]["4"] == "0x000af3f4 -> Remove"
     assert "Id is little-endian u16 at offsets 6..7" in nvme_params["effects"]
@@ -412,7 +422,6 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     assert "NSS-present flag bit 1 at 125; NSS 126; SmartWarning 127; PDLU 129" in nvme_result
     assert "All other bytes are zero: 70..71" in nvme_result
     assert "can trigger an out-of-bounds copy" in nvme_result
-    assert "Exact provider references establish the property maps" in nvme_params["semantic_unresolved_reason"]
     assert "LastPresence u16le at 4..5" in nvme_result
     assert "zero-initialized bytes 6..11" in nvme_result
     assert nvme_params["semantic_evidence"]["get_subcommand_ff_property_call_sites_raw"]["LastPresence"].endswith("output bytes 4..5")
@@ -480,9 +489,13 @@ def test_x14_primary_semantics_have_named_fields_and_explicit_safety():
     assert "uninitialized stack buffer" in version_call["response"]
     assert "ioctl 0xc0206b0c" in version_call["evidence"]["security_manager_method_evidence"]
     assert "three uninitialized stack bytes" in cm["semantic_safety_note"]
-    assert "0x03's outer framework mapping" in cm["semantic_unresolved_reason"]
+    assert "ccUnspecifiedError" in cm["semantic_evidence"]["framework_exception_mapping"]["mapping"]
     assert "0x54/0x55 are high-impact AC-cycle/CPLD sequences" in cm["effects"]
     assert "manipulate bits 0x10/0x20 of CPLD register 0x40" in cm["effects"]
+    assert cm["semantic_unresolved_reason"] is None
+    otp = cm["semantic_evidence"]["resolved_child_calls"]["0x86"]
+    assert "`111111111`" in otp["response"]
+    assert "0x1d44c-0x1d45c" in otp["backend"]
     closed_stubs = {
         "NotifyBMCSensorStart", "BIOSLicenseSource", "BIOSSetTimertoTriggerPowerOn",
         "GetRiserCardID", "OEMGetSetBBPTimoutSetting", "OEMGetSetTDM",
@@ -505,7 +518,7 @@ def test_x14_ipv6_network_child_map_and_mutation_helpers_are_documented():
     assert "3=DHCPv6 DUID" in ipv6["effects"]
     assert "PltSetIpv6SlaacStatus" in ipv6["effects"]
     gate = ipv6["semantic_evidence"]["lockdown_gate"]
-    assert gate["operation"] == 1
+    assert gate["operation"] == "1 and 2"
     assert gate["endpoint"] == {
         "service": "xyz.openbmc_project.Settings",
         "path": "/com/SMCI/SysLockdown",
@@ -521,9 +534,15 @@ def test_x14_ipv6_network_child_map_and_mutation_helpers_are_documented():
     assert dhcp["calls"][0]["callsite_elf_va"] == "0x000f2b5c"
     assert "getter result is false" in dhcp["scope"]
     assert "normalized mode argument equals 2" in dhcp["scope"]
-    assert "mode 2 additionally requires data byte 1 to be zero" in ipv6["effects"]
-    assert "it calls the setter with false" in ipv6["effects"]
-    assert "Operation 1's 20-byte setter fields" in ipv6["semantic_unresolved_reason"]
+    assert "mode 2 additionally requires the SLAAC flag to be zero" in ipv6["effects"]
+    assert "UtilSetDHCPPropertyStatus" in ipv6["effects"]
+    assert ipv6["semantic_unresolved_reason"] is None
+    op1 = ipv6["semantic_evidence"]["resolved_setter_prefix"]["operation_1"]
+    assert "bytes 3..18 are the 16 network-order IPv6 address bytes" in op1
+    assert "byte 19 is prefix length 1..128" in op1
+    op2 = ipv6["semantic_evidence"]["resolved_setter_prefix"]["operation_2"]
+    assert "13-byte vector" in op2 and "out-of-bounds index 16" in op2
+    assert "three uninitialized trailing bytes" in op2
     assert ipv6["safety_class"] == "state-changing"
     assert ipv6["runnable_status"] == "lab-only-mutation"
 
@@ -633,17 +652,18 @@ def test_x14_broadcom_records_use_producer_backed_tail_layouts():
     assert [field["name"] for field in compact_fields[1:8]] == [
         "prl", "rlq", "srl", "stripe_size", "num_drives", "span_depth", "state",
     ]
-    assert "15=single disk/JBOD" in compact_fields[1]["meaning"]
-    assert "not verified for this X14 image" in compact_fields[1]["meaning"]
-    assert "no numeric value map" in compact_fields[2]["meaning"]
-    assert "3=spanned" in compact_fields[3]["meaning"]
-    assert "candidate byte 0xff" in compact_fields[3]["meaning"]
+    assert "0x0f single disk" in compact_fields[1]["meaning"]
+    assert "0x02 rotating-parity-N with data restart" in compact_fields[2]["meaning"]
+    assert "0x03 spanned" in compact_fields[3]["meaning"]
     assert compact_logical["response"]["fields"][0]["meaning"] == (
         "(Size u64 × userDataBlockSize u16) >> 30, encoded u32le."
     )
-    assert "does not establish" in compact_logical["semantic_unresolved_reason"]
-    assert "no numeric RLQ map" in compact_logical["semantic_unresolved_reason"]
-    assert "cross_source_mib" in compact_logical["semantic_evidence"]
+    assert compact_logical["semantic_unresolved_reason"] is None
+    assert compact_logical["semantic_evidence"]["prl_map"]["0x06"] == "RAID-6"
+    assert compact_logical["semantic_evidence"]["rlq_map"]["0x03"] == (
+        "rotating parity N with data continuation"
+    )
+    assert compact_logical["semantic_evidence"]["srl_map"]["0x03"] == "spanned"
 
 
 def test_x14_recovered_request_bounds_are_closed_where_proven():
@@ -693,7 +713,17 @@ def test_x14_recovered_request_bounds_are_closed_where_proven():
     license_backend = rows["LicenseFileAction"]["semantic_evidence"]["license_backend"]
     assert license_backend["sha256"] == "3b1af6002ffaef53d61f1564be20b4c089427cee06161aaecf8cd947665feadf"
     assert "bit 4 first" in license_backend["mask_5_result"]
-    assert "does not name either" in license_backend["label_limit"]
+    assert "/usr/share/license_file/2" in license_backend["mask_5_result"]
+    assert "LicenseID 1 to SFT-OOB-LIC" in license_backend["web_ui_evidence"]
+    link_conf = rows["OEMSetGetLinkConf"]
+    assert link_conf["semantic_unresolved_reason"] is None
+    assert link_conf["semantic_evidence"]["capability_bit_map"] == {
+        "0x01": "Auto negotiation",
+        "0x08": "100M half-duplex",
+        "0x10": "100M full-duplex",
+        "0x40": "1G full-duplex",
+    }
+    assert link_conf["semantic_evidence"]["bmcweb_decoder"]["speed_groups"]["mask 0x18"] == "100M"
     assert rows["OEMGetSetSyslogInfo"]["safety_class"] == "read-only"
 
 
@@ -793,7 +823,7 @@ def test_x14_cm_provision_parent_disabled_and_child_census_closed():
         child = SUPERMICRO_X14[(0x30, 0x51, 0x28, subcommand)]
         assert child["dbus_endpoint"]["method"] == method
         assert child["response_fields"][0]["name"] == field_name
-        assert child["response_fields"][0]["type"] == "bytes[remainder]"
+        assert child["response_fields"][0]["type"] == ("bytes[9]" if subcommand == 0x86 else "bytes[remainder]")
         assert "no appended NUL" in child["response_fields"][0]["meaning"]
     cm_contract = next(
         row for row in X14_CATALOG["primary"]["operations"]
@@ -941,11 +971,12 @@ def test_x14_ipv6_network_validator_matches_target_operation_lengths():
     assert "16 network-order address bytes plus one zero byte" in queries["4"]
     assert "decimal prefix byte" in queries["2"]
     assert "parses it base 16" in queries["3"]
-    assert contract["semantic_unresolved_reason"].startswith("Operation 1's 20-byte setter fields")
+    assert contract["semantic_unresolved_reason"] is None
     setter = contract["semantic_evidence"]["resolved_setter_prefix"]["operation_2"]
-    assert "13-byte vector" in setter and "bytes[3..15] followed by 00:00:00" in setter
+    assert "13-byte vector" in setter and "out-of-bounds index 16" in setter
     helper = contract["semantic_evidence"]["setter_helper_behavior"]["translateIpv6ToStr"]
-    assert "zero-initializes" in helper and "not an out-of-bounds read" in helper
+    assert "memset zeroes only vector.size() bytes" in helper
+    assert "final three inet_ntop input bytes" in helper and "uninitialized" in helper
 
 
 def test_x14_dcmi_temperature_record_wire_order_and_bound():
