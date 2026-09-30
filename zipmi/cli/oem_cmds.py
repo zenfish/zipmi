@@ -1402,11 +1402,11 @@ def _valid_x14_cm_provision(subcommand: int, operands: bytes) -> bool:
     if subcommand == 0x09:
         return len(operands) in (1, 2)
     if subcommand == 0x0F:
-        return (len(operands) == 1 and operands[0] == 0) or (
-            len(operands) == 2 and operands[0] in (0, 1)
+        return (len(operands) in (1, 2) and operands[0] == 0) or (
+            len(operands) == 2 and operands[0] == 1 and operands[1] in (0, 3, 5, 9)
         )
     if subcommand == 0x20:
-        return len(operands) == 1 and operands[0] in (0, 1, 2, 3, 4, 5, 8, 9)
+        return len(operands) == 1 and operands[0] in (0, 1, 2, 3, 5, 8, 9)
     if subcommand == 0x21:
         return len(operands) in (1, 2) and operands[0] <= 5
     if subcommand == 0x86:
@@ -1414,6 +1414,25 @@ def _valid_x14_cm_provision(subcommand: int, operands: bytes) -> bool:
     if subcommand == 0x87:
         return not operands
     return len(operands) <= 2
+
+
+def _valid_x14_ipv6_network(operands: bytes) -> bool:
+    if not operands:  # the target treats an omitted operation as empty success
+        return True
+    operation = operands[0]
+    if operation == 0:
+        return len(operands) >= 2 and operands[1] <= 4
+    if operation == 1:
+        return len(operands) == 21  # operation + exactly 20 setter bytes
+    if operation == 2:
+        return (
+            len(operands) == 17  # operation + exactly 16 setter bytes
+            and operands[1] <= 2
+            and operands[2] <= 1
+            and (operands[1] != 2 or operands[2] == 0)
+            and operands[3] <= 1
+        )
+    return False
 
 
 def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
@@ -1574,6 +1593,17 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             operands = data_bytes[len(prefix):]
             if not _valid_x14_cm_provision(info["cm_subcommand"], operands):
                 _msg.error(f"{info['name']} operands violate the recovered provisioning subcommand contract")
+                return 2
+        if vendor == "supermicro-x14" and info.get("validator") == "x14-nvme-page":
+            # Firmware clips a u8 count with wrapping subtraction; offsets >215
+            # can make its response copy read beyond the 215-byte record.
+            if (len(data_bytes) >= 7 and data_bytes[1] == 0
+                    and data_bytes[4] == 1 and data_bytes[6] > 215):
+                _msg.error("NVMe GET subcommand 1 page_offset must be at most 215")
+                return 2
+        if vendor == "supermicro-x14" and info.get("validator") == "x14-ipv6-network":
+            if not _valid_x14_ipv6_network(data_bytes[len(prefix):]):
+                _msg.error(f"{info['name']} payload violates the recovered IPv6 operation contract")
                 return 2
 
     if vendor == "idrac10":

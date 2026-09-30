@@ -107,9 +107,33 @@ def _primary_operation(entry: dict) -> tuple[tuple[int, ...], dict]:
     selector = _number(entry["selector"])
     request, response = entry["request"], entry["response"]
     status = entry["runnable_status"]
+    evidence = _evidence(entry)
+    purpose = entry.get("purpose", entry["effects"])
+    if entry["handler"] == "OEMGetCMProvision":
+        register_reader = entry["semantic_evidence"]["resolved_child_calls"]["0x09"]["register_read_backend"]
+        file_path = entry["semantic_evidence"]["resolved_child_calls"]["0xdb"]["path"]
+        dboot_map = entry["semantic_evidence"]["resolved_child_calls"]["0x0f"]["device_map"]
+        purpose += (
+            "; child 0x09's matching-daemon low-level reader opens /dev/spitee, issues ioctl "
+            f"{register_reader['ioctl_request']} with the register index in bits 16..23, and returns the low byte; "
+            "open/ioctl failure is -5. Direct linkage from the D-Bus callback remains unproven."
+            f" Child 0xdb reads {file_path} only when operand a is 5, returning exactly 256 bytes; "
+            "longer content is truncated and shorter, missing, or unreadable content is zero-padded."
+            f" Child 0x0f operand B selects the device path: {', '.join(f'{key} {value}' for key, value in dboot_map.items() if key != 'other B')}; "
+            "the IPMI handler passes per-device index 0. The matching daemon contains a D-Boot dump implementation and "
+            "writes three 64-KiB blocks to /tmp/cpld_flash_dump.bin (0x30000 bytes on success); it opens with "
+            "create/truncate flags, so failures can leave an empty or partial file. Provider-side D-Bus exception mapping remains unresolved."
+        )
+    if entry["handler"] == "OEMGetSetMMBIHashKey":
+        backend = entry["semantic_evidence"]["mmbi_backend"]
+        evidence += (
+            f"; {backend['path']} SHA-256 {backend['sha256']}: "
+            "setEncHashData callback 0xf270 (ay -> n), checkEncHashData 0xd124 (() -> n), "
+            "getEncHashData 0xd418 (() -> n, ay); exact registered target callbacks"
+        )
     return (netfn, command, selector), {
         "name": entry["handler"], "handler": entry["handler"],
-        "purpose": entry.get("purpose", entry["effects"]), "privilege": _PRIVILEGE[entry["privilege"]],
+        "purpose": purpose, "privilege": _PRIVILEGE[entry["privilege"]],
         "request_length": (request["minimum_bytes_including_selector"], request["maximum_bytes_including_selector"]),
         "response_length": (response["minimum_bytes"], response["maximum_bytes"]),
         "request_fields": _fields(request["fields"]),
@@ -118,8 +142,12 @@ def _primary_operation(entry: dict) -> tuple[tuple[int, ...], dict]:
         "activation": entry["activation"], "side_effects": entry["effects"],
         "safety": entry.get("safety_class", _primary_safety(entry["handler"], status, entry["effects"])),
         "safety_note": entry.get("semantic_safety_note", entry["effects"]),
-        "confidence": entry["confidence"], "evidence": _evidence(entry),
+        "confidence": entry["confidence"], "evidence": evidence,
         "semantic_unresolved_reason": entry.get("semantic_unresolved_reason"),
+        "validator": {
+            "OEMGetSetNVMeSSDParameters": "x14-nvme-page",
+            "OEMCGetSetIPV6Network": "x14-ipv6-network",
+        }.get(entry["handler"]),
         "prefix": bytes([selector]), "selector": bytes([selector]),
         "selector_offset": entry["selector_offset"],
         "owner": "Supermicro primary provider", "runnable": entry.get("execution_supported", True), "live": None,
@@ -365,33 +393,33 @@ def _auxiliary_commands() -> list[tuple[tuple[int, ...], dict]]:
 def _cm_provision_commands() -> list[tuple[tuple[int, ...], dict]]:
     source = next(row for row in _PRIMARY["operations"] if row["handler"] == "OEMGetCMProvision")
     request_specs = {
-        0x00: (2, 3, "Provision-state query/action; optional operand a accepts 1, 3, or 4; operand b is forbidden.", "state-changing", 1, 4, "Provision-state result varies by operand: one byte or big-endian u32; exact D-Bus method remains unresolved.", "136-237"),
-        0x01: (2, 4, "Invokes doProvisioning; optional operands are ignored.", "state-changing", 1, 1, "u8 D-Bus boolean returned by doProvisioning.", "357-378"),
-        0x02: (2, 4, "Reads getProvisioningTaskStatus as a D-Bus u32 and returns its low byte; optional operands are ignored.", "read-only", 1, 1, "u8 low byte of getProvisioningTaskStatus D-Bus u32.", "379-414"),
+        0x00: (2, 3, "Provision-state query/action; optional operand a accepts 1, 3, or 4; operand b is forbidden. A absent calls ProvisionManager.getROTState and returns one byte; A=1 calls isProvisioning and returns u32 big-endian; A=3 calls clearProvisioning and returns the inverse of its low-byte boolean; A=4 calls doProvisioning to start the asynchronous provisioning workflow.", "state-changing", 1, 4, "A absent: one-byte getROTState result; A=1: u32be isProvisioning result; A=3: one byte, 1 iff clearProvisioning's low result byte is zero; A=4: one byte, 1 when provisioning starts and 0 when rejected/already active.", "136-237"),
+        0x01: (2, 4, "Invokes doProvisioning; optional operands are ignored. Starts the asynchronous provisioning workflow when accepted.", "state-changing", 1, 1, "u8 result: 1 when the provisioning worker starts; 0 when rejected or already active.", "357-378"),
+        0x02: (2, 4, "Calls ProvisionManager.getProvisioningTaskStatus with no arguments; optional operands a and b are ignored. Reads its D-Bus u32 and returns the low byte.", "read-only", 1, 1, "u8 low byte of getProvisioningTaskStatus D-Bus u32.", "379-414"),
         0x03: (2, 4, "Returns the three-byte RoT CPLD version; optional operands are ignored.", "read-only", 3, 3, "bytes[3] raw RoT CPLD version.", "415-424"),
-        0x05: (4, 4, "Invokes validateImage with operands a and b.", "state-changing", 1, 1, "u8 inverted D-Bus boolean returned by validateImage.", "427-461"),
-        0x06: (4, 4, "Reads getFWInventory; operand a selects a result form and operand b is accepted.", "read-only", 0, None, "Response varies by operand: four version bytes, zero/three parsed bytes, or raw string bytes.", "462-608"),
-        0x07: (3, 3, "Reads the indexed provisioning task status; operand a is 0..3.", "read-only", 2, 2, "u16be task status.", "609-675"),
-        0x08: (4, 4, "Invokes getAntiRBID with operands a and b.", "state-changing", 2, 2, "u16be result returned by getAntiRBID.", "676-711"),
-        0x09: (3, 4, "Reads a RoT CPLD register selected by operand a; operand b is ignored.", "sensitive", 1, 1, "u8 register value.", "712-723"),
+        0x05: (4, 4, "Requires operands a and b; accepts A=0 or 1 only when B<=2, and rejects A>=2. Sends the u32 value A*4+B to ProvisionManager.validateImage. The IPMI response is 1 iff the returned D-Bus boolean is false.", "state-changing", 1, 1, "u8: logical inverse of the validateImage D-Bus boolean.", "427-461"),
+        0x06: (4, 4, "Calls ProvisionManager.getFWInventory with required operands a and b. Only a=0,b=3 sends no D-Bus arguments; otherwise the call marshals b+1 and the staged operand-a value. The provider requires a string result: a=0 converts dot-separated decimal components to four packed-BCD bytes; a=2 parses a hyphen-separated form into three bytes; other a values return raw string bytes. Call/result extraction failure maps to 0xd6. The matching pinned daemon contains the string but no public callback/vtable entry, so a method mismatch is statically expected for this image pair; no live request was sent.", "read-only", 0, None, "For a successful D-Bus string: a=0 returns four packed-BCD bytes; a=2 returns three parsed bytes (malformed form logs and yields empty data); other a values return the raw string bytes. D-Bus call/result extraction failure returns completion code 0xd6. The pinned daemon has no public getFWInventory method entry, so successful results are not established for this image pair.", "462-608"),
+        0x07: (3, 3, "Requires operand a=0..3; operand b is forbidden. First calls ProvisionManager.getBmcConsoleLockout with one byte (a+4), then on a nonzero result calls SecurityManager.readCPLDFeatbit with a. A false/failed first call or negative second result maps to 0xd6. The pinned ProvisionManager exposes getBmcConsoleLockout with no arguments, and the pinned SecurityManager exposes readCPLDFeatbit() with no arguments (int64 result); both provider calls have incompatible argument signatures on this image pair. The first mismatch is encountered first, so the second call is not expected to be reached. This is static analysis, not live-tested.", "sensitive", 2, 2, "On the success path, the low 16 bits of the signed readCPLDFeatbit result, big-endian. A false/failed getBmcConsoleLockout call or negative CPLD result returns completion code 0xd6.", "609-675"),
+        0x08: (4, 4, "Calls ProvisionManager.getAntiRBID with required operands a and b and returns its nonnegative result as u16be; negative D-Bus results map to 0xd6. The matching pinned smci-provision-mgr exports getUFMAntiRBID (q -> i), not getAntiRBID, so this exact provider/daemon pair is statically expected to fail with UnknownMethod/0xd6; even an alias would need signature compatibility because the provider stages two operand bytes while the daemon method takes one q. No live request was sent.", "state-changing", 2, 2, "u16be nonnegative D-Bus result; negative method-call result returns completion code 0xd6. On the matching pinned daemon image, getAntiRBID is not registered (only getUFMAntiRBID is), so the call is expected to fail.", "676-711"),
+        0x09: (3, 4, "Requires operand a; accepts any byte value, with no range check, and ignores operand b. Calls smci::core::get_rot_cpld_reg, which invokes SecurityManager.readCpldReg with a; the signed int32 result is returned as its low byte. Matching image scripts identify uses of register 0 bit 4 (MSMI latching), register 1 bit 2 (temporary surprise reset), and register 8 bits 6/7 (BMC reset and factory-default flags); these examples are not a complete register map.", "sensitive", 1, 1, "u8 low byte of the signed int32 returned by the readCpldReg helper.", "712-723"),
         0x0A: (2, 4, "Returns constant 0x01; optional operands are ignored.", "read-only", 1, 1, "fixed u8 0x01.", "724-734"),
-        0x0F: (3, 4, "Operand a=0 queries D-Boot status; a=1 dumps D-Boot using operand b and changes state.", "state-changing", 1, 1, "u8 D-Boot status/result.", "743-797"),
-        0x20: (3, 3, "Invokes upBackupGoldenImage; operand a selects a supported field (0..5, 8, or 9); operand b is forbidden.", "state-changing", 1, 1, "u8 normalized D-Bus result for the selected upBackupGoldenImage field.", "830-911"),
-        0x21: (3, 4, "Invokes eraseImage using operand a (0..5); operand b is ignored.", "destructive", 1, 1, "u8 security-state result returned by eraseImage.", "912-959"),
-        0x30: (2, 4, "Aggregates getI2CMapProtection, getBmcConsoleLockout, getBmcJtagLockout, getAttestValidation, getROTState, and readCPLDFeatbit; optional operands are ignored.", "read-only", 1, 1, "u8 packed status bitfield; per-source bit positions remain unresolved.", "988-1075"),
-        0x54: (2, 4, "Clears CMOS through CPLD control and logs the action; optional operands are ignored.", "destructive", 0, 0, "No response data.", "1146-1176"),
-        0x55: (2, 4, "Cycles AC power through CPLD control and logs the action; optional operands are ignored.", "disruptive", 0, 0, "No response data.", "1177-1225"),
-        0x84: (2, 4, "Reads the isOTP D-Bus boolean; optional operands are ignored.", "sensitive", 1, 1, "u8 boolean returned by isOTP.", "1318-1339"),
-        0x85: (2, 4, "Invokes the clearRaProvision D-Bus action; optional operands are ignored.", "destructive", 1, 1, "u8 boolean returned by clearRaProvision.", "1340-1361"),
-        0x86: (3, 3, "Reads OTP key material; operand a is required and operand b is forbidden.", "sensitive", 0, None, "Variable key bytes; exact string length depends on backend.", "1362-1392"),
-        0x87: (2, 2, "Reads the OTP serial number; operands are forbidden.", "sensitive", 0, None, "Variable serial-number bytes.", "1393-1424"),
-        0xDB: (2, 4, "Returns no data except when operand a=5, which returns a padded/truncated 256-byte file.", "sensitive", 0, 256, "Empty response or exactly 256 bytes for operand a=5.", "281-350"),
+        0x0F: (3, 4, "Requires operand a. A=0 calls provider-local queryDumpDbootStatus and returns its low byte; -1 maps to 0xcc, and optional B is ignored. A=1 requires B as device selector and calls provider-local dumpDboot(B,0), passing per-device index 0; accepted B values map to Backplane_0_CPLD_0 (0), AOMboard_1_CPLD_1 (3), MidplaneSBB_CPLD_1 (5), and Fanboard_1_CPLD_1 (9). Other selectors return -1 and map to 0xd6. The pinned daemon reads the D-Boot JEDEC ID and writes three 64-KiB blocks to /tmp/cpld_flash_dump.bin (0x30000 bytes on success), opening with create/truncate semantics; failed reads/writes can leave a partial file. Provider-side D-Bus exception mapping remains unresolved. The similarly named ProvisionManager methods are not called here.", "state-changing", 1, 1, "A=0: helper low byte unless -1 -> 0xcc. A=1: 0x01 unless helper -1 -> 0xd6.", "743-797"),
+        0x20: (3, 3, "Calls ProvisionManager.upBackupGoldenImage with operand a as u32; operand b is forbidden. Accepted a values are 0..3, 5, 8, and 9; 4, 6, 7, and values above 9 reject. The returned D-Bus boolean becomes 0x02 when true for selectors 0..3, 5, and 9, but selector 8 returns the raw boolean byte. The pinned daemon confirms the method name, u32 argument, and boolean return.", "state-changing", 1, 1, "u8: selectors 0..3, 5, and 9 map true to 2 and false to 0; selector 8 returns the raw boolean byte.", "830-911"),
+        0x21: (3, 4, "Requires operand a; absent a maps to 0xd6, values 0..5 invoke eraseImage, and values above 5 reject; operand b is ignored. Backend selectors 0..5 target BMC Backup, BMC Golden, BIOS Backup, BIOS Golden, BMC Staging, and BIOS Staging partitions. For selector 5, the daemon also issues D-Bus Properties.Set for FwInfoManager.stagingBIOS at /xyz/openbmc_project/fwinfo, with string value `ne_implINS2_10bad_alloc_EEEEE` (the exact target bytes, a suffix of a Boost exception RTTI name; no intended meaning is inferred). The provider maps the daemon boolean true to 0x02 and false to 0x00; the daemon may report true even after logging an erase-failure path.", "destructive", 1, 1, "u8: 0x02 when eraseImage returns true, otherwise 0x00. The daemon may return true even after logging an erase-failure path, so this byte is not an erase-success indicator.", "912-959"),
+        0x30: (2, 4, "Calls ProvisionManager.getI2CMapProtection, getBmcConsoleLockout, getBmcJtagLockout, getAttestValidation, and getROTState, plus SecurityManager.readCPLDFeatbit; optional operands are ignored. The packed response uses only JTAG lockout, CPLD feature bits, RoT state, and attestation validation.", "read-only", 1, 1, "u8 bitfield: bit 2 = inverse of getBmcJtagLockout byte; bit 3 = 1 iff both bytes of readCPLDFeatbit's u16 result are not 0xff; bit 4 = inverse of getROTState byte; bit 6 = inverse of getAttestValidation byte; bits 0, 1, and 5 are zero. getI2CMapProtection and getBmcConsoleLockout results are not included in this byte.", "988-1075"),
+        0x54: (2, 4, "Ignores optional operands. Emits conditional MEL event 0x11f (Clear CMOS), waits 1 s, reads CPLD register 0x40, then on a valid read raises GPIO 184, writes old|0x10, waits 10 s, restores the exact old register value, and lowers GPIO 184. Invalid register reads still return empty success; system() and write results are ignored.", "destructive", 0, 0, "No response data, including when the CPLD register read fails.", "1146-1176"),
+        0x55: (2, 4, "Ignores optional operands. Emits conditional MEL event 0x87 (AC cycle), syncs /usr/share/log/mel, waits 1 s, raises GPIO 184, reads CPLD register 0x40, then on a valid read writes old|0x20, waits 1 s, and lowers GPIO 184. It does not restore the old register value. Invalid reads still return empty success; system() and write results are ignored.", "disruptive", 0, 0, "No response data, including when the CPLD register read fails.", "1177-1225"),
+        0x84: (2, 4, "Calls the exported ProvisionManager.isOTP method with no arguments; optional operands a and b are ignored.", "sensitive", 1, 1, "Raw one-byte D-Bus boolean returned by isOTP (signature () -> b).", "1318-1339"),
+        0x85: (2, 4, "Calls the exported ProvisionManager.clearRaProvision method with no arguments; optional operands a and b are ignored. This is a state-changing clear action.", "destructive", 1, 1, "Raw one-byte D-Bus boolean returned by clearRaProvision (signature () -> b).", "1340-1361"),
+        0x86: (3, 3, "Reads getOTPKey using operand a; operand b is forbidden. The matching daemon runs optee_smci_tee_service with (operand_a << 8) | 0x20, reads and removes /tmp/otp_result, then constructs the D-Bus string; its conversion is not fully recovered. A subsequent byte-to-int stream loop suggests decimal ASCII rendering, but linkage to the returned string is unproven. The provider returns the D-Bus string's bytes without a terminator.", "sensitive", 0, None, "Exact bytes of the returned D-Bus string; length equals the string byte length, with no appended NUL. Daemon-side key conversion remains unresolved.", "1362-1392"),
+        0x87: (2, 2, "Reads getOTPSerNum with no operands. The matching daemon runs optee_smci_tee_service -m -t 204, reads at most 31 characters from /tmp/otp_board_serial_number.bin, and removes the file. Its C-string construction retains a newline when present; the provider returns those string bytes without the terminating NUL.", "sensitive", 0, None, "Exact bytes of the returned D-Bus string; may include a trailing newline, with no appended NUL.", "1393-1424"),
+        0xDB: (2, 4, "If operand a is present and equals 5, reads /usr/share/log/3068db.log, returning its first 256 bytes or zero-padding shorter, missing, or unreadable content to 256 bytes. If a is absent or differs from 5, returns empty success data. Operand b is ignored.", "sensitive", 0, 256, "Empty response when a is absent or not 5; otherwise exactly 256 bytes, truncated or zero-padded from /usr/share/log/3068db.log.", "281-350"),
         0xFF: (2, 4, "Returns constant 0x03; optional operands are ignored.", "read-only", 1, 1, "fixed u8 0x03.", "281-290"),
     }
     names = {
         0x00: "Get Provision State", 0x01: "Run Provisioning", 0x02: "Get Provision Task Status Byte",
         0x03: "Get RoT CPLD Version", 0x05: "Validate Image", 0x06: "Get Firmware Inventory",
-        0x07: "Get Provision Task Status by Index", 0x08: "Get Anti-RBID", 0x09: "Read RoT CPLD Register",
+        0x07: "Read Lockout-Gated RoT CPLD Feature Bits", 0x08: "Get Anti-RBID", 0x09: "Read RoT CPLD Register",
         0x0A: "Get Provision Capability", 0x0F: "Query or Dump D-Boot", 0x20: "Update Backup Golden Image",
         0x21: "Erase Image", 0x30: "Get Provision Summary", 0x54: "Clear CMOS",
         0x55: "Cycle AC Power", 0x84: "Check OTP State", 0x85: "Clear RA Provisioning",
@@ -433,6 +461,80 @@ def _cm_provision_commands() -> list[tuple[tuple[int, ...], dict]]:
         )
         row[1]["cm_subcommand"] = subcommand
         row[1]["validator"] = "x14-cm-provision"
+        if subcommand in (0x02, 0x05, 0x06, 0x08, 0x20, 0x84, 0x85):
+            row[1]["dbus_endpoint"] = {
+                "service": "xyz.openbmc_project.ProvisionManager",
+                "path": "/xyz/openbmc_project/provision",
+                "interface": "xyz.openbmc_project.provision.ProvisionManager",
+                "method": {
+                    0x02: "getProvisioningTaskStatus", 0x05: "validateImage",
+                    0x06: "getFWInventory", 0x08: "getAntiRBID",
+                    0x20: "upBackupGoldenImage",
+                    0x84: "isOTP", 0x85: "clearRaProvision",
+                }[subcommand],
+            }
+        if subcommand == 0x07:
+            row[1]["dbus_endpoint"] = {
+                "service": "xyz.openbmc_project.ProvisionManager",
+                "path": "/xyz/openbmc_project/provision",
+                "interface": "xyz.openbmc_project.provision.ProvisionManager",
+                "method": "getBmcConsoleLockout",
+                "provider_argument": "u8 a+4",
+            }
+            row[1]["additional_dbus_endpoint"] = {
+                "service": "xyz.openbmc_project.SecurityManager",
+                "path": "/xyz/openbmc_project/security",
+                "interface": "xyz.openbmc_project.security.SecurityManager",
+                "method": "readCPLDFeatbit",
+                "provider_argument": "operand a",
+            }
+        if subcommand == 0x09:
+            row[1]["dbus_endpoint"] = {
+                "service": "xyz.openbmc_project.SecurityManager",
+                "path": "/xyz/openbmc_project/security",
+                "interface": "xyz.openbmc_project.security.SecurityManager",
+                "method": "readCpldReg",
+                "provider_argument": "operand a passed through get_rot_cpld_reg",
+                "provider_result": "signed int32, truncated to low byte",
+            }
+        if subcommand in (0x86, 0x87):
+            row[1]["dbus_endpoint"] = {
+                "service": "xyz.openbmc_project.ProvisionManager",
+                "path": "/xyz/openbmc_project/provision",
+                "interface": "xyz.openbmc_project.provision.ProvisionManager",
+                "method": "getOTPKey" if subcommand == 0x86 else "getOTPSerNum",
+            }
+            row[1]["response_fields"] = [{
+                "offset": 0,
+                "name": "otp_key_bytes" if subcommand == 0x86 else "otp_serial_number_bytes",
+                "type": "bytes[remainder]",
+                "meaning": response_meaning,
+            }]
+        if subcommand in (0x00, 0x30):
+            row[1]["dbus_endpoint"] = {
+                "service": "xyz.openbmc_project.ProvisionManager",
+                "path": "/xyz/openbmc_project/provision",
+                "interface": "xyz.openbmc_project.provision.ProvisionManager",
+            }
+            if subcommand == 0x30:
+                row[1]["dbus_calls"] = [
+                    "getI2CMapProtection", "getBmcConsoleLockout",
+                    "getBmcJtagLockout", "getAttestValidation", "getROTState",
+                ]
+                row[1]["additional_dbus_endpoint"] = {
+                    "service": "xyz.openbmc_project.SecurityManager",
+                    "path": "/xyz/openbmc_project/security",
+                    "interface": "xyz.openbmc_project.security.SecurityManager",
+                    "method": "readCPLDFeatbit",
+                }
+            else:
+                row[1]["dbus_calls_by_operand"] = {
+                    "absent": "getROTState", "0x01": "isProvisioning",
+                    "0x03": "clearProvisioning", "0x04": "doProvisioning",
+                }
+                row[1]["dbus_effects_by_operand"] = {
+                    "0x04": "starts the asynchronous provisioning workflow; one-byte result is 1 when started, 0 when rejected/already active",
+                }
         rows.append(row)
     return rows
 

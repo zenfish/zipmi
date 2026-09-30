@@ -248,6 +248,64 @@ def compact_page() -> dict:
         evidence = registration.get("evidence", "target provider constructor audit")
         if isinstance(evidence, dict):
             evidence = "; ".join(f"{name} {value}" for name, value in evidence.items())
+        if (netfn, command, registration["handler"]) == (0x30, 0x51, "OEM51Handler"):
+            evidence += (
+                "; selector 0x28 child 0x00/A=4 and child 0x01 invoke ProvisionManager.doProvisioning: "
+                "one-byte result is 1 when the asynchronous worker starts, 0 when rejected/already active; "
+                "state-changing and unsafe-gated; selector 0x20 MMBI methods reach retained mmbibridged "
+                "(set ay->n; get n+ay, exactly 8 bytes accepted only on status 0; byte 0 selects the "
+                "channel-dependent Blowfish schedule, bytes 1 onward are raw key material, and the validated "
+                "GET value is the encrypted repeated BoardId block); checkEncHashData is not called by IPMI"
+                "; selector 0x28 child 0x03 reads SecurityManager.readCPLDVersion() as int64 and returns the "
+                "low three bytes without status translation; pinned smci-security-mgr opens /dev/spitee and "
+                "issues ioctl 0xc0206b0c, and its open/ioctl failure path copies an uninitialized stack word "
+                "into those response bytes; helper exceptions have no child-local completion-code mapping"
+                "; child 0x09 is an unrestricted generic readCpldReg register query; shipped scripts establish "
+                "register 0x00 bit 4 MSMI latching, 0x01 bit 2 temporary surprise reset, 0x08 bits 6/7 BMC "
+                "reset/factory-default flags, 0x0a value 0x03 for the BoardId-7504 extended fan-delay workaround, "
+                "and a boot-time zero write to 0x0b; a separate /dev/spi1nand0 write of 0x13 to offset 0x18 "
+                "documents bits 4/0 as BMC boot OK/exit U-Boot but is not proven to share the D-Bus backend"
+                "; its matching-daemon low-level reader opens /dev/spitee and issues ioctl 0xc0046b01 with the "
+                "register index in bits 16..23; success returns the low byte, open/ioctl failure is -5, and direct "
+                "linkage from the D-Bus callback remains unproven"
+                "; child 0xdb reads /usr/share/log/3068db.log only for operand a=5, returning exactly 256 bytes "
+                "(truncating longer content and zero-padding shorter, missing, or unreadable content; operand b ignored)"
+                "; child 0x0f operand B is a device selector passed to dumpDboot(B, 0): 0 selects "
+                "Backplane_0_CPLD_0, 3 selects AOMboard_1_CPLD_1, 5 selects MidplaneSBB_CPLD_1, and 9 selects "
+                "Fanboard_1_CPLD_1; other selectors fail. The matching smci-cpld-update-mgr-svc names "
+                "and overwrites /tmp/cpld_flash_dump.bin with three 64-KiB blocks (0x30000 bytes on success); "
+                "hardware/read/write failures may leave a partial file, and provider D-Bus exception mapping remains unresolved"
+                "; selector 0x39 OEMAddDelUser: operation 1 carries slot 1..15, declared username/password lengths, "
+                "and Base64 credentials split at the first ASCII 'G' (0x47); it creates the user only in an empty "
+                "slot, sets user ID slot+1, enables the account, and emits MEL 0x15. Operation 2 takes exactly "
+                "one slot byte, deletes that user via xyz.openbmc_project.User.Manager / "
+                "xyz.openbmc_project.Object.Delete.Delete, and emits MEL 0x16; both succeed with no response payload"
+                "; selector 0x13 OEMGetSetBBP is only a lockdown-gated validator: its parameter/value bytes are "
+                "range-checked opaque compatibility fields and never access BBP state"
+            )
+        if (netfn, command, registration["handler"]) == (0x30, 0x68, "OEM68Handler"):
+            evidence += (
+                "; selector 0x63 OEMSetGetLinkConf operation 2 returns fixed mask 0x59; the Supermicro "
+                "X14/H14 manual lists Auto negotiation, 100M half-duplex, 100M full-duplex, and 1G "
+                "full-duplex, but does not map those choices to mask bits"
+                "; selector 0xfc ClearConfigOption masks 0x00000004 and 0x02000000 call anonymous helper "
+                "0x984cc: it scans /usr/share/log, byte-prefix matches entry paths against a runtime global "
+                "string, removes each match and /usr/share/log/rsyslog_server if present, then requests systemd "
+                "Manager.ReloadUnit(rsyslog.service, replace); only 0x00000004 emits MEL 0x7b. The filter "
+                "string and option labels remain unresolved; selector 0x79 "
+                "OEMGetPSUInfo routes raw command/length bytes to the "
+                "pinned com.SMCI.PWS GetPSURaw callback; it issues ioctl 0x707 on /dev/i2c-%d, "
+                "returns a D-Bus byte array, and retries up to 4 ioctl attempts then 10 helper calls "
+                "with 100 ms sleeps before throwing std::logic_error ('Can't get PSURaw Data after retries.'). "
+                "The provider's D-Bus/IPMI failure-to-completion-code mapping remains unresolved"
+            )
+        if (netfn, command, registration["handler"]) == (0x30, 0xa0, "OOBHandler"):
+            evidence += (
+                "; selector 0x36 LicenseFileAction operation 1 unlinks the selected license file, then emits "
+                "MEL EventId 5 (deactivated): slot 1 is SFT-OOB-LIC and slot 2 is SFT-DCMS-SINGLE on KCS "
+                "and RMCP; operation 0 returns the numeric mask-5 result, whose product-license meanings "
+                "remain vendor-private"
+            )
         rows.append({
             "address": f"0x{netfn:02x} / 0x{command:02x}",
             "qualifier": _compact_qualifier(registration),
