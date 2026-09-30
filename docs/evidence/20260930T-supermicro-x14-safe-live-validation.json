@@ -1,0 +1,96 @@
+{
+  "schema": "zipmi.supermicro-x14.safe-live-validation.v1",
+  "observed": "2026-09-30T22:52:07Z",
+  "target": "zBMC supermicro-x14 at 10.0.8.14",
+  "run_id": "20260930T225207Z-56f75a49-1b7e-479e-a1f7-6737c59b6d00",
+  "zipmi_commit": "d63ba59",
+  "provider": {
+    "name": "libsupermicrooemcmds.so.0.0.1",
+    "sha256": "980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad"
+  },
+  "readiness": "READY after 3m55s; ICMP, SSH, authenticated RMCP+, Redfish, and Web UI passed",
+  "method": "Authenticated RMCP+ named zipmi queries at commit d63ba59, plus one deliberately short raw request. Every complete request was a recovered read-only operation. --unsafe only acknowledged conservative parent-route gates for the IPv6 and license read selectors; it did not change their request bytes or effects.",
+  "interpretation": "Successful decoded responses prove named-route encoding and live handler dispatch. Completion code 0xc7 for selector 0xd6 proves that wire command 0x51 reached its known child and rejected the deliberately short request before any backend action.",
+  "probes": [
+    {
+      "name": "OEMSSLCertificateStatus",
+      "netfn": "0x30",
+      "command": "0x68",
+      "request": "03 a8 00 00",
+      "completion_code": "0x00",
+      "response": "01 41 70 72 20 30 39 20 30 30 3a 30 30 3a 30 30 20 32 30 32 34 20 47 4d 54 00 41 70 72 20 30 39 20 30 30 3a 30 30 3a 30 30 20 32 30 33 34 20 47 4d 54 00"
+    },
+    {
+      "name": "GetProvisionStatusCode",
+      "netfn": "0x30",
+      "command": "0x68",
+      "request": "28 ff",
+      "completion_code": "0x00",
+      "response": "03"
+    },
+    {
+      "name": "OEMCGetSetIPV6Network query 0",
+      "netfn": "0x30",
+      "command": "0x68",
+      "request": "09 00 00",
+      "completion_code": "0x00",
+      "response": "ff"
+    },
+    {
+      "name": "OEMSetGetLinkConf operation 2",
+      "netfn": "0x30",
+      "command": "0x70",
+      "request": "63 02",
+      "completion_code": "0x00",
+      "response": "59 00"
+    },
+    {
+      "name": "OEMGetSmartPowerOption",
+      "netfn": "0x30",
+      "command": "0xad",
+      "request": "08",
+      "completion_code": "0xff",
+      "response": "",
+      "note": "The child dispatched and its backend returned unspecified error."
+    },
+    {
+      "name": "OEMGetTotalPowerBudge",
+      "netfn": "0x30",
+      "command": "0xad",
+      "request": "09",
+      "completion_code": "0x00",
+      "response": "00 00 00 00 00 00 00 00"
+    },
+    {
+      "name": "OEMGetPayload short dispatch proof",
+      "netfn": "0x30",
+      "command": "0x51",
+      "request": "d6",
+      "completion_code": "0xc7",
+      "response": "",
+      "note": "Deliberately omitted the required read operands; no backend action was possible."
+    },
+    {
+      "name": "LicenseFileAction operation 0",
+      "netfn": "0x30",
+      "command": "0xa0",
+      "request": "36 00 00",
+      "completion_code": "0x00",
+      "response": "00 00"
+    }
+  ],
+  "dispatch_conclusion": {
+    "0x51": "4-selector map consumed by OEM51Handler",
+    "0x68": "38-selector map consumed by OEM68Handler; CM Provision children use 0x68/0x28",
+    "0x70": "78-selector map consumed by OEM70Handler",
+    "0xad": "3-selector map consumed by OEMADHandler",
+    "0xa0": "27-selector OOB map unchanged"
+  },
+  "mutating_requests_sent": false,
+  "final_state": {
+    "state": "stopped",
+    "cause": "operator requested shutdown",
+    "elapsed_seconds": 1941,
+    "restart_after_stop": false
+  }
+}

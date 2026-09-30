@@ -59,10 +59,15 @@
         "artifact_uuid": "503c7d17-fa17-5a55-9e43-bba44155ebd5",
         "sha256": "07b26b0b3016d733bb5c643ea1d7ada2f4b978740eb0e4aec3ae8c5c8b748d43"
       },
-      "guest_final_state": "QEMU DOWN; Last run READY after 3m47s; UP 4m23s; STOPPED operator requested shutdown",
+      "guest_final_state": "QEMU DOWN; Last run READY after 3m55s; UP 32m21s; STOPPED operator requested shutdown",
       "guest_restart_after_stop": false,
       "ipmitool_checkout": "/tmp/ipmitool.gc8Phu",
-      "live_run": "/home/zen/src/oob/zbmc/work/supermicro-x14/runs/20260929T004726Z-90bbc3db-d22b-4660-a34b-e64abb8c8016",
+      "live_run": "/home/zen/src/oob/zbmc/work/supermicro-x14/runs/20260930T225207Z-56f75a49-1b7e-479e-a1f7-6737c59b6d00",
+      "safe_live_validation": "docs/evidence/20260930T-supermicro-x14-safe-live-validation.json",
+      "safe_live_validation_artifact": {
+        "artifact_uuid": "b2521984-8503-5e08-b60c-7773a8ad7d15",
+        "sha256": "a1e1155d31f1173014ffad636c3002ef7624648d617c661d9674bbbc332bcbe4"
+      },
       "nm_decompilation": "/tmp/x14-nm.c and /tmp/smm-decompiled/libzintelnmipmicmds.so.0.1.0.c",
       "nm_spec_text": "/tmp/intel-nm3-spec.txt",
       "nm_upstream_checkout": "/tmp/node-manager.ksWzfC",
@@ -11760,7 +11765,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x00",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x00"
             },
             {
@@ -11928,7 +11933,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x01",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x01"
             },
             {
@@ -12050,7 +12055,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x02",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x02"
             }
           ],
@@ -12131,7 +12136,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x03",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x03"
             },
             {
@@ -12276,7 +12281,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x04",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x04"
             },
             {
@@ -12448,7 +12453,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x05",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x05"
             },
             {
@@ -12570,7 +12575,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x08",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x08"
             }
           ],
@@ -12668,7 +12673,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x09",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x09"
             },
             {
@@ -13037,7 +13042,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x0a",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x0a"
             },
             {
@@ -13152,7 +13157,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x0b",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x0b"
             },
             {
@@ -13272,7 +13277,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x0c",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x0c"
             }
           ],
@@ -13423,7 +13428,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x0d",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x0d"
             },
             {
@@ -13599,7 +13604,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x0e",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x0e"
             },
             {
@@ -13736,7 +13741,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x0f",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x0f"
             }
           ],
@@ -13837,7 +13842,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x10",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x10"
             }
           ],
@@ -13995,7 +14000,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x13",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x13"
             },
             {
@@ -14192,7 +14197,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x16",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x16"
             },
             {
@@ -14303,7 +14308,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x17",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x17"
             }
           ],
@@ -14404,7 +14409,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x18",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x18"
             }
           ],
@@ -14505,7 +14510,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x19",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x19"
             }
           ],
@@ -14621,7 +14626,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x1a",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x1a"
             },
             {
@@ -14755,7 +14760,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x1b",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x1b"
             },
             {
@@ -14899,7 +14904,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x1c",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x1c"
             },
             {
@@ -15035,7 +15040,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x1d",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x1d"
             },
             {
@@ -15179,7 +15184,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x1e",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x1e"
             },
             {
@@ -15309,7 +15314,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x20",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x20"
             },
             {
@@ -16164,7 +16169,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x28",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x28"
             },
             {
@@ -16595,7 +16600,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x29",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x29"
             }
           ],
@@ -16714,7 +16719,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x2d",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x2d"
             },
             {
@@ -16886,7 +16891,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x2e",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x2e"
             },
             {
@@ -17097,7 +17102,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0x39",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0x39"
             },
             {
@@ -17241,7 +17246,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0xdb",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0xdb"
             },
             {
@@ -17409,7 +17414,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0xe0",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0xe0"
             },
             {
@@ -17550,7 +17555,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0xe3",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0xe3"
             },
             {
@@ -17690,7 +17695,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0xe1",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0xe1"
             },
             {
@@ -17838,7 +17843,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0xe4",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0xe4"
             },
             {
@@ -17950,7 +17955,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0xf1",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0xf1"
             },
             {
@@ -18050,7 +18055,7 @@
               "offset": 0,
               "type": "u8",
               "constraints": "0xf9",
-              "meaning": "Cmd 0x51 child selector",
+              "meaning": "Cmd 0x68 child selector",
               "value": "0xf9"
             }
           ],

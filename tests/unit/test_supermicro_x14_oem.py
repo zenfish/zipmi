@@ -117,7 +117,7 @@ def test_x14_generated_references_are_closed_and_current():
     assert 'id="operation-expand-all"' in reference
     assert 'id="identity-expand-all"' in table
     assert "details[data-bulk-disclosure]" in reference
-    assert "Intel Get NM Version" in reference
+    assert "NM Get Version" in reference
     assert "openbmc-intel --unsafe &#x27;NM Set Policy&#x27; &lt;14 payload bytes&gt;" in reference
     assert "AddBRCMConfiguration_30_70_A1" in reference
     assert "GetMgrCertFingerprint" in table

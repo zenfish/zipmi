@@ -72,6 +72,18 @@ def _interface(key: tuple[int, ...], delegated: bool) -> str:
 
 
 def _live(key: tuple[int, ...], delegated: bool) -> tuple[bool, str]:
+    safe_results = {
+        (0x30, 0x51, 0xD6): "short request reached the known child and returned 0xc7",
+        (0x30, 0x68, 0x03): "SSL certificate status returned the certificate validity dates",
+        (0x30, 0x68, 0x09): "IPv6 query 0 returned 0xff",
+        (0x30, 0x68, 0x28, 0xFF): "Provision status returned 0x03",
+        (0x30, 0x70, 0x63): "link-capability query returned 59 00",
+        (0x30, 0xAD, 0x08): "smart-power query reached its backend and returned 0xff",
+        (0x30, 0xAD, 0x09): "total-power-budget query returned eight zero bytes",
+        (0x30, 0xA0, 0x36): "license-status query returned 00 00",
+    }
+    if key in safe_results:
+        return True, f"Safe run {LIVE_RUN}: {safe_results[key]}"
     if key[:2] == (0x32, 0x22):
         return True, f"Run {PRIOR_LIVE_RUN}: exact empty read-only handshake reached the RAS backend and returned 0xff"
     if key[:2] == (0x32, 0x23):
@@ -197,9 +209,10 @@ def reference_page() -> dict:
             ("Primary provider build ID", f"<code>{X14_PRIMARY_PROVIDER_BUILD_ID}</code>"),
             ("Primary analysis artifact", "<code>0272c7fd-d925-59f2-84fe-599de43926eb</code>"),
             ("Prior semantic-input archive", "<code>851806d6-8607-5cfd-807e-a8191ff9e94a</code> (superseded by current catalog)"),
-            ("Current contract catalog", "<code>b6b01e08-aa1f-5e20-9541-11fa042e10ad</code>"),
+            ("Current contract catalog", "<code>3687ce16-b26d-58d1-8bae-2fef2643d85d</code>; supersedes <code>b6b01e08-aa1f-5e20-9541-11fa042e10ad</code>"),
             ("Auxiliary analysis artifact", "<code>503c7d17-fa17-5a55-9e43-bba44155ebd5</code>"),
-            ("Live dispatch evidence", "<code>26cdea4a-d4ff-55a8-a9c3-d859ddf77af2</code>; includes one state-effect-unknown RAS set request"),
+            ("Safe live validation", f"Run <code>{LIVE_RUN}</code>; artifact <code>b2521984-8503-5e08-b60c-7773a8ad7d15</code>; exact named routes on zipmi <code>d63ba59</code>; no mutating request sent"),
+            ("Prior dispatch evidence", "<code>26cdea4a-d4ff-55a8-a9c3-d859ddf77af2</code>; retained separately because it includes one state-effect-unknown RAS set request"),
             ("All provider SHA-256 values", f"<code>{provider_hashes}</code>"),
             ("Registration closure", "116 executed registrations / 115 unique wire identities; one 0x0a/0x48 collision"),
             ("OEM/group closure", "66 identities: 52 primary + three RAS + 11 delegated Intel Node Manager"),
@@ -218,16 +231,18 @@ def reference_page() -> dict:
             "have no supported LAN route."
         ),
         "live_evidence": (
-            f"Authenticated RMCP+ run {LIVE_RUN} reached primary, group, RAS, Intel NM, Sensor, and Storage handlers. "
-            "The run included an empty 0x32/0x23 request that reached RasSetData; its effect is unknown and the run "
-            "is not wholly non-mutating evidence. Exact read-only RAS Handshake and Intel Get NM Version requests "
-            "reached their backends. The guest was then stopped and was not restarted."
+            f"Authenticated RMCP+ run {LIVE_RUN} validated corrected named routes on wire commands 0x68, 0x70, "
+            "and 0xad; a deliberately short 0x51 request proved that family dispatch without reaching its backend, "
+            "and a 0xa0 license-status query confirmed the unchanged family. Every complete request was read-only, "
+            "no mutating request was sent, and the guest was stopped without restart. Prior run "
+            f"{PRIOR_LIVE_RUN} separately retains the RAS and Intel NM reachability evidence."
         ),
         "sources": [
             '<a href="../zipmi/data/sources/supermicro-x14-contracts.json">Target registration and operation catalog</a>',
             '<a href="../zipmi/scapy_ipmi/oem/supermicro_x14.py">Supermicro X14 routes and codecs</a>',
             '<a href="../zipmi/scapy_ipmi/oem/intel.py">Delegated Intel Node Manager routes and codecs</a>',
-            '<a href="evidence/20260929T-supermicro-x14-live-dispatch.json">Live dispatch evidence</a>',
+            '<a href="evidence/20260930T-supermicro-x14-safe-live-validation.json">Safe live route validation</a>',
+            '<a href="evidence/20260929T-supermicro-x14-live-dispatch.json">Prior broad dispatch evidence</a>',
             '<a href="https://www.dmtf.org/sites/default/files/standards/documents/DSP0270_1.3.1.pdf">DMTF DSP0270 1.3.1</a>',
             '<a href="https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/intel-power-node-manager-v3-spec.pdf">Intel Node Manager 3.0 specification</a>',
         ],
@@ -334,7 +349,8 @@ def compact_page() -> dict:
         "sources": [
             {"href": "../zipmi/data/sources/supermicro-x14-contracts.json", "label": "Closed target catalog"},
             {"href": "supermicro-x14-command-reference.html", "label": "Detailed operation reference"},
-            {"href": "evidence/20260929T-supermicro-x14-live-dispatch.json", "label": "Live dispatch evidence (one probe may have changed state)"},
+            {"href": "evidence/20260930T-supermicro-x14-safe-live-validation.json", "label": "Safe live route validation"},
+            {"href": "evidence/20260929T-supermicro-x14-live-dispatch.json", "label": "Prior broad dispatch evidence (one probe may have changed state)"},
         ],
     }
 

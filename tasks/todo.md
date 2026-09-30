@@ -22,7 +22,7 @@
 - [x] Pin X14 firmware/provider provenance and close the complete registration and selector denominator.
 - [ ] Resolve every remaining Partial request/response layout and semantic field/action detail.
 - [x] Add bounded codecs and safety-gated named routes where contracts are sufficiently recovered; keep unresolved parent/mutation paths disabled or unsafe-gated.
-- [ ] Obtain exclusively non-mutating live reachability evidence; retained dispatch evidence includes one 0x32/0x23 request that reached `RasSetData`, with unknown possible state effect.
+- [x] Obtain exclusively non-mutating live reachability evidence for the corrected named selector routes; retain the older broad dispatch run separately with its explicit RAS caveat.
 - [x] Generate paired Standard v1 HTML reference/table pages and public documentation links.
 - [x] Run focused/full verification, artifact registration, browser checks, and independent review for the current milestone.
 
@@ -68,7 +68,15 @@
 - Corrected OOB `DLOOBDataReadyCheck` (`0x0a`): its file-type argument is ignored and it always returns fixed payload byte 0; no readiness lookup occurs. `UploadOOBData` now documents the exact accepted selector set, little-endian argument packing, `system()` outcomes, and empty success body. `ClearConfigOption` documents the three statically proven action masks without guessed subsystem labels. `FakeSensorData` now documents its ignored request byte, accepted lengths, u16 parsing, and fallback-write behavior while preserving unresolved setter binding. Current primary semantic gaps: 32.
 - `OEMSetGetLinkConf` (`0x63`) operation 1 was a false mutation gate: handler decompilation proves it only reads `SysLockdownEnable`, returning `0xD4` when enabled and empty success otherwise. Reclassified the selector read-only; operation 2's external helper is pinned to constant `0x59`. Individual capability-bit labels remain Partial.
 - Cross-checked Broadcom responses against the pinned `storagebroadcom` producer. Subsequent raw ARM literal and producer-member correlation resolved `0x52` offsets 11..14 as `StripeSize`, `NumDrives`, `SpanDepth`, and `State`; `0x4d` offset 146 as `useSSEraseType`, `ISECapable`, and `sanitizeType`. The `0x4d` property at offset 46 remains unidentified.
-- **Not complete:** the acceptance requirement to resolve all Partial semantics/layouts and collect only non-mutating runtime evidence is still unmet. Do not describe X14 as fully supported until those are closed or explicitly scoped by the user.
+- **2026-09-29 checkpoint (superseded):** Partial semantics/layouts and exclusively non-mutating runtime evidence were still outstanding at this point; later review entries record their closure.
+
+#### Review — 2026-09-30 live route validation
+
+- Live testing exposed a four-family catalog association error: child maps previously labeled `0x68`, `0x51`, `0xad`, and `0x70` actually dispatch on wire commands `0x70`, `0x68`, `0x51`, and `0xad`, respectively. Static PC-relative global tracing proved the complete rotation; `0xa0` was already correct.
+- Rekeyed all 123 affected selector operations and the 22 CM Provision child routes at the canonical catalog layer. Top-level registrations remain unchanged because their wire commands and registered handler symbols were already correct.
+- Safe zBMC run `20260930T225207Z-56f75a49-1b7e-479e-a1f7-6737c59b6d00` validated named SSL, Provision, IPv6, link, smart-power, total-budget, and license queries plus a deliberately short `0x51/0xd6` dispatch proof. No mutating request was sent; the guest stopped cleanly after 32m21s and was not restarted.
+- Evidence: `docs/evidence/20260930T-supermicro-x14-safe-live-validation.json`, artifact `b2521984-8503-5e08-b60c-7773a8ad7d15`. The tested zipmi revision was `d63ba59`; this review commit records the final documentation and provenance.
+- Final contract artifact `3687ce16-b26d-58d1-8bae-2fef2643d85d` (SHA-256 `9a8d42e26c1b95d8fbd9cd1f8b234a8bfbd5434c73a64ca6bf91e27406bf4d54`) supersedes stale catalog record `b6b01e08-aa1f-5e20-9541-11fa042e10ad`.
 
 #### Review — 2026-09-29
 
