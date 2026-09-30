@@ -31,7 +31,8 @@ REFERENCE = ROOT / "docs/supermicro-x14-command-reference.html"
 TABLE = ROOT / "docs/supermicro-x14-command-table.html"
 REFERENCE_ARTIFACT = "b2990741-fae4-4b93-a523-3cc2940fb614 generated"
 TABLE_ARTIFACT = "f5ca7437-fa33-437e-a87e-bc3d1899631b generated"
-LIVE_RUN = "20260929T004726Z-90bbc3db-d22b-4660-a34b-e64abb8c8016"
+PRIOR_LIVE_RUN = "20260929T004726Z-90bbc3db-d22b-4660-a34b-e64abb8c8016"
+LIVE_RUN = "20260930T225207Z-56f75a49-1b7e-479e-a1f7-6737c59b6d00"
 
 
 def _length(bounds: tuple[int | None, int | None]) -> str:
@@ -72,30 +73,30 @@ def _interface(key: tuple[int, ...], delegated: bool) -> str:
 
 def _live(key: tuple[int, ...], delegated: bool) -> tuple[bool, str]:
     if key[:2] == (0x32, 0x22):
-        return True, f"Run {LIVE_RUN}: exact empty read-only handshake reached the RAS backend and returned 0xff"
+        return True, f"Run {PRIOR_LIVE_RUN}: exact empty read-only handshake reached the RAS backend and returned 0xff"
     if key[:2] == (0x32, 0x23):
-        return True, f"Run {LIVE_RUN}: empty request reached RasSetData; state effect is unknown (not safe evidence)"
+        return True, f"Run {PRIOR_LIVE_RUN}: empty request reached RasSetData; state effect is unknown (not safe evidence)"
     if delegated and key[:2] == (0x2E, 0xCA):
-        return True, f"Run {LIVE_RUN}: exact IANA-only request reached version lookup and returned 0xff"
+        return True, f"Run {PRIOR_LIVE_RUN}: exact IANA-only request reached version lookup and returned 0xff"
     return False, "No exact non-mutating request retained for this operation"
 
 
 _PARTIAL_REQUESTS = {
-    (0x30, 0x68, 0x65), (0x30, 0x68, 0x79), (0x30, 0x68, 0xFC),
-    (0x30, 0x51, 0x28), (0x30, 0xA0, 0x04), (0x30, 0xA0, 0x05),
+    (0x30, 0x70, 0x65), (0x30, 0x70, 0x79), (0x30, 0x70, 0xFC),
+    (0x30, 0x68, 0x28), (0x30, 0xA0, 0x04), (0x30, 0xA0, 0x05),
     (0x30, 0xA0, 0x09), (0x30, 0xA0, 0x0A), (0x30, 0xA0, 0x0B),
     (0x30, 0xA0, 0x0C), (0x30, 0xA0, 0x0E), (0x30, 0xA0, 0x32), (0x30, 0xA0, 0x36),
-    (0x30, 0x51, 0x28, 0x00), (0x30, 0x51, 0x28, 0x20), (0x30, 0x51, 0x28, 0x21),
+    (0x30, 0x68, 0x28, 0x00), (0x30, 0x68, 0x28, 0x20), (0x30, 0x68, 0x28, 0x21),
 }
 _PARTIAL_RESPONSES = {
-    (0x30, 0x68, 0x4C), (0x30, 0x68, 0x4D), (0x30, 0x68, 0x52),
-    (0x30, 0x68, 0x60), (0x30, 0x68, 0x63), (0x30, 0x68, 0x69), (0x30, 0x68, 0x6C),
-    (0x30, 0x51, 0x16), (0x30, 0x51, 0x28), (0x30, 0x51, 0xF9),
+    (0x30, 0x70, 0x4C), (0x30, 0x70, 0x4D), (0x30, 0x70, 0x52),
+    (0x30, 0x70, 0x60), (0x30, 0x70, 0x63), (0x30, 0x70, 0x69), (0x30, 0x70, 0x6C),
+    (0x30, 0x68, 0x16), (0x30, 0x68, 0x28), (0x30, 0x68, 0xF9),
     (0x30, 0xA0, 0x09), (0x30, 0xA0, 0x0E), (0x30, 0xA0, 0x18),
     (0x30, 0xA0, 0x32), (0x30, 0xA0, 0x36),
-    (0x30, 0x51, 0x28, 0x05), (0x30, 0x51, 0x28, 0x08),
-    (0x30, 0x51, 0x28, 0x0F), (0x30, 0x51, 0x28, 0x20),
-    (0x30, 0x51, 0x28, 0x21), (0x30, 0x51, 0x28, 0x30),
+    (0x30, 0x68, 0x28, 0x05), (0x30, 0x68, 0x28, 0x08),
+    (0x30, 0x68, 0x28, 0x0F), (0x30, 0x68, 0x28, 0x20),
+    (0x30, 0x68, 0x28, 0x21), (0x30, 0x68, 0x28, 0x30),
 }
 
 
@@ -202,13 +203,13 @@ def reference_page() -> dict:
             ("All provider SHA-256 values", f"<code>{provider_hashes}</code>"),
             ("Registration closure", "116 executed registrations / 115 unique wire identities; one 0x0a/0x48 collision"),
             ("OEM/group closure", "66 identities: 52 primary + three RAS + 11 delegated Intel Node Manager"),
-            ("Hidden selector census", "150 primary selectors plus 22 named 0x51/0x28 operations; its 0x00..0x87 range has 20 implemented and 116 rejected values, plus implemented 0xdb and 0xff"),
+            ("Hidden selector census", "150 primary selectors plus 22 named 0x68/0x28 operations; its 0x00..0x87 range has 20 implemented and 116 rejected values, plus implemented 0xdb and 0xff"),
         ],
         "links": [{"label": "Compact Supermicro X14 command table", "href": "supermicro-x14-command-table.html"}],
         "operations": _operation_rows(),
         "commands": sorted({identity[:2] for identity in _oem_identities()}),
         "gaps": (
-            "The five provider registration sets and top-level selector census are closed. The 0x30/0x51 selector 0x28 "
+            "The five provider registration sets and top-level selector census are closed. The 0x30/0x68 selector 0x28 "
             "has 22 named child routes with recovered operand and length rules; several D-Bus action names and variable "
             "result semantics remain unresolved and are marked Partial. Layouts marked Partial have open byte bounds or unresolved "
             "field/behavior meanings. "
@@ -248,7 +249,7 @@ def compact_page() -> dict:
         evidence = registration.get("evidence", "target provider constructor audit")
         if isinstance(evidence, dict):
             evidence = "; ".join(f"{name} {value}" for name, value in evidence.items())
-        if (netfn, command, registration["handler"]) == (0x30, 0x51, "OEM51Handler"):
+        if (netfn, command, registration["handler"]) == (0x30, 0x68, "OEM68Handler"):
             evidence += (
                 "; selector 0x28 child 0x00/A=4 and child 0x01 invoke ProvisionManager.doProvisioning: "
                 "one-byte result is 1 when the asynchronous worker starts, 0 when rejected/already active; "
@@ -283,7 +284,7 @@ def compact_page() -> dict:
                 "; selector 0x13 OEMGetSetBBP is only a lockdown-gated validator: its parameter/value bytes are "
                 "range-checked opaque compatibility fields and never access BBP state"
             )
-        if (netfn, command, registration["handler"]) == (0x30, 0x68, "OEM68Handler"):
+        if (netfn, command, registration["handler"]) == (0x30, 0x70, "OEM70Handler"):
             evidence += (
                 "; selector 0x63 OEMSetGetLinkConf operation 2 returns fixed mask 0x59; the Supermicro "
                 "X14/H14 callsite and mode ordinals map bit 0 to auto negotiation, bit 3 to 100M "

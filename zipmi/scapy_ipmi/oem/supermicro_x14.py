@@ -394,6 +394,7 @@ def _auxiliary_commands() -> list[tuple[tuple[int, ...], dict]]:
 
 def _cm_provision_commands() -> list[tuple[tuple[int, ...], dict]]:
     source = next(row for row in _PRIMARY["operations"] if row["handler"] == "OEMGetCMProvision")
+    command = _number(source["command"])
     request_specs = {
         0x00: (2, 3, "Provision-state query/action; optional operand a accepts 1, 3, or 4; operand b is forbidden. A absent calls ProvisionManager.getROTState and returns one byte; A=1 calls isProvisioning and returns u32 big-endian; A=3 calls clearProvisioning and returns the inverse of its low-byte boolean; A=4 calls doProvisioning to start the asynchronous provisioning workflow.", "state-changing", 1, 4, "A absent: one-byte getROTState result; A=1: u32be isProvisioning result; A=3: one byte, 1 iff clearProvisioning's low result byte is zero; A=4: one byte, 1 when provisioning starts and 0 when rejected/already active.", "136-237"),
         0x01: (2, 4, "Invokes doProvisioning; optional operands are ignored. Starts the asynchronous provisioning workflow when accepted.", "state-changing", 1, 1, "u8 result: 1 when the provisioning worker starts; 0 when rejected or already active.", "357-378"),
@@ -453,7 +454,7 @@ def _cm_provision_commands() -> list[tuple[tuple[int, ...], dict]]:
             b_type = "u8" if request_min >= 4 else "optional u8"
             request_fields.append(_wire_field(3, "operand_b", b_type, purpose))
         row = _manual_command(
-            (0x30, 0x51, 0x28, subcommand), name=names[subcommand], handler=source["handler"],
+            (0x30, command, 0x28, subcommand), name=names[subcommand], handler=source["handler"],
             purpose=purpose, privilege=source["privilege_name"],
             request_length=(request_min, request_max), response_length=(response_min, response_max),
             request_fields=request_fields, response_fields=response_fields,

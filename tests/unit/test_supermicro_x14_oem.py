@@ -62,11 +62,22 @@ def test_x14_registration_and_operation_denominators_are_closed():
     assert len(X14_CATALOG["primary"]["operations"]) == 150
     assert X14_CATALOG["primary"]["unresolved_boundaries"] == []
     assert len(SUPERMICRO_X14) == 233
-    assert sum(key[:2] == (0x30, 0x68) for key in SUPERMICRO_X14) == 78
-    assert sum(key[:2] == (0x30, 0x51) for key in SUPERMICRO_X14) == 60
-    assert sum(key[:2] == (0x30, 0x70) for key in SUPERMICRO_X14) == 3
-    assert sum(key[:2] == (0x30, 0xAD) for key in SUPERMICRO_X14) == 4
+    assert sum(key[:2] == (0x30, 0x70) for key in SUPERMICRO_X14) == 78
+    assert sum(key[:2] == (0x30, 0x68) for key in SUPERMICRO_X14) == 60
+    assert sum(key[:2] == (0x30, 0xAD) for key in SUPERMICRO_X14) == 3
+    assert sum(key[:2] == (0x30, 0x51) for key in SUPERMICRO_X14) == 4
     assert sum(key[:2] == (0x30, 0xA0) for key in SUPERMICRO_X14) == 27
+
+    association = X14_CATALOG["primary"]["selector_map_association"]["wire_commands"]
+    assert "consumed by OEM51Handler; 4 selectors" in association["0x51"]
+    assert "consumed by OEM68Handler; 38 selectors" in association["0x68"]
+    assert "consumed by OEM70Handler; 78 selectors" in association["0x70"]
+    assert "consumed by OEMADHandler; 3 selectors" in association["0xad"]
+
+    assert SUPERMICRO_X14[(0x30, 0x68, 0x03)]["handler"] == "OEMSSLCertificateStatus"
+    assert SUPERMICRO_X14[(0x30, 0x70, 0x63)]["handler"] == "OEMSetGetLinkConf"
+    assert SUPERMICRO_X14[(0x30, 0x51, 0xD3)]["handler"] == "OEMSetBIOSCap"
+    assert SUPERMICRO_X14[(0x30, 0xAD, 0x07)]["handler"] == "OEMSetSmartPowerOption"
 
 
 def test_x14_generated_references_are_closed_and_current():
@@ -108,10 +119,10 @@ def test_x14_generated_references_are_closed_and_current():
     assert "details[data-bulk-disclosure]" in reference
     assert "Intel Get NM Version" in reference
     assert "openbmc-intel --unsafe &#x27;NM Set Policy&#x27; &lt;14 payload bytes&gt;" in reference
-    assert "AddBRCMConfiguration_30_68_A1" in reference
+    assert "AddBRCMConfiguration_30_70_A1" in reference
     assert "GetMgrCertFingerprint" in table
     assert "8af1ba767ed0363653537ee6e2fab3fabd66d838e397903cb99e9cd00caaa792" in reference
-    assert "20260929T004726Z-90bbc3db-d22b-4660-a34b-e64abb8c8016" in reference
+    assert "20260930T225207Z-56f75a49-1b7e-479e-a1f7-6737c59b6d00" in reference
     assert "22 named child routes" in reference
     assert "RasSetData" in reference
     assert "RemoveBeforeButton at 6..7 and 14..15" in reference
@@ -575,7 +586,7 @@ def test_x14_mmbi_handler_has_exact_opaque_byte_vector_boundary():
     assert backend["callbacks"]["checkEncHashData"]["called_by_ipmi_provider"] is False
     assert "status is 0" in mmbi["effects"]
     from zipmi.scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14
-    route = SUPERMICRO_X14[(0x30, 0x51, 0x20)]
+    route = SUPERMICRO_X14[(0x30, 0x68, 0x20)]
     assert "exact registered target callbacks" in route["evidence"]
 
 
@@ -730,18 +741,18 @@ def test_x14_recovered_request_bounds_are_closed_where_proven():
 def test_x14_cm_provision_parent_disabled_and_child_census_closed():
     from zipmi.scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14, X14_CATALOG
 
-    command = SUPERMICRO_X14[(0x30, 0x51, 0x28)]
+    command = SUPERMICRO_X14[(0x30, 0x68, 0x28)]
     assert not command["runnable"]
     assert command["safety"] == "destructive"
     child_commands = {
         key[3] for key in SUPERMICRO_X14
-        if len(key) == 4 and key[:3] == (0x30, 0x51, 0x28)
+        if len(key) == 4 and key[:3] == (0x30, 0x68, 0x28)
     }
     implemented = {0, 1, 2, 3, *range(5, 11), 0x0F, 0x20, 0x21, 0x30,
                    0x54, 0x55, *range(0x84, 0x88), 0xDB, 0xFF}
     assert child_commands == implemented
     assert len(set(range(0x88)) - child_commands) == 116
-    state = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x00)]
+    state = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x00)]
     assert state["dbus_endpoint"] == {
         "service": "xyz.openbmc_project.ProvisionManager",
         "path": "/xyz/openbmc_project/provision",
@@ -755,11 +766,11 @@ def test_x14_cm_provision_parent_disabled_and_child_census_closed():
     assert "1 when provisioning starts and 0 when rejected/already active" in state["response_fields"][0]["meaning"]
     assert state["safety"] == "state-changing"
     assert "u32 big-endian" in state["purpose"]
-    run = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x01)]
+    run = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x01)]
     assert "asynchronous provisioning workflow" in run["purpose"]
     assert "1 when the provisioning worker starts" in run["response_fields"][0]["meaning"]
     assert run["safety"] == "state-changing"
-    summary = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x30)]
+    summary = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x30)]
     assert summary["dbus_calls"] == [
         "getI2CMapProtection", "getBmcConsoleLockout", "getBmcJtagLockout",
         "getAttestValidation", "getROTState",
@@ -768,59 +779,59 @@ def test_x14_cm_provision_parent_disabled_and_child_census_closed():
     summary_meaning = summary["response_fields"][0]["meaning"]
     assert "bit 2" in summary_meaning and "bit 6" in summary_meaning
     assert "not included in this byte" in summary_meaning
-    anti_rbid = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x08)]
+    anti_rbid = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x08)]
     assert anti_rbid["request_length"] == (4, 4)
     assert anti_rbid["dbus_endpoint"]["method"] == "getAntiRBID"
     assert anti_rbid["response_fields"][0]["type"] == "u16be"
     assert "getUFMAntiRBID" in anti_rbid["purpose"]
     assert "No live request was sent" in anti_rbid["purpose"]
-    inventory = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x06)]
+    inventory = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x06)]
     assert inventory["request_length"] == (4, 4)
     assert inventory["dbus_endpoint"]["method"] == "getFWInventory"
     assert "b+1" in inventory["purpose"]
     assert "packed-BCD" in inventory["response_fields"][0]["meaning"]
     assert "no public callback/vtable entry" in inventory["purpose"]
-    task_status = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x07)]
+    task_status = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x07)]
     assert task_status["request_length"] == (3, 3)
     assert task_status["dbus_endpoint"]["method"] == "getBmcConsoleLockout"
     assert task_status["dbus_endpoint"]["provider_argument"] == "u8 a+4"
     assert task_status["additional_dbus_endpoint"]["method"] == "readCPLDFeatbit"
     assert "no arguments (int64 result)" in task_status["purpose"]
     assert "not live-tested" in task_status["purpose"]
-    task_byte = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x02)]
+    task_byte = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x02)]
     assert task_byte["dbus_endpoint"]["method"] == "getProvisioningTaskStatus"
     assert "optional operands a and b are ignored" in task_byte["purpose"]
-    rot_register = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x09)]
+    rot_register = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x09)]
     assert rot_register["dbus_endpoint"]["method"] == "readCpldReg"
     assert rot_register["request_length"] == (3, 4)
     assert "accepts any byte value, with no range check" in rot_register["purpose"]
     assert "register 8 bits 6/7" in rot_register["purpose"]
-    validate = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x05)]
+    validate = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x05)]
     assert validate["dbus_endpoint"]["method"] == "validateImage"
     assert "A=0 or 1 only when B<=2" in validate["purpose"]
-    update_image = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x20)]
+    update_image = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x20)]
     assert update_image["dbus_endpoint"]["method"] == "upBackupGoldenImage"
     assert "selector 8 returns the raw boolean byte" in update_image["response_fields"][0]["meaning"]
     for subcommand, method in ((0x84, "isOTP"), (0x85, "clearRaProvision")):
-        child = SUPERMICRO_X14[(0x30, 0x51, 0x28, subcommand)]
+        child = SUPERMICRO_X14[(0x30, 0x68, 0x28, subcommand)]
         assert child["request_length"] == (2, 4)
         assert child["dbus_endpoint"]["method"] == method
         assert "optional operands a and b are ignored" in child["purpose"]
         assert "one-byte D-Bus boolean" in child["response_fields"][0]["meaning"]
-    read_file = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0xDB)]
+    read_file = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0xDB)]
     assert read_file["request_length"] == (2, 4)
     assert "zero-padding shorter, missing, or unreadable" in read_file["purpose"]
     assert "/usr/share/log/3068db.log" in read_file["purpose"]
-    child = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x05)]
+    child = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x05)]
     assert [field["type"] for field in child["request_fields"][-2:]] == ["u8", "u8"]
     for subcommand in (0x07, 0x08):
-        child = SUPERMICRO_X14[(0x30, 0x51, 0x28, subcommand)]
+        child = SUPERMICRO_X14[(0x30, 0x68, 0x28, subcommand)]
         assert child["response_fields"][0]["type"] == "u16be"
     for subcommand, method, field_name in (
         (0x86, "getOTPKey", "otp_key_bytes"),
         (0x87, "getOTPSerNum", "otp_serial_number_bytes"),
     ):
-        child = SUPERMICRO_X14[(0x30, 0x51, 0x28, subcommand)]
+        child = SUPERMICRO_X14[(0x30, 0x68, 0x28, subcommand)]
         assert child["dbus_endpoint"]["method"] == method
         assert child["response_fields"][0]["name"] == field_name
         assert child["response_fields"][0]["type"] == ("bytes[9]" if subcommand == 0x86 else "bytes[remainder]")
@@ -885,7 +896,7 @@ def test_x14_cm_provision_parent_disabled_and_child_census_closed():
     assert "Accepted A values are 0..3, 5, 8, and 9" in image_update_evidence["arguments"]
     assert "A=8 returns the raw boolean byte" in image_update_evidence["response"]
     assert cm_contract["semantic_evidence"]["resolved_child_calls"]["0x0a"]["response"] == "Fixed byte 0x01; no backend call."
-    erase = SUPERMICRO_X14[(0x30, 0x51, 0x28, 0x21)]
+    erase = SUPERMICRO_X14[(0x30, 0x68, 0x28, 0x21)]
     assert "not an erase-success indicator" in erase["response_fields"][0]["meaning"]
     assert "Properties.Set" in erase["purpose"] and "stagingBIOS" in erase["purpose"]
     erase_evidence = cm_contract["semantic_evidence"]["resolved_child_calls"]["0x21"]
@@ -915,9 +926,9 @@ def test_x14_cm_provision_parent_disabled_and_child_census_closed():
     ac_cycle = cm_contract["semantic_evidence"]["resolved_child_calls"]["0x55"]
     assert "does not restore the previous register value" in ac_cycle["backend"]
     from zipmi.scapy_ipmi.oem._registry import decode_payload_response, lookup_payload
-    _request, response = lookup_payload("supermicro-x14", 0x30, 0x51, b"\x28\x07\x00")
+    _request, response = lookup_payload("supermicro-x14", 0x30, 0x68, b"\x28\x07\x00")
     assert response is not None
-    decoded = decode_payload_response("supermicro-x14", 0x30, 0x51, b"\x28\x07\x00", 0, b"\x34\x12")
+    decoded = decode_payload_response("supermicro-x14", 0x30, 0x68, b"\x28\x07\x00", 0, b"\x34\x12")
     assert decoded.result == 0x3412
 
 
@@ -947,7 +958,7 @@ def test_x14_ipv6_network_validator_matches_target_operation_lengths():
     from zipmi.cli.oem_cmds import _valid_x14_ipv6_network
     from zipmi.scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14, X14_CATALOG
 
-    route = SUPERMICRO_X14[(0x30, 0x51, 0x09)]
+    route = SUPERMICRO_X14[(0x30, 0x68, 0x09)]
     assert route["validator"] == "x14-ipv6-network"
     assert _valid_x14_ipv6_network(b"")
     assert all(_valid_x14_ipv6_network(bytes((0, query))) for query in range(5))
@@ -994,9 +1005,9 @@ def test_x14_fixed_selector_codec_matches_wire_contract():
     from zipmi.scapy_ipmi.oem._registry import decode_payload_response, lookup_payload
 
     zipmi.load_vendor("supermicro-x14")
-    request, _response = lookup_payload("supermicro-x14", 0x30, 0x68, b"\x02")
+    request, _response = lookup_payload("supermicro-x14", 0x30, 0x70, b"\x02")
     assert bytes(request()) == b"\x02"
-    decoded = decode_payload_response("supermicro-x14", 0x30, 0x68, b"\x02", 0, b"\x01")
+    decoded = decode_payload_response("supermicro-x14", 0x30, 0x70, b"\x02", 0, b"\x01")
     assert decoded.completion_code == 0
     assert decoded.i2c_access_allowed == 1
 
@@ -1040,13 +1051,13 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
 
     safe = argparse.Namespace(cmd_name="I2CAccessCheck", data=[], unsafe=False, json=False)
     assert cmd_oem_run(safe, "supermicro-x14") == 0
-    assert sent == [(0x30, 0x68, b"\x02")]
+    assert sent == [(0x30, 0x70, b"\x02")]
 
     no_op = argparse.Namespace(
         cmd_name="BIOSSetTimertoTriggerPowerOn", data=["0"], unsafe=False, json=False,
     )
     assert cmd_oem_run(no_op, "supermicro-x14") == 0
-    assert sent[-1] == (0x30, 0x68, b"\x55\x00")
+    assert sent[-1] == (0x30, 0x70, b"\x55\x00")
 
     mutating = argparse.Namespace(cmd_name="ClearChassisIntrusion", data=[], unsafe=False, json=False)
     assert cmd_oem_run(mutating, "supermicro-x14") == 2
@@ -1055,10 +1066,10 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
     cot = argparse.Namespace(cmd_name="OEMRequestCOT", data=["1", "0"], unsafe=False, json=False)
     assert cmd_oem_run(cot, "supermicro-x14") == 2
     assert "add --unsafe" in capsys.readouterr().err
-    assert sent[-1] == (0x30, 0x68, b"\x55\x00")
+    assert sent[-1] == (0x30, 0x70, b"\x55\x00")
     cot.unsafe = True
     assert cmd_oem_run(cot, "supermicro-x14") == 0
-    assert sent[-1] == (0x30, 0x51, b"\x2d\x01\x00")
+    assert sent[-1] == (0x30, 0x68, b"\x2d\x01\x00")
 
     from zipmi.scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14, X14_CATALOG
     unsafe_handlers = {
@@ -1080,8 +1091,8 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
         assert cmd_oem_run(denied, "supermicro-x14") == 2
         assert "add --unsafe" in capsys.readouterr().err
     assert len(sent) == 3
-    assert sent[1] == (0x30, 0x68, b"\x55\x00")
-    assert sent[2] == (0x30, 0x51, b"\x2d\x01\x00")
+    assert sent[1] == (0x30, 0x70, b"\x55\x00")
+    assert sent[2] == (0x30, 0x68, b"\x2d\x01\x00")
 
     sensitive = argparse.Namespace(
         cmd_name="OEMGetPayload", data=["0", "0", "0", "0"], unsafe=False, json=False,
@@ -1121,7 +1132,7 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
         unsafe=True, json=False,
     )
     assert cmd_oem_run(good_nvme_page, "supermicro-x14") == 0
-    assert sent[-1] == (0x30, 0x68, b"\x6c\x00\x00\x00\x01\x00\xd7\x01")
+    assert sent[-1] == (0x30, 0x70, b"\x6c\x00\x00\x00\x01\x00\xd7\x01")
 
     good_asset = argparse.Namespace(
         cmd_name="Set Asset Tag", data=["0", "2", "0x41", "0x42"], unsafe=True, json=False,
@@ -1144,7 +1155,7 @@ def test_x14_cli_gates_mutation_host_only_and_asset_tag_bounds(monkeypatch, caps
         cmd_name="Read Lockout-Gated RoT CPLD Feature Bits", data=["3"], unsafe=True, json=False,
     )
     assert cmd_oem_run(feature_bits, "supermicro-x14") == 0
-    assert sent[-1] == (0x30, 0x51, b"\x28\x07\x03")
+    assert sent[-1] == (0x30, 0x68, b"\x28\x07\x03")
 
     clear_ra = argparse.Namespace(cmd_name="Clear RA Provisioning", data=[], unsafe=False, json=False)
     assert cmd_oem_run(clear_ra, "supermicro-x14") == 2
@@ -1168,12 +1179,12 @@ def test_x14_link_configuration_route_is_read_only_and_needs_no_unsafe(monkeypat
         yield Session()
 
     monkeypatch.setattr(cli, "_open_session", fake_open_session)
-    route = SUPERMICRO_X14[(0x30, 0x68, 0x63)]
+    route = SUPERMICRO_X14[(0x30, 0x70, 0x63)]
     assert route["safety"] == "read-only"
     assert route["runnable"]
     args = argparse.Namespace(cmd_name=route["name"], data=["1"], unsafe=False, json=False)
     assert cmd_oem_run(args, "supermicro-x14") == 0
-    assert sent == [(0x30, 0x68, b"\x63\x01")]
+    assert sent == [(0x30, 0x70, b"\x63\x01")]
 
 
 def test_x14_bbp_validator_route_is_read_only_and_needs_no_unsafe(monkeypatch):
@@ -1193,11 +1204,11 @@ def test_x14_bbp_validator_route_is_read_only_and_needs_no_unsafe(monkeypatch):
         yield Session()
 
     monkeypatch.setattr(cli, "_open_session", fake_open_session)
-    route = SUPERMICRO_X14[(0x30, 0x51, 0x13)]
+    route = SUPERMICRO_X14[(0x30, 0x68, 0x13)]
     assert route["safety"] == "read-only"
     args = argparse.Namespace(cmd_name=route["name"], data=["1", "0", "0"], unsafe=False, json=False)
     assert cmd_oem_run(args, "supermicro-x14") == 0
-    assert sent == [(0x30, 0x51, b"\x13\x01\x00\x00")]
+    assert sent == [(0x30, 0x68, b"\x13\x01\x00\x00")]
 
 
 def test_x14_every_advertised_exact_name_resolves_to_its_wire_key():

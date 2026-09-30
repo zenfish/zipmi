@@ -1439,6 +1439,16 @@
   "primary": {
     "census_note": "68 executed constructor paths: 60 registerHandler plus 8 registerGroupHandler. Earlier 61 and independent 66 counts each omitted genuine wrapper-mediated/direct sites.",
     "closure_note": "Every executed registration and selector child has exact typed request/response byte bounds, privilege, activation, target-body evidence, body-written completion-code candidates, observed side effects, and an explicit runnable/safety classification. Null maximum_bytes means transport-bounded variable length, not an unresolved field.",
+    "selector_map_association": {
+      "method": "Matched each child-map builder's PC-relative global with the global consumed by each registered parent handler; safe live probes independently confirmed the 0x51-to-0x68 association.",
+      "wire_commands": {
+        "0x51": "builder 0x5c3b8..0x5c510; map global 0x1edc04; consumed by OEM51Handler; 4 selectors",
+        "0x68": "builder 0x5a764..0x5b148; map global 0x1edab4; consumed by OEM68Handler; 38 selectors",
+        "0x70": "builder 0x574e0..0x58d0c; map global 0x1ed9a0; consumed by OEM70Handler; 78 selectors",
+        "0xad": "builder 0x5d100..0x5d1e0; map global 0x1ee128; consumed by OEMADHandler; 3 selectors",
+        "0xa0": "map global 0x1ee230; consumed by OOBHandler; 27 selectors; unchanged"
+      }
+    },
     "counts": {
       "group": 8,
       "primary_oem_or_group": 52,
@@ -1446,25 +1456,25 @@
       "raw_or_standard": 60,
       "registrations": 68,
       "selector_operations_by_command": {
-        "0x51": 38,
-        "0x68": 78,
-        "0x70": 3,
+        "0x51": 4,
+        "0x68": 38,
+        "0x70": 78,
         "0xa0": 27,
-        "0xad": 4
+        "0xad": 3
       },
       "selector_operations_total": 150,
       "standard_overrides": 16
     },
     "dispatcher_boundaries": {
-      "0x30/0x51": "selector byte offset 0; 38-entry map; unknown selector 0xCC; children privilege 4",
-      "0x30/0x68": "selector byte offset 0; 78-entry map; unknown selector returns 0xCC; each child constructed privilege 4",
-      "0x30/0x70": "selector byte offset 0; 3-entry map; unknown selector 0xCC; children privilege 4",
+      "0x30/0x51": "selector byte offset 0; 4-entry map; unknown selector 0xCC; children privilege 4",
+      "0x30/0x68": "selector byte offset 0; 38-entry map; unknown selector returns 0xCC; each child constructed privilege 4",
+      "0x30/0x70": "selector byte offset 0; 78-entry map; unknown selector 0xCC; children privilege 4",
       "0x30/0xA0": "selector byte offset 0; 27-entry map; unknown selector 0xCC; children privilege 4",
-      "0x30/0xAD": "selector byte offset 0; 4-entry map; unknown selector 0xCC; children privilege 4"
+      "0x30/0xAD": "selector byte offset 0; 3-entry map; unknown selector 0xCC; children privilege 4"
     },
     "operations": [
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bb1d8",
           "branch_constants": [
@@ -1504,7 +1514,7 @@
           ],
           "size": "0x258"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -1585,7 +1595,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bbf1c",
           "branch_constants": [
@@ -1626,7 +1636,7 @@
           "return_storage_writes": [],
           "size": "0x38c"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -1714,7 +1724,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bb4c0",
           "branch_constants": [
@@ -1858,7 +1868,7 @@
           ],
           "size": "0x624"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0x80 requested LAN mode is not settable",
@@ -1963,7 +1973,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a538",
           "branch_constants": [],
@@ -1985,7 +1995,7 @@
           ],
           "size": "0x20"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -2074,7 +2084,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a558",
           "branch_constants": [
@@ -2123,7 +2133,7 @@
           ],
           "size": "0x84"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -2217,7 +2227,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bc330",
           "branch_constants": [
@@ -2266,7 +2276,7 @@
           ],
           "size": "0x1ec"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -2341,7 +2351,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000c0140",
           "branch_constants": [
@@ -2362,7 +2372,7 @@
           "return_storage_writes": [],
           "size": "0x228"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -2442,7 +2452,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009af70",
           "branch_constants": [],
@@ -2464,7 +2474,7 @@
           ],
           "size": "0x28"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -2537,7 +2547,7 @@
         "semantic_confidence": "high: exact 15-byte input consumption and empty success are confirmed; legacy payload is ignored"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a76a4",
           "branch_constants": [],
@@ -2591,7 +2601,7 @@
           ],
           "size": "0x314"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 payload after selector is not 2, 3, or 4 bytes",
@@ -2682,7 +2692,7 @@
   "semantic_confidence": "high: request parsing and fallback order are target-evidenced, and ARM literal pointers plus variant tags prove the exact fakevalue u16 and isfake bool setter bindings"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bc584",
           "branch_constants": [
@@ -2771,7 +2781,7 @@
           ],
           "size": "0x710"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 payload length after selector is not exactly 1",
@@ -2850,7 +2860,7 @@
         "semantic_confidence": "high: provider handler and pinned libsmci IF_Mode helper behavior recovered"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a6640",
           "branch_constants": [
@@ -2909,7 +2919,7 @@
           "return_storage_writes": [],
           "size": "0x520"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 invalid operation or missing/out-of-range operation-3 value",
@@ -3005,7 +3015,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bbc1c",
           "branch_constants": [
@@ -3026,7 +3036,7 @@
           "return_storage_writes": [],
           "size": "0x268"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed decode failure",
@@ -3117,7 +3127,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a9c10",
           "branch_constants": [
@@ -3166,7 +3176,7 @@
           ],
           "size": "0x260"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -3269,7 +3279,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000b19b0",
           "branch_constants": [],
@@ -3296,7 +3306,7 @@
           ],
           "size": "0xa8c"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -3405,7 +3415,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, direct FwState == 1 bitmap condition, control flow, fixed response offsets, effects and body-written completion codes"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000b0548",
           "branch_constants": [],
@@ -3432,7 +3442,7 @@
           ],
           "size": "0x1124"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -3691,7 +3701,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a5e4",
           "branch_constants": [],
@@ -3713,7 +3723,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -3786,7 +3796,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000afbbc",
           "branch_constants": [],
@@ -3812,7 +3822,7 @@
           ],
           "size": "0x790"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -3895,7 +3905,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000ad628",
           "branch_constants": [],
@@ -3921,7 +3931,7 @@
           ],
           "size": "0xb04"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -4089,7 +4099,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; medium for explicitly identified semantic names with limitations listed in unresolved"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009afe8",
           "branch_constants": [],
@@ -4111,7 +4121,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -4184,7 +4194,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009aff8",
           "branch_constants": [],
@@ -4206,7 +4216,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -4279,7 +4289,7 @@
         "semantic_confidence": "high: one-byte input is ignored and the handler returns empty success"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b008",
           "branch_constants": [],
@@ -4301,7 +4311,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -4374,7 +4384,7 @@
         "semantic_confidence": "high: one-byte input is ignored and the handler returns empty success"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b018",
           "branch_constants": [],
@@ -4396,7 +4406,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -4469,7 +4479,7 @@
         "semantic_confidence": "high: one-byte input is ignored and no ID is returned"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009ff50",
           "branch_constants": [],
@@ -4484,7 +4494,7 @@
           "return_storage_writes": [],
           "size": "0x1b4"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 typed request-length error",
@@ -4574,7 +4584,7 @@
       "semantic_confidence": "high for all nine wire-byte source mappings and handler transformation, including exact AutoNeg property identity and NC-SI bit extraction; speed/duplex value labels follow DMTF DSP0222 v1.2.0 Table 51"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a5f4",
           "branch_constants": [],
@@ -4596,7 +4606,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 accepted/no-op",
           "0xC7 typed request-length error",
@@ -4675,7 +4685,7 @@
         "semantic_confidence": "high: both one-byte arguments are ignored and the handler returns empty success"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bcdb8",
           "branch_constants": [
@@ -4723,7 +4733,7 @@
           ],
           "size": "0x1f0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC1 operation > 2",
@@ -4855,7 +4865,7 @@
         "semantic_confidence": "high: selector, ABI lengths/layout, control flow, fixed response offsets, capability-bit meanings, effects, and body-written completion codes are independently evidenced"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bd01c",
           "branch_constants": [
@@ -4895,7 +4905,7 @@
           "return_storage_writes": [],
           "size": "0x1c0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success/accepted no-op",
           "0xC7 set without value or typed request-length error",
@@ -4991,7 +5001,7 @@
         "semantic_confidence": "high for selector, ABI lengths/layout, control flow, fixed response offsets, effects and body-written completion codes; high for recovered semantics"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009bda8",
           "branch_constants": [
@@ -5028,7 +5038,7 @@
           ],
           "size": "0x124"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -5105,7 +5115,7 @@
         "semantic_confidence": "high for raw lookup bytes and register effect; symbolic mode names are not encoded in the handler"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000c03d8",
           "branch_constants": [
@@ -5161,7 +5171,7 @@
           "return_storage_writes": [],
           "size": "0x2ed4"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -5253,7 +5263,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000b6088",
           "branch_constants": [
@@ -5386,7 +5396,7 @@
           ],
           "size": "0x72c"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -5479,7 +5489,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000c3730",
           "branch_constants": [
@@ -5500,7 +5510,7 @@
           "return_storage_writes": [],
           "size": "0x2f4"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -5581,7 +5591,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bd23c",
           "branch_constants": [
@@ -5661,7 +5671,7 @@
           ],
           "size": "0x1900"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -5812,7 +5822,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a5450",
           "branch_constants": [
@@ -5863,7 +5873,7 @@
           ],
           "size": "0x210"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -5950,7 +5960,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b048",
           "branch_constants": [],
@@ -5972,7 +5982,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6043,7 +6053,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b058",
           "branch_constants": [],
@@ -6065,7 +6075,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6136,7 +6146,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b068",
           "branch_constants": [],
@@ -6158,7 +6168,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6229,7 +6239,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bf454",
           "branch_constants": [],
@@ -6245,7 +6255,7 @@
           "return_storage_writes": [],
           "size": "0x1f8"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6318,7 +6328,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bf6b4",
           "branch_constants": [
@@ -6369,7 +6379,7 @@
           ],
           "size": "0x2e4"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6442,7 +6452,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000c3db4",
           "branch_constants": [
@@ -6500,7 +6510,7 @@
           ],
           "size": "0xd80"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6603,7 +6613,7 @@
         "semantic_confidence": "high for EntityManager routing, request-byte gates, raw command and read-length argument order, identity selectors, PMBus ioctl behavior, daemon return bytes, retry rules, and the framework's 0xFF exception mapping"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a6d5c",
           "branch_constants": [],
@@ -6622,7 +6632,7 @@
           "return_storage_writes": [],
           "size": "0x3cc"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6696,7 +6706,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a5198",
           "branch_constants": [
@@ -6717,7 +6727,7 @@
           "return_storage_writes": [],
           "size": "0x270"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6804,7 +6814,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a8084",
           "branch_constants": [],
@@ -6885,7 +6895,7 @@
           ],
           "size": "0x41c"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -6982,7 +6992,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000b9228",
           "branch_constants": [],
@@ -7013,7 +7023,7 @@
           ],
           "size": "0x10a0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7134,7 +7144,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b078",
           "branch_constants": [],
@@ -7156,7 +7166,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7227,7 +7237,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b078",
           "branch_constants": [],
@@ -7249,7 +7259,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7320,7 +7330,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b088",
           "branch_constants": [],
@@ -7342,7 +7352,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7413,7 +7423,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b098",
           "branch_constants": [],
@@ -7435,7 +7445,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7506,7 +7516,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b0a8",
           "branch_constants": [],
@@ -7528,7 +7538,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7599,7 +7609,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b0b8",
           "branch_constants": [],
@@ -7621,7 +7631,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7692,7 +7702,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000aaad4",
           "branch_constants": [
@@ -7724,7 +7734,7 @@
           ],
           "size": "0x1198"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -7931,7 +7941,7 @@
         "semantic_confidence": "medium"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000ae374",
           "branch_constants": [],
@@ -7957,7 +7967,7 @@
           ],
           "size": "0xbc0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8132,7 +8142,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a7180",
           "branch_constants": [
@@ -8168,7 +8178,7 @@
           "return_storage_writes": [],
           "size": "0x248"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8248,7 +8258,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009fd90",
           "branch_constants": [
@@ -8274,7 +8284,7 @@
           "return_storage_writes": [],
           "size": "0x198"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8353,7 +8363,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bfaa4",
           "branch_constants": [],
@@ -8378,7 +8388,7 @@
           ],
           "size": "0x1d0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8449,7 +8459,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b038",
           "branch_constants": [],
@@ -8471,7 +8481,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8542,7 +8552,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bfcdc",
           "branch_constants": [
@@ -8570,7 +8580,7 @@
           "return_storage_writes": [],
           "size": "0x1c0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8662,7 +8672,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a604",
           "branch_constants": [],
@@ -8684,7 +8694,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8749,7 +8759,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000bff08",
           "branch_constants": [],
@@ -8774,7 +8784,7 @@
           ],
           "size": "0x1d0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8839,7 +8849,7 @@
         "semantic_confidence": "medium"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009af98",
           "branch_constants": [],
@@ -8861,7 +8871,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -8938,7 +8948,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b0c8",
           "branch_constants": [],
@@ -8960,7 +8970,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9025,7 +9035,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009b028",
           "branch_constants": [],
@@ -9047,7 +9057,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9118,7 +9128,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000abfa4",
           "branch_constants": [
@@ -9182,7 +9192,7 @@
           ],
           "size": "0x604"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9269,7 +9279,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a7d3c",
           "branch_constants": [
@@ -9322,7 +9332,7 @@
           ],
           "size": "0x310"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9410,7 +9420,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a614",
           "branch_constants": [],
@@ -9434,7 +9444,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9524,7 +9534,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a628",
           "branch_constants": [],
@@ -9548,7 +9558,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9628,7 +9638,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a63c",
           "branch_constants": [],
@@ -9652,7 +9662,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9736,7 +9746,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000baa90",
           "branch_constants": [
@@ -9778,7 +9788,7 @@
           ],
           "size": "0x610"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9849,7 +9859,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a650",
           "branch_constants": [],
@@ -9862,7 +9872,7 @@
           "return_storage_writes": [],
           "size": "0x2c"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -9935,7 +9945,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000baa90",
           "branch_constants": [
@@ -9977,7 +9987,7 @@
           ],
           "size": "0x610"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10048,7 +10058,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009afa8",
           "branch_constants": [],
@@ -10070,7 +10080,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10141,7 +10151,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009afb8",
           "branch_constants": [],
@@ -10163,7 +10173,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10234,7 +10244,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009afc8",
           "branch_constants": [],
@@ -10256,7 +10266,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10327,7 +10337,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000aa680",
           "branch_constants": [],
@@ -10349,7 +10359,7 @@
           ],
           "size": "0x1d0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10434,7 +10444,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a7a50",
           "branch_constants": [],
@@ -10470,7 +10480,7 @@
           ],
           "size": "0x1e0"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10547,7 +10557,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a012c",
           "branch_constants": [
@@ -10580,7 +10590,7 @@
           ],
           "size": "0x11c"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10667,7 +10677,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009a684",
           "branch_constants": [],
@@ -10680,7 +10690,7 @@
           "return_storage_writes": [],
           "size": "0x18"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10758,7 +10768,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000c3ab0",
           "branch_constants": [
@@ -10782,7 +10792,7 @@
           "return_storage_writes": [],
           "size": "0x280"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10868,7 +10878,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x0009afd8",
           "branch_constants": [],
@@ -10890,7 +10900,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -10961,7 +10971,7 @@
         "semantic_confidence": "high"
       },
       {
-        "activation": "inserted unconditionally into OEM68 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
+        "activation": "inserted unconditionally into wire 0x70 selector map by FUN raw 0x56cd4 / Ghidra 0x66cd4",
         "body_analysis": {
           "address": "0x000a93d8",
           "branch_constants": [
@@ -11199,7 +11209,7 @@
           ],
           "size": "0x33c"
         },
-        "command": "0x68",
+        "command": "0x70",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -11339,7 +11349,7 @@
           ],
           "size": "0x3d8"
         },
-        "command": "0x70",
+        "command": "0xad",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid",
@@ -11450,7 +11460,7 @@
           "return_storage_writes": [],
           "size": "0x3b8"
         },
-        "command": "0x70",
+        "command": "0xad",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid",
@@ -11567,7 +11577,7 @@
           ],
           "size": "0x9a0"
         },
-        "command": "0x70",
+        "command": "0xad",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid",
@@ -11722,7 +11732,7 @@
           ],
           "size": "0x23c"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -11791,7 +11801,7 @@
           "handler_size": "0x23c",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMClearSetting.c",
           "selector_store": "0x5a764",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -11890,7 +11900,7 @@
           ],
           "size": "0x9c0"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -11983,7 +11993,7 @@
           "handler_size": "0x9c0",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetDataTime.c",
           "selector_store": "0x5a7a0",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -12013,7 +12023,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -12074,7 +12084,7 @@
           "handler_size": "0x14",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetAD.c",
           "selector_store": "0x5a7d8",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -12095,7 +12105,7 @@
           "return_storage_writes": [],
           "size": "0x21c"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -12176,7 +12186,7 @@
           "handler_size": "0x21c",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMSSLCertificateStatus.c",
           "selector_store": "0x5a810",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: handler and pinned helper evidence resolve the status byte, validity fields, date format, separators, and file source"
@@ -12239,7 +12249,7 @@
           ],
           "size": "0xfa4"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -12324,7 +12334,7 @@
           "handler_size": "0xfa4",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetDDNS.c",
           "selector_store": "0x5a848",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -12410,7 +12420,7 @@
           ],
           "size": "0xcd8"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -12503,7 +12513,7 @@
           "handler_size": "0xcd8",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetRadius.c",
           "selector_store": "0x5a87c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -12533,7 +12543,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -12594,7 +12604,7 @@
           "handler_size": "0x14",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetLDAPSetting.c",
           "selector_store": "0x5a8b4",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -12631,7 +12641,7 @@
           "return_storage_writes": [],
           "size": "0xa84"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -12716,7 +12726,7 @@
         "handler_size": "0xa84",
         "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMCGetSetIPV6Network.c",
         "selector_store": "0x5a8ec",
-        "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+        "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
         "strings": "target provider .rodata via strings -a -t x",
         "lockdown_gate": {
           "operation": "1 and 2",
@@ -12999,7 +13009,7 @@
           ],
           "size": "0x8fc"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -13085,7 +13095,7 @@
           "handler_size": "0x8fc",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetDNSServer.c",
           "selector_store": "0x5a91c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -13115,7 +13125,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -13193,7 +13203,7 @@
           "handler_size": "0x14",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetAlert.c",
           "selector_store": "0x5a990",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -13235,7 +13245,7 @@
           ],
           "size": "0x834"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -13306,7 +13316,7 @@
           "handler_size": "0x834",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetVMDeviceStatus.c",
           "selector_store": "0x5a9c4",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x",
           "device_order": "constructor 0x0005a224 builds VirtualMedia1/2/3 paths in order; handler iterates vector in order",
           "dbus_reads": "Active from xyz.openbmc_project.VirtualMedia.Process; ImageURL from xyz.openbmc_project.VirtualMedia.MountPoint",
@@ -13386,7 +13396,7 @@
           ],
           "size": "0xf48"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -13471,7 +13481,7 @@
           "handler_size": "0xf48",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMBVMGetSetParamters.c",
           "selector_store": "0x5a9fc",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -13559,7 +13569,7 @@
           ],
           "size": "0x7f0"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -13647,7 +13657,7 @@
           "handler_size": "0x7f0",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMMountWebISO.c",
           "selector_store": "0x5aa34",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -13699,7 +13709,7 @@
           ],
           "size": "0x62c"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -13770,7 +13780,7 @@
           "handler_size": "0x62c",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMUmountWebISO.c",
           "selector_store": "0x5aa6c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -13800,7 +13810,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -13871,7 +13881,7 @@
           "handler_size": "0x14",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMUmountFloppy.c",
           "selector_store": "0x5aa9c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -13957,7 +13967,7 @@
           ],
           "size": "0x318"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14057,7 +14067,7 @@
           "handler_size": "0x318",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetBBP.c",
           "selector_store": "0x5ab14",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: full target body shows the exact lockdown gate, bounds-only treatment of opaque compatibility bytes, completion behavior, empty response, and absence of BBP access"
@@ -14155,7 +14165,7 @@
           ],
           "size": "0x62c"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14241,7 +14251,7 @@
           "handler_size": "0x62c",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetPowerConsumption.c",
           "selector_store": "0x5ab80",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: selector 2's three JSON paths and low-16-bit response packing are target-evidenced"
@@ -14267,7 +14277,7 @@
           "return_storage_writes": [],
           "size": "0x310"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14337,7 +14347,7 @@
           "handler_size": "0x310",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetWebISOStatus.c",
           "selector_store": "0x5abe8",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -14367,7 +14377,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14438,7 +14448,7 @@
           "handler_size": "0x14",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetSNMPV2Conf.c",
           "selector_store": "0x5ac1c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -14468,7 +14478,7 @@
           ],
           "size": "0x14"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14539,7 +14549,7 @@
           "handler_size": "0x14",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetSNMPV3Conf.c",
           "selector_store": "0x5ac54",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -14585,7 +14595,7 @@
           "return_storage_writes": [],
           "size": "0x420"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14669,7 +14679,7 @@
           "handler_size": "0x420",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetWebSessionTimeout.c",
           "selector_store": "0x5ac8c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -14718,7 +14728,7 @@
           ],
           "size": "0x228"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14803,7 +14813,7 @@
           "handler_size": "0x228",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetTDM.c",
           "selector_store": "0x5acc4",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: target returns eight zero bytes on GET; SET checks length and lockdown but does not read or store the payload"
@@ -14861,7 +14871,7 @@
           ],
           "size": "0x264"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -14939,7 +14949,7 @@
           "handler_size": "0x264",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetSyslogInfo.c",
           "selector_store": "0x5acfc",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact validation, lockdown read, empty success payload, and no-mutation behavior are target-evidenced"
@@ -14997,7 +15007,7 @@
           ],
           "size": "0x21c"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -15083,7 +15093,7 @@
           "handler_size": "0x21c",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMEnableSELForwarding.c",
           "selector_store": "0x5ad34",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -15141,7 +15151,7 @@
           ],
           "size": "0x21c"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -15227,7 +15237,7 @@
           "handler_size": "0x21c",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMEnableSELForwarding.c",
           "selector_store": "0x5ad6c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -15272,7 +15282,7 @@
           ],
           "size": "0x274"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -15357,7 +15367,7 @@
           "handler_size": "0x274",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetMMBIHashKey.c",
           "selector_store": "0x5ad9c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata: path 0x001b1848, service 0x001b1878, setEncHashData 0x001b18a8, interface 0x001b18b8, checkEncHashData 0x001b23ec, getEncHashData 0x001b2454",
           "mmbi_backend": {
             "path": "/usr/libexec/mmbibridged",
@@ -16125,7 +16135,7 @@
           ],
           "size": "0x2984"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -16219,7 +16229,7 @@
           "handler_size": "0x2984",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetCMProvision.c",
           "selector_store": "0x5ae10",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x",
           "framework_exception_mapping": {
             "ipmid_sha256": "41e94006fab4184db17398c35701599bfa7751e710f5ec04b27e0aaaf813fb0d",
@@ -16559,7 +16569,7 @@
           ],
           "size": "0x1fc"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -16629,7 +16639,7 @@
           "handler_size": "0x1fc",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSMCCPLDVersions.c",
           "selector_store": "0x5ae44",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -16676,7 +16686,7 @@
           ],
           "size": "0x250"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -16763,7 +16773,7 @@
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMRequestCOT.c",
           "selector_store": "0x5ae7c",
           "relocation_check": "no relocation at the handler literal-pool words; PC-relative targets are recovered from raw ELF VA 0x000e38a8 and resolve to the complete strings listed below.",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "provider_build_id": "6f0189859aa536e9c2e1684915d57608dee9f150",
           "raw_elf_trace": "radare2 pdc at ELF VA 0x000e38a8 (Ghidra rebased VA 0x000f38a8) resolves the PC-relative strings and call arguments; the earlier unresolved note mixed rebased and ELF virtual addresses",
           "framework_exception_mapping": {
@@ -16849,7 +16859,7 @@
           ],
           "size": "0x264"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -16933,7 +16943,7 @@
           "handler_size": "0x264",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMRequestI2C.c",
           "selector_store": "0x5aeb4",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -17058,7 +17068,7 @@
           ],
           "size": "0x830"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -17162,7 +17172,7 @@
           },
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMAddDelUser.c",
           "selector_store": "0x5aee4",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: selector, typed ABI/bounds, first-G credential split, empty/populated-slot gates, user-ID mapping, account enable, Delete D-Bus endpoint, MEL events, and empty success response are established from the pinned provider body and literals"
@@ -17205,7 +17215,7 @@
           ],
           "size": "0x254"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -17289,7 +17299,7 @@
           "handler_size": "0x254",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMReportDebugMessage.c",
           "selector_store": "0x5af58",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
     "strings": "target provider .rodata via strings -a -t x",
     "file_path": "provider SHA-256 980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad; ARM PC-relative loads at 0x000de84c and 0x000de95c resolve both access/read and write paths to /usr/share/log/3068db.log"
         },
@@ -17370,7 +17380,7 @@
           ],
           "size": "0xa14"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -17468,7 +17478,7 @@
           "handler_size": "0xa14",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetPostStatus.c",
           "selector_store": "0x5af84",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -17514,7 +17524,7 @@
           "return_storage_writes": [],
           "size": "0x22c"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -17626,7 +17636,7 @@
           "handler_size": "0x22c",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetIntelOnDemandInfo.c",
           "selector_store": "0x5aff8",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata: path 0x001b1848, service 0x001b1878, setEncHashData 0x001b18a8, interface 0x001b18b8, checkEncHashData 0x001b23ec, getEncHashData 0x001b2454"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -17654,7 +17664,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -17721,7 +17731,7 @@
           "handler_size": "0x10",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMSetHostInterfaceHostMACType.c",
           "selector_store": "0x5b02c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -17800,7 +17810,7 @@
           ],
           "size": "0x650"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -17886,7 +17896,7 @@
           "handler_size": "0x650",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/OEMGetSetRMCP.c",
           "selector_store": "0x5b05c",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -17914,7 +17924,7 @@
           ],
           "size": "0x10"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -17991,7 +18001,7 @@
           "handler_size": "0x10",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/GetAOCSerialNumberCmd.c",
           "selector_store": "0x5b0d4",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
           "strings": "target provider .rodata via strings -a -t x"
         },
         "semantic_confidence": "high: exact selector, typed ABI/bounds, activation, control flow, fields and effects are target-evidenced"
@@ -18014,7 +18024,7 @@
           "return_storage_writes": [],
           "size": "0x198"
         },
-        "command": "0x51",
+        "command": "0x68",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid (typed decoder)",
@@ -18108,7 +18118,7 @@
           "handler_size": "0x198",
           "decompile": "/tmp/x14re.hfOBac/allhandlers/GetServiceStatusCmd.c",
           "selector_store": "0x5b148",
-          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM51Handler.c",
+          "dispatcher_decompile": "/tmp/x14re.hfOBac/allhandlers/OEM68Handler.c",
     "strings": "target provider .rodata via strings -a -t x",
     "service_literals": "provider SHA-256 980527b4d95e8fdf07ae7f4afc0f9680017e9d3ccaeca59c877e0de9c335a1ad; .rodata literal at 0x001b16e8; callsite 0x000dcd64 passes bytes [0,14) as com.Supermicro; callsite 0x000dcdc4 passes bytes [0,26) as com.Supermicro.hii.service"
         },
@@ -18172,7 +18182,7 @@
           ],
           "size": "0x200"
         },
-        "command": "0xad",
+        "command": "0x51",
         "completion_codes": [
           "0x00 success",
           "0x82 BIOS capability/payload operation-specific failure (exact subtype unresolved)",
@@ -18340,7 +18350,7 @@
           ],
           "size": "0x200"
         },
-        "command": "0xad",
+        "command": "0x51",
         "completion_codes": [
           "0x00 success",
           "0x82 BIOS capability/payload operation-specific failure (exact subtype unresolved)",
@@ -18636,7 +18646,7 @@
           ],
           "size": "0xc30"
         },
-        "command": "0xad",
+        "command": "0x51",
         "completion_codes": [
           "0x00 success",
           "0x80 BIOS payload operation-specific failure (exact subtype unresolved)",
@@ -18780,7 +18790,7 @@
           "return_storage_writes": [],
           "size": "0xc74"
         },
-        "command": "0xad",
+        "command": "0x51",
         "completion_codes": [
           "0x00 success",
           "0xC7 request data length invalid",
