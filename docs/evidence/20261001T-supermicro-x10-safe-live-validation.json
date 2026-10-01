@@ -1,0 +1,95 @@
+{
+  "schema": "zipmi.supermicro-x10.safe-live-validation.v1",
+  "observed": "2026-10-01T16:07:42Z",
+  "target": "zBMC supermicro-x10 at 10.250.0.20",
+  "run_id": "20261001T053123Z-94da7b2a-be2f-4b7e-92ec-08ffc1290d86",
+  "zipmi_base_commit": "75c24f99f7ca0f863551e708d612121d26466159",
+  "candidate": {
+    "implementation_sha256": "82e5b785fedca0e881c08776d0cc011171ef285ec107d3af0796b726507be28d",
+    "focused_test_sha256": "b786879eb6365855f0d8034fc10baeb7cdb30c9420ddca4501fc75198b27fb09"
+  },
+  "firmware": {
+    "version": "3.93",
+    "image_sha256": "9bd3fbe8ddb8ee8e0f7d96ee37c810cef99d6c9f9566ddd13dca7ea455204214",
+    "provider": "libipmi.so",
+    "provider_sha256": "128d486c2de83d7e5dfddc0a25f74142f0c3fe265567ad4b1221c8defdbe3d07"
+  },
+  "readiness": "Cold boot reached READY after 234 seconds; SSH, authenticated RMCP+, Redfish, and Web UI passed.",
+  "method": "Authenticated RMCP+ named zipmi queries from the synchronized candidate worktree. Each request was an exact statically recovered read-only route with no caller-supplied payload beyond a fixed selector. No request used --unsafe.",
+  "interpretation": "Successful responses prove named-route encoding and live handler dispatch. GetHWInfo completion code 0xff proves dispatch to its documented missing-hardware-file backend failure path.",
+  "probes": [
+    {
+      "name": "GetUIDSupportStatus",
+      "netfn": "0x30",
+      "command": "0x10",
+      "request": "",
+      "completion_code": "0x00",
+      "response": "01"
+    },
+    {
+      "name": "GetOEMExtraAlertString",
+      "netfn": "0x2e",
+      "command": "0x05",
+      "request": "",
+      "completion_code": "0x00",
+      "response": "01"
+    },
+    {
+      "name": "GetSMBusStatus",
+      "netfn": "0x30",
+      "command": "0x07",
+      "request": "",
+      "completion_code": "0x00",
+      "response": "01"
+    },
+    {
+      "name": "GetUIDStatus",
+      "netfn": "0x30",
+      "command": "0x0c",
+      "request": "",
+      "completion_code": "0x00",
+      "response": "00"
+    },
+    {
+      "name": "GetHWInfo",
+      "netfn": "0x30",
+      "command": "0x21",
+      "request": "",
+      "completion_code": "0xff",
+      "response": "",
+      "note": "The handler dispatched and returned its documented hardware-info file backend failure."
+    },
+    {
+      "name": "GetSnoopingByte",
+      "netfn": "0x30",
+      "command": "0x2a",
+      "request": "",
+      "completion_code": "0x00",
+      "response": "00"
+    },
+    {
+      "name": "SUMToggleStatus",
+      "netfn": "0x30",
+      "command": "0x70",
+      "request": "77",
+      "completion_code": "0x00",
+      "response": "01"
+    },
+    {
+      "name": "GetBIOSVer",
+      "netfn": "0x3c",
+      "command": "0x03",
+      "request": "",
+      "completion_code": "0x00",
+      "response": "00 00 00 00 00 00 00 00"
+    }
+  ],
+  "mutating_requests_sent": false,
+  "final_state": {
+    "state": "stopped",
+    "cause": "operator requested shutdown",
+    "ended": "2026-10-01T16:08:03Z",
+    "elapsed_seconds": 38200,
+    "restart_after_stop": false
+  }
+}

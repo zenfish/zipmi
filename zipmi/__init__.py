@@ -1,3 +1,4 @@
+# z-artifact: 505e5523-028b-4247-ac40-c164045c33a5
 """
 zipmi — Scapy-based IPMI library, CLI, and virtual BMC.
 
@@ -89,6 +90,7 @@ _VENDOR_ALIAS: dict[str, str] = {
     "asmb787": "advantech_asmb787",
     # Supermicro split: X11 (AMI+smcipmitool) vs X14 (AST2600 OpenBMC + SMC OEM).
     "supermicro-x11": "supermicro",
+    "supermicro-x10": "supermicro_x10",
     "supermicro-x14": "supermicro_x14",
 }
 

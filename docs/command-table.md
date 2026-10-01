@@ -1,3 +1,4 @@
+<!-- z-artifact: 063bbdc6-5e58-4e95-bdaf-58bb2efd41b8 -->
 # IPMI Command Status Table — zipmi vs real BMCs
 
 Modeled on **Table G-1, Command Number Assignments and Privilege Levels**
@@ -367,8 +368,8 @@ OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
 explicit `zipmi.load_vendor("<vendor>")`.
 
-**<!--OEM-COUNT-->3964<!--/OEM-COUNT--> known commands · <!--OEM-NAMED-COUNT-->3892<!--/OEM-NAMED-COUNT--> named commands**
-across 11 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
+**<!--OEM-COUNT-->4250<!--/OEM-COUNT--> known commands · <!--OEM-NAMED-COUNT-->4178<!--/OEM-NAMED-COUNT--> named commands**
+across 12 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
 firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 
 | CLI vendor | IANA | Known | Named | Catalog / source |
@@ -378,6 +379,7 @@ firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 | `idrac9` | 674 | 349 | 277 | [iDRAC9 compact firmware table](idrac9-command-table.html) · [operation reference](idrac9-command-reference.html) |
 | `idrac10` | 674 | 581 | 581 | `zipmi/data/sources/idrac10-commands.json` |
 | `supermicro-x11` | 10876 | 477 | 477 | firmware/JAR-derived catalog |
+| `supermicro-x10` | 10876 | 286 | 286 | [X10 compact provider table](supermicro-x10-command-table.html) · [operation reference](supermicro-x10-command-reference.html) · [X10→X14 genealogy](supermicro-x10-x14-genealogy.html) |
 | `supermicro-x14` | — | 233 | 233 | [X14 compact provider table](supermicro-x14-command-table.html) · [operation reference](supermicro-x14-command-reference.html) |
 | `megarac` | — | 95 | 95 | [MegaRAC/YAFU compact table](megarac-command-table.html) · [operation reference](megarac-command-reference.html) |
 | `yafu` | — | 42 | 42 | AMI YAFU NetFn 0x32 catalog |

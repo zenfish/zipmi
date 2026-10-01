@@ -1,13 +1,13 @@
 <!-- z-artifact: 1eb9bf8a-7cb1-472d-b49b-5999b9e99e61 -->
 # Task — Complete Supermicro X10 support and X10→X14 genealogy (2026-09-30)
 
-- [ ] Pin the exact X10 firmware and provider provenance; prove the complete top-level and nested OEM dispatch denominator.
-- [ ] Recover every request/response layout, privilege, completion code, activation condition, side effect, and safety boundary without inheriting unproved X11/X12/X13 behavior.
-- [ ] Implement a distinct firmware-bound `supermicro-x10` target with bounded codecs and local safety gates while preserving the existing cross-generation `supermicro` interface.
-- [ ] Build a machine-readable X10↔X14 capability genealogy and risk classification: retained, reframed/renamed, behavior-changed, X10-only/dropped, and X14-new.
-- [ ] Generate X10 command-reference and command-table HTML plus a human-readable genealogy/risk document in the shared Standard v1 style.
-- [ ] Cold-boot the clean X10 zBMC deployment, capture exclusively non-mutating named-route evidence, and stop the guest afterward.
-- [ ] Run focused/full tests, generator/doc-sync checks, artifact verification, browser checks, independent review, and push all completion commits.
+- [x] Pin the exact X10 firmware and provider provenance; prove the complete top-level and nested OEM dispatch denominator.
+- [x] Recover every request/response layout, privilege, completion code, activation condition, side effect, and safety boundary without inheriting unproved X11/X12/X13 behavior.
+- [x] Implement a distinct firmware-bound `supermicro-x10` target with bounded codecs and local safety gates while preserving the existing cross-generation `supermicro` interface.
+- [x] Build a machine-readable X10↔X14 capability genealogy and risk classification: retained, reframed/renamed, behavior-changed, X10-only/dropped, and X14-new.
+- [x] Generate X10 command-reference and command-table HTML plus a human-readable genealogy/risk document in the shared Standard v1 style.
+- [x] Cold-boot the clean X10 zBMC deployment, capture exclusively non-mutating named-route evidence, and stop the guest afterward.
+- [x] Run focused/full tests, generator/doc-sync checks, artifact verification, browser checks, independent review, and push all completion commits.
 
 ## Acceptance specification
 
@@ -20,7 +20,12 @@
 
 ## Review
 
-- Pending.
+- Bound the result to X10 BMC 3.93 image SHA-256 `9bd3fbe8ddb8ee8e0f7d96ee37c810cef99d6c9f9566ddd13dca7ea455204214`, rootfs SHA-256 `f414a4dc447a4bea09374398f47caca0112a35cd5f61030f19712634659c67fd`, and `/lib/libipmi.so` SHA-256 `128d486c2de83d7e5dfddc0a25f74142f0c3fe265567ad4b1221c8defdbe3d07`.
+- Reconciled all 91 executed `OEMCmdTable` registrations and 286 direct/nested operations. Explicit request bounds replace textual number inference; routes with mutation, sensitive effects, unresolved upper bounds, or target-unbounded reads require `--unsafe` (17 default-safe, 269 gated).
+- Generated the paired Standard v1 reference/table and X10→X14 genealogy: 89 retained, 36 renamed/reframed, 11 behavior-changed, 138 X10-only/dropped, 85 X14-new, and 13 repurposed rows. Browser checks confirmed 286 rows, eight live markers, unique public names, and no body overflow.
+- Cold zBMC run `20261001T053123Z-94da7b2a-be2f-4b7e-92ec-08ffc1290d86` reached READY in 234 seconds. Eight exact read-only named routes were captured over authenticated RMCP+; no mutating request was sent. The guest stopped cleanly and retained evidence SHA-256 `c3a4588ff0fefb91a4c705d6536f894ab43bf3e5dbb4a2f4d581f172863730a2` was copied into the run archive.
+- Registered contract artifact `806a7e1c-ee03-545c-9fdc-11f70621f0d2` and live-evidence artifact `8d284d10-2a79-523f-bc5c-03b60a38048f`. Artifact sweep reports no dirty tracked artifacts; remaining silent drift/duplicate/orphan findings predate this task.
+- Verification: focused X10 tests pass (12); full repository suite passes (2,424, with two existing Scapy deprecation warnings); generator freshness, doc sync, JSON generation, and `git diff --check` pass. Independent final review found no remaining correctness or safety issue.
 
 # Task — Close vanilla OpenBMC, then Supermicro X14 (2026-09-28)
 

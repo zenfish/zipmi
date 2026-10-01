@@ -1,3 +1,4 @@
+# z-artifact: 4f331bfd-31de-4401-bf80-23a837b5aca3
 """
 zipmi.cli.oem_cmds — `zipmi oem <vendor> [cmd-name [data ...]]` dispatcher.
 
@@ -65,6 +66,10 @@ VENDORS: dict[str, dict] = {
     "supermicro-x11": {
         "iana": 10876,
         "blurb": "Supermicro X11 (AMI+smcipmitool stack) — top-level + sub-cmd dispatch via 1st data byte",
+    },
+    "supermicro-x10": {
+        "iana": 10876,
+        "blurb": "Supermicro X10 (AST2400 BMC 3.93) — firmware-bound raw OEM + nested dispatch contracts",
     },
     "supermicro-x14": {
         # AST2600 Phosphor OpenBMC + SMC OEM patches; raw NetFn 0x30 + DMTF
@@ -192,7 +197,7 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
         listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if vendor in ("advantech-asmb787", "supermicro", "supermicro-x11",
-                  "supermicro-x14", "megarac", "yafu"):
+                  "supermicro-x10", "supermicro-x14", "megarac", "yafu"):
         listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if VENDORS.get(vendor, {}).get("cmd_names") is not None:
@@ -332,6 +337,7 @@ VENDOR_TAG: dict[str, str] = {
     "idrac10": "Idrac10",
     "supermicro": "Smc",
     "supermicro-x11": "Smc",
+    "supermicro-x10": "SmcX10",
     "supermicro-x14": "SmcX14",
     "yafu": "Yafu",
 }
@@ -735,10 +741,13 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 ),
             }
         return _normalize_listing(out, vendor)
-    if vendor == "supermicro-x14":
-        from ..scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14
+    if vendor in ("supermicro-x10", "supermicro-x14"):
+        if vendor == "supermicro-x10":
+            from ..scapy_ipmi.oem.supermicro_x10 import SUPERMICRO_X10 as commands
+        else:
+            from ..scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14 as commands
         out: dict[tuple, dict] = {}
-        for key, entry in SUPERMICRO_X14.items():
+        for key, entry in commands.items():
             row = dict(entry)
             bounds = row.get("request_length", (None, None))
             row.update({
@@ -753,7 +762,7 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                     "requires_unsafe", row.get("safety") != "read-only"),
             })
             out[key] = row
-        return _normalize_listing(out, "supermicro-x14")
+        return _normalize_listing(out, vendor)
     if vendor in ("supermicro", "supermicro-x11"):
         from ..scapy_ipmi.oem.supermicro import SM_TOP_CMDS, SM_SUBCMDS
         from ..scapy_ipmi.oem.supermicro_smcipmi_names import SMCIPMI_METHODS
@@ -1474,8 +1483,11 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
 
     # `oem supermicro fwdump [outfile]` — orchestrate the ATEN 0x3e/0x1d-1f
     # firmware exfil (start -> poll size -> stream chunks -> reassemble).
-    if vendor in ("supermicro", "supermicro-x11", "supermicro-x14") and \
+    if vendor in ("supermicro", "supermicro-x10", "supermicro-x11") and \
             cmd_name.lower() == "fwdump":
+        if vendor == "supermicro-x10" and not getattr(args, "unsafe", False):
+            _msg.error("fwdump exposes the complete BMC flash; add --unsafe to acknowledge")
+            return 2
         from .zipmi import cmd_supermicro_fwdump
         out = raw_data[0] if raw_data else "flash.bin"
         return cmd_supermicro_fwdump(args, out)
@@ -1539,7 +1551,7 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             )
             return 2
 
-    if vendor in ("intel", "nvidia", "ieit", "supermicro-x14"):
+    if vendor in ("intel", "nvidia", "ieit", "supermicro-x10", "supermicro-x14"):
         payload_len = len(data_bytes)
         req_min = info.get("request_min")
         req_max = info.get("request_max")
@@ -1839,6 +1851,8 @@ def _suggest_for_cc(cc: int, netfn: int, cmd: int,
                           "lacks them — is this an X14? try `oem supermicro-x14`.",
             "supermicro-x11": "X11 uses the AMI/smcipmi stack (NetFn 0x30/0x3e); some "
                               "cmds are board-fw specific.",
+            "supermicro-x10": "X10 uses the AST2400-era provider; X11 and X14 expose "
+                              "different OEM surfaces.",
             "supermicro-x14": "X14 is AST2600 OpenBMC — the X11 smcipmi cmds are absent.",
             "yafu": "YAFU commands occur on several AMI-lineage BMCs, but "
                     "availability and privilege are firmware-specific. "
@@ -1871,7 +1885,8 @@ def _add_vendor_parser(
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
     if vendor_key in (
         "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu",
-        "megarac", "yafu", "intel", "nvidia", "ieit", "supermicro-x14",
+        "megarac", "yafu", "intel", "nvidia", "ieit", "supermicro-x10",
+        "supermicro-x14",
     ):
         sp.add_argument(
             "--unsafe", action="store_true",

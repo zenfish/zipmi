@@ -1,10 +1,11 @@
+<!-- z-artifact: 55760de7-a9c3-411b-ab16-24b0554e48e1 -->
 # zipmi
 
 zipmi is a pure-Python IPMI/BMC stack — an `ipmitool`-style CLI plus a library where every byte is an inspectable and mangleable object. Built for people/AI (are AIs people yet?) who need to understand, test, or research BMCs, not just run commands.
 
 - **Every IPMI field is real, not an opaque blob.** Dissect, build, corrupt, fuzz, and replay any packet with full byte-level visibility — the thing `ipmitool` and `pyghmi` don't give you. Drop into the middle of a session and ask "what does this byte mean?" or "what if I flip field X?"
 
-- **Deep OEM coverage: <!--OEM-COUNT-->3964<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html), [AMI MegaRAC/YAFU](docs/megarac-command-reference.html), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes. The [vanilla OpenBMC baseline](docs/openbmc-vanilla-command-reference.html) separately proves that its OEM set is empty.
+- **Deep OEM coverage: <!--OEM-COUNT-->4250<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html), [AMI MegaRAC/YAFU](docs/megarac-command-reference.html), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes. The [vanilla OpenBMC baseline](docs/openbmc-vanilla-command-reference.html) separately proves that its OEM set is empty.
 
 - **Security research batteries included.** Full IPMI 2.0 cipher suites 0–14 + 17, cipher-0 and RAKP-hash checks, unauthenticated `bmc-id` fingerprinting, plus a built-in virtual BMC and fuzzers to test against with no hardware.
 
@@ -17,7 +18,7 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code and ChatGPT's Codex, which worked with me over the last half-year on this project.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->3964<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [Supermicro X14](docs/supermicro-x14-command-reference.html) / [table](docs/supermicro-x14-command-table.html) · [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->4250<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [Supermicro X10](docs/supermicro-x10-command-reference.html) / [table](docs/supermicro-x10-command-table.html) / [X10→X14 genealogy](docs/supermicro-x10-x14-genealogy.html) · [Supermicro X14](docs/supermicro-x14-command-reference.html) / [table](docs/supermicro-x14-command-table.html) · [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -417,6 +418,12 @@ bytes via `zipmi raw`.
 
 Source-of-truth (hahah... well, for some value of truth) per vendor:
 
+- **Supermicro X10 BMC 3.93**: [firmware-bound OEM reference](docs/supermicro-x10-command-reference.html),
+  [compact registration table](docs/supermicro-x10-command-table.html), and
+  [X10→X14 genealogy/risk profile](docs/supermicro-x10-x14-genealogy.html) close 91
+  registrations and 286 direct/selector operations from the pinned AST2400 provider.
+  Named routes enforce recovered bounds and gate every mutating, sensitive,
+  disruptive, destructive, or target-unbounded request behind `--unsafe`.
 - **Supermicro X14SBSC-RoT BMC 01.01.06.07**: [firmware-bound OEM reference](docs/supermicro-x14-command-reference.html)
   and [compact provider table](docs/supermicro-x14-command-table.html) close 116 executed
   registrations / 115 unique wire identities across five provider ELFs. The detailed
