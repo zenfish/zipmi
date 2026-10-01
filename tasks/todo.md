@@ -1,4 +1,27 @@
 <!-- z-artifact: 1eb9bf8a-7cb1-472d-b49b-5999b9e99e61 -->
+# Task — Complete Supermicro X10 support and X10→X14 genealogy (2026-09-30)
+
+- [ ] Pin the exact X10 firmware and provider provenance; prove the complete top-level and nested OEM dispatch denominator.
+- [ ] Recover every request/response layout, privilege, completion code, activation condition, side effect, and safety boundary without inheriting unproved X11/X12/X13 behavior.
+- [ ] Implement a distinct firmware-bound `supermicro-x10` target with bounded codecs and local safety gates while preserving the existing cross-generation `supermicro` interface.
+- [ ] Build a machine-readable X10↔X14 capability genealogy and risk classification: retained, reframed/renamed, behavior-changed, X10-only/dropped, and X14-new.
+- [ ] Generate X10 command-reference and command-table HTML plus a human-readable genealogy/risk document in the shared Standard v1 style.
+- [ ] Cold-boot the clean X10 zBMC deployment, capture exclusively non-mutating named-route evidence, and stop the guest afterward.
+- [ ] Run focused/full tests, generator/doc-sync checks, artifact verification, browser checks, independent review, and push all completion commits.
+
+## Acceptance specification
+
+- Bind all claims to the exact 32 MiB X10 FW 3.93 image and every contributing executable/library hash.
+- Treat the target `OEMCmdTable` and all reachable child dispatchers as the denominator; do not equate the existing generic Supermicro name corpus with active X10 registrations.
+- A named route is runnable only when its exact wire framing and safe bounds are recovered. Mutating, disruptive, destructive, credential-bearing, and unresolved operations require `--unsafe` or remain unrunnable.
+- Genealogy matches normalized purpose, data flow, backend, and side effect before command number/name. Ambiguous ancestry remains explicit rather than forced into a one-to-one match.
+- Every X10-only capability records whether X14 demonstrably dropped it, replaced it outside IPMI, or merely lacks evidence. Risk notes distinguish attack-surface removal from loss of defensive/diagnostic functionality.
+- Live work uses the clean detached zBMC deployment recorded in `HOSTS.md`, sends no mutating request, preserves run evidence, and leaves QEMU stopped.
+
+## Review
+
+- Pending.
+
 # Task — Close vanilla OpenBMC, then Supermicro X14 (2026-09-28)
 
 ## Phase 1 — Vanilla AST2600 OpenBMC
