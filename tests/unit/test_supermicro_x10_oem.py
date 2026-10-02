@@ -72,12 +72,18 @@ def test_x10_direct_bounds_are_explicit_not_scraped_from_prose():
 
 
 def test_x10_genealogy_covers_both_generations_and_behavior_deltas():
+    from collections import Counter
+
     from zipmi.scapy_ipmi.oem.supermicro_x10 import X10_CATALOG
 
     rows = X10_CATALOG["genealogy"]
-    relations = {row["relation"] for row in rows}
-    assert {"retained", "renamed-reframed", "behavior-changed", "x10-only-dropped", "x14-new", "repurposed"} <= relations
-    assert any(row["lineage_id"] == "file-oob-parent-a0" and row["relation"] == "repurposed" for row in rows)
+    counts = Counter(row["relation"] for row in rows)
+    assert counts == {
+        "retained": 89, "renamed-reframed": 36, "behavior-changed": 11,
+        "repurposed": 12, "x10-only-dropped": 138, "x14-new": 96,
+    }
+    assert sum(relation != "x14-new" for relation in (row["relation"] for row in rows)) == 286
+    assert sum(relation != "x10-only-dropped" for relation in (row["relation"] for row in rows)) == 244
     assert any("shell" in row["risk_delta"].lower() and row["relation"] == "behavior-changed" for row in rows)
 
 
@@ -105,7 +111,9 @@ def test_x10_generated_documents_are_current():
     assert 'id="operation-expand-all"' in reference
     assert 'id="identity-expand-all"' in table
     assert "behavior-changed" in genealogy
-    assert "file-oob-parent-a0" in genealogy
+    assert "286</strong><span>X10 operations total" in genealogy
+    assert "244</strong><span>X14 operations total" in genealogy
+    assert "includes 11 delegated Intel Node Manager operations" in genealogy
     assert "captured eight exact read-only named routes" in reference
     assert "zipmi oem supermicro-x10 --unsafe SD3GetSetByteByName" in reference
     assert "GetPowerConsumption_30_68_16" in reference

@@ -9346,7 +9346,7 @@
           "0xCC invalid field (written by handler body)"
         ],
         "confidence": "high: selector, typed request/response ABI, privilege, activation and target body all independently evidenced",
-        "effects": "opens /dev/mem, mmaps one 4 KiB page read/write shared, copies up to four bytes, unmaps",
+        "effects": "Named CLI payload after the automatically supplied 0xc0 selector is read_length:u8 followed by physical_address:u32be. Reads up to four bytes from the X14 BMC's AST2600 SoC physical register address space through the BMC Linux /dev/mem device; it does not access host DRAM. The handler mmaps one 4 KiB page read/write shared, copies min(read_length, 4) bytes, then unmaps.",
         "evidence": {
           "assembly": "/tmp/x14-sub68.asm",
           "decompile": "/tmp/x14re.hfOBac/init-array.c",
@@ -9379,7 +9379,7 @@
               "offset": 2,
               "name": "physical_address",
               "type": "u32be",
-              "constraints": "must fall in hard-coded AST register allowlist"
+              "constraints": "BMC AST2600 SoC physical start address (not host memory). Allowed: any address in 0x1e780000..0x1e780fff; offsets 0x0a0, 0x0b0, or 0x0b1 in each of pages 0x1e660000, 0x1e670000, 0x1e680000, and 0x1e690000; or, in page 0x1e78a000, offsets where (offset & 0x7f) == 0x08, plus offsets where (offset & 0x7f) == 0x10 and offset < 0x880. Only the start is validated; a read may include up to three following bytes."
             }
           ],
           "maximum_bytes_including_selector": null,
@@ -9396,7 +9396,7 @@
               "offset": 0,
               "name": "memory_bytes",
               "type": "bytes[0..4]",
-              "constraints": "raw /dev/mem contents at requested physical address"
+              "constraints": "raw bytes from the X14 BMC's /dev/mem at the requested AST2600 physical register address; never host DRAM"
             }
           ],
           "fields_abi": [
@@ -9413,7 +9413,7 @@
         "selector": "0xc0",
         "selector_offset": 0,
         "safety_class": "sensitive",
-        "semantic_safety_note": "privileged physical-memory access; read-only in body but high-risk disclosure primitive",
+        "semantic_safety_note": "privileged BMC AST2600 physical-register access through the BMC's /dev/mem; read-only in body but a high-risk BMC disclosure primitive; not host-memory access",
         "semantic_unresolved_reason": null,
         "semantic_evidence": {
           "handler_decompile": "/tmp/x14re.hfOBac/allhandlers/ReadMemoryCmd.c",

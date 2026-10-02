@@ -698,6 +698,14 @@ def test_x14_recovered_request_bounds_are_closed_where_proven():
         ) == bounds
     assert rows["ReadMemoryCmd"]["request"]["minimum_bytes_including_selector"] == 6
     assert rows["ReadMemoryCmd"]["request"]["maximum_bytes_including_selector"] is None
+    assert "X14 BMC's AST2600 SoC physical register address space" in rows["ReadMemoryCmd"]["effects"]
+    assert "does not access host DRAM" in rows["ReadMemoryCmd"]["effects"]
+    assert "read_length:u8 followed by physical_address:u32be" in rows["ReadMemoryCmd"]["effects"]
+    address_rule = rows["ReadMemoryCmd"]["request"]["fields"][2]["constraints"]
+    assert "not host memory" in address_rule
+    assert "0x1e780000..0x1e780fff" in address_rule
+    assert "(offset & 0x7f) == 0x08" in address_rule
+    assert "Only the start is validated" in address_rule
     assert rows["OEMGetCMProvision"]["safety_class"] == "destructive"
     response_bounds = {
         "GetBRCMHDDBitmap": (80, 80),

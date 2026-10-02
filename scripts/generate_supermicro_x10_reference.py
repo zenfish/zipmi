@@ -151,6 +151,8 @@ def genealogy_html() -> str:
     counts = {name: sum(row["relation"] == name for row in rows) for name in (
         "retained", "renamed-reframed", "behavior-changed", "x10-only-dropped", "x14-new", "repurposed", "uncertain",
     )}
+    x10_total = sum(row["relation"] != "x14-new" for row in rows)
+    x14_total = sum(row["relation"] != "x10-only-dropped" for row in rows)
     metrics = "".join(
         f'<div class="rounded-xl border border-zinc-700 bg-zinc-900 p-4"><strong class="block text-2xl">{value}</strong>{html.escape(name)}</div>'
         for name, value in counts.items()
@@ -173,7 +175,12 @@ def genealogy_html() -> str:
 <body class="bg-zinc-950 text-zinc-100"><main class="mx-auto max-w-[1800px] p-6">
 <h1 class="text-3xl font-bold">Supermicro X10 → X14 OEM IPMI genealogy and risk profile</h1>
 <p class="mt-3 max-w-5xl text-zinc-300">Semantic lineage for the pinned X10 BMC 3.93 and X14 01.01.06.07 providers. Matching bytes nominate a relationship; handler behavior, privilege, persistence, and sinks decide it.</p>
+<section class="mt-6 grid gap-3 lg:grid-cols-2">
+<div class="rounded-xl border border-sky-700 bg-sky-950/30 p-5"><strong class="block text-3xl">{x10_total}</strong><span>X10 operations total</span><p class="mt-2 text-sm text-zinc-300">retained + renamed/reframed + behavior-changed + repurposed + X10-only/dropped</p></div>
+<div class="rounded-xl border border-emerald-700 bg-emerald-950/30 p-5"><strong class="block text-3xl">{x14_total}</strong><span>X14 operations total</span><p class="mt-2 text-sm text-zinc-300">retained + renamed/reframed + behavior-changed + repurposed + X14-new; includes 11 delegated Intel Node Manager operations</p></div>
+</section>
 <div class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">{metrics}</div>
+<p class="mt-3 text-sm text-zinc-300">The relationship categories are mutually exclusive peers: behavior-changed and repurposed are not included inside retained.</p>
 <section class="mt-8 rounded-xl border border-amber-700/60 bg-amber-950/30 p-5"><h2 class="text-xl font-semibold">Risk interpretation</h2>
 <p class="mt-2 text-zinc-200">X14 removes weak cipher suites and turns several X10 shell/configuration paths into compatibility stubs, reducing legacy attack surface. It also adds distinct provisioning, D-Bus, storage, file, GPIO, and raw-memory operations. A dropped command can therefore be both a security improvement and a loss of diagnostic or recovery capability.</p></section>
 <div class="mt-8 overflow-x-auto rounded-xl border border-zinc-800"><table class="min-w-full text-sm"><thead class="bg-zinc-900 text-left"><tr><th class="p-3">Lineage</th><th class="p-3">Action</th><th class="p-3">X10</th><th class="p-3">X14</th><th class="p-3">Relation</th><th class="p-3">Risk delta</th><th class="p-3">Evidence</th></tr></thead><tbody>{body}</tbody></table></div>

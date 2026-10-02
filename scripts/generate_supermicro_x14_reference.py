@@ -56,10 +56,12 @@ def _send(vendor: str, key: tuple[int, ...], command: dict) -> str:
     remaining_low = None if low is None else max(0, low - fixed)
     remaining_high = None if high is None else max(0, high - fixed)
     if remaining_low or remaining_high:
-        words.append(
-            f"<{remaining_low} payload bytes>"
-            if remaining_low == remaining_high else "<payload bytes>"
-        )
+        if remaining_low == remaining_high:
+            words.append(f"<{remaining_low} payload bytes>")
+        elif remaining_high is None and remaining_low is not None:
+            words.append(f"<at least {remaining_low} payload bytes>")
+        else:
+            words.append("<payload bytes>")
     return " ".join(words)
 
 

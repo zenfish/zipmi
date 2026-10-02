@@ -20669,15 +20669,6 @@
   ],
   "genealogy": [
     {
-      "lineage_id": "file-oob-parent-a0",
-      "canonical_action": "File and out-of-band operation parent dispatcher",
-      "x10": "30/a0 FileTransactions; 46 accepted selectors",
-      "x14": "30/a0 OOBHandler; 27 accepted selectors",
-      "relation": "repurposed",
-      "risk_delta": "Same parent wire address, different dispatcher and selector surface; never infer compatibility from 30/a0 alone.",
-      "evidence": "Pinned X10 FileTransactions switch and pinned X14 OOBHandler contract."
-    },
-    {
       "lineage_id": "2c-16",
       "canonical_action": "Get Service Info Cmd",
       "x10": "2c/16 GetServiceInfoCmd",
@@ -23421,6 +23412,105 @@
       "relation": "x14-new",
       "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
       "evidence": "target decompile /tmp/x14re.hfOBac/handlers/getTempReadings.c"
+    },
+    {
+      "lineage_id": "x14-2e-c0-57-01-00",
+      "canonical_action": "enable Nm Policy Control",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/c0/57/01/00 enableNmPolicyControl",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "enableNmPolicyControl in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-c1-57-01-00",
+      "canonical_action": "set Nm Policy",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/c1/57/01/00 setNmPolicy",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "setNmPolicy in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-c2-57-01-00",
+      "canonical_action": "get Node Manager Policy",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/c2/57/01/00 getNodeManagerPolicy",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "getNodeManagerPolicy in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-c7-57-01-00",
+      "canonical_action": "reset Nm Statistics",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/c7/57/01/00 resetNmStatistics",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "resetNmStatistics in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-c8-57-01-00",
+      "canonical_action": "get Nm Statistics",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/c8/57/01/00 getNmStatistics",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "getNmStatistics in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-c9-57-01-00",
+      "canonical_action": "get Nm Capabilities",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/c9/57/01/00 getNmCapabilities",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "getNmCapabilities in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-ca-57-01-00",
+      "canonical_action": "get Nm Version",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/ca/57/01/00 getNmVersion",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "getNmVersion in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-cb-57-01-00",
+      "canonical_action": "set Nm Power Draw Range",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/cb/57/01/00 setNmPowerDrawRange",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "setNmPowerDrawRange in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-d0-57-01-00",
+      "canonical_action": "set Total Power Budget",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/d0/57/01/00 setTotalPowerBudget",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "setTotalPowerBudget in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-d1-57-01-00",
+      "canonical_action": "get Total Power Budget",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/d1/57/01/00 getTotalPowerBudget",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "getTotalPowerBudget in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
+    },
+    {
+      "lineage_id": "x14-2e-f2-57-01-00",
+      "canonical_action": "get Limiting Policy Id",
+      "x10": "No matching X10 OEM-IPMI operation",
+      "x14": "2e/f2/57/01/00 getLimitingPolicyId",
+      "relation": "x14-new",
+      "risk_delta": "New X14 OEM-IPMI exposure; assess its D-Bus, file, hardware, or provisioning backend independently.",
+      "evidence": "getLimitingPolicyId in provider SHA-256 aeb0d02d844e5add09b70bdb44b55ecd95362b880b478074a2a08acdcb13e03c."
     },
     {
       "lineage_id": "x14-30-48",

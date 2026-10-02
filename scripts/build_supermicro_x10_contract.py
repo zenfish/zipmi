@@ -393,19 +393,16 @@ def _attach_live_evidence(operations: list[dict]) -> dict:
 
 
 def _genealogy(operations: list[dict]) -> list[dict]:
+    from zipmi.scapy_ipmi.oem.intel import INTEL_COMMANDS
     from zipmi.scapy_ipmi.oem.supermicro_x14 import SUPERMICRO_X14
 
     x10 = {_identity(row): row for row in operations}
-    x14 = {"/".join(f"{part:02x}" for part in key): row for key, row in SUPERMICRO_X14.items()}
-    rows = [{
-        "lineage_id": "file-oob-parent-a0",
-        "canonical_action": "File and out-of-band operation parent dispatcher",
-        "x10": "30/a0 FileTransactions; 46 accepted selectors",
-        "x14": "30/a0 OOBHandler; 27 accepted selectors",
-        "relation": "repurposed",
-        "risk_delta": "Same parent wire address, different dispatcher and selector surface; never infer compatibility from 30/a0 alone.",
-        "evidence": "Pinned X10 FileTransactions switch and pinned X14 OOBHandler contract.",
-    }]
+    x14 = {
+        "/".join(f"{part:02x}" for part in key): row
+        for catalog in (SUPERMICRO_X14, INTEL_COMMANDS)
+        for key, row in catalog.items()
+    }
+    rows = []
     consumed_x14 = set()
     for identity, old in sorted(x10.items()):
         same_wire = x14.get(identity)
