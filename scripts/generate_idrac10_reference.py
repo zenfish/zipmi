@@ -278,7 +278,15 @@ def reference_page() -> dict:
                  "still reject a registered command."),
         "live_evidence": ("445 operations carry responses from the catalog's iDRAC10 live sweep. "
                           "These observations prove only the recorded operation and payload; they do "
-                          "not make related state-changing operations safe to exercise."),
+                          "not make related state-changing operations safe to exercise. Cross-target "
+                          "operator note (Supermicro X14 only; not evidence of Dell policy): X14's "
+                          "shipped validator requires 8–20 characters, at least three of lowercase, "
+                          "uppercase, digit, and supported ASCII punctuation, no leading or trailing "
+                          "ASCII space, and a value unequal to the username or its reverse. A 13-byte "
+                          "four-class password succeeded live through standard command 0x06/0x47 in "
+                          "16-byte mode; a rejected policy candidate returned misleading completion "
+                          "code 0xC8. The 16/20-byte selector controls IPMI field width, not complexity "
+                          "policy."),
         "sources": [
             '<a href="../zipmi/data/sources/idrac10-commands.json">Reviewed operation-contract JSON</a>',
             '<a href="../zipmi/data/sources/idrac10-dispatch-tables.md">Firmware dispatch-table extraction</a>',

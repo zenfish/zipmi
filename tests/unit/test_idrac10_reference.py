@@ -73,3 +73,5 @@ def test_idrac10_reference_preserves_wire_and_execution_boundaries():
     assert "35 bytes including completion code" not in reference
     assert "<td class=\"wire\">completion_code</td>" not in reference
     assert "bytes[None]" not in reference
+    assert "Cross-target operator note (Supermicro X14 only; not evidence of Dell policy)" in reference
+    assert "rejected policy candidate returned misleading completion code 0xC8" in reference
