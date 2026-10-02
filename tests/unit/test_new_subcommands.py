@@ -81,6 +81,14 @@ def test_user_set_password_dispatch_and_no_global_collision():
     assert args.size == 20
 
 
+def test_user_set_password_allows_omitted_password_for_prompt():
+    args = parse_cli(["-H", "x", "user", "set", "password", "9"])
+    assert args.func.__name__ == "cmd_user_set_password"
+    assert args.new_password is None
+    assert args.user_id == 9
+    assert args.size == 16
+
+
 def test_user_enable_disable_dispatch():
     a1 = parse_cli(["-H", "x", "user", "enable", "5"])
     a2 = parse_cli(["-H", "x", "user", "disable", "5"])
@@ -351,6 +359,32 @@ def test_user_set_password_effect_20byte(monkeypatch):
     assert rc == 0
     expect = bytes([0x03 | 0x80, 0x02]) + b"newpw".ljust(20, b"\x00")
     assert fake.sent == [(0x06, 0x47, expect)]
+
+
+def test_user_set_password_prompts_twice_when_omitted(monkeypatch):
+    fake = _install(monkeypatch, _EffectSession())
+    prompts = iter(["promptedpw", "promptedpw"])
+    monkeypatch.setattr(_z.getpass, "getpass", lambda _prompt: next(prompts))
+
+    rc = _z.cmd_user_set_password(
+        parse_cli(["-H", "x", "user", "set", "password", "9"]))
+
+    assert rc == 0
+    expect = bytes([0x09, 0x02]) + b"promptedpw".ljust(16, b"\x00")
+    assert fake.sent == [(0x06, 0x47, expect)]
+
+
+def test_user_set_password_prompt_mismatch_sends_nothing(monkeypatch, capsys):
+    fake = _install(monkeypatch, _EffectSession())
+    prompts = iter(["first", "second"])
+    monkeypatch.setattr(_z.getpass, "getpass", lambda _prompt: next(prompts))
+
+    rc = _z.cmd_user_set_password(
+        parse_cli(["-H", "x", "user", "set", "password", "9"]))
+
+    assert rc == 2
+    assert fake.sent == []
+    assert "passwords do not match" in capsys.readouterr().err
 
 
 def test_user_test_password_effect_16byte(monkeypatch):

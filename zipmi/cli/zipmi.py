@@ -41,6 +41,7 @@ RELATED  zipmi/core.py, zipmi/scapy_ipmi/commands.py
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 import socket
@@ -1316,7 +1317,15 @@ def cmd_user_disable(args: argparse.Namespace) -> int:
 
 
 def cmd_user_set_password(args: argparse.Namespace) -> int:
-    pw = args.new_password.encode("utf-8")
+    new_password = args.new_password
+    if new_password is None:
+        new_password = getpass.getpass(f"Password for user {args.user_id}: ")
+        confirmation = getpass.getpass(
+            f"Password for user {args.user_id} again: ")
+        if new_password != confirmation:
+            _msg.error("passwords do not match")
+            return 2
+    pw = new_password.encode("utf-8")
     rc = _user_password_op(args, op=0x02, password=pw)
     if rc == 0 and not emit(args, {"ok": True, "user_id": args.user_id, "size": args.size}):
         print(f"user {args.user_id}: password set ({args.size}-byte slot)")
@@ -6037,7 +6046,9 @@ def build_parser() -> argparse.ArgumentParser:
     user_set_name.set_defaults(func=cmd_user_set_name)
     user_set_pw = user_set_sub.add_parser("password", help="Set User Password")
     user_set_pw.add_argument("user_id", type=int)
-    user_set_pw.add_argument("new_password", metavar="password")
+    user_set_pw.add_argument(
+        "new_password", metavar="password", nargs="?",
+        help="new password (omit to prompt securely)")
     user_set_pw.add_argument("size", nargs="?", type=int, default=16,
                              choices=[16, 20],
                              help="password slot size (16 or 20 bytes)")
