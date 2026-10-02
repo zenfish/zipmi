@@ -21,7 +21,6 @@ from zipmi.scapy_ipmi.oem.supermicro_x14 import (
     X14_CATALOG,
     X14_FIRMWARE_SHA256,
     X14_PRIMARY_PROVIDER_BUILD_ID,
-    X14_PRIMARY_PROVIDER_SHA256,
     X14_REGISTRATIONS,
     X14_ROOTFS_SHA256,
 )
@@ -207,7 +206,6 @@ def reference_page() -> dict:
             ("Target", "Supermicro X14SBSC-RoT / E601MS; AST2600 OpenBMC"),
             ("Firmware SHA-256", f"<code>{X14_FIRMWARE_SHA256}</code>"),
             ("Rootfs SHA-256", f"<code>{X14_ROOTFS_SHA256}</code>"),
-            ("Primary provider SHA-256", f"<code>{X14_PRIMARY_PROVIDER_SHA256}</code>"),
             ("Primary provider build ID", f"<code>{X14_PRIMARY_PROVIDER_BUILD_ID}</code>"),
             ("Primary analysis artifact", "<code>0272c7fd-d925-59f2-84fe-599de43926eb</code>"),
             ("Prior semantic-input archive", "<code>851806d6-8607-5cfd-807e-a8191ff9e94a</code> (superseded by current catalog)"),
@@ -340,7 +338,6 @@ def compact_page() -> dict:
         "provenance": [
             ("Firmware SHA-256", f"<code>{X14_FIRMWARE_SHA256}</code>"),
             ("Rootfs SHA-256", f"<code>{X14_ROOTFS_SHA256}</code>"),
-            ("Primary provider SHA-256", f"<code>{X14_PRIMARY_PROVIDER_SHA256}</code>"),
             ("Known collision", "Storage 0x0a/0x48 is registered by two providers"),
         ],
         "metrics": [
