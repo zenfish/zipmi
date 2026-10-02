@@ -1,0 +1,206 @@
+{
+  "analysis_date": "2026-10-02",
+  "artifact": "Supermicro X14SBSC-RoT BMC 01.07.00.06 command additions",
+  "artifact_uuid": "71dee016-60df-49cd-9332-d1a77b082c40",
+  "base_firmware": "01.01.06.07",
+  "variant_firmware": {
+    "version": "01.07.00.06",
+    "bundle_artifact_uuid": "6098d296-4a4d-578f-9f8c-8379c1fc1464",
+    "bundle_sha256": "3c6de29f7966bb9afe3dd96c8b24f565e4bade0f18bf6533b1db3988bd966daa",
+    "rootfs_sha256": "59239544bf3d512dcf03872a33cdf0dd0cfbca82c0326ea37653c2a934a356b9",
+    "primary_provider": {
+      "name": "libsupermicrooemcmds.so.0.0.1",
+      "sha256": "e74747cbbc3ee13e51757c3670d066c3ffd939954a31f86e223a43f172f324e7",
+      "build_id": "7bf7b6b944937cb5998fe893b5ec2ee73dd93313"
+    }
+  },
+  "delta": {
+    "registration_instances": 3,
+    "unique_wire_identities": 3,
+    "primary_selectors": 2,
+    "removed_or_repurposed_selectors": 0,
+    "note": "The two selector additions are 0x30/0x68:0x3a and 0x30/0x70:0xda. Existing selectors 0x68:0x39, 0x68:0xdb, and 0x70:0x3a retain their earlier handlers."
+  },
+  "registration_additions": [
+    {
+      "netfn": "0x06",
+      "command": "0x02",
+      "classification": "standard_override",
+      "handler": "ipmiAppColdReset",
+      "privilege_name": "Administrator",
+      "request": "Exactly 0 payload bytes",
+      "activation": "Introduced in BMC 01.07.00.06; unconditional priority-20 registration.",
+      "evidence": "Constructor registration and ipmiAppColdReset body in primary provider SHA-256 e74747cbbc3ee13e51757c3670d066c3ffd939954a31f86e223a43f172f324e7."
+    },
+    {
+      "netfn": "0x30",
+      "command": "0x72",
+      "classification": "raw",
+      "handler": "OEMGetSetRAKPCtrlCmd",
+      "privilege_name": "Administrator",
+      "request": "Exactly 1 byte for get or 2 bytes for set",
+      "activation": "Introduced in BMC 01.07.00.06; unconditional priority-20 registration.",
+      "evidence": "Constructor registration at ELF 0x60430-0x60444 and handler at ELF 0x1482f4 in primary provider SHA-256 e74747cbbc3ee13e51757c3670d066c3ffd939954a31f86e223a43f172f324e7."
+    },
+    {
+      "netfn": "0x32",
+      "command": "0x01",
+      "classification": "raw",
+      "handler": "I2CMasterWriteRead",
+      "privilege_name": "Administrator",
+      "request": "At least 3 payload bytes",
+      "activation": "Introduced in BMC 01.07.00.06; unconditional priority-20 registration.",
+      "evidence": "Constructor registration at ELF 0x60cc4 and handler at ELF 0x1421ac in primary provider SHA-256 e74747cbbc3ee13e51757c3670d066c3ffd939954a31f86e223a43f172f324e7."
+    }
+  ],
+  "operation_additions": [
+    {
+      "wire_identity": [48, 114],
+      "id": "30/72",
+      "name": "RAKP Control",
+      "purpose": "Gets or sets Supermicro's proprietary RAKP compatibility mode. When enabled, netipmid selects the SMC RAKP path and rejects standard RAKP; when disabled, standard IPMI 2.0 RAKP remains available.",
+      "send": "zipmi raw 0x30 0x72 0x00",
+      "safety": "disruptive",
+      "safety_note": "Setting this flag can terminate compatibility with ordinary IPMI 2.0 clients and deny subsequent standard remote IPMI access. It is a transport-mode switch, not evidence that CVE-2021-39296's underlying session-state defect was repaired.",
+      "execution": "No distinct named route",
+      "request": {
+        "status": "Complete",
+        "length": "Exactly 1 byte for get or 2 bytes for set",
+        "summary": "Action 0 gets EnableSMCRAKP; action 1 sets it to boolean 0 or 1.",
+        "fields": [
+          {"offset": "0", "name": "action", "type": "u8", "meaning": "0=get; 1=set"},
+          {"offset": "1", "name": "enabled", "type": "optional u8", "meaning": "Required only for set; 0=standard RAKP, 1=Supermicro proprietary RAKP"}
+        ]
+      },
+      "response": {
+        "status": "Complete",
+        "length": "Exactly 1 byte for get; 0 bytes for set",
+        "summary": "Get returns the current boolean; set returns no data.",
+        "fields": [
+          {"offset": "0", "name": "enabled", "type": "conditional u8", "meaning": "Get only: 0=standard RAKP, 1=Supermicro proprietary RAKP"}
+        ]
+      },
+      "privilege": "Administrator",
+      "interface": "Raw OEM NetFn 0x30 over authenticated IPMI",
+      "availability": "Introduced in BMC 01.07.00.06; absent from the audited 01.01.06.07 provider.",
+      "completion_codes": "0x00 success; 0xC7 wrong request length; 0xCC unknown action; 0xFF D-Bus failure",
+      "live": true,
+      "live_text": "Safe 01.07.00.06 run: get request 00 returned 00; matching D-Bus property read returned false.",
+      "evidence": "OEMGetSetRAKPCtrlCmd at ELF 0x1482f4; xyz.openbmc_project.Settings /com/SMCI/SMCRAKP com.SMCI.Managers.Item.SMCRAKP.EnableSMCRAKP; netipmid reads the same property during RAKP1/2 session establishment.",
+      "confidence": "High: exact registration, typed request/response ABI, handler body, persistence backend, consumer, and safe live get are independently evidenced."
+    },
+    {
+      "wire_identity": [50, 1],
+      "id": "32/01",
+      "name": "I2C Master Write/Read",
+      "purpose": "Performs a raw write, read, or combined write-then-read transaction against /dev/i2c-N. This is an OEM adaptation of IPMI's Master Write-Read concept using a literal Linux bus number.",
+      "send": "zipmi raw 0x32 0x01 <bus> <address-byte> <read-count> [write-data...]",
+      "safety": "sensitive",
+      "safety_note": "This Administrator primitive exposes arbitrary enabled BMC I2C buses without a handler-local bus or device allowlist. Writes can reconfigure devices; combined I2C_RDWR transfers can address devices claimed by kernel drivers.",
+      "execution": "No distinct named route",
+      "request": {
+        "status": "Complete",
+        "length": "At least 3 payload bytes",
+        "summary": "Selects a Linux I2C bus and 7-bit address, then supplies read count and optional write bytes.",
+        "fields": [
+          {"offset": "0", "name": "linux_bus", "type": "u8", "meaning": "Literal N in /dev/i2c-N"},
+          {"offset": "1", "name": "address_byte", "type": "u8", "meaning": "Values 0x01..0xfe; handler uses address_byte >> 1 and ignores the low bit"},
+          {"offset": "2", "name": "read_count", "type": "u8", "meaning": "Number of bytes to read, 0..255"},
+          {"offset": "3..", "name": "write_data", "type": "bytes[remainder]", "meaning": "Optional bytes written before any requested read"}
+        ]
+      },
+      "response": {
+        "status": "Complete",
+        "length": "Exactly read_count bytes",
+        "summary": "Returns only the requested read bytes; pure writes and no-op transfers return no data.",
+        "fields": [
+          {"offset": "0..", "name": "read_data", "type": "bytes[read_count]", "meaning": "Raw bytes returned by the selected I2C device"}
+        ]
+      },
+      "privilege": "Administrator",
+      "interface": "Raw OEM NetFn 0x32 over authenticated IPMI",
+      "availability": "Introduced in BMC 01.07.00.06; absent from the audited 01.01.06.07 provider.",
+      "completion_codes": "0x00 success; 0xC7 fewer than three request bytes; 0xCC address byte 0x00 or 0xff; 0xFF open, ioctl, read, write, or short-transfer failure",
+      "live": true,
+      "live_text": "Safe 01.07.00.06 run: a deliberately short request returned 0xC7, proving registration and decoder reachability without touching an I2C device.",
+      "evidence": "I2CMasterWriteRead at ELF 0x1421ac; /dev/i2c-%u, I2C_SLAVE 0x703, and I2C_RDWR 0x707 callsites recovered from the handler; enabled buses and devices cross-checked against the firmware DTB.",
+      "confidence": "High: exact registration, full handler control flow, Linux ioctl semantics, response construction, and safe short-request dispatch are independently evidenced."
+    },
+    {
+      "wire_identity": [48, 104],
+      "id": "30/68 data 3a",
+      "name": "Leakage Detection Control",
+      "purpose": "Gets or sets liquid-leak response policy, power lock, or detector enable state through the leakage-manager and persistent settings objects.",
+      "send": "zipmi raw 0x30 0x68 0x3a <firmware-specific payload>",
+      "safety": "disruptive",
+      "safety_note": "The setters can change forced-off or graceful-shutdown reaction policy, lock power behavior, or enable/disable all leak detectors. Do not probe setters on production liquid-cooled systems.",
+      "execution": "No distinct named route",
+      "request": {
+        "status": "Partial",
+        "length": "Post-selector byte order/length unresolved",
+        "summary": "Recovered semantics are operation 0=get or 1=set and item 1=power reaction, 2=power lock, 4=detector enable; the exact successful typed-decoder layout is not yet proven.",
+        "fields": [
+          {"offset": "0", "name": "selector", "type": "u8", "meaning": "Fixed 0x3a; Cmd 0x68 child selector"},
+          {"offset": "unresolved", "name": "operation", "type": "u8", "meaning": "0=get; 1=set"},
+          {"offset": "unresolved", "name": "item", "type": "u8", "meaning": "1=power reaction; 2=leakage power lock; 4=all-detector SensorEnable"},
+          {"offset": "unresolved", "name": "value", "type": "optional u8", "meaning": "Set only: item 1 accepts 0=keep current state, 1=graceful shutdown, 2=force off; items 2 and 4 accept boolean 0 or 1"}
+        ]
+      },
+      "response": {
+        "status": "Partial",
+        "length": "Statically 1 byte for get and 0 bytes for set; successful wire layout not live-confirmed",
+        "summary": "Get returns the selected policy/boolean value; set returns no data.",
+        "fields": [
+          {"offset": "0", "name": "value", "type": "conditional u8", "meaning": "Get only: selected policy or boolean state"}
+        ]
+      },
+      "privilege": "Administrator",
+      "interface": "Cmd 0x68 selector 0x3a over authenticated IPMI",
+      "availability": "Introduced in BMC 01.07.00.06; 0x68 selectors 0x39 and 0xdb retain Add/Delete User and Report Debug Message respectively.",
+      "completion_codes": "0x00 success; 0xC7 typed request-length error; 0xCC invalid operation, item, or value; 0xD5 no leakage-manager object; 0xFF backend exception",
+      "live": true,
+      "live_text": "Safe 01.07.00.06 run: selector-only and candidate get payloads returned 0xC7, confirming dispatch but disproving the initial wire-layout hypothesis; no setter was sent.",
+      "evidence": "OEMLeakageDetectionControl at ELF 0x0f815c; selector tuple at constructor 0x6cc74-0x6cc94; settings objects /com/SMCI/LeakagePowerOption and /com/SMCI/LeakagePowerLock; SensorEnable on /com/supermicro/leakagemanager/*; leakage-manager persists /var/liquid_cooling_state.json.",
+      "confidence": "High for selector ownership, operations, values, backends, and effects; Partial for the exact post-selector request ABI and successful response framing."
+    },
+    {
+      "wire_identity": [48, 112],
+      "id": "30/70 data da",
+      "name": "Enable NVSSVT",
+      "purpose": "Persists a boolean compatibility flag consumed by bmcweb's SmartNIC sensor-collection path for NVIDIA System Software Validation Toolkit integration.",
+      "send": "zipmi raw 0x30 0x70 0xda <0-or-1>",
+      "safety": "state-changing",
+      "safety_note": "Creates or overwrites a persistent configuration flag. It enables NVSSVT-oriented BMC web behavior; it does not itself launch the NVIDIA toolkit.",
+      "execution": "No distinct named route",
+      "request": {
+        "status": "Complete",
+        "length": "Exactly 2 payload bytes including selector",
+        "summary": "Writes boolean 0 or 1 to the persistent NVSSVT flag.",
+        "fields": [
+          {"offset": "0", "name": "selector", "type": "u8", "meaning": "Fixed 0xda; Cmd 0x70 child selector"},
+          {"offset": "1", "name": "enabled", "type": "u8", "meaning": "0=disable; 1=enable"}
+        ]
+      },
+      "response": {
+        "status": "Complete",
+        "length": "Exactly 0 payload bytes",
+        "summary": "Returns no data on success.",
+        "fields": []
+      },
+      "privilege": "Administrator",
+      "interface": "Cmd 0x70 selector 0xda over authenticated IPMI",
+      "availability": "Introduced in BMC 01.07.00.06; selector 0x70:0x3a remains the existing Notify BMC Sensor Start stub.",
+      "completion_codes": "0x00 success; 0xC7 wrong request length; 0xCE value greater than 1; 0xFF flag-file open or write failure",
+      "live": false,
+      "live_text": "No mutating request sent; the flag was absent on the live 01.07.00.06 guest before authentication became unavailable.",
+      "evidence": "EnableNVSSVT at ELF 0x0a2c8c writes ASCII 0 or 1 to /var/configuration/enable-nvssvt.flag; bmcweb SHA-256 56a3489ac4abcba71b99118ae0643f691abb8f0cb7e60a8085ba7bb6af5c6926 is the only other firmware binary referencing that path, in its SmartNIC sensor collection implementation.",
+      "confidence": "High: exact selector, request/response ABI, validation, file side effect, and sole firmware consumer are independently evidenced."
+    }
+  ],
+  "sources": [
+    {"label": "Supermicro X14/H14 BMC/IPMI User Guide", "url": "https://www.supermicro.com/manuals/other/BMC_IPMI_X14_H14.pdf"},
+    {"label": "Intel IPMI v2.0 specification, Master Write-Read", "url": "https://www.intel.com/content/dam/www/public/us/en/documents/specification-updates/ipmi-intelligent-platform-mgt-interface-spec-2nd-gen-v2-0-spec-update.pdf"},
+    {"label": "Linux I2C device interface", "url": "https://www.kernel.org/doc/html/latest/i2c/dev-interface.html"},
+    {"label": "NVIDIA Mission Control NVSSVT documentation", "url": "https://docs.nvidia.com/mission-control/docs/systems-administration-guide/2.2.0/autonomous-hardware-recovery.html"}
+  ]
+}

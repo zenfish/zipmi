@@ -636,3 +636,21 @@ Versions 0.2.10 → 0.2.13, all pushed.
 - Live source-tree proof passed: `channel setaccess 1 8 ipmi=on link=on callin=on privilege=2` returned success and remote readback reported USER with both LAN flags enabled. The `eight` account authenticated with `--max-priv user` and completed `channel info 1`; its `user list` request was correctly denied by the BMC with `0xD4` and zipmi returned a bounded error without a traceback.
 - Default privilege negotiation reuses the authenticated session and falls back only on Set Session Privilege completion code `0x81`; it does not issue extra RAKP logins or depend on ADMIN-only Get User Access. Live X14 proof with `eight` showed ADMIN → OPERATOR → USER and completed `channel info 1`, while explicit `--max-priv admin` still failed with `0x81`.
 - Verification passes all 2,444 tests with two existing Scapy deprecation warnings.
+## 2026-10-02 — Latest X14 command deep dive
+
+- [x] Recover X14 `0x30/0x72` RAKP Control request, response, backend, and security semantics.
+- [x] Recover X14 `0x32/0x01` I2C Master Write/Read request, response, backend, and safety boundaries.
+- [x] Recover latest-firmware selector `0x30/0x68:0x3a` Leakage Detection Control semantics.
+- [x] Recover latest-firmware selector `0x30/0x70:0xda` Enable NVSSVT semantics.
+- [x] Encode firmware-bound contracts and provenance in the X14 source data and generated HTML references.
+- [x] Run focused tests, generator freshness checks, and only proven-safe live probes.
+
+### Review
+
+- BMC 01.07.00.06 adds three top-level registrations (`06/02` Cold Reset, `30/72` RAKP Control, and `32/01` I2C Master Write/Read) and two child selectors (`30/68:3a` Leakage Detection Control and `30/70:da` Enable NVSSVT); no audited selector was deleted or repurposed.
+- RAKP Control is a persistent standard-vs-Supermicro RAKP mode switch backed by `EnableSMCRAKP`; it can deny ordinary IPMI 2.0 client access but does not itself prove the CVE-2021-39296 session-state defect fixed. A safe live get returned disabled/standard mode.
+- I2C Master Write/Read exposes literal `/dev/i2c-N` buses for pure write, pure read, or repeated-start write/read without a handler-local allowlist. The exact ABI and ioctl behavior are closed; only a deliberately short live request was sent, returning `0xC7` without touching a device.
+- Leakage Detection Control changes liquid-leak power reaction, power lock, or all-detector enable state. Its selector, operations, values, D-Bus backends, and effects are closed, while the exact post-selector typed-decoder byte layout remains honestly Partial after candidate safe gets returned `0xC7`; no setter was sent.
+- Enable NVSSVT writes `/var/configuration/enable-nvssvt.flag`; bmcweb consumes it in SmartNIC sensor collection for NVIDIA System Software Validation Toolkit integration. It does not launch NVSSVT itself, and no mutating live request was sent.
+- The generated reference now contains 248 operations and the compact table 119 registrations. The opaque `Primary provider SHA-256` / `All provider SHA-256` presentation labels were removed; exact binary hashes remain attached to command evidence where they establish provenance.
+- Proof: 22 focused X14 tests and all 2,446 tests pass (two pre-existing Scapy deprecation warnings); JSON parse, generator freshness, `git diff --check`, and desktop/mobile Chromium rendering pass.

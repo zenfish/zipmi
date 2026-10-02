@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shlex
 import sys
 from pathlib import Path
@@ -30,6 +31,8 @@ REFERENCE = ROOT / "docs/supermicro-x14-command-reference.html"
 TABLE = ROOT / "docs/supermicro-x14-command-table.html"
 REFERENCE_ARTIFACT = "b2990741-fae4-4b93-a523-3cc2940fb614 generated"
 TABLE_ARTIFACT = "f5ca7437-fa33-437e-a87e-bc3d1899631b generated"
+LATEST_SOURCE = ROOT / "zipmi/data/sources/supermicro-x14-01070006-additions.json"
+LATEST_CATALOG = json.loads(LATEST_SOURCE.read_text())
 PRIOR_LIVE_RUN = "20260929T004726Z-90bbc3db-d22b-4660-a34b-e64abb8c8016"
 LIVE_RUN = "20260930T225207Z-56f75a49-1b7e-479e-a1f7-6737c59b6d00"
 
@@ -173,6 +176,7 @@ def _operation_rows() -> list[dict]:
                 "live": live, "live_text": live_text,
                 "evidence": command["evidence"], "confidence": command["confidence"],
             })
+    rows.extend(LATEST_CATALOG["operation_additions"])
     return rows
 
 
@@ -186,43 +190,52 @@ def _registration_identity(row: dict) -> tuple:
 
 
 def _oem_identities() -> set[tuple]:
-    return {
+    identities = {
         _registration_identity(row) for row in X14_REGISTRATIONS
         if row.get("classification") in {"raw", "group", "oem", "oem_iana_0x000157"}
     }
+    identities.update(
+        _registration_identity(row) for row in LATEST_CATALOG["registration_additions"]
+        if row.get("classification") in {"raw", "group", "oem", "oem_iana_0x000157"}
+    )
+    return identities
 
 
 def reference_page() -> dict:
-    providers = X14_CATALOG["auxiliary"]["firmware"]["providers"]
-    provider_hashes = "; ".join(f"{row['name']} {row['sha256']}" for row in providers)
+    latest = LATEST_CATALOG["variant_firmware"]
+    latest_provider = latest["primary_provider"]
     return {
         "artifact_marker": REFERENCE_ARTIFACT,
         "title": "Supermicro X14SBSC-RoT OEM IPMI command reference",
         "scope": (
-            "Firmware-bound contracts for every Supermicro-private, DMTF/DCMI group, RAS, "
-            "and delegated Intel Node Manager operation in BMC firmware 01.01.06.07."
+            "Firmware-bound contracts for the complete BMC 01.01.06.07 catalog plus commands "
+            "introduced in the audited 01.07.00.06 variant."
         ),
         "provenance": [
             ("Target", "Supermicro X14SBSC-RoT / E601MS; AST2600 OpenBMC"),
-            ("Firmware SHA-256", f"<code>{X14_FIRMWARE_SHA256}</code>"),
-            ("Rootfs SHA-256", f"<code>{X14_ROOTFS_SHA256}</code>"),
-            ("Primary provider build ID", f"<code>{X14_PRIMARY_PROVIDER_BUILD_ID}</code>"),
+            ("Baseline firmware SHA-256", f"<code>{X14_FIRMWARE_SHA256}</code> (BMC 01.01.06.07)"),
+            ("Baseline rootfs SHA-256", f"<code>{X14_ROOTFS_SHA256}</code>"),
+            ("Baseline audited provider build ID", f"<code>{X14_PRIMARY_PROVIDER_BUILD_ID}</code>"),
+            ("Latest firmware artifact", f"BMC {latest['version']}; <code>{latest['bundle_artifact_uuid']}</code>; SHA-256 <code>{latest['bundle_sha256']}</code>"),
+            ("Latest rootfs SHA-256", f"<code>{latest['rootfs_sha256']}</code>"),
+            ("Latest audited provider build ID", f"<code>{latest_provider['build_id']}</code>"),
             ("Primary analysis artifact", "<code>0272c7fd-d925-59f2-84fe-599de43926eb</code>"),
             ("Prior semantic-input archive", "<code>851806d6-8607-5cfd-807e-a8191ff9e94a</code> (superseded by current catalog)"),
             ("Current contract catalog", "<code>3687ce16-b26d-58d1-8bae-2fef2643d85d</code>; supersedes <code>b6b01e08-aa1f-5e20-9541-11fa042e10ad</code>"),
             ("Auxiliary analysis artifact", "<code>503c7d17-fa17-5a55-9e43-bba44155ebd5</code>"),
             ("Safe live validation", f"Run <code>{LIVE_RUN}</code>; artifact <code>b2521984-8503-5e08-b60c-7773a8ad7d15</code>; exact named routes on zipmi <code>d63ba59</code>; no mutating request sent"),
             ("Prior dispatch evidence", "<code>26cdea4a-d4ff-55a8-a9c3-d859ddf77af2</code>; retained separately because it includes one state-effect-unknown RAS set request"),
-            ("All provider SHA-256 values", f"<code>{provider_hashes}</code>"),
-            ("Registration closure", "116 executed registrations / 115 unique wire identities; one 0x0a/0x48 collision"),
-            ("OEM/group closure", "66 identities: 52 primary + three RAS + 11 delegated Intel Node Manager"),
-            ("Hidden selector census", "150 primary selectors plus 22 named 0x68/0x28 operations; its 0x00..0x87 range has 20 implemented and 116 rejected values, plus implemented 0xdb and 0xff"),
+            ("Registration closure", "119 executed registrations / 118 unique wire identities in 01.07.00.06; one retained 0x0a/0x48 collision"),
+            ("OEM/group closure", "68 identities in 01.07.00.06: 54 primary + three RAS + 11 delegated Intel Node Manager"),
+            ("Hidden selector census", "152 primary selectors in 01.07.00.06: the 150-command baseline plus Leakage Detection Control and Enable NVSSVT"),
         ],
         "links": [{"label": "Compact Supermicro X14 command table", "href": "supermicro-x14-command-table.html"}],
         "operations": _operation_rows(),
         "commands": sorted({identity[:2] for identity in _oem_identities()}),
         "gaps": (
-            "The five provider registration sets and top-level selector census are closed. The 0x30/0x68 selector 0x28 "
+            "The five baseline provider registration sets and the 01.07.00.06 registration/selector delta are closed. "
+            "Leakage Detection Control's selector, actions, values, D-Bus objects, and effects are recovered, but its exact "
+            "post-selector typed-decoder layout remains Partial after two safe requests returned 0xc7. The 0x30/0x68 selector 0x28 "
             "has 22 named child routes with recovered operand and length rules; several D-Bus action names and variable "
             "result semantics remain unresolved and are marked Partial. Layouts marked Partial have open byte bounds or unresolved "
             "field/behavior meanings. "
@@ -235,16 +248,22 @@ def reference_page() -> dict:
             "and 0xad; a deliberately short 0x51 request proved that family dispatch without reaching its backend, "
             "and a 0xa0 license-status query confirmed the unchanged family. Every complete request was read-only, "
             "no mutating request was sent, and the guest was stopped without restart. Prior run "
-            f"{PRIOR_LIVE_RUN} separately retains the RAS and Intel NM reachability evidence."
+            f"{PRIOR_LIVE_RUN} separately retains the RAS and Intel NM reachability evidence. On the 01.07.00.06 "
+            "variant, a RAKP-control get returned 00, a deliberately short I2C request returned 0xc7, and leakage "
+            "candidate layouts returned 0xc7 without sending a setter. No NVSSVT write or I2C transaction was sent."
         ),
         "sources": [
             '<a href="../zipmi/data/sources/supermicro-x14-contracts.json">Target registration and operation catalog</a>',
+            '<a href="../zipmi/data/sources/supermicro-x14-01070006-additions.json">BMC 01.07.00.06 command additions and evidence</a>',
             '<a href="../zipmi/scapy_ipmi/oem/supermicro_x14.py">Supermicro X14 routes and codecs</a>',
             '<a href="../zipmi/scapy_ipmi/oem/intel.py">Delegated Intel Node Manager routes and codecs</a>',
             '<a href="evidence/20260930T-supermicro-x14-safe-live-validation.json">Safe live route validation</a>',
             '<a href="evidence/20260929T-supermicro-x14-live-dispatch.json">Prior broad dispatch evidence</a>',
             '<a href="https://www.dmtf.org/sites/default/files/standards/documents/DSP0270_1.3.1.pdf">DMTF DSP0270 1.3.1</a>',
             '<a href="https://www.intel.com/content/dam/www/public/us/en/documents/technical-specifications/intel-power-node-manager-v3-spec.pdf">Intel Node Manager 3.0 specification</a>',
+            '<a href="https://www.supermicro.com/manuals/other/BMC_IPMI_X14_H14.pdf">Supermicro X14/H14 BMC/IPMI User Guide</a>',
+            '<a href="https://www.kernel.org/doc/html/latest/i2c/dev-interface.html">Linux I2C device interface</a>',
+            '<a href="https://docs.nvidia.com/mission-control/docs/systems-administration-guide/2.2.0/autonomous-hardware-recovery.html">NVIDIA NVSSVT documentation</a>',
         ],
     }
 
@@ -331,22 +350,37 @@ def compact_page() -> dict:
             "activation": registration["activation"],
             "evidence": f"{registration['provider']}: {evidence}",
         })
+    for registration in LATEST_CATALOG["registration_additions"]:
+        netfn, command = int(registration["netfn"], 0), int(registration["command"], 0)
+        rows.append({
+            "address": f"0x{netfn:02x} / 0x{command:02x}",
+            "qualifier": _compact_qualifier(registration),
+            "handler": registration["handler"],
+            "privilege": registration["privilege_name"],
+            "request": registration["request"],
+            "activation": registration["activation"],
+            "evidence": registration["evidence"],
+        })
+    latest = LATEST_CATALOG["variant_firmware"]
     return {
         "artifact_marker": TABLE_ARTIFACT,
         "title": "Supermicro X14SBSC-RoT compact IPMI provider table",
-        "scope": "One row per executed registration across the five target provider ELFs.",
+        "scope": "One row per executed registration in the 01.01.06.07 baseline plus the audited 01.07.00.06 registration additions.",
         "provenance": [
-            ("Firmware SHA-256", f"<code>{X14_FIRMWARE_SHA256}</code>"),
-            ("Rootfs SHA-256", f"<code>{X14_ROOTFS_SHA256}</code>"),
+            ("Baseline firmware SHA-256", f"<code>{X14_FIRMWARE_SHA256}</code> (BMC 01.01.06.07)"),
+            ("Baseline rootfs SHA-256", f"<code>{X14_ROOTFS_SHA256}</code>"),
+            ("Latest firmware artifact", f"BMC {latest['version']}; <code>{latest['bundle_artifact_uuid']}</code>; SHA-256 <code>{latest['bundle_sha256']}</code>"),
+            ("Latest rootfs SHA-256", f"<code>{latest['rootfs_sha256']}</code>"),
             ("Known collision", "Storage 0x0a/0x48 is registered by two providers"),
         ],
         "metrics": [
-            (116, "Executed registration rows"), (115, "Unique wire identities"),
-            (66, "OEM/group identities"), (150, "Hidden primary selector operations"),
+            (119, "Executed registration rows"), (118, "Unique wire identities"),
+            (68, "OEM/group identities"), (152, "Hidden primary selector operations"),
         ],
         "rows": rows,
         "sources": [
             {"href": "../zipmi/data/sources/supermicro-x14-contracts.json", "label": "Closed target catalog"},
+            {"href": "../zipmi/data/sources/supermicro-x14-01070006-additions.json", "label": "BMC 01.07.00.06 additions"},
             {"href": "supermicro-x14-command-reference.html", "label": "Detailed operation reference"},
             {"href": "evidence/20260930T-supermicro-x14-safe-live-validation.json", "label": "Safe live route validation"},
             {"href": "evidence/20260929T-supermicro-x14-live-dispatch.json", "label": "Prior broad dispatch evidence (one probe may have changed state)"},

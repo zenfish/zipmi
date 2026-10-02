@@ -104,16 +104,24 @@ def test_x14_generated_references_are_closed_and_current():
     assert "not proven to share the D-Bus backend" in reference
     assert "selector 0x79 OEMGetPSUInfo" in table
     assert "10 helper calls with 100 ms sleeps before throwing std::logic_error" in table
-    assert reference.count('<tr data-search="') == 244
-    assert table.count('<tr data-search="') == 116
-    assert "65</strong>Unique NetFn/Cmd addresses" in reference
-    assert "244</strong>Documented operations" in reference
-    assert "187 / 57 / 0 / 0</strong>Request layout:" in reference
-    assert "182 / 62 / 0 / 0</strong>Response layout:" in reference
-    assert "116</strong>Executed registration rows" in table
-    assert "115</strong>Unique wire identities" in table
-    assert "66</strong>OEM/group identities" in table
-    assert "150</strong>Hidden primary selector operations" in table
+    assert reference.count('<tr data-search="') == 248
+    assert table.count('<tr data-search="') == 119
+    assert "67</strong>Unique NetFn/Cmd addresses" in reference
+    assert "248</strong>Documented operations" in reference
+    assert "190 / 58 / 0 / 0</strong>Request layout:" in reference
+    assert "185 / 63 / 0 / 0</strong>Response layout:" in reference
+    assert "119</strong>Executed registration rows" in table
+    assert "118</strong>Unique wire identities" in table
+    assert "68</strong>OEM/group identities" in table
+    assert "152</strong>Hidden primary selector operations" in table
+    assert "RAKP Control" in reference and "EnableSMCRAKP" in reference
+    assert "I2C Master Write/Read" in reference and "I2C_RDWR 0x707" in reference
+    assert "Leakage Detection Control" in reference and "Post-selector byte order/length unresolved" in reference
+    assert "Enable NVSSVT" in reference and "/var/configuration/enable-nvssvt.flag" in reference
+    assert "ipmiAppColdReset" in table and "OEMGetSetRAKPCtrlCmd" in table
+    assert "I2CMasterWriteRead" in table
+    assert "Primary provider SHA-256" not in reference + table
+    assert "All provider SHA-256" not in reference + table
     assert 'id="operation-expand-all"' in reference
     assert 'id="identity-expand-all"' in table
     assert "details[data-bulk-disclosure]" in reference
