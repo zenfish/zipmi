@@ -200,8 +200,6 @@ zipmi sel list
 zipmi sensor list
 zipmi user list                      # access for present channel (0xE)
 zipmi user list 1                    # access as seen on channel 1 (like ipmitool 'user list [channel]')
-python scripts/x14_cve_2021_39296_probe.py -H 10.0.8.14 -U eight --unsafe
-                                     # bounded active-session relabel probe; prompts for password
 zipmi raw 0x06 0x01
 
 # Security probes
@@ -430,9 +428,8 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   registrations and 286 direct/selector operations from the pinned AST2400 provider.
   Named routes enforce recovered bounds and gate every mutating, sensitive,
   disruptive, destructive, or target-unbounded request behind `--unsafe`.
-- **Supermicro X14SBSC-RoT BMC 01.01.06.07**: [firmware-bound OEM reference](docs/supermicro-x14-command-reference.html),
-  [compact provider table](docs/supermicro-x14-command-table.html), and
-  [CVE-2021-39296 active-session relabel writeup](docs/supermicro-x14-cve-2021-39296.html) close 116 executed
+- **Supermicro X14SBSC-RoT BMC 01.01.06.07**: [firmware-bound OEM reference](docs/supermicro-x14-command-reference.html) and
+  [compact provider table](docs/supermicro-x14-command-table.html) close 116 executed
   registrations / 115 unique wire identities across five provider ELFs. The detailed
   reference expands 150 hidden primary selectors and includes the 11 delegated Intel
   Node Manager operations, for 244 documented operation rows. Named routes validate
