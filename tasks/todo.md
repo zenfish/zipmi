@@ -653,3 +653,15 @@ Versions 0.2.10 → 0.2.13, all pushed.
 - Live X14 proof with user `eight` established the previously missing genuine low-privilege precondition: Get User Access returned `0xd4` before relabel; passwordless RAKP1 naming `ADMIN` returned status `0x00` without RAKP3; the same session keys then obtained ADMIN and Get User Access returned `0x00` with data `10420274`.
 - Postcondition checks reported user 8 still enabled at USER privilege, and a fresh USER-capped session was again denied Get User Access with `0xd4`. Evidence is retained in `docs/evidence/20261002T-supermicro-x14-cve-2021-39296-low-privilege-validation.json` (artifact `d1a3cf64-b2e2-5a3f-90ab-35bb82dea182`, SHA-256 `4de7598cf40b64ea6fdd9e41a097688b04cbc85832b8ab7d5d25b954fb56720f`).
 - Verification passes all 2,446 tests with two existing Scapy deprecation warnings.
+
+## 2026-10-02 — CVE-2021-39296 explanatory writeup
+
+- [x] Explain the active-session identity/authorization relabel mechanism.
+- [x] Contrast the blocked setup-session path with the successful active-session path.
+- [x] Preserve exact before/after evidence, target binding, scope limits, and remediation.
+- [x] Link the writeup from the README's Supermicro X14 documentation entry.
+
+### Review
+
+- `docs/supermicro-x14-cve-2021-39296.html` is the human-readable companion to the immutable JSON evidence. It uses the project Tailwind house style and includes a state-transition visualization, exact live transcript, reproduction command, root-cause explanation, confirmed/not-claimed boundaries, target hashes, remediation, and direct artifact links.
+- Browser verification passed at 960×667 and a 390×844 mobile viewport: Tailwind applied, the accessibility structure exposed all eight sections, no horizontal page overflow occurred, and all six local links returned HTTP 200.
