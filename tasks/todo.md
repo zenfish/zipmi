@@ -620,3 +620,21 @@ Versions 0.2.10 → 0.2.13, all pushed.
 - Prompted and explicit passwords share the existing UTF-8 byte-length validation and exact 16/20-byte Set User Password payload builder.
 - Focused parser/effect verification passes 69 tests; the full suite passes 2,427 tests with two existing Scapy deprecation warnings. X14 static inspection confirms its `chpasswd` PAM service includes `common-password`, which updates both `/etc/shadow` and encrypted `/etc/ipmi_pass` through `pam_unix.so` and `pam_ipmisave.so`; direct credential-file editing is unnecessary.
 - The iDRAC10 Set User Password reference now retains the X14 comparison without attributing it to Dell: X14's shipped validator requires 8–20 characters, at least three of four character classes, no boundary spaces, and a password distinct from the username and its reverse. A four-class 13-byte password succeeded live in the 16-byte slot; a policy rejection returned misleading `0xC8`. The note distinguishes IPMI field width from vendor password policy.
+
+## 2026-10-02 — ipmitool-compatible channel setaccess
+
+- [x] Add `channel setaccess CHANNEL USER_ID key=value...` for Set User Access `0x06/0x43`.
+- [x] Preserve unspecified access flags by reading the current `0x44` record first.
+- [x] Keep the existing `channel set-access` command bound to distinct Set Channel Access `0x06/0x40` semantics.
+- [x] Document and regression-test the ipmitool-compatible spelling and payload.
+- [x] Auto-negotiate the highest accepted ADMIN/OPERATOR/USER session privilege when `--max-priv` is omitted.
+- [x] Keep explicit `--max-priv` requests strict for reduced-privilege security testing.
+
+### Review
+
+- X14 live evidence established that user 8 was enabled but initially had link authentication and IPMI messaging disabled with NO ACCESS. Local `ipmitool` accepted USER and ADMIN but rejected CALLBACK with `0xCC`; after USER access was set, the record reported both LAN flags enabled.
+- The new command accepts `callin`, `ipmi`, and `link` as `on|off`, plus named or numeric IPMI privilege levels. It validates every assignment before opening a session, reads the current record once, preserves omitted fields, and sends one Set User Access request.
+- `user list` now decodes raw `0x44`/`0x46` responses and validates their lengths, so a completion-only success response is reported as a protocol error instead of escaping as Scapy's `AttributeError: max_user_count`.
+- Live source-tree proof passed: `channel setaccess 1 8 ipmi=on link=on callin=on privilege=2` returned success and remote readback reported USER with both LAN flags enabled. The `eight` account authenticated with `--max-priv user` and completed `channel info 1`; its `user list` request was correctly denied by the BMC with `0xD4` and zipmi returned a bounded error without a traceback.
+- Default privilege negotiation reuses the authenticated session and falls back only on Set Session Privilege completion code `0x81`; it does not issue extra RAKP logins or depend on ADMIN-only Get User Access. Live X14 proof with `eight` showed ADMIN → OPERATOR → USER and completed `channel info 1`, while explicit `--max-priv admin` still failed with `0x81`.
+- Verification passes all 2,444 tests with two existing Scapy deprecation warnings.

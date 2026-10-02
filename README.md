@@ -251,7 +251,8 @@ Full list of things zipmi understands
 `-H/-U/-P` host/user/pass, `-K` raw RAKP key, `-C` cipher, `-A` auth, `-I lan|lanplus`,
 `-t` timeout, `-v`/`-d` wire trace, `--palette`, **`--json`** (emit any command's
 result as JSON to stdout — text stays the default), **`--max-priv`**
-`{callback,user,operator,admin}` (cap the session's requested privilege).
+`{callback,user,operator,admin}` (require an exact privilege; without it zipmi
+tries admin, then operator, then user on the same authenticated session).
 
 ```
 mc       {info, reset cold|warm, selftest, guid, watchdog {get,reset,off},
@@ -271,6 +272,9 @@ user     {list [channel], set-name, enable, disable, set-password,
 user-matrix list [--all] [--per-priv] [--findings]
                  # full user × channel privilege/auth/cipher grid (read-only)
 channel  {info [chan|all], getaccess <chan> <uid>,
+          setaccess <chan> <uid> [callin=on|off] [ipmi=on|off]
+                    [link=on|off] [privilege=level],
+          set-access [chan] [--access mode] [--priv-limit level],
           payload-support [chan], payload-version [chan]}
 bridging {info [chan|all], privesc [chan|all]}
                  # info = Send Message reach map (medium, bridgeable, IPMB

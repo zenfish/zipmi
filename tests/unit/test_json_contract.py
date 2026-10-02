@@ -980,6 +980,66 @@ def test_channel_set_access_nvram_disabled(monkeypatch):
     assert s.sent == [(0x06, 0x40, bytes([0x0E, 0x80, 0x84]))]
 
 
+def test_channel_setaccess_preserves_unspecified_flags(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_setaccess
+    # Current: callback-only + link off + IPMI off + no-access.
+    s = _S({
+        (0x06, 0x44): (0x00, bytes([0x10, 0x42, 0x00, 0x4F])),
+        (0x06, 0x43): (0x00, b""),
+    })
+    rc, d = _run(monkeypatch, cmd_channel_setaccess, s, channel=1, user_id=8,
+                 settings=[("ipmi", True), ("privilege", 2)])
+    assert rc == 0
+    assert s.sent == [
+        (0x06, 0x44, b"\x01\x08"),
+        (0x06, 0x43, b"\xd1\x08\x02\x00"),
+    ]
+    assert d == {"ok": True, "channel": 1, "user_id": 8, "callin": False,
+                 "link": False, "ipmi": True, "privilege": 2}
+
+
+def test_channel_setaccess_all_flags_on_user_privilege(monkeypatch):
+    from zipmi.cli.zipmi import cmd_channel_setaccess
+    s = _S({
+        (0x06, 0x44): (0x00, bytes([0x10, 0x42, 0x00, 0x0F])),
+        (0x06, 0x43): (0x00, b""),
+    })
+    rc, _ = _run(monkeypatch, cmd_channel_setaccess, s, channel=1, user_id=8,
+                 settings=[("ipmi", True), ("link", True), ("callin", True),
+                           ("privilege", 2)])
+    assert rc == 0
+    assert s.sent[-1] == (0x06, 0x43, b"\xb1\x08\x02\x00")
+
+
+def test_user_list_uses_raw_responses_and_reuses_first_access(monkeypatch):
+    from zipmi.cli.zipmi import cmd_user_list
+    s = _S({
+        (0x06, 0x42, b"\x0e"): (0x00, b"\x01"),
+        (0x06, 0x44, b"\x0e\x01"): (0x00, b"\x02\x42\x01\x34"),
+        (0x06, 0x46, b"\x01"): (0x00, b"ADMIN".ljust(16, b"\x00")),
+        (0x06, 0x44, b"\x0e\x02"): (0x00, b"\x02\x42\x01\x32"),
+        (0x06, 0x46, b"\x02"): (0x00, b"eight".ljust(16, b"\x00")),
+    })
+    rc, d = _run(monkeypatch, cmd_user_list, s, channel="0x0e")
+    assert rc == 0
+    assert d["channel"] == 1
+    assert [u["name"] for u in d["users"]] == ["ADMIN", "eight"]
+    assert s.sent.count((0x06, 0x44, b"\x0e\x01")) == 1
+
+
+def test_user_list_short_access_response_is_bounded_error(monkeypatch, capsys):
+    import zipmi.cli.zipmi as Z
+    s = _S({
+        (0x06, 0x42, b"\x0e"): (0x00, b"\x01"),
+        (0x06, 0x44, b"\x0e\x01"): (0x00, b""),
+    })
+    monkeypatch.setattr(Z, "_open_session", lambda args: s)
+    rc = Z.cmd_user_list(argparse.Namespace(
+        channel="0x0e", json=False, host="test"))
+    assert rc == 1
+    assert "response length=0 (expected 4)" in capsys.readouterr().err
+
+
 def test_pef_set_config_req(monkeypatch):
     from zipmi.cli.zipmi import cmd_pef_set_config
     s = _S({(0x04, 0x12): (0x00, b"")})

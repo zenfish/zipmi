@@ -371,6 +371,7 @@ class Session:
     # cipher_suite (default 3 = HMAC-SHA1 + HMAC-SHA1-96 + AES-CBC-128).
     lanplus: bool = False
     cipher_suite: int | None = 3   # None = auto-discover via Get Channel Cipher Suites
+    auto_priv: bool = False        # fall back to the highest level BMC accepts
 
     transport: Transport = field(init=False)
 
@@ -612,10 +613,23 @@ class Session:
         self.granted_auth = decoded.auth_type
 
     def _set_privilege(self, priv: int) -> None:
-        req = cmds.SetSessionPrivLevelReq(priv=priv)
-        decoded = self.send_cmd(0x06, 0x3B, req)
-        self.granted_priv = decoded.priv
-        # via comp_code check.
+        names = {2: "user", 3: "operator", 4: "administrator"}
+        attempts = range(priv, 1, -1) if self.auto_priv and priv > 2 else (priv,)
+        for requested in attempts:
+            try:
+                req = cmds.SetSessionPrivLevelReq(priv=requested)
+                decoded = self.send_cmd(0x06, 0x3B, req)
+                self.granted_priv = decoded.priv
+                if requested != priv:
+                    _msg.info(f"using {names[requested]} session privilege")
+                return
+            except IPMIError as e:
+                if not self.auto_priv or e.comp_code != 0x81 or requested == 2:
+                    raise
+                _msg.info(
+                    f"{names[requested]} session privilege unavailable; "
+                    f"trying {names[requested - 1]}"
+                )
 
     # -- IPMI 2.0 RMCP+ (lanplus) ------------------------------------------
 

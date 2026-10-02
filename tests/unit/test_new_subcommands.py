@@ -15,6 +15,15 @@ def _func_name(argv: list[str]) -> str:
     return parse_cli(argv).func.__name__
 
 
+def test_max_priv_default_is_auto_but_explicit_value_is_strict():
+    default = parse_cli(["-H", "x", "mc", "info"])
+    explicit = parse_cli(["-H", "x", "--max-priv", "admin", "mc", "info"])
+
+    assert default.max_priv == explicit.max_priv == "admin"
+    assert default.max_priv_explicit is False
+    assert explicit.max_priv_explicit is True
+
+
 def test_sel_clear_dispatches():
     assert _func_name(["-H", "x", "sel", "clear"]) == "cmd_sel_clear"
 
@@ -136,6 +145,34 @@ def test_channel_getaccess_dispatch():
     assert args.func.__name__ == "cmd_channel_getaccess"
     assert args.channel == 1
     assert args.user_id == 2
+
+
+def test_channel_setaccess_dispatches_ipmitool_syntax():
+    args = parse_cli(["-H", "x", "channel", "setaccess", "1", "8",
+                      "ipmi=on", "link=on", "callin=on", "privilege=2"])
+    assert args.func.__name__ == "cmd_channel_setaccess"
+    assert args.channel == 1
+    assert args.user_id == 8
+    assert dict(args.settings) == {
+        "ipmi": True, "link": True, "callin": True, "privilege": 2,
+    }
+
+
+@pytest.mark.parametrize("setting", [
+    "ipmi=yes", "bogus=on", "privilege=6", "privilege=bogus", "ipmi",
+])
+def test_channel_setaccess_rejects_invalid_setting(setting, capsys):
+    with pytest.raises(SystemExit):
+        parse_cli(["-H", "x", "channel", "setaccess", "1", "8", setting])
+
+
+@pytest.mark.parametrize(("channel", "user_id"), [
+    ("16", "8"), ("-1", "8"), ("1", "0"), ("1", "64"),
+])
+def test_channel_setaccess_rejects_out_of_range_identity(channel, user_id, capsys):
+    with pytest.raises(SystemExit):
+        parse_cli(["-H", "x", "channel", "setaccess", channel, user_id,
+                   "privilege=user"])
 
 
 def test_session_info_default_active():

@@ -73,8 +73,6 @@ from ..scapy_ipmi.commands import (
     GetSensorThresholdReq,
     GetSerialConfigReq,
     GetSystemBootOptionsReq,
-    GetUserAccessReq,
-    GetUserNameReq,
     MasterWriteReadReq,
     ReadFRUDataReq,
     SetSerialConfigReq,
@@ -195,8 +193,9 @@ def add_globals(parser: argparse.ArgumentParser, *, suppress: bool) -> None:
     parser.add_argument("--max-priv",
                         choices=["callback", "user", "operator", "admin"],
                         default=d("admin"),
-                        help="cap the session's requested privilege (RAKP role / "
-                             "IPMI 1.5 max priv). Default admin. Lower it to run "
+                        help="require this exact session privilege (RAKP role / "
+                             "IPMI 1.5 max priv). Default auto-negotiates the "
+                             "highest of admin, operator, or user. Set it to run "
                              "any command at reduced privilege — e.g. to test "
                              "whether bridging escalates an operator session.")
     parser.add_argument("-V", "--version", action="version",
@@ -222,11 +221,16 @@ def parse_cli(argv: list[str] | None = None) -> argparse.Namespace:
     # allow_abbrev=False so the globals pre-pass strips only EXACT global flags.
     # Otherwise argparse prefix-matching eats a subcommand arg that is a prefix
     # of a global — e.g. `--time` (sdr set-time) was swallowed as `--timeout`.
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
     pre = argparse.ArgumentParser(add_help=False, allow_abbrev=False)
     add_globals(pre, suppress=False)
-    ns, rest = pre.parse_known_args(argv)
+    ns, rest = pre.parse_known_args(raw_argv)
     parser = build_parser()
     parser.parse_args(rest, namespace=ns)
+    ns.max_priv_explicit = any(
+        arg == "--max-priv" or arg.startswith("--max-priv=")
+        for arg in raw_argv
+    )
     return ns
 
 
@@ -305,6 +309,7 @@ def _open_session(args: argparse.Namespace) -> Session:
         cipher_suite=args.cipher,
     )
     s.priv = PRIV_LEVELS.get(getattr(args, "max_priv", "admin") or "admin", 0x04)
+    s.auto_priv = not getattr(args, "max_priv_explicit", False)
     s.transport.port = args.port
     s.transport.retries = args.retries
     _apply_trace(s.transport, args)
@@ -1201,24 +1206,32 @@ def cmd_user_list(args: argparse.Namespace) -> int:
             cc, cd = s.send_raw(0x06, 0x42, bytes([0x0E]))
             if cc == 0x00 and cd:
                 actual_ch = cd[0] & 0x0F
-        ua1 = s.send_cmd(0x06, 0x44, GetUserAccessReq(channel=req_ch, user_id=1))
-        max_users = ua1.max_user_count & 0x3F
-        enabled_count = ua1.enabled_user_count & 0x3F
+        cc, ua1 = s.send_raw(0x06, 0x44, bytes([req_ch & 0x0F, 1]))
+        if cc != 0x00 or len(ua1) < 4:
+            _msg.error(f"Get User Access failed: cc=0x{cc:02x}, "
+                       f"response length={len(ua1)} (expected 4)")
+            return 1
+        max_users = ua1[0] & 0x3F
+        enabled_count = ua1[1] & 0x3F
         for uid in range(1, max_users + 1):
-            try:
-                ua = s.send_cmd(0x06, 0x44,
-                                GetUserAccessReq(channel=req_ch, user_id=uid))
-                un = s.send_cmd(0x06, 0x46, GetUserNameReq(user_id=uid))
-            except Exception as e:
-                _msg.warn(f"user {uid}: {e}")
+            cc, ua = ((0x00, ua1) if uid == 1 else
+                      s.send_raw(0x06, 0x44, bytes([req_ch & 0x0F, uid & 0x3F])))
+            if cc != 0x00 or len(ua) < 4:
+                _msg.warn(f"user {uid}: Get User Access cc=0x{cc:02x}, "
+                          f"response length={len(ua)}")
                 continue
-            name = bytes(un.user_name).rstrip(b"\x00").decode("utf-8", errors="replace") or "<null>"
-            d = decode_user_access(int(ua.user_access))
+            cc, un = s.send_raw(0x06, 0x46, bytes([uid & 0x3F]))
+            if cc != 0x00 or len(un) < 16:
+                _msg.warn(f"user {uid}: Get User Name cc=0x{cc:02x}, "
+                          f"response length={len(un)}")
+                continue
+            name = un[:16].rstrip(b"\x00").decode("utf-8", errors="replace") or "<null>"
+            d = decode_user_access(ua[3])
             users.append({
                 "id": uid, "name": name, "priv": d["priv"],
                 "ipmi_msg": d["ipmi_msg"], "link_auth": d["link_auth"],
                 "callback_restricted": d["callback_restricted"],
-                "enabled": EN[(int(ua.fixed_name_users) >> 6) & 0x3],
+                "enabled": EN[(ua[1] >> 6) & 0x3],
             })
     result = {"channel": actual_ch, "channel_is_present": req_ch == 0x0E,
               "max_user_count": max_users, "enabled_user_count": enabled_count,
@@ -1244,6 +1257,53 @@ PRIV_LEVELS: dict[str, int] = {
     "oem":       0x05,
     "no-access": 0x0F,
 }
+
+
+def _channel_setaccess_setting(text: str) -> tuple[str, bool | int]:
+    """Parse one ipmitool-style channel setaccess key=value argument."""
+    if "=" not in text:
+        raise argparse.ArgumentTypeError(f"expected key=value, got {text!r}")
+    key, value = text.lower().split("=", 1)
+    if key in {"callin", "ipmi", "link"}:
+        if value not in {"on", "off"}:
+            raise argparse.ArgumentTypeError(f"{key} must be on or off")
+        return key, value == "on"
+    if key == "privilege":
+        if value in PRIV_LEVELS:
+            return key, PRIV_LEVELS[value]
+        try:
+            privilege = int(value, 0)
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(
+                "privilege must be callback, user, operator, admin, oem, "
+                "no-access, or 1/2/3/4/5/15") from exc
+        if privilege not in PRIV_LEVELS.values():
+            raise argparse.ArgumentTypeError(
+                "privilege must be callback, user, operator, admin, oem, "
+                "no-access, or 1/2/3/4/5/15")
+        return key, privilege
+    raise argparse.ArgumentTypeError(
+        f"unknown setting {key!r}; expected callin, ipmi, link, or privilege")
+
+
+def _channel_number(text: str) -> int:
+    try:
+        value = int(text, 0)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("channel must be an integer from 0 to 15") from exc
+    if not 0 <= value <= 0x0F:
+        raise argparse.ArgumentTypeError("channel must be an integer from 0 to 15")
+    return value
+
+
+def _user_id(text: str) -> int:
+    try:
+        value = int(text, 0)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("user id must be an integer from 1 to 63") from exc
+    if not 1 <= value <= 0x3F:
+        raise argparse.ArgumentTypeError("user id must be an integer from 1 to 63")
+    return value
 
 
 def cmd_user_set_name(args: argparse.Namespace) -> int:
@@ -1776,6 +1836,50 @@ def cmd_channel_getaccess(args: argparse.Namespace) -> int:
     print(f"  Link authentication: {'on' if link_auth else 'off'}")
     print(f"  Callin/callback    : {'on' if callin else 'off'}")
     print(f"  Privilege level    : {priv_name}")
+    return 0
+
+
+def cmd_channel_setaccess(args: argparse.Namespace) -> int:
+    """Set per-user channel access (0x06/0x43), ipmitool-compatible syntax."""
+    requested = dict(args.settings)
+    channel = args.channel & 0x0F
+    user_id = args.user_id & 0x3F
+    with _open_session(args) as s:
+        cc, data = s.send_raw(0x06, 0x44, bytes([channel, user_id]))
+        if cc != 0x00 or len(data) < 4:
+            _msg.error(f"unable to get current user access: cc=0x{cc:02x}")
+            return 1
+
+        current = data[3]
+        callback_restricted = bool(current & 0x40)
+        link_auth = bool(current & 0x20)
+        ipmi_messaging = bool(current & 0x10)
+        privilege = current & 0x0F
+
+        if "callin" in requested:
+            callback_restricted = not requested["callin"]
+        if "link" in requested:
+            link_auth = requested["link"]
+        if "ipmi" in requested:
+            ipmi_messaging = requested["ipmi"]
+        if "privilege" in requested:
+            privilege = requested["privilege"]
+
+        access = (0x80 | (0x40 if callback_restricted else 0)
+                  | (0x20 if link_auth else 0)
+                  | (0x10 if ipmi_messaging else 0) | channel)
+        payload = bytes([access, user_id, privilege, 0x00])
+        cc, _ = s.send_raw(0x06, 0x43, payload)
+        if cc != 0x00:
+            _msg.error(f"cc=0x{cc:02x}")
+            return 1
+
+    result = {"ok": True, "channel": channel, "user_id": user_id,
+              "callin": not callback_restricted, "link": link_auth,
+              "ipmi": ipmi_messaging, "privilege": privilege}
+    if emit(args, result):
+        return 0
+    print(f"Set User Access (channel {channel} id {user_id}) successful")
     return 0
 
 
@@ -6090,6 +6194,15 @@ def build_parser() -> argparse.ArgumentParser:
     chn_ga.add_argument("channel", type=lambda s: int(s, 0))
     chn_ga.add_argument("user_id", type=int)
     chn_ga.set_defaults(func=cmd_channel_getaccess)
+    chn_sua = chn_sub.add_parser(
+        "setaccess", help="Set per-user channel access (§22.26; ipmitool syntax)")
+    chn_sua.add_argument("channel", type=_channel_number)
+    chn_sua.add_argument("user_id", type=_user_id)
+    chn_sua.add_argument(
+        "settings", nargs="+", type=_channel_setaccess_setting,
+        metavar="key=value",
+        help="callin=on|off, ipmi=on|off, link=on|off, privilege=level")
+    chn_sua.set_defaults(func=cmd_channel_setaccess)
     chn_sa = chn_sub.add_parser("set-access", help="Set Channel Access (§22.22)")
     chn_sa.add_argument("channel", nargs="?", default="0x0E",
                         help="channel number (default 0x0E = this channel)")

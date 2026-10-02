@@ -14,6 +14,9 @@ RELATED  zipmi/scapy_ipmi/crypto.py, zipmi/scapy_ipmi/commands.py
 
 from __future__ import annotations
 
+import pytest
+
+from zipmi.core import IPMIError
 from zipmi.scapy_ipmi.commands import (
     ActivateSessionReq,
     ActivateSessionResp,
@@ -127,3 +130,42 @@ def test_set_session_priv_records_effective_level():
     session.send_cmd = lambda *_: SetSessionPrivLevelResp(b"\x00\x02")
     session._set_privilege(0x02)
     assert session.granted_priv == 0x02
+
+    session.send_cmd = lambda *_: SetSessionPrivLevelResp(b"\x00\x01")
+    session._set_privilege(0x01)
+    assert session.granted_priv == 0x01
+
+
+def test_set_session_priv_auto_falls_back_on_exceeds_user_limit():
+    """Default CLI policy finds the highest level without reopening RAKP."""
+    from zipmi.core import Session
+
+    attempted = []
+    session = Session("127.0.0.1", None, None, auto_priv=True)
+
+    def send_cmd(_netfn, _cmd, req):
+        attempted.append(req.priv)
+        if req.priv > 2:
+            raise IPMIError("exceeds user privilege", comp_code=0x81)
+        return SetSessionPrivLevelResp(b"\x00\x02")
+
+    session.send_cmd = send_cmd
+    session._set_privilege(0x04)
+
+    assert attempted == [4, 3, 2]
+    assert session.granted_priv == 2
+
+
+def test_set_session_priv_explicit_request_does_not_fall_back():
+    """An explicit --max-priv remains a strict security-test boundary."""
+    from zipmi.core import Session
+
+    session = Session("127.0.0.1", None, None)
+
+    def deny(*_):
+        raise IPMIError("exceeds user privilege", comp_code=0x81)
+
+    session.send_cmd = deny
+
+    with pytest.raises(IPMIError, match="exceeds user privilege"):
+        session._set_privilege(0x04)
