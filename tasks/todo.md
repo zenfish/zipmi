@@ -638,3 +638,18 @@ Versions 0.2.10 → 0.2.13, all pushed.
 - Live source-tree proof passed: `channel setaccess 1 8 ipmi=on link=on callin=on privilege=2` returned success and remote readback reported USER with both LAN flags enabled. The `eight` account authenticated with `--max-priv user` and completed `channel info 1`; its `user list` request was correctly denied by the BMC with `0xD4` and zipmi returned a bounded error without a traceback.
 - Default privilege negotiation reuses the authenticated session and falls back only on Set Session Privilege completion code `0x81`; it does not issue extra RAKP logins or depend on ADMIN-only Get User Access. Live X14 proof with `eight` showed ADMIN → OPERATOR → USER and completed `channel info 1`, while explicit `--max-priv admin` still failed with `0x81`.
 - Verification passes all 2,444 tests with two existing Scapy deprecation warnings.
+
+## 2026-10-02 — CVE-2021-39296 genuine USER-session validation
+
+- [x] Preserve the successful active-session relabel runner as a bounded repository script.
+- [x] Abort unless ADMIN privilege and the ADMIN-only read are denied before relabeling.
+- [x] Send only one sessionless RAKP1 and explicitly omit RAKP3.
+- [x] Reuse the original USER session keys for the post-transition ADMIN oracle.
+- [x] Confirm the stored account remains USER after the exploit session closes.
+
+### Review
+
+- `scripts/x14_cve_2021_39296_probe.py` uses zipmi's existing protected-session implementation and requires `--unsafe`. It performs no persistent writes, denial-of-service payload, or memory-read chain.
+- Live X14 proof with user `eight` established the previously missing genuine low-privilege precondition: Get User Access returned `0xd4` before relabel; passwordless RAKP1 naming `ADMIN` returned status `0x00` without RAKP3; the same session keys then obtained ADMIN and Get User Access returned `0x00` with data `10420274`.
+- Postcondition checks reported user 8 still enabled at USER privilege, and a fresh USER-capped session was again denied Get User Access with `0xd4`. Evidence is retained in `docs/evidence/20261002T-supermicro-x14-cve-2021-39296-low-privilege-validation.json` (artifact `d1a3cf64-b2e2-5a3f-90ab-35bb82dea182`, SHA-256 `4de7598cf40b64ea6fdd9e41a097688b04cbc85832b8ab7d5d25b954fb56720f`).
+- Verification passes all 2,446 tests with two existing Scapy deprecation warnings.

@@ -200,6 +200,8 @@ zipmi sel list
 zipmi sensor list
 zipmi user list                      # access for present channel (0xE)
 zipmi user list 1                    # access as seen on channel 1 (like ipmitool 'user list [channel]')
+python scripts/x14_cve_2021_39296_probe.py -H 10.0.8.14 -U eight --unsafe
+                                     # bounded active-session relabel probe; prompts for password
 zipmi raw 0x06 0x01
 
 # Security probes
