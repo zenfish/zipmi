@@ -448,8 +448,11 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   disruptive, destructive, or unresolved operation behind `--unsafe`.
 - **HPE Cray XD670 BMC v1.27**: [firmware-bound OEM reference](docs/hpe-xd670-command-reference.html)
   and [compact registration table](docs/hpe-xd670-command-table.html) retain 143 exact-image
-  registrations / 142 unique addresses / 141 effective commands. Four reviewed read-only routes are
-  executable; every unaudited, variable, or shadowed handler fails closed. The core
+  registrations / 142 unique addresses / 141 effective commands. The evidence layer retains
+  55 closed core request paths, 30 selector analyses, and 25 proven reusable YAFU wire layouts
+  without inventing a global semantic-operation count. Four reviewed read-only routes are
+  executable; every incomplete or unsafe
+  execution contract fails closed. The core
   `AMIYAFUStateless` registration wins the `0x32/0x2c` collision, while the shadowed Redis
   writer remains documented.
 - **NVIDIA GB200 NVL OpenBMC**: [firmware-bound OEM reference](docs/nvidia-gb200-command-reference.html)

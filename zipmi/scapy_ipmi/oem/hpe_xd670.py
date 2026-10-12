@@ -8,6 +8,13 @@ import hashlib
 import json
 from pathlib import Path
 
+from .ami_contracts import (
+    AMI_HANDLER_CONTRACTS,
+    AMI_NORMALIZED_WIRE_CONTRACTS,
+    HPE_XD670_CORE_REQUEST_PATHS,
+    HPE_XD670_SELECTOR_ANALYSES,
+    HPE_XD670_TARGET_OVERLAYS,
+)
 from ._registry import register
 
 
@@ -46,6 +53,21 @@ _effective = {
     key: row for key, row in _address_owners.items()
     if not row["active_if_enabled"].startswith("no")
 }
+_overlays = {
+    (_number(row["netfn"]), _number(row["command"])): row
+    for row in HPE_XD670_TARGET_OVERLAYS
+}
+_core_paths_by_implementation: dict[str, list[dict]] = {}
+for _path in HPE_XD670_CORE_REQUEST_PATHS:
+    _core_paths_by_implementation.setdefault(_path["implementation_id"], []).append(_path)
+_selector_analysis_by_implementation = {
+    row["implementation_id"]: row for row in HPE_XD670_SELECTOR_ANALYSES
+}
+_wire_contracts_by_implementation: dict[str, list[dict]] = {}
+for _contract in AMI_NORMALIZED_WIRE_CONTRACTS:
+    _wire_contracts_by_implementation.setdefault(
+        _contract["implementation_id"], []
+    ).append(_contract)
 _duplicates = [row for row in HPE_XD670_REGISTRATIONS
                if (_number(row["wire_netfn"]), _number(row["command"])) == (0x32, 0x2C)]
 if (len(HPE_XD670_REGISTRATIONS), len(_address_owners), len(_effective)) != (143, 142, 141):
@@ -59,10 +81,16 @@ if {(row["handler"], row["duplicate_status"]) for row in _duplicates} != {
     ("AMIOemSetRedisDB", "loser to built-in AMIYAFUStateless"),
 }:
     raise RuntimeError("HPE XD670 0x32/0x2c precedence is not closed")
+if set(_overlays) != set(_effective):
+    raise RuntimeError("HPE XD670 target overlays do not cover the effective catalog")
+if any(_overlays[key]["handler"] != row["handler"] for key, row in _effective.items()):
+    raise RuntimeError("HPE XD670 target overlay handler mismatch")
 
 
 def _command(key: tuple[int, int], row: dict[str, str]) -> dict:
     contract = _contracts.get(key)
+    overlay = _overlays[key]
+    implementation = AMI_HANDLER_CONTRACTS[overlay["implementation_id"]]
     request = contract["request"] if contract else None
     prefix = bytes(contract["prefix"]) if contract and contract["prefix"] else None
     return {
@@ -81,9 +109,20 @@ def _command(key: tuple[int, int], row: dict[str, str]) -> dict:
         "live": contract.get("live") if contract else None,
         "prefix": prefix,
         "runnable": contract is not None,
-        "blocked_reason": None if contract else "handler semantics were not reviewed",
+        "blocked_reason": None if contract else "execution contract is incomplete or unsafe",
         "requires_unsafe": contract is None or contract["safety"] != "read-only",
         "registration": row,
+        "implementation_id": overlay["implementation_id"],
+        "implementation_contract": implementation,
+        "closed_core_request_paths": tuple(
+            _core_paths_by_implementation.get(overlay["implementation_id"], ())
+        ),
+        "selector_analysis": _selector_analysis_by_implementation.get(
+            overlay["implementation_id"]
+        ),
+        "normalized_wire_contracts": tuple(
+            _wire_contracts_by_implementation.get(overlay["implementation_id"], ())
+        ),
     }
 
 
@@ -95,4 +134,5 @@ register("hpe-xd670", None, HPE_XD670_CMD_NAMES)
 __all__ = [
     "FIRMWARE_SHA256", "ROOTFS_SHA256", "REGISTRATION_SHA256",
     "HPE_XD670_REGISTRATIONS", "HPE_XD670_COMMANDS", "HPE_XD670_CMD_NAMES",
+    "HPE_XD670_CORE_REQUEST_PATHS", "HPE_XD670_SELECTOR_ANALYSES",
 ]

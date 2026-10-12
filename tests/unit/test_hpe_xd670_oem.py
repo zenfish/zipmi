@@ -14,6 +14,16 @@ from zipmi.scapy_ipmi.oem.hpe_xd670 import (
     HPE_XD670_COMMANDS,
     HPE_XD670_REGISTRATIONS,
 )
+from zipmi.scapy_ipmi.oem.ami_contracts import (
+    AMI_HANDLER_CONTRACTS,
+    AMI_LINEAGE_POLICY,
+    AMI_NORMALIZED_WIRE_CONTRACTS,
+    HPE_XD670_CORE_REQUEST_PATHS,
+    HPE_XD670_DENOMINATOR_POLICY,
+    HPE_XD670_SELECTOR_ANALYSES,
+    HPE_XD670_TARGET_OVERLAYS,
+    contracts_for_handler,
+)
 
 
 ROOT = Path(__file__).parents[2]
@@ -45,6 +55,70 @@ def test_only_reviewed_routes_are_runnable_and_prefix_is_explicit() -> None:
     assert HPE_XD670_COMMANDS[(0x32, 0x2C)]["prefix"] is None
     assert all(row["prefix"] is None for key, row in HPE_XD670_COMMANDS.items()
                if key != (0x32, 0x44))
+
+
+def test_contract_layers_have_unique_provenance_bound_ownership() -> None:
+    assert len(AMI_HANDLER_CONTRACTS) == 141
+    assert len(HPE_XD670_TARGET_OVERLAYS) == 141
+    assert len({row["address"] for row in HPE_XD670_TARGET_OVERLAYS}) == 141
+    assert {row["address"] for row in HPE_XD670_TARGET_OVERLAYS} == {
+        f"0x{netfn:02x}/0x{command:02x}" for netfn, command in HPE_XD670_COMMANDS
+    }
+    assert HPE_XD670_DENOMINATOR_POLICY["global_semantic_operation_count"] is None
+    assert "names alone" in AMI_LINEAGE_POLICY["rule"]
+    for row in HPE_XD670_COMMANDS.values():
+        implementation = row["implementation_contract"]
+        assert implementation["implementation_id"] == row["implementation_id"]
+        assert row["implementation_id"].startswith("sha256:")
+        assert ":symbol:" in row["implementation_id"]
+        assert implementation in contracts_for_handler(row["handler"])
+
+
+def test_normalized_wire_contracts_have_explicit_proof() -> None:
+    assert len(AMI_NORMALIZED_WIRE_CONTRACTS) == 25
+    assert len({row["id"] for row in AMI_NORMALIZED_WIRE_CONTRACTS}) == 25
+    for row in AMI_NORMALIZED_WIRE_CONTRACTS:
+        assert row["implementation_id"] in AMI_HANDLER_CONTRACTS
+        assert row["proof"]
+        assert row["request"] and row["response"]
+        assert row["scope"].startswith("wire fields only")
+
+
+def test_request_paths_preserve_constraints_without_impossible_offsets() -> None:
+    assert len(HPE_XD670_CORE_REQUEST_PATHS) == 55
+    assert len(HPE_XD670_SELECTOR_ANALYSES) == 30
+    assert len({row["implementation_id"] for row in HPE_XD670_SELECTOR_ANALYSES}) == 30
+    assert {status: sum(row["canonical_status"] == status
+                        for row in HPE_XD670_SELECTOR_ANALYSES)
+            for status in ("known", "conditional", "unresolved")} == {
+                "known": 9, "conditional": 3, "unresolved": 18,
+            }
+    by_handler = {row["wire"]["handler"]: row for row in HPE_XD670_SELECTOR_ANALYSES}
+    assert by_handler["AMIGetRISConf"]["closed_acceptance_domain"][
+        "unique_reachable_request_path_count"] == 45
+    assert by_handler["AMISetRISConf"]["closed_acceptance_domain"][
+        "unique_reachable_request_path_count"] == 157
+    assert by_handler["AMIGetRAIDInfo"]["closed_acceptance_domain"][
+        "unique_reachable_request_path_count"] == 87
+    assert by_handler["AMISetFirewall"]["closed_acceptance_domain"][
+        "unique_reachable_request_path_count"] == 72
+    for analysis in HPE_XD670_SELECTOR_ANALYSES:
+        assert analysis["implementation_id"] in AMI_HANDLER_CONTRACTS
+        assert analysis["sharing"]["classification"] != "exact-function-identity"
+        assert all(offset <= 0xff for offset in
+                   analysis["request_accesses"]["proven_offsets"])
+        assert len({path["path_id"] for path in analysis["paths"]}) == len(analysis["paths"])
+        for path in analysis["paths"]:
+            for constraint in path["constraints"]:
+                assert constraint["control_site"]
+                assert 0 <= constraint["request_offset"] <= 0xff
+        acceptance = analysis["closed_acceptance_domain"]
+        if acceptance:
+            assert acceptance["unique_reachable_request_path_count"] > 0
+            assert all(path["constraints"] for path in acceptance["paths"])
+    for contract in AMI_HANDLER_CONTRACTS.values():
+        assert all(offset <= 0xff for offset in
+                   contract.get("request", {}).get("handler_observed_byte_offsets", []))
 
 
 def test_reviewed_live_results_preserve_errors_as_errors() -> None:
@@ -81,7 +155,7 @@ def test_reviewed_routes_send_exact_bytes(monkeypatch) -> None:
 def test_unreviewed_route_fails_closed_even_with_unsafe(capsys) -> None:
     args = argparse.Namespace(cmd_name="AMIYAFUStateless", data=[], unsafe=True, json=True)
     assert cmd_oem_run(args, "hpe-xd670") == 2
-    assert "handler semantics were not reviewed" in capsys.readouterr().err
+    assert "execution contract is incomplete or unsafe" in capsys.readouterr().err
 
 
 def test_aliases_parse_and_load() -> None:
@@ -100,11 +174,14 @@ def test_generated_hpe_xd670_documents_are_current() -> None:
     )
     reference = (ROOT / "docs/hpe-xd670-command-reference.html").read_text()
     table = (ROOT / "docs/hpe-xd670-command-table.html").read_text()
-    assert reference.count('<tr data-search="') == 4
+    assert reference.count('<tr data-search="') == 141
     assert table.count('<tr data-search="') == 143
     assert "AMIYAFUStateless wins; AMIOemSetRedisDB is shadowed" in reference
     assert "loser to built-in AMIYAFUStateless" in table
     assert "143 registrations / 142 unique addresses / 141 effective commands" in reference
     assert "141</strong>Effective commands" in reference
+    assert "141</strong>Address contracts" in reference
+    assert "no unsupported global semantic-operation count" in reference
+    assert "selector domain unresolved" in reference
     assert "141</strong>Effective commands" in table
     assert "CC 0xc7" in reference and "CC 0xff" in reference

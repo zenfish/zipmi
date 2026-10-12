@@ -78,7 +78,7 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
 
     metrics = [
         (len(page["commands"]), page.get("command_metric_label", "Unique NetFn/Cmd addresses")),
-        (len(operations), "Documented operations"),
+        (len(operations), page.get("operation_metric_label", "Documented operations")),
         (f'{request_counts["Complete"]} / {request_counts["Partial"]} / {request_counts["Unknown"]} / {request_counts["Conflicting"]}', "Request layout: complete / partial / unknown / conflicting"),
         (f'{response_counts["Complete"]} / {response_counts["Partial"]} / {response_counts["Unknown"]} / {response_counts["Conflicting"]}', "Response layout: complete / partial / unknown / conflicting"),
         (f'{execution_counts["Allowed by default"]} / {execution_counts["Requires --unsafe"]} / {execution_counts["No distinct named route"]}', "Named operation route: default / --unsafe / no distinct route"),

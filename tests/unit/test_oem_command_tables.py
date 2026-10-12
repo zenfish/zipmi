@@ -50,7 +50,9 @@ def test_oem_summary_separates_catalog_names_from_implementation_depth() -> None
     assert "OEM catalog keys gleaned" in readme
     assert "| Catalog keys | Named keys | Decoded / codec / runnable evidence |" in summary
     assert "the payload is decoded, a typed codec exists" in summary
-    assert "current reviewed reference has 4 decoded and runnable routes" in summary
+    assert "141 exact-image address contracts" in summary
+    assert "25 proven reusable YAFU wire layouts" in summary
+    assert "4 reviewed read-only routes are runnable" in summary
     assert "**Open denominator conflict:** legacy generated table has 192 rows" in summary
     assert "119 registrations / 118 identities" in summary
     assert "for 248 documented operation rows" in readme
