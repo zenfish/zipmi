@@ -88,6 +88,9 @@ _VENDOR_ALIAS: dict[str, str] = {
     "advantech": "advantech_asmb787",
     "advantech-asmb787": "advantech_asmb787",
     "asmb787": "advantech_asmb787",
+    "hpe-xd670": "hpe_xd670",
+    "xd670": "hpe_xd670",
+    "megarac-hpe": "hpe_xd670",
     # Supermicro split: X11 (AMI+smcipmitool) vs X14 (AST2600 OpenBMC + SMC OEM).
     "supermicro-x11": "supermicro",
     "supermicro-x10": "supermicro_x10",

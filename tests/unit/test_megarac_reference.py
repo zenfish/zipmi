@@ -69,6 +69,8 @@ def test_megarac_and_yafu_listings_keep_rich_help_and_fail_closed(capsys) -> Non
     assert yafu[(0x32, 0x30)]["requires_unsafe"] is True
     assert yafu[(0x32, 0x01)]["requires_unsafe"] is False
     assert yafu[(0x32, 0x01)]["priv"] is None
+    assert megarac[(0x30, 0x5D)]["tier"] == "mutates"
+    assert megarac[(0x30, 0x5D)]["requires_unsafe"] is True
 
     assert _cmd_oem_help("megarac", "AMIAccessRedisDB") == 0
     help_text = capsys.readouterr().out

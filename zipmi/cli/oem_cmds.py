@@ -51,6 +51,10 @@ VENDORS: dict[str, dict] = {
         "iana": 10297,
         "blurb": "Advantech ASMB-787 — 187 firmware-proven NetFn/Cmd pairs",
     },
+    "hpe-xd670": {
+        "iana": None,
+        "blurb": "HPE Cray XD670 BMC v1.27 — 142 firmware-proven effective OEM addresses",
+    },
     "idrac6": {
         "iana": 674,
         "blurb": "Dell PowerEdge / iDRAC6 (RE'd from iDRAC6 fullfw)",
@@ -193,7 +197,7 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
     if vendor == "idrac10":
         listing = _vendor_listing("idrac10")
         return len(listing), len(listing)
-    if vendor in ("lenovo", "fujitsu", "ieit"):
+    if vendor in ("lenovo", "fujitsu", "ieit", "hpe-xd670"):
         listing = _vendor_listing(vendor)
         return len(listing), len(listing)
     if vendor in ("advantech-asmb787", "supermicro", "supermicro-x11",
@@ -340,6 +344,7 @@ VENDOR_TAG: dict[str, str] = {
     "supermicro-x10": "SmcX10",
     "supermicro-x14": "SmcX14",
     "yafu": "Yafu",
+    "hpe-xd670": "HpeXd670",
 }
 
 
@@ -859,6 +864,31 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
             for key, e in MEGARAC_COMMANDS.items()
         }
         return _normalize_listing(out, "megarac")
+    if vendor == "hpe-xd670":
+        from ..scapy_ipmi.oem.hpe_xd670 import HPE_XD670_COMMANDS
+        out = {
+            key: {
+                "name": entry["name"],
+                "aliases": (entry["handler"],),
+                "priv": entry["privilege"],
+                "desc": entry["purpose"],
+                "live": entry["live"],
+                "missing": False,
+                "prefix": entry["prefix"],
+                "request": entry["request"],
+                "response": entry["response"],
+                "security": entry["side_effects"],
+                "confidence": entry["confidence"],
+                "request_min": entry["request_length"][0],
+                "request_max": entry["request_length"][1],
+                "requires_unsafe": entry["requires_unsafe"],
+                "runnable": entry["runnable"],
+                "blocked_reason": entry["blocked_reason"],
+                "src": entry["registration"]["plugin"],
+            }
+            for key, entry in HPE_XD670_COMMANDS.items()
+        }
+        return _normalize_listing(out, "hpe-xd670")
     if vendor == "ieit":
         from ..scapy_ipmi.oem.ieit import IEIT_COMMANDS
         out = {
@@ -1551,7 +1581,9 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
             )
             return 2
 
-    if vendor in ("intel", "nvidia", "ieit", "supermicro-x10", "supermicro-x14"):
+    if vendor in (
+        "intel", "nvidia", "ieit", "hpe-xd670", "supermicro-x10", "supermicro-x14",
+    ):
         payload_len = len(data_bytes)
         req_min = info.get("request_min")
         req_max = info.get("request_max")
@@ -1669,10 +1701,8 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
                 return 2
 
     if not info.get("runnable", True):
-        _msg.error(
-            f"{info['name']} is a parent dispatch or host-interface-only route; "
-            "no supported LAN execution contract"
-        )
+        reason = info.get("blocked_reason") or "parent dispatch or host-interface-only route"
+        _msg.error(f"{info['name']} is not runnable: {reason}; no supported LAN execution contract")
         return 2
 
     if vendor == "fujitsu":
@@ -1885,7 +1915,7 @@ def _add_vendor_parser(
     sp = parent_sub.add_parser(parser_name, help=blurb, aliases=list(aliases))
     if vendor_key in (
         "advantech-asmb787", "idrac9", "idrac10", "lenovo", "fujitsu",
-        "megarac", "yafu", "intel", "nvidia", "ieit", "supermicro-x10",
+        "megarac", "yafu", "intel", "nvidia", "ieit", "hpe-xd670", "supermicro-x10",
         "supermicro-x14",
     ):
         sp.add_argument(
@@ -1920,6 +1950,7 @@ def _add_all_vendor_parsers(parent_sub) -> None:
     obmc = set(_openbmc_vendor_keys())
     _extra_aliases = {
         "advantech-asmb787": ["advantech", "asmb787"],
+        "hpe-xd670": ["xd670", "megarac-hpe"],
         "megarac": ["ami"],
         "supermicro-x11": ["supermicro"],  # legacy `oem supermicro` → X11
         "lenovo": ["xcc", "imm"],

@@ -1,0 +1,64 @@
+{
+  "artifact_uuid": "bce87023-ae06-472e-ae4b-edc35560eff9",
+  "schema": "zipmi.hpe-xd670.reviewed-contracts.v1",
+  "target": "HPE Cray XD670 BMC v1.27 zBMC guest",
+  "firmware_sha256": "4e85590c2d5f18caf670b916522555347173ac277b098713c889303a7630cb76",
+  "rootfs_sha256": "dd1d664f34ec5a2883fdcb1a10616154b266982a0997e59b3ce385f5f511afe5",
+  "registration_csv_sha256": "c2ed76b6595617ef64370de3295ba055b88d280fa9e8ac416b40f65f10c737cc",
+  "captured_utc": "2026-10-12T20:42:54Z/2026-10-12T20:43:01Z",
+  "zbmc_run_id": "20261012T203124Z-77b23da6-aa05-4c9d-850d-36ad62509d34",
+  "operations": [
+    {
+      "netfn": "0x32",
+      "command": "0xa6",
+      "name": "AMIGetTimeZone",
+      "purpose": "Read the configured BMC time-zone abbreviation.",
+      "prefix": [],
+      "request": {"status": "Complete", "minimum_bytes": 0, "maximum_bytes": 0, "summary": "No request payload.", "fields": []},
+      "response": {"status": "Partial", "minimum_bytes": 0, "maximum_bytes": null, "summary": "Time-zone text; the live target returned ASCII UTC.", "fields": null},
+      "safety": "read-only",
+      "side_effects": "No side effect found in the reviewed getter path.",
+      "confidence": "High for dispatch and live response; response bounds remain unproved.",
+      "live": {"observed": "LIVE-SUCCESS", "completionCode": 0, "responseHex": "555443", "responseText": "UTC"}
+    },
+    {
+      "netfn": "0x32",
+      "command": "0x44",
+      "name": "AMIRemoteDebugGetInfo",
+      "purpose": "Read remote-debug server version and process status using selector 0.",
+      "prefix": [0],
+      "request": {"status": "Complete", "minimum_bytes": 1, "maximum_bytes": 1, "summary": "One-byte selector 0, supplied automatically.", "fields": [{"offset": 0, "name": "selector", "type": "u8", "meaning": "Must be 0x00"}]},
+      "response": {"status": "Partial", "minimum_bytes": 0, "maximum_bytes": null, "summary": "Server information; the live target returned six bytes whose field meanings are not fully decoded.", "fields": null},
+      "safety": "read-only",
+      "side_effects": "Selector 0 tail-calls the reviewed get_server_info path.",
+      "confidence": "High for selector, exact request length, dispatch, and live response.",
+      "live": {"observed": "LIVE-SUCCESS", "completionCode": 0, "responseHex": "010104070000"}
+    },
+    {
+      "netfn": "0x30",
+      "command": "0xe0",
+      "name": "AMIGetPlatformID",
+      "purpose": "Attempt to read the platform identifier.",
+      "prefix": [],
+      "request": {"status": "Complete", "minimum_bytes": 0, "maximum_bytes": 0, "summary": "No request payload according to the registration.", "fields": []},
+      "response": {"status": "Unknown", "minimum_bytes": null, "maximum_bytes": null, "summary": "No success response was captured.", "fields": null},
+      "safety": "read-only",
+      "side_effects": "No side effect found; the live request was rejected before returning data.",
+      "confidence": "High for registration and observed rejection; handler length expectations remain unresolved.",
+      "live": {"observed": "LIVE-REJECTED", "completionCode": 199, "responseHex": "", "note": "Request data length invalid (0xc7), not a successful read."}
+    },
+    {
+      "netfn": "0x32",
+      "command": "0x9d",
+      "name": "AMIGetUBootMemtestStatus",
+      "purpose": "Attempt to read U-Boot memory-test status.",
+      "prefix": [],
+      "request": {"status": "Complete", "minimum_bytes": 0, "maximum_bytes": 0, "summary": "No request payload.", "fields": []},
+      "response": {"status": "Unknown", "minimum_bytes": null, "maximum_bytes": null, "summary": "No success response was captured.", "fields": null},
+      "safety": "read-only",
+      "side_effects": "No side effect found; the live request returned an error completion code.",
+      "confidence": "High for registration and observed error; no successful response semantics are claimed.",
+      "live": {"observed": "LIVE-ERROR", "completionCode": 255, "responseHex": "", "note": "Completion code 0xff (Unspecified), not success."}
+    }
+  ]
+}

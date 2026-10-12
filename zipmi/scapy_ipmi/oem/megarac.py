@@ -259,16 +259,17 @@ MEGARAC_COMMANDS: dict[tuple[int, int], dict] = {
     },
     (0x30, 0x5d): {
         'name': 'AMIGeneratePassword', 'priv': 'Callback', 'module': 'restiface',
-        'tier': SAFE, 'block': 'restiface',
-        'desc': "Generate a random alphanumeric password from /dev/urandom. "
+        'tier': MUTATES, 'block': 'restiface',
+        'desc': "Generate password and PBKDF2 material for the host-interface "
+                "bootstrap flow. The handler may create or update a Redfish "
+                "account asynchronously and delete sessions. "
                 "Priv byte 0x81 = host-interface access, no session auth. "
                 "Gated on WDT presence + OS boot state.",
         'request': "byte length (desired password length)",
         'response': "byte[] random password",
-        'security': "Priv 0x81 (host/no-auth). Only callable when WDT is "
-                    "present and OS is fully booted. Returns raw random bytes "
-                    "from /dev/urandom — no credential leak, but reveals "
-                    "BMC's PRNG state if called repeatedly.",
+        'security': "Priv 0x81 (host/no-auth). Account/session mutation makes "
+                    "this a security-sensitive bootstrap endpoint, not a "
+                    "read-only random-byte generator.",
     },
 
     # ------------------------------------------------------------------
