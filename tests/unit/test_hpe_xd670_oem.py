@@ -21,11 +21,15 @@ ROOT = Path(__file__).parents[2]
 
 def test_catalog_closes_registration_precedence() -> None:
     assert len(HPE_XD670_REGISTRATIONS) == 143
-    assert len(HPE_XD670_COMMANDS) == 142
+    assert len({(row["wire_netfn"], row["command"])
+                for row in HPE_XD670_REGISTRATIONS}) == 142
+    assert len(HPE_XD670_COMMANDS) == 141
     assert sum(row["duplicate_status"] == "unique"
                for row in HPE_XD670_REGISTRATIONS) == 141
     assert HPE_XD670_COMMANDS[(0x32, 0x2C)]["handler"] == "AMIYAFUStateless"
     assert all(row["handler"] != "AMIOemSetRedisDB"
+               for row in HPE_XD670_COMMANDS.values())
+    assert all(row["handler"] != "IncreasePayloadSize"
                for row in HPE_XD670_COMMANDS.values())
     duplicates = [row for row in HPE_XD670_REGISTRATIONS
                   if (row["wire_netfn"], row["command"]) == ("0x32", "0x2c")]
@@ -100,4 +104,6 @@ def test_generated_hpe_xd670_documents_are_current() -> None:
     assert table.count('<tr data-search="') == 143
     assert "AMIYAFUStateless wins; AMIOemSetRedisDB is shadowed" in reference
     assert "loser to built-in AMIYAFUStateless" in table
+    assert "143 registrations / 142 unique addresses / 141 effective commands" in reference
+    assert "141</strong>Effective commands" in table
     assert "CC 0xc7" in reference and "CC 0xff" in reference

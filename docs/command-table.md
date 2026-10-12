@@ -368,14 +368,14 @@ OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
 explicit `zipmi.load_vendor("<vendor>")`.
 
-**<!--OEM-COUNT-->4392<!--/OEM-COUNT--> known commands · <!--OEM-NAMED-COUNT-->4320<!--/OEM-NAMED-COUNT--> named commands**
+**<!--OEM-COUNT-->4391<!--/OEM-COUNT--> known commands · <!--OEM-NAMED-COUNT-->4319<!--/OEM-NAMED-COUNT--> named commands**
 across 13 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
 firmware/source catalogs; a catalog entry does not imply live-hardware testing.
 
 | CLI vendor | IANA | Known | Named | Catalog / source |
 |------------|------|------:|------:|------------------|
 | `advantech-asmb787` | 10297 | 230 | 230 | [ASMB-787 firmware dispatch reference](advantech-asmb787-command-reference.html) |
-| `hpe-xd670` | — | 142 | 142 | [XD670 compact registration table](hpe-xd670-command-table.html) · [reviewed operation reference](hpe-xd670-command-reference.html) |
+| `hpe-xd670` | — | 141 | 141 | [XD670 compact registration table](hpe-xd670-command-table.html) · [reviewed operation reference](hpe-xd670-command-reference.html) |
 | `idrac6` | 674 | 192 | 192 | [iDRAC6 dispatch table](idrac6-command-table.md) |
 | `idrac9` | 674 | 349 | 277 | [iDRAC9 compact firmware table](idrac9-command-table.html) · [operation reference](idrac9-command-reference.html) |
 | `idrac10` | 674 | 581 | 581 | `zipmi/data/sources/idrac10-commands.json` |

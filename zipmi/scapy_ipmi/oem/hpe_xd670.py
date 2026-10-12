@@ -37,15 +37,21 @@ _contracts = {
     (_number(row["netfn"]), _number(row["command"])): row
     for row in _reviewed["operations"]
 }
-_effective = {
+_address_owners = {
     (_number(row["wire_netfn"]), _number(row["command"])): row
     for row in HPE_XD670_REGISTRATIONS
     if not row["duplicate_status"].startswith("loser")
 }
+_effective = {
+    key: row for key, row in _address_owners.items()
+    if not row["active_if_enabled"].startswith("no")
+}
 _duplicates = [row for row in HPE_XD670_REGISTRATIONS
                if (_number(row["wire_netfn"]), _number(row["command"])) == (0x32, 0x2C)]
-if (len(HPE_XD670_REGISTRATIONS), len(_effective)) != (143, 142):
-    raise RuntimeError("expected 143 HPE XD670 registrations / 142 effective addresses")
+if (len(HPE_XD670_REGISTRATIONS), len(_address_owners), len(_effective)) != (143, 142, 141):
+    raise RuntimeError(
+        "expected 143 HPE XD670 registrations / 142 unique addresses / 141 effective commands"
+    )
 if sum(row["duplicate_status"] == "unique" for row in HPE_XD670_REGISTRATIONS) != 141:
     raise RuntimeError("expected 141 unique HPE XD670 registration rows")
 if {(row["handler"], row["duplicate_status"]) for row in _duplicates} != {

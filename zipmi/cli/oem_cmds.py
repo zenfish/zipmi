@@ -53,7 +53,7 @@ VENDORS: dict[str, dict] = {
     },
     "hpe-xd670": {
         "iana": None,
-        "blurb": "HPE Cray XD670 BMC v1.27 — 142 firmware-proven effective OEM addresses",
+        "blurb": "HPE Cray XD670 BMC v1.27 — 141 effective commands / 142 unique addresses",
     },
     "idrac6": {
         "iana": 674,
