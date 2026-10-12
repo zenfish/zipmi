@@ -99,6 +99,7 @@ def reference_page() -> dict:
         "links": [{"label": "Compact registration table", "href": "hpe-xd670-command-table.html"}],
         "operations": operation_rows(),
         "commands": sorted(HPE_XD670_COMMANDS),
+        "command_metric_label": "Effective commands",
         "gaps": ("Only four read-only handlers have reviewed execution contracts. Registration "
                  "metadata selector_prefix_raw is never treated as request data; only the separately "
                  "reviewed 0x32/0x44 selector 0 is auto-prefixed. A registration proves dispatch, "

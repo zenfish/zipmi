@@ -105,5 +105,6 @@ def test_generated_hpe_xd670_documents_are_current() -> None:
     assert "AMIYAFUStateless wins; AMIOemSetRedisDB is shadowed" in reference
     assert "loser to built-in AMIYAFUStateless" in table
     assert "143 registrations / 142 unique addresses / 141 effective commands" in reference
+    assert "141</strong>Effective commands" in reference
     assert "141</strong>Effective commands" in table
     assert "CC 0xc7" in reference and "CC 0xff" in reference

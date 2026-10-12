@@ -77,7 +77,7 @@ def render_reference(page: dict, stylesheet_href: str = "assets/oem-command-refe
     live_count = sum(op["live"] for op in operations)
 
     metrics = [
-        (len(page["commands"]), "Unique NetFn/Cmd addresses"),
+        (len(page["commands"]), page.get("command_metric_label", "Unique NetFn/Cmd addresses")),
         (len(operations), "Documented operations"),
         (f'{request_counts["Complete"]} / {request_counts["Partial"]} / {request_counts["Unknown"]} / {request_counts["Conflicting"]}', "Request layout: complete / partial / unknown / conflicting"),
         (f'{response_counts["Complete"]} / {response_counts["Partial"]} / {response_counts["Unknown"]} / {response_counts["Conflicting"]}', "Response layout: complete / partial / unknown / conflicting"),
