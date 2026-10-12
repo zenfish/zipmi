@@ -6,8 +6,8 @@
 # run: python scripts/update_readme_stats.py   (or `make readme-stats`)
 # related: zipmi.cli.oem_cmds.oem_command_totals, scripts/check_doc_sync.py
 """Rewrite <!--OEM-COUNT-->N<!--/OEM-COUNT--> markers in user-facing docs with the
-live `known` OEM-command total — every discovered dispatch slot (idrac9 counted
-by all 349 known slots, incl. the 72 nameless runtime-bound ones). Computed by
+live OEM catalog-key total. This is an index count, not a decoded-codec or
+runnable-route count. Computed by
 zipmi.cli.oem_cmds.oem_command_totals(), the same code path behind `zipmi oem`,
 so the README can never diverge from the tool."""
 from __future__ import annotations

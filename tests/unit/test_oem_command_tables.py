@@ -40,6 +40,22 @@ def row_count(document: str) -> int:
     return parser.rows
 
 
+def test_oem_summary_separates_catalog_names_from_implementation_depth() -> None:
+    readme = (ROOT / "README.md").read_text()
+    summary = page("command-table.md")
+
+    assert "callable by name, not just raw opcodes" not in readme
+    assert "A catalog name identifies a recovered route" in readme
+    assert "Every field in an implemented packet codec is real" in readme
+    assert "OEM catalog keys gleaned" in readme
+    assert "| Catalog keys | Named keys | Decoded / codec / runnable evidence |" in summary
+    assert "the payload is decoded, a typed codec exists" in summary
+    assert "current reviewed reference has 4 decoded and runnable routes" in summary
+    assert "**Open denominator conflict:** legacy generated table has 192 rows" in summary
+    assert "119 registrations / 118 identities" in summary
+    assert "for 248 documented operation rows" in readme
+
+
 def test_compact_command_tables_are_generated_and_searchable() -> None:
     sys.path.insert(0, str(ROOT / "scripts"))
     from oem_disclosure import DISCLOSURE_BYTES, field

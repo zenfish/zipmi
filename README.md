@@ -3,9 +3,9 @@
 
 zipmi is a pure-Python IPMI/BMC stack — an `ipmitool`-style CLI plus a library where every byte is an inspectable and mangleable object. Built for people/AI (are AIs people yet?) who need to understand, test, or research BMCs, not just run commands.
 
-- **Every IPMI field is real, not an opaque blob.** Dissect, build, corrupt, fuzz, and replay any packet with full byte-level visibility — the thing `ipmitool` and `pyghmi` don't give you. Drop into the middle of a session and ask "what does this byte mean?" or "what if I flip field X?"
+- **Every field in an implemented packet codec is real, not an opaque blob.** Dissect, build, corrupt, fuzz, and replay modeled packets with byte-level visibility — the thing `ipmitool` and `pyghmi` don't give you. Catalog-only OEM payloads stay explicitly raw or partial until decoded. Drop into the middle of a session and ask "what does this byte mean?" or "what if I flip field X?"
 
-- **Deep OEM coverage: <!--OEM-COUNT-->4391<!--/OEM-COUNT--> vendor commands most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html), [AMI MegaRAC/YAFU](docs/megarac-command-reference.html), and 9 OpenBMC vendor flavors — reverse-engineered from firmware and Ghidra, callable by name, not just raw opcodes. The [vanilla OpenBMC baseline](docs/openbmc-vanilla-command-reference.html) separately proves that its OEM set is empty.
+- **Deep OEM research coverage: <!--OEM-COUNT-->4391<!--/OEM-COUNT--> catalog keys most tools/people don't know exist.** Dell iDRAC6/9/10, Lenovo IMM/XCC, [Fujitsu iRMC S6](docs/fujitsu-irmc-s6-command-reference.html), Supermicro X11/X14, [Advantech ASMB-787](docs/advantech-asmb787-command-reference.html), [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html), [AMI MegaRAC/YAFU](docs/megarac-command-reference.html), and 9 OpenBMC vendor flavors are recovered from firmware, source, and Ghidra. A catalog name identifies a recovered route; it does not by itself prove a decoded payload, typed codec, safe execution, or target activation. The [coverage table](docs/command-table.md#oem-netfn-0x30-and-group-oem-0x2e) separates those states. The [vanilla OpenBMC baseline](docs/openbmc-vanilla-command-reference.html) separately proves that its OEM set is empty.
 
 - **Security research batteries included.** Full IPMI 2.0 cipher suites 0–14 + 17, cipher-0 and RAKP-hash checks, unauthenticated `bmc-id` fingerprinting, plus a built-in virtual BMC and fuzzers to test against with no hardware.
 
@@ -18,15 +18,15 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code and ChatGPT's Codex, which worked with me over the last half-year on this project.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->4391<!--/OEM-COUNT--> OEM commands that aren't generally documented gleaned from ghidra, firmware, and legwork. Paired detailed reference / compact table: [Supermicro X10](docs/supermicro-x10-command-reference.html) / [table](docs/supermicro-x10-command-table.html) / [X10→X14 genealogy](docs/supermicro-x10-x14-genealogy.html) · [Supermicro X14](docs/supermicro-x14-command-reference.html) / [table](docs/supermicro-x14-command-table.html) · [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->4391<!--/OEM-COUNT--> OEM catalog keys gleaned from Ghidra, firmware, source, and legwork; decoded/codec/runnable coverage is reported separately. Paired detailed reference / compact table: [Supermicro X10](docs/supermicro-x10-command-reference.html) / [table](docs/supermicro-x10-command-table.html) / [X10→X14 genealogy](docs/supermicro-x10-x14-genealogy.html) · [Supermicro X14](docs/supermicro-x14-command-reference.html) / [table](docs/supermicro-x14-command-table.html) · [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
 
 <details open>
 <summary><h2>What</h2></summary>
 
 An ipmitool-like thing that is also a pure-Python IPMI stack built as 
-Scapy layers. Lets you dissect, build, fuzz, and replay IPMI traffic with 
-full byte-level visibility — every field of every packet is a real Scapy field, 
-not an opaque blob.
+Scapy layers. Lets you dissect, build, fuzz, and replay implemented packet
+codecs with byte-level visibility. Catalog-only OEM payloads remain raw until
+their fields are decoded.
 
 It's *somewhat* compatible with the basics of `ipmitool` (most definitely not all),
 so things like this should work -
@@ -54,9 +54,10 @@ specify "lan" to use IPMI 1.5 or "lanplus" for explicitly using 2.0.
   [docs/command-table.md](docs/command-table.md) is the authoritative list of
   which commands have packet classes (vs `⚡` = CLI verb only).
 - `zipmi.scapy_ipmi.oem.{dell, supermicro, idrac9_generated, dell_generated}`
-  — vendor OEM dispatch tables ingested from prior firmware RE: 192 Dell
-  iDRAC6 entries (full dispatch) + 277 named iDRAC9 handlers (349 known
-  dispatch slots) +
+  — vendor OEM catalogs ingested from prior firmware RE. The iDRAC6 denominator
+  remains open because its legacy 192-row generated table conflicts with the
+  213-slot merged listing / 195-name binary overlay. iDRAC9 currently has 277
+  named keys across 349 catalog keys, plus the
   Supermicro X11 OEM cmd/sub-cmd map + shell-injection attack primitives.
 - `zipmi.attacks.dell` — named, callable Dell attack primitives (PROCHOT
   throttle, power cap, sensor threshold tamper, racadm extended config)
@@ -339,7 +340,7 @@ own catalogue:
 
 ```bash
 zipmi oem                                        # list vendors
-zipmi idrac6                                      # list iDRAC6's 192 cmds (RE'd from fullfw)
+zipmi idrac6                                      # list the current iDRAC6 catalog
 zipmi -H <bmc> dell GetChassisStatus              # run by name (substring match)
 zipmi -H <bmc> oem supermicro UtilRestoreConfig   # `oem <vendor>` form
 zipmi -H <bmc> oem idrac9 maser get               # structured OEM sub-verb (get/set)
@@ -408,17 +409,18 @@ for the listing forms.
 The catalogue header reports two numbers:
 
 ```
-idrac6      IANA 674     192 cmds
+idrac6      IANA 674     legacy count shown; denominator audit open
 idrac9      IANA 674     46 named / 271 known
 supermicro  IANA 10876   65 cmds
 ```
 
-`N named / M known` means M `(NetFn, cmd)` dispatch slots have been
-recovered (from binary RE / vendor docs) but only N cross-reference to
-a human-readable handler name — the rest are runtime-bound stubs that
-appear in the listing as `(unnamed: ...)` with their originating
-dispatch-table name in the description so you can still send raw
-bytes via `zipmi raw`.
+`N named / M known` is a catalog-index statistic: M wire keys have been
+recovered (from binary RE or vendor docs), and N have a human-readable lookup
+name. It is not an implementation or safety count. A named key can still have
+an opaque payload, no typed codec, a target-specific activation gate, or a
+fail-closed route. The per-target reference and the
+[OEM coverage table](docs/command-table.md#oem-netfn-0x30-and-group-oem-0x2e)
+state the decoded, codec, and runnable evidence separately.
 
 Source-of-truth (hahah... well, for some value of truth) per vendor:
 
@@ -428,11 +430,11 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   registrations and 286 direct/selector operations from the pinned AST2400 provider.
   Named routes enforce recovered bounds and gate every mutating, sensitive,
   disruptive, destructive, or target-unbounded request behind `--unsafe`.
-- **Supermicro X14SBSC-RoT BMC 01.01.06.07**: [firmware-bound OEM reference](docs/supermicro-x14-command-reference.html) and
-  [compact provider table](docs/supermicro-x14-command-table.html) close 116 executed
-  registrations / 115 unique wire identities across five provider ELFs. The detailed
-  reference expands 150 hidden primary selectors and includes the 11 delegated Intel
-  Node Manager operations, for 244 documented operation rows. Named routes validate
+- **Supermicro X14SBSC-RoT**: [firmware-bound OEM reference](docs/supermicro-x14-command-reference.html) and
+  [compact provider table](docs/supermicro-x14-command-table.html) close 119 executed
+  registrations / 118 unique wire identities in the audited 01.07.00.06 image. The detailed
+  reference expands 152 hidden primary selectors and includes the 11 delegated Intel
+  Node Manager operations, for 248 documented operation rows. Named routes validate
   recovered bounds and require `--unsafe` for every non-read-only operation; two
   system-interface-only credential/certificate commands are documented but not exposed
   over the LAN CLI.
@@ -483,7 +485,9 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   split and target-specific YAFU activation/privilege remain explicit.
 - **idrac6**: handler symbols recovered from `T710-bmc/bin/fullfw`
   with radare2 auto-analysis (ARM debug-string residue carried function
-  names through the strip). 195 of 213 dispatch slots are now named.
+  names through the strip). The binary overlay currently describes 195 names
+  across 213 slots, while the older generated dispatch table contains 192 rows.
+  That denominator conflict is open; neither count is presented as full coverage.
   See `zipmi/scapy_ipmi/oem/dell_binary_names.py`. The MD-derived
   fallback at `dell_generated.py` is kept for privilege/description
   metadata. Resolution order in `DELL_CMD_NAMES`: hand-curated

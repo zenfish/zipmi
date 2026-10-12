@@ -171,12 +171,11 @@ def _display_verb(vendor: str) -> str:
 
 
 def _vendor_stats(vendor: str) -> tuple[int, int]:
-    """Return (known_dispatch_slots, with_human_name) for vendor.
+    """Return (catalog_keys, keys_with_human_name) for vendor.
 
-    The two numbers diverge on iDRAC9: 271 binary dispatch entries
-    were RE'd out of the .so libs but only 46 cross-reference to a
-    handler symbol with a known name. The rest are runtime-bound
-    stubs, callable but nameless.
+    These are index statistics, not decoded-codec or runnable-route counts.
+    The two numbers diverge on iDRAC9 because recovered binary/runtime keys do
+    not all cross-reference to a human-readable handler name.
     """
     if vendor == "idrac6":
         from ..scapy_ipmi.oem.dell_generated import DELL_DISPATCH
@@ -215,11 +214,11 @@ def _vendor_stats(vendor: str) -> tuple[int, int]:
 
 
 def oem_command_totals() -> tuple[int, int]:
-    """(known, named) OEM command totals across every vendor `zipmi oem` lists.
+    """(catalog keys, named keys) across every vendor `zipmi oem` lists.
 
     `known` sums all known dispatch slots (idrac9 = 349); `named` sums only the
     slots with a handler name (idrac9 = 277). This is the number behind the
-    README coverage line — single source for scripts/update_readme_stats.py and
+    README catalog line — single source for scripts/update_readme_stats.py and
     the doc-sync guard, so it can never drift from the live listing.
     """
     try:                                    # openbmc flavors register lazily

@@ -368,35 +368,43 @@ OEM commands are vendor-specific. zipmi keeps these out of `CMD_PAYLOADS`
 and exposes them only via `zipmi.scapy_ipmi.oem.<vendor>` after an
 explicit `zipmi.load_vendor("<vendor>")`.
 
-**<!--OEM-COUNT-->4391<!--/OEM-COUNT--> known commands · <!--OEM-NAMED-COUNT-->4319<!--/OEM-NAMED-COUNT--> named commands**
-across 13 proprietary catalogs and 9 OpenBMC vendor flavors. These are static
-firmware/source catalogs; a catalog entry does not imply live-hardware testing.
+**<!--OEM-COUNT-->4391<!--/OEM-COUNT--> catalog keys · <!--OEM-NAMED-COUNT-->4319<!--/OEM-NAMED-COUNT--> named keys**
+across 13 proprietary catalogs and 9 OpenBMC vendor flavors. `Catalog keys` and
+`named keys` are lookup/index counts from `_vendor_stats()`; neither means that
+the payload is decoded, a typed codec exists, or the route may be sent. Evidence
+depth below uses operation counts from each target's generated reference and
+keeps raw-only or fail-closed routes explicit.
 
-| CLI vendor | IANA | Known | Named | Catalog / source |
-|------------|------|------:|------:|------------------|
-| `advantech-asmb787` | 10297 | 230 | 230 | [ASMB-787 firmware dispatch reference](advantech-asmb787-command-reference.html) |
-| `hpe-xd670` | — | 141 | 141 | [XD670 compact registration table](hpe-xd670-command-table.html) · [reviewed operation reference](hpe-xd670-command-reference.html) |
-| `idrac6` | 674 | 192 | 192 | [iDRAC6 dispatch table](idrac6-command-table.md) |
-| `idrac9` | 674 | 349 | 277 | [iDRAC9 compact firmware table](idrac9-command-table.html) · [operation reference](idrac9-command-reference.html) |
-| `idrac10` | 674 | 581 | 581 | `zipmi/data/sources/idrac10-commands.json` |
-| `supermicro-x11` | 10876 | 477 | 477 | firmware/JAR-derived catalog |
-| `supermicro-x10` | 10876 | 286 | 286 | [X10 compact provider table](supermicro-x10-command-table.html) · [operation reference](supermicro-x10-command-reference.html) · [X10→X14 genealogy](supermicro-x10-x14-genealogy.html) |
-| `supermicro-x14` | — | 233 | 233 | [X14 compact provider table](supermicro-x14-command-table.html) · [operation reference](supermicro-x14-command-reference.html) |
-| `megarac` | — | 95 | 95 | [MegaRAC/YAFU compact table](megarac-command-table.html) · [operation reference](megarac-command-reference.html) |
-| `yafu` | — | 42 | 42 | AMI YAFU NetFn 0x32 catalog |
-| `ieit` | — | 950 | 950 | [IEIT NF5468M6 compact table](ieit-nf5468m6-command-table.html) · [operation reference](ieit-nf5468m6-command-reference.html) |
-| `lenovo` | 2 | 307 | 307 | `zipmi/data/sources/lenovo-xcc-commands.json` |
-| `fujitsu` | 10368 | 367 | 367 | [iRMC S6 firmware-bound reference](fujitsu-irmc-s6-command-reference.html) |
-| `openbmc` | mixed | 141 | 141 | 9 vendor flavors; [vanilla evb-ast2600 has zero OEM registrations](openbmc-vanilla-command-reference.html) ([table](openbmc-vanilla-command-table.html)) |
+| CLI vendor | IANA | Catalog keys | Named keys | Decoded / codec / runnable evidence | Catalog / source |
+|------------|------|-------------:|-----------:|-------------------------------------|------------------|
+| `advantech-asmb787` | 10297 | 230 | 230 | 462 operations: 145 complete requests, 204 complete responses, 82 verified typed codecs, 192 distinct named routes; 270 raw-only | [ASMB-787 firmware dispatch reference](advantech-asmb787-command-reference.html) |
+| `hpe-xd670` | — | 141 | 141 | Exact dispatch closed; current reviewed reference has 4 decoded and runnable routes; the other 137 fail closed | [XD670 compact registration table](hpe-xd670-command-table.html) · [reviewed operation reference](hpe-xd670-command-reference.html) |
+| `idrac6` | 674 | 192 | 192 | **Open denominator conflict:** legacy generated table has 192 rows; merged listing/binary overlay describes 213 slots and 195 names. No full contract census yet | [iDRAC6 dispatch table](idrac6-command-table.md) |
+| `idrac9` | 674 | 349 | 277 | 276 partial/unknown operation contracts over 58 addresses; no exact typed payload codec; all named routes require `--unsafe` | [iDRAC9 compact firmware table](idrac9-command-table.html) · [operation reference](idrac9-command-reference.html) |
+| `idrac10` | 674 | 581 | 581 | 581 operation rows; 37 complete requests and 218 complete responses; 20 request and 130 response typed codecs; all rows have named routes | [operation reference](idrac10-command-reference.html) · `zipmi/data/sources/idrac10-commands.json` |
+| `supermicro-x11` | 10876 | 477 | 477 | Firmware/JAR catalog only; no target-bound decoded/codec/runnable denominator | firmware/JAR-derived catalog |
+| `supermicro-x10` | 10876 | 286 | 286 | 286 decoded operations with complete request/response framing and named routes; 8 read-only live captures | [X10 compact provider table](supermicro-x10-command-table.html) · [operation reference](supermicro-x10-command-reference.html) · [X10→X14 genealogy](supermicro-x10-x14-genealogy.html) |
+| `supermicro-x14` | — | 233 | 233 | 248 operations from 119 registrations / 118 identities: 190 complete requests, 185 complete responses, 188 codec entries, 241 named routes; 7 raw-only | [X14 compact provider table](supermicro-x14-command-table.html) · [operation reference](supermicro-x14-command-reference.html) |
+| `megarac` | — | 95 | 95 | Catalog-level prose contracts only; NetFn split, target activation, privilege, and exact codecs remain unproved | [MegaRAC/YAFU compact table](megarac-command-table.html) · [operation reference](megarac-command-reference.html) |
+| `yafu` | — | 42 | 42 | Cross-firmware protocol-family catalog; target presence/policy and exact codecs remain target-specific | AMI YAFU NetFn 0x32 catalog |
+| `ieit` | — | 950 | 950 | 950 operations: 700 complete requests, 558 complete responses; validated raw routes, no Scapy payload codecs; one provider collision unresolved | [IEIT NF5468M6 compact table](ieit-nf5468m6-command-table.html) · [operation reference](ieit-nf5468m6-command-reference.html) |
+| `lenovo` | 2 | 307 | 307 | 335 operations: 66 complete requests, 60 complete responses, 74 codec entries, 287 named routes; 48 raw-only | [XCC operation reference](lenovo-xcc-command-reference.html) · `zipmi/data/sources/lenovo-xcc-commands.json` |
+| `fujitsu` | 10368 | 367 | 367 | 355 operations: 22 complete requests, 4 complete responses, 22 selector codecs, 353 named routes; 2 raw-only | [iRMC S6 firmware-bound reference](fujitsu-irmc-s6-command-reference.html) |
+| `openbmc` | mixed | 141 | 141 | Source catalogs vary by provider; NVIDIA GB200 closes 8/8 codecs/routes, while vanilla evb-ast2600 proves zero OEM registrations | 9 vendor flavors; [NVIDIA GB200 reference](nvidia-gb200-command-reference.html) · [vanilla baseline](openbmc-vanilla-command-reference.html) |
 
-Counts use the same `_vendor_stats()` path as `zipmi oem`; run
+The first two count columns use the same `_vendor_stats()` path as `zipmi oem`; run
 `python scripts/update_readme_stats.py` after catalog changes. The doc-sync
-check verifies every row against the live registries.
+check verifies those columns against the live registries. Evidence-depth counts
+come from the linked generated target references and must be updated with them.
 
 ### iDRAC6 breakdown by NetFn
 
-The 192-entry table is auto-generated from the fullfw RE markdown with
+The legacy 192-entry table is auto-generated from the fullfw RE markdown with
 `python -m zipmi.parsers.md_table --markdown`.
+
+This is not currently a closed dispatch denominator: the merged listing and
+binary-name overlay describe 213 slots / 195 names. Reconcile those sources
+before presenting any iDRAC6 count as complete.
 
 By NetFn:
 
