@@ -41,6 +41,19 @@ def _binary_sha256(implementation_id: str) -> str:
     return parts[1]
 
 
+def _proof_reference(path_text: str) -> dict[str, str]:
+    path = Path(path_text)
+    if not path.is_file():
+        raise SystemExit(f"missing normalized-wire proof source: {path}")
+    reference = {"path": path_text, "sha256": _sha256(path)}
+    marker = next((line.split("z-artifact:", 1)[1].strip()
+                   for line in path.read_text(errors="replace").splitlines()[:5]
+                   if "z-artifact:" in line), None)
+    if marker:
+        reference["artifact_uuid"] = marker
+    return reference
+
+
 def _effective(rows: list[dict[str, str]]) -> dict[str, dict[str, str]]:
     owners = {
         _address(row["wire_netfn"], row["command"]): row
@@ -119,7 +132,7 @@ def _core(core: dict) -> tuple[dict[str, dict], list[dict], list[dict], dict[str
                 "request": deepcopy(contract["request"]),
                 "response": deepcopy(contract["response"]),
                 "completion": deepcopy(contract["completion"]),
-                "proof": deepcopy(contract["reuse"]["proof"]),
+                "proof": [_proof_reference(path) for path in contract["reuse"]["proof"]],
                 "scope": contract["reuse"]["scope"],
             })
     return implementations, paths, normalized_wire, address_to_implementation

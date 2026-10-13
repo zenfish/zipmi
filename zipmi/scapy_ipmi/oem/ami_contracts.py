@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 
-SOURCE_SHA256 = "70571d8cf5c249ad9ac2a1c2788efc8c07817dfa4a70a04160d9fea0d7cbd15e"
+SOURCE_SHA256 = "b0993ab8149b7efe5c91bc44b5080121c6755f08a8fda5f4320013c6aa2a4384"
 _SOURCE = Path(__file__).parents[2] / "data/sources/hpe-xd670-operation-contracts.json"
 
 if hashlib.sha256(_SOURCE.read_bytes()).hexdigest() != SOURCE_SHA256:

@@ -35700,8 +35700,14 @@
       "id": "normalized-wire:0x32/0x01:AMIYAFUGetFlashInfo",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUGetFlashInfo",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetFlashInfo.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetFlashInfo.c",
+          "sha256": "a7ad3ae14bc553295f26aa318e2420cf50e0eaf56bcb0f6c1e53df98b8bfb4aa"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 12 bytes",
@@ -35869,8 +35875,14 @@
       "id": "normalized-wire:0x32/0x03:AMIYAFUGetFMHInfo",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUGetFMHInfo",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetFMHInfo.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetFMHInfo.c",
+          "sha256": "7ad6bd05b9bb63ebcb90dfada91cbb3a7dcf71b2e88dce85357c4a8b1619d2d7"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 12 bytes",
@@ -35971,8 +35983,14 @@
       "id": "normalized-wire:0x32/0x04:AMIYAFUGetStatus",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUGetStatus",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetStatus.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetStatus.c",
+          "sha256": "f2c51a6e778f6ff6e596b6bc954fdb1af399b2faf77cd82a78fa8bf582dc410d"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 12 bytes",
@@ -36079,8 +36097,14 @@
       "id": "normalized-wire:0x32/0x10:AMIYAFUActivateFlashMode",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUActivateFlashMode",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUActivateFlashMode.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUActivateFlashMode.c",
+          "sha256": "b85a8d983d59b6d1ad91b5fed75288a144bc3a8b67a3f83401cda73d34d639a2"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "variable",
@@ -36194,8 +36218,14 @@
       "id": "normalized-wire:0x32/0x20:AMIYAFUAllocateMemory",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUAllocateMemory",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUAllocateMemory.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUAllocateMemory.c",
+          "sha256": "d10090ef7152d813a0644821bff61c58e0bacb80085781c2589f919101812086"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 16 bytes",
@@ -36314,8 +36344,14 @@
       "id": "normalized-wire:0x32/0x21:AMIYAFUFreeMemory",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUFreeMemory",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUFreeMemory.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUFreeMemory.c",
+          "sha256": "2881f501b66a755660b8db5f4539c38b011536a3e4552bd74cd2a1d7919496b8"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 16 bytes",
@@ -36430,8 +36466,14 @@
       "id": "normalized-wire:0x32/0x22:AMIYAFUReadFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUReadFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUReadFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUReadFlash.c",
+          "sha256": "026ba57e66d62354f22e6998933804936108c6b437a727d6de4a95694e8f1ef3"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "variable",
@@ -36560,8 +36602,14 @@
       "id": "normalized-wire:0x32/0x23:AMIYAFUWriteFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUWriteFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUWriteFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUWriteFlash.c",
+          "sha256": "ef08ce5f3e1144c8e6d09c1574615edf7460223744f1b1df7610284fa142b48b"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "variable",
@@ -36696,8 +36744,14 @@
       "id": "normalized-wire:0x32/0x24:AMIYAFUEraseFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUEraseFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUEraseFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUEraseFlash.c",
+          "sha256": "10d3b23ba7374ef70c24c95f8bfe29bdff45af893a50e381082729aa7c50722e"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 16 bytes",
@@ -36810,8 +36864,14 @@
       "id": "normalized-wire:0x32/0x25:AMIYAFUProtectFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUProtectFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUProtectFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUProtectFlash.c",
+          "sha256": "dd5e89aab4133dd3f1638d508bff13f62893bd3357310b649846596a40bb4d65"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 17 bytes",
@@ -36935,8 +36995,14 @@
       "id": "normalized-wire:0x32/0x26:AMIYAFUEraseCopyFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUEraseCopyFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUEraseCopyFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUEraseCopyFlash.c",
+          "sha256": "135c20a82b75afc0b72b255c2d98634aeca2dedeff037cf31e57a97bd71d0dee"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 24 bytes",
@@ -37066,8 +37132,14 @@
       "id": "normalized-wire:0x32/0x27:AMIYAFUVerifyFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUVerifyFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUVerifyFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUVerifyFlash.c",
+          "sha256": "d3db760bfe4aebb715cf20b1bd7b1bee9383df011cdef123f50c180295554af9"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 24 bytes",
@@ -37196,8 +37268,14 @@
       "id": "normalized-wire:0x32/0x28:AMIYAFUGetECFStatus",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUGetECFStatus",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetECFStatus.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetECFStatus.c",
+          "sha256": "2e53284e96b956b6b10b3c5dd0c551ac1c7a8c27fae6389114025f2cf11acd02"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 12 bytes",
@@ -37302,8 +37380,14 @@
       "id": "normalized-wire:0x32/0x29:AMIYAFUGetVerifyStatus",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUGetVerifyStatus",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetVerifyStatus.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetVerifyStatus.c",
+          "sha256": "778c41d07fc6f1d2e62583a0cf9596b51f43333a6aa2058c47309497e5aeb9c6"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 12 bytes",
@@ -37408,8 +37492,14 @@
       "id": "normalized-wire:0x32/0x31:AMIYAFUWriteMemory",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUWriteMemory",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUWriteMemory.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUWriteMemory.c",
+          "sha256": "f3ef60789a554fe6edf35815dac8228778c02413f801067cec57d2a766a85dc2"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "variable",
@@ -37546,8 +37636,14 @@
       "id": "normalized-wire:0x32/0x35:AMIYAFUCompareMeVersion",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUCompareMeVersion",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUCompareMeVersion.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUCompareMeVersion.c",
+          "sha256": "b7e0d5e1bce21e888f381e555cc1fbfbd80a0d655b233d623b92675619ecaf49"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 20 bytes",
@@ -37666,8 +37762,14 @@
       "id": "normalized-wire:0x32/0x40:AMIYAFUGetBootConfig",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUGetBootConfig",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetBootConfig.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetBootConfig.c",
+          "sha256": "f35073c1189905f1d8733a9ca17c80ff2470b371d4fcc80064d2c191d4cc0f2e"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 77 bytes",
@@ -37794,8 +37896,14 @@
       "id": "normalized-wire:0x32/0x41:AMIYAFUSetBootConfig",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUSetBootConfig",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUSetBootConfig.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUSetBootConfig.c",
+          "sha256": "5a62b9abc62ec40ba877729ac732c920df7336089fc9b05271c1c3a60f734377"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "variable",
@@ -37922,8 +38030,14 @@
       "id": "normalized-wire:0x32/0x42:AMIYAFUGetBootVars",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUGetBootVars",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetBootVars.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUGetBootVars.c",
+          "sha256": "926e226135853ae4051c7490f60740cfd55dd641f15d8566459463e551761b4c"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "variable",
@@ -38044,8 +38158,14 @@
       "id": "normalized-wire:0x32/0x50:AMIYAFUDeactivateFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUDeactivateFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUDeactivateFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUDeactivateFlash.c",
+          "sha256": "acfe576a6f6c5b4a736aa432447d0502e3cc50a9056a49ab6e0ce2a4ff34ffe0"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 12 bytes",
@@ -38150,8 +38270,14 @@
       "id": "normalized-wire:0x32/0x51:AMIYAFUResetDevice",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUResetDevice",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUResetDevice.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUResetDevice.c",
+          "sha256": "5ad195c632db85d946988b68ca0e04cf478fc529087d4ad3691ae89a9a30b901"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 14 bytes",
@@ -38272,8 +38398,14 @@
       "id": "normalized-wire:0x32/0x52:AMIYAFUSwitchFlashDevice",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUSwitchFlashDevice",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUSwitchFlashDevice.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUSwitchFlashDevice.c",
+          "sha256": "58a57043dccbecda2f3d771f5d17530bfd8b4f83fbbd5680099c90dedf8a46a9"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 1 byte",
@@ -38312,8 +38444,14 @@
       "id": "normalized-wire:0x32/0x53:AMIYAFURestoreFlashDevice",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFURestoreFlashDevice",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFURestoreFlashDevice.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFURestoreFlashDevice.c",
+          "sha256": "95833502c0d0601cae5a1ba8bca9db2361372e182223f3f765ee09d029f9d1d4"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 1 byte",
@@ -38356,8 +38494,14 @@
       "id": "normalized-wire:0x32/0x54:AMIYAFUDualImgSup",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUDualImgSup",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUDualImgSup.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUDualImgSup.c",
+          "sha256": "29b27a1bec89b4b160f0703a5668b8162e1532cb7dbd0d226c6d5cc3afabb79f"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 16 bytes",
@@ -38435,8 +38579,14 @@
       "id": "normalized-wire:0x32/0x55:AMIYAFUFWSelectFlash",
       "implementation_id": "sha256:9d8f9c47decd961f01b263a3ce09803ee2821362e20708476e396b28f74926dc:symbol:AMIYAFUFWSelectFlash",
       "proof": [
-        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUFWSelectFlash.c",
-        "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c"
+        {
+          "path": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/exact-decomp/libipmimsghndlr.so.13.112.0/AMIYAFUFWSelectFlash.c",
+          "sha256": "e219f85b1dd4f554730cb26d46d97e4bd10ff467a4919d347e2079d4bc06327c"
+        },
+        {
+          "path": "/Volumes/yyy/phd/bmc/AMI/yafu/src/yafuflash-4.55.5/Common/flashcmds.c",
+          "sha256": "d6b9ed05d0260db171527be3303f1aab4ecc9ca977a6f030972857a53714ac1a"
+        }
       ],
       "request": {
         "dispatcher_length": "exactly 13 bytes",

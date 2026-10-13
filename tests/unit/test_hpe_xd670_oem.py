@@ -80,6 +80,8 @@ def test_normalized_wire_contracts_have_explicit_proof() -> None:
     for row in AMI_NORMALIZED_WIRE_CONTRACTS:
         assert row["implementation_id"] in AMI_HANDLER_CONTRACTS
         assert row["proof"]
+        assert all(proof["path"] and len(proof["sha256"]) == 64
+                   for proof in row["proof"])
         assert row["request"] and row["response"]
         assert row["scope"].startswith("wire fields only")
 
@@ -181,6 +183,9 @@ def test_generated_hpe_xd670_documents_are_current() -> None:
     assert "143 registrations / 142 unique addresses / 141 effective commands" in reference
     assert "141</strong>Effective commands" in reference
     assert "141</strong>Address contracts" in reference
+    assert "Unknown</span> <strong>87 address contracts" in reference
+    assert "Address Contracts" in reference
+    assert "address contracts shown" in reference
     assert "no unsupported global semantic-operation count" in reference
     assert "selector domain unresolved" in reference
     assert "141</strong>Effective commands" in table

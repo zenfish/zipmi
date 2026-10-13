@@ -152,7 +152,7 @@ def _safety(entry: dict) -> tuple[str, str]:
         return safety, "; ".join(dict.fromkeys(note for _, note in values))
     effect = entry["implementation_contract"]["effect"]
     effect_class = effect.get("class", effect.get("inferred_class", "unknown"))
-    safety = {"read/query": "read-only", "read-only": "read-only",
+    safety = {"read/query": "unknown", "read-only": "read-only",
               "sensitive-read": "sensitive", "state-changing": "state-changing",
               "state-changing-or-control": "state-changing", "destructive": "destructive",
               "disruptive": "disruptive"}.get(effect_class, "unknown")
@@ -224,6 +224,8 @@ def reference_page() -> dict:
         "commands": sorted(HPE_XD670_COMMANDS),
         "command_metric_label": "Effective commands",
         "operation_metric_label": "Address contracts",
+        "row_noun_singular": "address contract",
+        "row_noun_plural": "address contracts",
         "gaps": ("All effective addresses are represented. Selector evidence is labeled known, "
                  "conditional, or unresolved instead of counting control-flow cases as operations. "
                  "Many field meanings, response layouts, interface-mask names, indirect authorization "
