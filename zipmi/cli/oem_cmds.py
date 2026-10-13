@@ -939,6 +939,8 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 active = "feature enabled; runtime registration unproved"
             else:
                 active = "feature absent; runtime registration unproved"
+            exact_length = (None if e["request_length_raw"] == "0xff"
+                            else int(e["request_length_raw"], 0))
             out[key] = {
                 "name": e["handler"],
                 "priv": e["privilege"],
@@ -953,6 +955,8 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "lib": e["module"],
                 "tier": e["safety_tier"],
                 "req_len_raw": e["request_length_raw"],
+                "request_min": exact_length,
+                "request_max": exact_length,
                 "semantic_confidence": e["semantic_confidence"],
                 "requires_unsafe": (
                     e["safety_tier"] in {
@@ -967,6 +971,8 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 continue
             netfn, cmd = operation["command"]
             base = out[(netfn, cmd)]
+            request_length = operation["request"]["length"]
+            exact_length = int(request_length) if request_length.isdigit() else None
             out[(netfn, cmd, *prefix)] = {
                 **base,
                 "name": operation["id"],
@@ -978,8 +984,10 @@ def _vendor_listing(vendor: str) -> dict[tuple[int, int], dict]:
                 "tier": operation["effect"],
                 "req_len_raw": hex(len(prefix)) if operation["request"]["length"].isdigit()
                 and int(operation["request"]["length"]) == len(prefix) else base["req_len_raw"],
+                "request_min": exact_length,
+                "request_max": exact_length,
                 "semantic_confidence": "target-proven",
-                "requires_unsafe": operation["effect"] != "safe",
+                "requires_unsafe": operation["effect"] != "safe" or exact_length is None,
             }
         return _normalize_listing(out, "advantech-asmb787")
     if vendor == "yafu":
@@ -1571,12 +1579,12 @@ def cmd_oem_run(args: argparse.Namespace, vendor: str) -> int:
         return 2
 
     if vendor == "advantech-asmb787":
-        raw_len = int(info["req_len_raw"], 0)
         payload_len = len(data_bytes)
-        if raw_len != 0xFF and payload_len != raw_len:
+        exact_length = info.get("request_min")
+        if exact_length is not None and payload_len != exact_length:
             _msg.error(
-                f"{info['name']} requires exactly {raw_len} payload bytes; "
-                f"got {payload_len} (ASMB-787 dispatcher +8 constraint)"
+                f"{info['name']} requires exactly {exact_length} payload bytes; "
+                f"got {payload_len} (ASMB-787 request contract)"
             )
             return 2
 
@@ -1833,12 +1841,13 @@ def _cmd_oem_help(vendor: str, query: str) -> int:
         unsafe = " --unsafe" if info.get("requires_unsafe") else ""
         print(f"    zipmi -H <bmc> -U <user> -P <pw> oem {_display_verb(vendor)}{unsafe} "
               f"{shlex.quote(info['name'])} <args...>")
-        if prefix_args:
-            print(f"    zipmi -H <bmc> -U <user> -P <pw> raw "
-                  f"0x{netfn:02x} 0x{cmd:02x} {prefix_args} <args...>")
-        else:
-            print(f"    zipmi -H <bmc> -U <user> -P <pw> raw "
-                  f"0x{netfn:02x} 0x{cmd:02x} <args...>")
+        if not info.get("requires_unsafe"):
+            if prefix_args:
+                print(f"    zipmi -H <bmc> -U <user> -P <pw> raw "
+                      f"0x{netfn:02x} 0x{cmd:02x} {prefix_args} <args...>")
+            else:
+                print(f"    zipmi -H <bmc> -U <user> -P <pw> raw "
+                      f"0x{netfn:02x} 0x{cmd:02x} <args...>")
     return 0
 
 

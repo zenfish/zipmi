@@ -77,8 +77,8 @@ def test_generated_html_contains_every_exact_operation():
             "<th>Request data</th>" in reference)
     assert ("<code class=\"command\">zipmi oem advantech-asmb787 --unsafe "
             "ControlSysErrLED.action_0</code>" in reference)
-    assert reference.count('<code class="command">zipmi oem advantech-asmb787') == 192
-    assert reference.count('<code class="command">zipmi raw') == 270
+    assert reference.count('<code class="command">zipmi oem advantech-asmb787') == 462
+    assert '<code class="command">zipmi raw' not in reference
     assert 'id="operation-scroll-controls"' not in reference
     assert 'id="operation-scroll-left"' not in reference
     assert 'id="operation-scroll-right"' not in reference
@@ -268,6 +268,16 @@ def test_fixed_dispatcher_request_length_is_enforced(capsys):
     assert "requires exactly 2 payload bytes" in capsys.readouterr().err
 
 
+def test_exact_operation_length_overrides_variable_dispatcher_length(capsys):
+    from zipmi.cli.oem_cmds import cmd_oem_run
+
+    args = argparse.Namespace(
+        cmd_name="AMIRESTinterface.capability", data=[], unsafe=False,
+    )
+    assert cmd_oem_run(args, "advantech-asmb787") == 2
+    assert "requires exactly 12 payload bytes; got 1" in capsys.readouterr().err
+
+
 def test_unsafe_named_restore_emits_exact_empty_request(monkeypatch):
     from zipmi.cli import zipmi as cli
     from zipmi.cli.oem_cmds import cmd_oem_run
@@ -320,6 +330,7 @@ def test_help_prints_valid_oem_invocation(capsys):
     assert _cmd_oem_help("advantech-asmb787", "AMIRestoreDefaults") == 0
     output = capsys.readouterr().out
     assert "oem advantech-asmb787 --unsafe AMIRestoreDefaults" in output
+    assert " raw " not in output
 
 
 def test_cli_parser_accepts_documented_unsafe_invocation():

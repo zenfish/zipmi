@@ -4662,7 +4662,11 @@ def _cmd_name(netfn: int, cmd: int) -> str:
 def cmd_raw(args: argparse.Namespace) -> int:
     netfn = int(args.netfn, 0)
     cmd = int(args.cmd, 0)
-    data = bytes(int(b, 0) & 0xFF for b in args.data)
+    try:
+        data = bytes(int(b, 0) for b in args.data)
+    except ValueError:
+        _msg.error("data bytes must be between 0 and 255")
+        return 2
     with _open_session(args) as s:
         cc, resp = s.send_raw(netfn, cmd, data)
     cc_name = COMP_CODE.get(cc, f"0x{cc:02x}")

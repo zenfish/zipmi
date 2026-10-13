@@ -525,7 +525,7 @@ def request_argument_tokens(operation: dict, skip_bytes: int = 0) -> list[str]:
 
 
 def zipmi_command(operation: dict, parent: dict, execution: str) -> str:
-    """Prefer the supported named OEM route; fall back to an explicit raw request."""
+    """Use the guarded named OEM route, including for ambiguous child operations."""
     prefix = operation.get("prefix")
     if execution != "No distinct named route":
         name = operation["id"] if prefix is not None else parent["handler"]
@@ -535,8 +535,7 @@ def zipmi_command(operation: dict, parent: dict, execution: str) -> str:
         tokens.append(name)
         tokens.extend(request_argument_tokens(operation, len(prefix or [])))
         return " ".join(tokens)
-    netfn, cmd = operation["command"]
-    tokens = ["zipmi", "raw", f"0x{netfn:02x}", f"0x{cmd:02x}"]
+    tokens = ["zipmi", "oem", "advantech-asmb787", "--unsafe", parent["handler"]]
     tokens.extend(request_argument_tokens(operation))
     return " ".join(tokens)
 

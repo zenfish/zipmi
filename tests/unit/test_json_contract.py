@@ -399,6 +399,14 @@ def test_raw_does_not_guess_an_oem_vendor(monkeypatch, clean_oem_registry):
     assert data["name"] == ""
 
 
+def test_raw_rejects_out_of_range_data_bytes(monkeypatch, capsys):
+    from zipmi.cli.zipmi import cmd_raw
+
+    args = argparse.Namespace(netfn="0x32", cmd="0xe8", data=["0x100"])
+    assert cmd_raw(args) == 2
+    assert "between 0 and 255" in capsys.readouterr().err
+
+
 # === sessionless list (static) ===========================================
 
 def test_sessionless_list_json(monkeypatch):
