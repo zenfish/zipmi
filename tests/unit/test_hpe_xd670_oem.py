@@ -15,6 +15,8 @@ from zipmi.scapy_ipmi.oem.hpe_xd670 import (
     HPE_XD670_REGISTRATIONS,
 )
 from zipmi.scapy_ipmi.oem.ami_contracts import (
+    AMI_CROSS_TARGET_FRAGMENTS,
+    AMI_CROSS_TARGET_POLICY,
     AMI_HANDLER_CONTRACTS,
     AMI_LINEAGE_POLICY,
     AMI_NORMALIZED_WIRE_CONTRACTS,
@@ -84,6 +86,17 @@ def test_normalized_wire_contracts_have_explicit_proof() -> None:
                    for proof in row["proof"])
         assert row["request"] and row["response"]
         assert row["scope"].startswith("wire fields only")
+
+
+def test_cross_target_reuse_is_limited_to_proved_dual_image_fragments() -> None:
+    assert AMI_CROSS_TARGET_POLICY["whole_provider_equivalence"] is False
+    assert {row["selector"] for row in AMI_CROSS_TARGET_FRAGMENTS} == {
+        "0x04", "0x07",
+    }
+    assert all(row["request_length"] == 1 for row in AMI_CROSS_TARGET_FRAGMENTS)
+    assert all(row["targets"] == [
+        "fujitsu_irmc_s6_02_63s", "hpe_xd670_1_27",
+    ] for row in AMI_CROSS_TARGET_FRAGMENTS)
 
 
 def test_request_paths_preserve_constraints_without_impossible_offsets() -> None:

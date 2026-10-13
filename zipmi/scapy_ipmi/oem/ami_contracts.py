@@ -11,6 +11,8 @@ from pathlib import Path
 
 SOURCE_SHA256 = "b0993ab8149b7efe5c91bc44b5080121c6755f08a8fda5f4320013c6aa2a4384"
 _SOURCE = Path(__file__).parents[2] / "data/sources/hpe-xd670-operation-contracts.json"
+CROSS_TARGET_SOURCE_SHA256 = "655cd2b9c80979640ce5c697f93db75e453bb26234eb391ad68ea205d1fa36e6"
+_CROSS_TARGET_SOURCE = Path(__file__).parents[2] / "data/sources/ami-cross-target-fragments.json"
 
 if hashlib.sha256(_SOURCE.read_bytes()).hexdigest() != SOURCE_SHA256:
     raise RuntimeError("shared AMI contract source does not match the reviewed artifact")
@@ -36,9 +38,17 @@ if _document["counts"] != {
 if _document["denominator_policy"]["global_semantic_operation_count"] is not None:
     raise RuntimeError("unproved global semantic-operation denominator")
 
+if hashlib.sha256(_CROSS_TARGET_SOURCE.read_bytes()).hexdigest() != CROSS_TARGET_SOURCE_SHA256:
+    raise RuntimeError("cross-target AMI fragment source does not match the reviewed artifact")
+_cross_target_document = json.loads(_CROSS_TARGET_SOURCE.read_text())
+if _cross_target_document["schema"] != "zipmi.ami-cross-target-fragments.v1":
+    raise RuntimeError("unsupported cross-target AMI fragment schema")
+
 AMI_HANDLER_CONTRACTS = _document["implementation_contracts"]
 AMI_NORMALIZED_WIRE_CONTRACTS = tuple(_document["normalized_wire_contracts"])
 AMI_LINEAGE_POLICY = _document["lineage_policy"]
+AMI_CROSS_TARGET_FRAGMENTS = tuple(_cross_target_document["contracts"])
+AMI_CROSS_TARGET_POLICY = _cross_target_document["policy"]
 HPE_XD670_TARGET_OVERLAYS = tuple(_document["target_command_overlays"])
 HPE_XD670_CORE_REQUEST_PATHS = tuple(_document["closed_core_request_paths"])
 HPE_XD670_SELECTOR_ANALYSES = tuple(_document["selector_analyses"])
@@ -56,6 +66,8 @@ def contracts_for_handler(handler: str) -> tuple[dict, ...]:
 
 __all__ = [
     "AMI_HANDLER_CONTRACTS",
+    "AMI_CROSS_TARGET_FRAGMENTS",
+    "AMI_CROSS_TARGET_POLICY",
     "AMI_LINEAGE_POLICY",
     "AMI_NORMALIZED_WIRE_CONTRACTS",
     "HPE_XD670_CORE_REQUEST_PATHS",
@@ -63,5 +75,6 @@ __all__ = [
     "HPE_XD670_SELECTOR_ANALYSES",
     "HPE_XD670_TARGET_OVERLAYS",
     "SOURCE_SHA256",
+    "CROSS_TARGET_SOURCE_SHA256",
     "contracts_for_handler",
 ]

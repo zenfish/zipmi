@@ -53,7 +53,8 @@ def test_oem_summary_separates_catalog_names_from_implementation_depth() -> None
     assert "141 exact-image address contracts" in summary
     assert "25 proven reusable YAFU wire layouts" in summary
     assert "4 reviewed read-only routes are runnable" in summary
-    assert "**Open denominator conflict:** legacy generated table has 192 rows" in summary
+    assert "213 registrations / 192 descriptor addresses / 189 effective routes" in summary
+    assert "157 routes remain open" in summary
     assert "119 registrations / 118 identities" in summary
     assert "for 248 documented operation rows" in readme
 

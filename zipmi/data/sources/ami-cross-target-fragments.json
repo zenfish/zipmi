@@ -1,0 +1,43 @@
+{
+  "z-artifact": "4610fdcd-701d-49b7-9341-6aac00d1793a",
+  "schema": "zipmi.ami-cross-target-fragments.v1",
+  "policy": {
+    "rule": "Share only byte-level behavior proved field-for-field on both exact provider binaries; target authorization, routing, activation, precedence, effects, and persistence remain target overlays.",
+    "whole_provider_equivalence": false
+  },
+  "providers": {
+    "fujitsu_irmc_s6_02_63s": {
+      "library": "libipmiamioemdualimg.so.13.1.0",
+      "sha256": "1b9f9a015a8a9c8554fb654a5ffb648d1ff802ab04ed3413dc36463cd1d80060"
+    },
+    "hpe_xd670_1_27": {
+      "library": "libipmiamioemdualimg.so.13.6.0",
+      "sha256": "57645fb73a2dc0a1f2f1f97dc8ceab90dbb88b838aafc86b30dbfa59d72e9c3e"
+    }
+  },
+  "contracts": [
+    {
+      "id": "ami-dual-image-selector-04",
+      "selector": "0x04",
+      "request_length": 1,
+      "provider_disabled_completion": "0xc1",
+      "wrong_length_completion": "0xc7",
+      "success": "completion 0x00 plus upload selector 0..3",
+      "invalid_stored_selector_completion": "0xff",
+      "targets": ["fujitsu_irmc_s6_02_63s", "hpe_xd670_1_27"]
+    },
+    {
+      "id": "ami-dual-image-selector-07",
+      "selector": "0x07",
+      "request_length": 1,
+      "provider_disabled_completion": "0xc1",
+      "wrong_length_completion": "0xc7",
+      "success": "completion 0x00 plus one reboot-status byte, including fail-safe watchdog remapping to 6 or 9",
+      "targets": ["fujitsu_irmc_s6_02_63s", "hpe_xd670_1_27"]
+    }
+  ],
+  "proved_differences": [
+    "Selector 0x03 synchronization predicates differ.",
+    "Selectors 0x08 and 0x09 handle firmware-info backend status 2 differently."
+  ]
+}

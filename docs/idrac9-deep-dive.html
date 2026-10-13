@@ -1,0 +1,884 @@
+<!doctype html>
+<!-- z-artifact: 3485f0ef-b190-4c4e-9691-99d9c304ea1e generated -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dell iDRAC9 OEM-IPMI gap map</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-950 text-slate-200"><main class="mx-auto max-w-7xl px-5 py-10">
+<header class="border-b border-slate-700 pb-8"><p class="text-sm font-semibold uppercase tracking-widest text-cyan-400">Static gap ledger · 2026-10-12</p>
+<h1 class="mt-2 text-4xl font-bold text-white">Dell iDRAC9 OEM-IPMI deep-dive gap map</h1>
+<p class="mt-4 max-w-5xl text-slate-300">Firmware-bound registration accounting for iDRAC9 7.20.30.50. The original gap denominator is 143 addresses; twenty addresses now have decoded static contracts across four closed families. No runnable codec is claimed.</p></header>
+<section class="mt-8 grid gap-4 md:grid-cols-4">
+<article class="rounded-xl border border-slate-700 bg-slate-900 p-5"><div class="text-3xl font-bold">192</div><div class="text-sm text-slate-400">OEM wire addresses</div></article>
+<article class="rounded-xl border border-slate-700 bg-slate-900 p-5"><div class="text-3xl font-bold">49</div><div class="text-sm text-slate-400">overlap detailed catalog</div></article>
+<article class="rounded-xl border border-rose-500/40 bg-rose-950/30 p-5"><div class="text-3xl font-bold">123</div><div class="text-sm text-slate-300">addresses still open</div></article>
+<article class="rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-5"><div class="text-3xl font-bold">45</div><div class="text-sm text-slate-300">new operation contracts</div></article></section>
+<section class="mt-10 rounded-xl border border-slate-700 bg-slate-900 p-6"><h2 class="text-2xl font-bold text-white">What is proved</h2>
+<p class="mt-3 text-slate-300">The exact static catalog contains 193 registrations at NetFns ≥ 0x2e and 192 unique addresses. The existing detailed catalog overlaps 49, leaving an original Limbo backlog of 143. Those addresses contain 144 registration rows because <code>0x30/0x26</code> is registered twice. At least one handler resolves for 72 addresses; 71 have no resolved handler. The duplicate's raw second target remains zero, but its precedence is now closed by the exact first-match lookup implementation.</p>
+<p class="mt-3 text-slate-300">The exact shared <code>SubCmdHandler</code> implementation and its targets are now closed once: five addresses expose 32 host-reachable operations and two more are registered-but-empty overlays. Request/response layouts, static authorization/channel predicates, effects and completions are recorded in the <a class="text-cyan-300 underline" href="idrac9-subcmdhandler.html">SubCmdHandler contract report</a>. Runnable codecs and live behavior remain open.</p>
+<p class="mt-3 text-slate-300">The seven-address <a class="text-cyan-300 underline" href="idrac9-chassis.html">chassis identity/config family</a> is also closed statically. This proves <code>0x30/0x26</code> row 116 wins the linear first-match dispatcher lookup and the later zero-target duplicate is shadowed.</p>
+<p class="mt-3 text-slate-300">The four-address <a class="text-cyan-300 underline" href="idrac9-peripheral-reset.html">peripheral-controller reset family</a> is closed as a static state machine. The initiating route stages masks and deferred timers, while read/sync/query routes expose or persist status. Timer callbacks, physical effects, runnable codecs, and live behavior remain explicitly open.</p>
+<p class="mt-3 text-slate-300">The two-address <a class="text-cyan-300 underline" href="idrac9-reset-default.html">reset-to-default pair</a> shares one exact destructive <code>libosa</code> implementation. Successful action completion acknowledges detached-thread creation, not backend reset success; both routes remain intentionally non-runnable.</p>
+<p class="mt-3 text-slate-300">The three-address <a class="text-cyan-300 underline" href="idrac9-extended-config.html">Extended Configuration family</a> now has a decoded reservation/chunking transport and exact selector-license map. Its Get/Set backends contain selector-specific configuration and Remote File Share behavior, so the family remains partial and does not reduce the 123-address backlog.</p></section>
+<section class="mt-10"><h2 class="text-2xl font-bold text-white">Closure order</h2><p class="mt-3 text-slate-300">17 P0 addresses have decoded/likely selectors, named high-impact effects, or duplicate-registration precedence; 79 P1 addresses primarily need handler identity or non-admin authorization resolved; 27 P2 addresses are resolved read-like/admin routes whose codecs and channel gates remain open. Priority is triage, not a security finding.</p></section>
+<section class="mt-8 overflow-x-auto rounded-xl border border-slate-700"><table class="min-w-full text-left text-sm"><thead class="bg-slate-900 text-slate-300"><tr><th class="px-3 py-3">Address</th><th class="px-3 py-3">Handler provenance</th><th class="px-3 py-3">Dispatcher auth</th><th class="px-3 py-3">Selector evidence</th><th class="px-3 py-3">Priority</th></tr></thead><tbody><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x01</td>
+<td class="px-3 py-3"><div><code>CmdResvExtendedConfigure</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 38</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-outer-transport-partial<br><span class="text-xs text-slate-400">Reservation transport decoded; channel and activation remain open</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector high · auth high · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x02</td>
+<td class="px-3 py-3"><div><code>CmdGetExtendedConfigure</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 39</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-outer-transport-partial<br><span class="text-xs text-slate-400">Get framing, paging, completion, and license gates decoded; nested selectors/effects remain open</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector high · auth high · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x03</td>
+<td class="px-3 py-3"><div><code>CmdSetExtendedConfigure</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 40</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-outer-transport-partial<br><span class="text-xs text-slate-400">Set framing, staging, completion, and license gates decoded; nested selectors/effects remain open</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x04</td>
+<td class="px-3 py-3"><div><code>CmdPOSTEvent</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 41</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x21</td>
+<td class="px-3 py-3"><div><code>CmdResetToDefault</code><br><span class="text-xs text-slate-400">libosa.so.9.9.9 · runtime-relocation-symbol-plus-provider-dynsym · table row 37</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-shared-destructive-contract<br><span class="text-xs text-slate-400">Reset-to-default query/action implementation</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x40</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 54</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x41</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 55</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x42</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 56</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x43</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 57</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x44</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 58</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x45</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 59</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x46</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 60</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x4b</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 61</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x60</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 62</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x61</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 63</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x64</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 64</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x65</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 65</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x66</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 66</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x67</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 67</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x68</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 68</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x69</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 69</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x80</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 70</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x81</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 71</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0x82</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 72</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xa8</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 73</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xb7</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 52</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xba</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 53</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc0</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 46</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc1</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 47</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc2</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 48</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc3</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 74</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc4</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 75</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc5</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 76</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc6</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 77</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc7</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 49</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc8</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 50</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xc9</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 78</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xca</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 51</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xcb</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 44</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xcc</td>
+<td class="px-3 py-3"><div><code>CmdOSAOEMCmdHandler</code><br><span class="text-xs text-slate-400">libosa.so.9.9.9 · handler-address-to-dynsym · table row 43</span></div></td>
+<td class="px-3 py-3">Callback<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector high · auth high · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xce</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 45</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xcf</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 79</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd0</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 80</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd1</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 81</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd2</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 82</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd3</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 83</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd4</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 84</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd7</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 85</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd8</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 86</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xd9</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 87</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xdc</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 88</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xdf</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 89</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xea</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 90</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xf0</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 91</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xf1</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 92</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xf2</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 93</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xf3</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 94</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xf4</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 95</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xf5</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 96</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x2e/0xf6</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 97</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x11</td>
+<td class="px-3 py-3"><div><code>DellDCSSetChassisConfig</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 99</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Set chassis configuration</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x12</td>
+<td class="px-3 py-3"><div><code>DellDCSGetChassisConfig</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 100</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Get chassis configuration</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x13</td>
+<td class="px-3 py-3"><div><code>DellDCSSetChassisName</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 101</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Set chassis name</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x14</td>
+<td class="px-3 py-3"><div><code>DellDCSGetChassisName</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 102</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Get chassis name</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x15</td>
+<td class="px-3 py-3"><div><code>DellDCSSetSensorInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 103</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x16</td>
+<td class="px-3 py-3"><div><code>DellDCSGetSensorInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 104</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x17</td>
+<td class="px-3 py-3"><div><code>DellDCSSetChassisEncPwrCpng</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 105</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x19</td>
+<td class="px-3 py-3"><div><code>DellDCSSetFanSpeedCtrl</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 106</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x1a</td>
+<td class="px-3 py-3"><div><code>DellDCSGetFanSpeedCtrl</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 107</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x1b</td>
+<td class="px-3 py-3"><div><code>DellDCSSetChassisLEDStatus</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 108</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x1d</td>
+<td class="px-3 py-3"><div><code>DellDCSSetHDDInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 109</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x1e</td>
+<td class="px-3 py-3"><div><code>DellDCSSetPSUInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 110</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x1f</td>
+<td class="px-3 py-3"><div><code>DellDCSGetPSUInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 111</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x20</td>
+<td class="px-3 py-3"><div><code>DellDCSSetChassisServiceTag</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 112</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Stage chassis service tag</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x21</td>
+<td class="px-3 py-3"><div><code>CmdResetToDefault</code><br><span class="text-xs text-slate-400">libosa.so.9.9.9 · runtime-relocation-symbol-plus-provider-dynsym · table row 144</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-shared-destructive-contract<br><span class="text-xs text-slate-400">Reset-to-default query/action implementation</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x22</td>
+<td class="px-3 py-3"><div><code>DellDCSSetEnergyStorage</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 113</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x23</td>
+<td class="px-3 py-3"><div><code>DellDCSGetEnergyStorage</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 114</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x24</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 147</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x25</td>
+<td class="px-3 py-3"><div><code>DellDCSGetChassisServiceTag</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 115</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Get chassis service tag</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x26</td>
+<td class="px-3 py-3"><div><code>DellDCSSyncChassisServiceTag</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 116</span></div><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 145</span></div></td>
+<td class="px-3 py-3">Administrator, Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract-with-precedence<br><span class="text-xs text-slate-400">First registration wins; later zero-target duplicate is shadowed</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x27</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 146</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x28</td>
+<td class="px-3 py-3"><div><code>CmdSetNICSelectionFailover</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · runtime-relocation-address-map · table row 148</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x29</td>
+<td class="px-3 py-3"><div><code>CmdGetNICSelectionFailover</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · runtime-relocation-address-map · table row 149</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x2a</td>
+<td class="px-3 py-3"><div><code>DellDCSSetThermalThrtl</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 117</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x2b</td>
+<td class="px-3 py-3"><div><code>DellDCSGetThermalThrtl</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 118</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x2c</td>
+<td class="px-3 py-3"><div><code>DellDCSGetBMCs_SC_BMC_ProtocolVer</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 119</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x2d</td>
+<td class="px-3 py-3"><div><code>DellDCSGetSCs_SC_BMC_ProtocolVer</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 120</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x2e</td>
+<td class="px-3 py-3"><div><code>DellDCSGetChassPwrReadings</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 121</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x2f</td>
+<td class="px-3 py-3"><div><code>DellDCSSetChassPwrReadings</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 122</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x30</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 150</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x31</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 151</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x32</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 152</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x33</td>
+<td class="px-3 py-3"><div><code>DellQueryGetCPLDRevision</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 154</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x36</td>
+<td class="px-3 py-3"><div><code>DellPcieSSDFRU</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 156</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x44</td>
+<td class="px-3 py-3"><div><code>DellDCSGetPCIEInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 123</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x48</td>
+<td class="px-3 py-3"><div><code>DellDCSResetPeripheralDeviceController</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 124</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Stage peripheral-controller reset state and timers</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x49</td>
+<td class="px-3 py-3"><div><code>DellDCSGetResetPeripheralDeviceController</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 125</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Read peripheral-controller reset cache</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x4a</td>
+<td class="px-3 py-3"><div><code>DellDCSSyncPeripheralDeviceControllerResetStatus</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 126</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Synchronize peripheral-controller reset status</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x4b</td>
+<td class="px-3 py-3"><div><code>DellDCSGetPeripheralDeviceControllerResetStatus</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 127</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract<br><span class="text-xs text-slate-400">Query peripheral-controller reset status</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x4c</td>
+<td class="px-3 py-3"><div><code>DellDCSSetSecondPSUInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 128</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x4d</td>
+<td class="px-3 py-3"><div><code>DellDCSGetSecondPSUInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 129</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x9c</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 175</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0x9d</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 176</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xa0</td>
+<td class="px-3 py-3"><div><code>CmdGetSoftLockStatus</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 206</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xb0</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 178</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xb3</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 179</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xb6</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 181</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xb7</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 182</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xb8</td>
+<td class="px-3 py-3"><div><code>QueueSpdDimmInfoCmd</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 183</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xb9</td>
+<td class="px-3 py-3"><div><code>QueueSpdDimmInfoCmd</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 184</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xba</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 185</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xbb</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 186</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xbc</td>
+<td class="px-3 py-3"><div><code>DellCPLDAccessStatus</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 187</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xbe</td>
+<td class="px-3 py-3"><div><code>DellRollbackFW</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 189</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xbf</td>
+<td class="px-3 py-3"><div><code>DellGetFWVersion</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 190</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xc0</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 192</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xc1</td>
+<td class="px-3 py-3"><div><code>DellGetActiveLOM</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 193</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xc5</td>
+<td class="px-3 py-3"><div><code>DellDCSGetChassisEncPwrCpng</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 197</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xc6</td>
+<td class="px-3 py-3"><div><code>DellDCSGetChassisLEDStatus</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 131</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xc7</td>
+<td class="px-3 py-3"><div><code>DellDCSSetPSUConfig</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 132</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xc8</td>
+<td class="px-3 py-3"><div><code>SubCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 198</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contracts (21 populated)<br><span class="text-xs text-slate-400">21 non-null Dell Compute Sled operations</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xcc</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 201</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xcd</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 202</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xce</td>
+<td class="px-3 py-3"><div><code>SubCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 203</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract (1 populated)<br><span class="text-xs text-slate-400">One non-null HSC operation; 24 null selectors fall through to 0xc1</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xcf</td>
+<td class="px-3 py-3"><div><code>SubCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 204</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract (1 populated)<br><span class="text-xs text-slate-400">One non-null pass-through operation; one null selector falls through to 0xc1</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xd1</td>
+<td class="px-3 py-3"><div><code>SubCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 207</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contracts (8 populated)<br><span class="text-xs text-slate-400">Eight non-null licensing operations; one null selector falls through to 0xc1</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xd2</td>
+<td class="px-3 py-3"><div><code>RacMw_TransferData</code><br><span class="text-xs text-slate-400">libkcspassthru.so.9.9.9 · handler-address-to-dynsym · table row 194</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xd3</td>
+<td class="px-3 py-3"><div><code>SubCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 208</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-operation-contract (1 populated)<br><span class="text-xs text-slate-400">One manufacturing-gated PCBA operation; ten null selectors fall through to 0xc1</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xd5</td>
+<td class="px-3 py-3"><div><code>SubCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 210</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-empty-overlay-contract (0 populated)<br><span class="text-xs text-slate-400">20 explicit null rows; every selector returns 0xc1</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xd6</td>
+<td class="px-3 py-3"><div><code>SubCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 211</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">decoded-empty-overlay-contract (0 populated)<br><span class="text-xs text-slate-400">11 explicit null rows; every selector returns 0xc1</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-emerald-300">closed</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xd7</td>
+<td class="px-3 py-3"><div><code>DellDCSSetExtendedPSUInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 137</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xd8</td>
+<td class="px-3 py-3"><div><code>DellDCSSetCMSupport</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 138</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xda</td>
+<td class="px-3 py-3"><div><code>DellDCSQuickShareForIBMGreyjoy</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 139</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xdb</td>
+<td class="px-3 py-3"><div><code>FileObjCmdHandler</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 142</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xdc</td>
+<td class="px-3 py-3"><div><code>DellDCSGetAddInCardInfo</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 215</span></div></td>
+<td class="px-3 py-3">User<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth high · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xdd</td>
+<td class="px-3 py-3"><div><code>ConfigValDDCmdHndlr</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · handler-address-to-dynsym · table row 212</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector high · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xde</td>
+<td class="px-3 py-3"><div><code>unresolved</code><br><span class="text-xs text-slate-400">unknown library · unresolved · table row 213</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-amber-300">P1</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x30/0xdf</td>
+<td class="px-3 py-3"><div><code>DellDCSSetSledICL</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 130</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x32/0x01</td>
+<td class="px-3 py-3"><div><code>CmdDcmiGetPowerReading</code><br><span class="text-xs text-slate-400">liboemcmds.so.9.9.9 · runtime-relocation-address-map · table row 217</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x32/0x02</td>
+<td class="px-3 py-3"><div><code>DellDCSLocalKCSCtrl</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 218</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x32/0x03</td>
+<td class="px-3 py-3"><div><code>DellDCSPSBPDBFLOPFwUpdate</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 220</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-rose-300">P0</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect high</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x32/0x73</td>
+<td class="px-3 py-3"><div><code>DellDCSGetBIOSCode</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 216</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect medium</span></td>
+</tr><tr class="border-t border-slate-800 align-top">
+<td class="px-3 py-3 font-mono text-cyan-300">0x36/0xf5</td>
+<td class="px-3 py-3"><div><code>DellDCSSceptreMSRDump</code><br><span class="text-xs text-slate-400">libscbmccore.so.9.9.9 · handler-address-to-dynsym · table row 219</span></div></td>
+<td class="px-3 py-3">Administrator<br><span class="text-xs text-slate-400">handler/channel gate open</span></td>
+<td class="px-3 py-3">unknown<br><span class="text-xs text-slate-400">No selector-path evidence attached yet</span></td>
+<td class="px-3 py-3"><span class="font-semibold text-cyan-300">P2</span><br><span class="text-xs text-slate-400">selector medium · auth medium · effect unknown</span></td>
+</tr></tbody></table></section>
+<section class="mt-10 rounded-xl border border-slate-700 bg-slate-900 p-6"><h2 class="text-2xl font-bold text-white">Exact sources</h2><ul class="mt-3 space-y-2 text-sm text-slate-300">
+<li><code>firmware</code>: <code>15196d6354527ed8dc77fd22dc3ecae6ca467f94eda07a597b174770dc758859</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/firmimgFIT.d9</span></li><li><code>liboemcmds_dispatch_binary</code>: <code>eb169f02bb998d3a5204192dc2421c5d707c8570f8e9c73d34b6560130b3151d</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/liboemcmds.so.9.9.9</span></li><li><code>libdcmi_dispatch_binary</code>: <code>40c7a075f8db5b55ec910e20d001cc7a24fef6624f0fba4434166f36b5c40f45</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libdcmi.so.9.9.9</span></li><li><code>libosa_dispatch_binary</code>: <code>8e8dd3504aed47368a9bc327a860a703979cb33aa6a85f653bd509f37edab1c9</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libosa.so.9.9.9</span></li><li><code>dispatch_catalog</code>: <code>e780525fc45c47e323ab0e9bacb2b11b1fa6a1c26986538fb57dab741a3637b5</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/.md/idrac9-dispatch-tables.md</span></li><li><code>detailed_catalog</code>: <code>24973268d6ee4d64405986f8956fba4faf467300b2c99d13e705f6c62984e100</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/idrac9-commands.json</span></li><li><code>address_symbol_map</code>: <code>92b7c44f365db120b68bc2e04066a0478dfc795cbf402b9509c3aebbad394b4d</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/idrac9_addr_map.json</span></li><li><code>runtime_dispatch_map</code>: <code>b0d7d48e1b06f0e7b5eb1967932eaa13b63de6ee2fee4738bbc339bc22e71c06</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/idrac9_runtime_dispatch.json</span></li><li><code>selector_catalog</code>: <code>59f00fdeef505775f823eaab1eb37cbe799c3227807c41b3103befc3d8019057</code><br><span class="text-slate-400">/Users/zen/phd/bmc/dell/idrac9-firmware/.md/idrac9-subcmdhandler-dispatch.md</span></li><li><code>extended_config_partial_contract</code>: <code>228a3d4f1e41726790752ea6171c13b7cd02c770a49411daa5e3d77807dd217d</code><br><span class="text-slate-400">/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/idrac9-extended-config-contracts.json</span></li></ul>
+<p class="mt-4 text-sm text-slate-400">Machine-readable companions: <a class="text-cyan-300 underline" href="../zipmi/data/sources/idrac9-oem-gap-map.json">gap map</a>, <a class="text-cyan-300 underline" href="../zipmi/data/sources/idrac9-subcmdhandler-contracts.json">SubCmdHandler contracts</a>, <a class="text-cyan-300 underline" href="../zipmi/data/sources/idrac9-chassis-contracts.json">chassis contracts</a>, <a class="text-cyan-300 underline" href="../zipmi/data/sources/idrac9-peripheral-reset-contracts.json">peripheral-reset contracts</a>, <a class="text-cyan-300 underline" href="../zipmi/data/sources/idrac9-reset-default-contracts.json">reset-to-default contracts</a>, and <a class="text-cyan-300 underline" href="../zipmi/data/sources/idrac9-extended-config-contracts.json">partial Extended Configuration contracts</a>.</p></section>
+</main></body></html>

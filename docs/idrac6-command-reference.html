@@ -1,0 +1,1568 @@
+<!doctype html>
+<!-- z-artifact: 48dac178-76c1-4ffc-9454-e745f7699a67 -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dell iDRAC6 1.70 OEM-IPMI denominator audit</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-slate-50 text-slate-900"><main class="max-w-[96rem] mx-auto p-6 space-y-8">
+<header><p class="text-sm font-semibold text-blue-700">STATIC · EXACT IMAGE · 2026-10-12</p><h1 class="text-3xl font-bold">Dell iDRAC6 1.70 dispatch denominator and gap map</h1>
+<p class="mt-3 max-w-4xl">The dispatcher denominator and implementation identities are closed. Static semantic paths are expanded family by family with provenance-bound shared providers and distinct per-route overlays; all remaining gaps stay explicit.</p></header>
+<section class="grid md:grid-cols-4 lg:grid-cols-8 gap-3">
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">213</div><div>registrations</div></div>
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">192</div><div>unique addresses</div></div>
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">21</div><div>overlay collisions</div></div>
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">3</div><div>suppressed routes</div></div>
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">189</div><div>effective top-level routes</div></div>
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">188</div><div>unique implementations</div></div>
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">32</div><div>routes path-modeled</div></div>
+  <div class="bg-white rounded border p-4"><div class="text-2xl font-bold">160</div><div>reachable paths</div></div>
+</section>
+<section class="bg-amber-50 border border-amber-300 rounded p-5"><h2 class="text-xl font-semibold">Denominator boundary</h2>
+<p class="mt-2">189 is the closed top-level effective dispatch-route denominator, not a closed semantic-operation denominator. Thirty-two routes now have 160 reachable semantic paths decoded (151 successful-operation paths, two successful no-ops, and seven explicit unsupported terminals); remaining multiplexed handlers are unexpanded, and raw control-flow branches are never counted as operations.</p></section>
+<section class="bg-white rounded border p-5"><h2 class="text-xl font-semibold">Why 213, 195, and 192 all appeared</h2>
+<ul class="list-disc ml-6 mt-3 space-y-2"><li>Correct raw registration-slot count (120 + 93).</li><li>Same cardinality as the exact unique-address set, but not the same set.</li><li>A name/alias inventory, not a dispatch denominator.</li></ul>
+<p class="mt-3">The legacy generator remapped seven OEM-overlay rows whose descriptor NetFn is 0x00 as if they were NetFn 0x30, replacing seven real non-0x30 routes. Separate handler-name aliases add further non-denominator names.</p>
+<div class="grid md:grid-cols-2 gap-4 mt-4"><div><h3 class="font-semibold">Missing exact routes</h3><code>0x00/0x06, 0x00/0x0a, 0x06/0x58, 0x06/0x59, 0x0c/0x31, 0x0c/0x32, 0x0c/0x33</code></div><div><h3 class="font-semibold">Phantom catalog routes</h3><code>0x30/0x00, 0x30/0x01, 0x30/0x02, 0x30/0x04, 0x30/0x05, 0x30/0x06, 0x30/0x0a</code></div></div></section>
+<section class="bg-white rounded border p-5"><h2 class="text-xl font-semibold">Dispatch proof</h2><p class="mt-2"><code>RequestHandleTableSearch @ 0x00160794</code>, 824 bytes, SHA-256 <code class="break-all">7fdc790348c61a8cdd665a1b008a7d461f2da626388f693aef71d16b2fbbb908</code>.</p><p class="mt-2">Search OEM overlay first by exact (NetFn, cmd). A NotSupportRequestHandle winner returns no route. Otherwise return the OEM row. Search the standard table only when no OEM row matched.</p></section>
+<section class="bg-blue-50 border border-blue-200 rounded p-5"><h2 class="text-xl font-semibold">Recovered semantic paths</h2><p class="mt-2">The 32 modeled routes contain 160 reachable paths: 151 successful-operation paths, 2 successful no-op state paths, and 7 explicit unsupported terminals. The two Reset-to-Default addresses intentionally reuse one implementation contract. Validation, logging, and backend-error branches are not counted as operations.</p></section>
+<section class="bg-white rounded border p-5"><h2 class="text-xl font-semibold">User credential provider chain</h2><p class="mt-2"><code>0x06/0x43..0x47</code> retain five distinct address overlays but share one proved provider dispatcher. <code>UserInfoInit</code> registers <code>UserInfoAccessHandleFunction</code> for opcode class <code>0x0200</code>; opcodes <code>0x0201..0x0205</code> resolve to five exact-image leaf functions. IPMB, KCS, LAN, and serial callbacks do not consume this class and fall through with provider-miss 7. All dispatcher, callback, and leaf identities are body-hash bound in the JSON artifact.</p><p class="mt-2 text-sm text-slate-600">Cumulative modeled routes: 32; effective routes still unexpanded: 157.</p></section>
+<section class="bg-white rounded border p-5"><h2 class="text-xl font-semibold">Channel-access provider chain</h2><p class="mt-2"><code>0x06/0x40</code> and <code>0x06/0x41</code> share the exact <code>ChannelDataAccess</code> precedence contract but retain separate Set/Get wire, privilege, firewall, effect, response, and completion overlays. Opcodes <code>0x0105</code>/<code>0x0106</code> are consumed directly by LAN and serial callbacks. IPMB and KCS return provider-miss 7, and the registered generic <code>0x0100</code> session provider also rejects these opcodes, making channel type part of reachability. Exact wrapper, dispatcher, callback, leaf, session-state helper, and firewall identities are body-hash bound in the JSON artifact; raw ARM evidence is retained in <code>channel-access-r2-disassembly.txt</code>.</p></section>
+<section class="bg-white rounded border p-5"><h2 class="text-xl font-semibold">Watchdog state and action engine</h2><p class="mt-2"><code>0x06/(22, 24, 25)</code> share one exact 24-byte <code>G_sWatchdogTimer</code> state object, main/pre-timeout ThreadX timers, and asynchronous event/action engine. Reset recomputes and rearms the current configuration; Set replaces it and may stop, fire, or arm the timers; Get returns configuration plus the live countdown. The three route overlays remain separate: Set is Operator and requires four firewall subfunctions, Reset is Operator, and Get is User. The Set wrapper reads bytes 8..13 without a local declared-length check and can return raw <code>0x01</code> on timer activation failure. Exact helper identities are body-hash bound in JSON; raw ARM evidence is retained in <code>watchdog-r2-disassembly.txt</code>.</p></section>
+<section><h2 class="text-xl font-semibold mb-3">Per-address ledger (192)</h2><div class="overflow-x-auto bg-white rounded border"><table class="w-full text-sm"><thead class="bg-slate-900 text-white"><tr><th class="p-2 text-left">Address</th><th class="p-2 text-left">Winning handler</th><th class="p-2 text-left">Auth metadata</th><th class="p-2 text-left">Semantic paths</th><th class="p-2 text-left">Open dimensions</th><th class="p-2 text-left">Historical evidence</th></tr></thead><tbody>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x00</td>
+            <td class="p-2"><code>CmdOEMGetChassisCapabilities</code><br><span class="text-xs text-slate-500">0x00063e1c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L24: | `raw 0x00 0x00` | CmdGetChassisCapabilities | Usr | No | **YES**: `01 20 20 20 20 20` | Returns chassis capabilities: intrusion sensor, all devices at BMC 0x20 |</span><br><span class='text-xs'>L572: | `raw 0x00 0x00` | `01 20 20 20 20 20` | Chassis caps: intrusion sensor, all devices at BMC addr 0x20 |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x01</td>
+            <td class="p-2"><code>DellCmdGetChassisStatus</code><br><span class="text-xs text-slate-500">0x00060b90 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L25: | `raw 0x00 0x01` | CmdGetChassisStatus | Usr | No | **YES**: `21 10 00 50` | Power ON, restore=previous, last on via IPMI |</span><br><span class='text-xs'>L573: | `raw 0x00 0x01` | `21 10 00 50` | Power ON, restore=previous, last power-on via IPMI |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x02</td>
+            <td class="p-2"><code>DellCmdChassisControl</code><br><span class="text-xs text-slate-500">0x00113684 · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">6 reachable / 6 operation paths<br><span class='text-xs'>request byte 8 low nibble; exact values 0..5</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L26: | `raw 0x00 0x02` | CmdChassisControl | Op | No | ? (WRITES) | Power off / on / cycle / hard reset / diagnostic interrupt / soft shutdown |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x04</td>
+            <td class="p-2"><code>CmdOEMChassisIdentify</code><br><span class="text-xs text-slate-500">0x00063f1c · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L27: | `raw 0x00 0x04` | DellCmdChassisIdentify | Op | Yes | ? (WRITES) | Blink chassis identify LED (Dell override of standard identify) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x05</td>
+            <td class="p-2"><code>CmdOEMSetChassisCapabilities</code><br><span class="text-xs text-slate-500">0x00064074 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L28: | `raw 0x00 0x05` | CmdSetChassisCapabilities | Adm | Yes | ? (WRITES) | Write chassis capability bytes |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x06</td>
+            <td class="p-2"><code>CmdSetPowerRestorePolicy</code><br><span class="text-xs text-slate-500">0x00063d3c · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">2 reachable / 2 operation paths<br><span class='text-xs'>request byte 8; reserved bits 7:2 must be zero</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-slate-500'>none selected</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x07</td>
+            <td class="p-2"><code>CmdGetSystemRestartCause</code><br><span class="text-xs text-slate-500">0x00152e9c · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>none</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L29: | `raw 0x00 0x07` | CmdGetSystemRestartCause | Usr | No | **YES**: `01 01` | Restart cause 0x01 = chassis control command, channel 0x01 |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x08</td>
+            <td class="p-2"><code>CmdSetSystemBootOptions</code><br><span class="text-xs text-slate-500">0x001531e8 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L30: | `raw 0x00 0x08` | CmdSetSystemBootOptions | Op | Yes | ? (WRITES) | Set boot flags: boot device, BIOS quiet mode, lock out reset buttons |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x09</td>
+            <td class="p-2"><code>CmdGetSystemBootOptions</code><br><span class="text-xs text-slate-500">0x00153ab0 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L31: | `raw 0x00 0x09` | CmdGetSystemBootOptions | Op | No | **YES**: 0xC7 (needs param byte) | Read current boot option parameters |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x0a</td>
+            <td class="p-2"><code>DellCmdSetFrntPanelState</code><br><span class="text-xs text-slate-500">0x00060ce8 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>no selector; requested front-panel state is low nibble of request byte 8</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-slate-500'>none selected</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x00/0x0b</td>
+            <td class="p-2"><code>CmdSetPowerCycleInterval</code><br><span class="text-xs text-slate-500">0x00153fb4 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">2 reachable / 2 operation paths<br><span class='text-xs'>request byte 8 interval; zero is normalized to one</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L32: | `raw 0x00 0x0B` | CmdSetPowerCycleInterval | Adm | No | ? (WRITES) | Set delay (seconds) between power-off and power-on during a power cycle |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x00</td>
+            <td class="p-2"><code>CmdSetEventReceiver</code><br><span class="text-xs text-slate-500">0x00183a78 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L38: | `raw 0x04 0x00` | CmdSetEventReceiver | Adm | No | ? (WRITES) | Set IPMB address and LUN of event message receiver |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x01</td>
+            <td class="p-2"><code>CmdGetEventReceiver</code><br><span class="text-xs text-slate-500">0x00183b74 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L39: | `raw 0x04 0x01` | CmdGetEventReceiver | Usr | No | **YES**: `20 00` | Event receiver at BMC (0x20), LUN 0 |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x02</td>
+            <td class="p-2"><code>CmdOEMPlatformEvent</code><br><span class="text-xs text-slate-500">0x0005fdbc · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L40: | `raw 0x04 0x02` | CmdPlatformEvent | Op | Yes | ? (WRITES) | Generate a platform event message |</span><br><span class='text-xs'>L328: | `raw 0x04 0x02` | `0x0005fdbc` | `0x00183c0c` | CmdPlatformEvent | Dell extends PEF with OEM event types |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x10</td>
+            <td class="p-2"><code>CmdPEFCGetCapabilities</code><br><span class="text-xs text-slate-500">0x00188bec · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L41: | `raw 0x04 0x10` | CmdPEFCGetCapabilities | Usr | No | **YES**: `51 1f 28` | PEF v1.5, 31 filter entries, 40 alert policies |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x11</td>
+            <td class="p-2"><code>CmdPEFCArmPostponeTimer</code><br><span class="text-xs text-slate-500">0x00188da0 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L42: | `raw 0x04 0x11` | CmdPEFCArmPostponeTimer | Adm | No | ? (WRITES) | Arm or postpone the PEF postpone timer |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x12</td>
+            <td class="p-2"><code>CmdPEFCSetConfigurationParameters</code><br><span class="text-xs text-slate-500">0x00189268 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L43: | `raw 0x04 0x12` | CmdPEFCSetConfigurationParameters | Adm | Yes | ? (WRITES) | Write PEF configuration |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x13</td>
+            <td class="p-2"><code>CmdPEFCGetConfigurationParameters</code><br><span class="text-xs text-slate-500">0x00189458 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L44: | `raw 0x04 0x13` | CmdPEFCGetConfigurationParameters | Op | Yes | **YES**: 0xC7 (needs param byte) | Read PEF configuration parameters |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x14</td>
+            <td class="p-2"><code>CmdPEFCSetLastProcessedEventID</code><br><span class="text-xs text-slate-500">0x00189524 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L45: | `raw 0x04 0x14` | CmdPEFCSetLastProcessedEventID | Op | No | ? (WRITES) | Set record ID of most recently processed SEL event |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x15</td>
+            <td class="p-2"><code>CmdPEFCGetLastProcessedEventID</code><br><span class="text-xs text-slate-500">0x001895e4 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L46: | `raw 0x04 0x15` | CmdPEFCGetLastProcessedEventID | Usr | No | **YES**: `81 5b c4 69 07 00 ff ff 07 00` | Last processed event IDs |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x16</td>
+            <td class="p-2"><code>CmdPEFCAlertImmediate</code><br><span class="text-xs text-slate-500">0x001896c0 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L47: | `raw 0x04 0x16` | CmdPEFCAlertImmediate | Op | No | ? (WRITES) | Force immediate alert transmission |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x17</td>
+            <td class="p-2"><code>CmdPETCAcknowledge</code><br><span class="text-xs text-slate-500">0x001898a4 · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L48: | `raw 0x04 0x17` | CmdPETCAcknowledge | U | No | **YES**: 0xC7 (needs data) | Acknowledge a PET SNMP trap |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="disabled">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x23</td>
+            <td class="p-2"><code>NotSupportRequestHandle</code><br><span class="text-xs text-slate-500">0x00161140 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not applicable</td>
+            <td class="p-2 text-xs">dispatch-disabled</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L49: | `raw 0x04 0x23` | CmdGetSensorReadingFactors | Usr | No | **DISABLED (0xC1)** | Dell stub `0x00161140` — **confirmed disabled on live BMC** |</span><br><span class='text-xs'>L352: | `raw 0x04 0x23` | `0x00161140` (STUB) | `0x00166328` | CmdGetSensorReadingFactors | Dell may use fixed linearization in SDRs, making runtime factor queries unnecessary or problem</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x24</td>
+            <td class="p-2"><code>CmdSetSensorHysteresis</code><br><span class="text-xs text-slate-500">0x0016642c · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L50: | `raw 0x04 0x24` | CmdSetSensorHysteresis | Adm | No | ? (WRITES) | Set hysteresis for threshold-based sensor |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x25</td>
+            <td class="p-2"><code>CmdGetSensorHysteresis</code><br><span class="text-xs text-slate-500">0x001664c8 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L51: | `raw 0x04 0x25` | CmdGetSensorHysteresis | Usr | No | **YES**: 0xC7 (needs 2-byte sensor#) | Read hysteresis values |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x26</td>
+            <td class="p-2"><code>CmdSetSensorThresholds</code><br><span class="text-xs text-slate-500">0x00166580 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L52: | `raw 0x04 0x26` | CmdSetSensorThresholds | Op | No | ? (WRITES) | Write threshold values |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x27</td>
+            <td class="p-2"><code>CmdGetSensorThresholds</code><br><span class="text-xs text-slate-500">0x00166654 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L53: | `raw 0x04 0x27` | CmdGetSensorThresholds | Usr | No | **YES**: `18 00 00 00 d5 da 00` (sensor 1) | Sensor 1 thresholds: UC=0xD5, UNR=0xDA |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x28</td>
+            <td class="p-2"><code>CmdSetSensorEventEnable</code><br><span class="text-xs text-slate-500">0x00166730 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L54: | `raw 0x04 0x28` | CmdSetSensorEventEnable | Op | Yes | ? (WRITES) | Enable/disable event generation per sensor |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x29</td>
+            <td class="p-2"><code>CmdGetSensorEventEnable</code><br><span class="text-xs text-slate-500">0x00166a3c · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L55: | `raw 0x04 0x29` | CmdGetSensorEventEnable | Usr | No | **YES**: `00` (sensor 1) | Sensor 1 events: none enabled |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x2a</td>
+            <td class="p-2"><code>CmdRearmSensorEvents</code><br><span class="text-xs text-slate-500">0x00166bcc · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L56: | `raw 0x04 0x2A` | CmdRearmSensorEvents | Op | Yes | ? (WRITES) | Re-arm event generation |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x2b</td>
+            <td class="p-2"><code>CmdGetSensorEventStatus</code><br><span class="text-xs text-slate-500">0x00166ecc · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L57: | `raw 0x04 0x2B` | CmdGetSensorEventStatus | Usr | No | **YES**: `00 00` (sensor 1) | Sensor 1 event status: no events |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x2d</td>
+            <td class="p-2"><code>CmdGetSensorReading</code><br><span class="text-xs text-slate-500">0x001670b8 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L58: | `raw 0x04 0x2D` | CmdGetSensorReading | Usr | No | **YES**: `42 00 c0` (sensor 1) | Sensor 1 reading=0x42, scanning enabled |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x04/0x30</td>
+            <td class="p-2"><code>CmdSetSensorReading</code><br><span class="text-xs text-slate-500">0x00167198 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L59: | `raw 0x04 0x30` | CmdSetSensorReading | Op | Yes | ? (WRITES) | Inject arbitrary reading/event status |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x01</td>
+            <td class="p-2"><code>CmdGetDeviceID</code><br><span class="text-xs text-slate-500">0x00184038 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L65: | `raw 0x06 0x01` | CmdGetDeviceID | Usr | No | **YES**: `20 80 01 70 02 df a2 02 00 ...` | FW 1.70, IPMI 2.0, Dell IANA 674 |</span><br><span class='text-xs'>L574: | `raw 0x06 0x01` | `20 80 01 70 02 df a2 02 00 00 01 00 15 00 00` | Device ID 0x20, FW 1.70, IPMI 2.0, Dell IANA, product 0x0100 |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x02</td>
+            <td class="p-2"><code>CmdColdReset</code><br><span class="text-xs text-slate-500">0x00184100 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>none</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L66: | `raw 0x06 0x02` | CmdColdReset | Adm | No | ? (DESTRUCTIVE) | Unconditionally reset the BMC |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x04</td>
+            <td class="p-2"><code>CmdOEMGetSelfTestResults</code><br><span class="text-xs text-slate-500">0x0006679c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L67: | `raw 0x06 0x04` | CmdGetSelfTestResults | Usr | No | **YES**: `55 00` | Self-test passed, no errors |</span><br><span class='text-xs'>L329: | `raw 0x06 0x04` | `0x0006679c` | `0x0018417c` | CmdGetSelfTestResults | Returns Dell-specific self-test data beyond the standard 2-byte result |</span><br><span class='text-xs'>L575: | `raw 0x06 0x04` | `55 00` | Self-test passed, no errors |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x05</td>
+            <td class="p-2"><code>CmdManufacturingTestOn</code><br><span class="text-xs text-slate-500">0x001841c8 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L68: | `raw 0x06 0x05` | CmdManufacturingTestOn | Adm | No | ? (WRITES) | Enable manufacturing test mode |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x06</td>
+            <td class="p-2"><code>CmdSetACPIPowerState</code><br><span class="text-xs text-slate-500">0x001842b0 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>two independently-present fields: byte 8 system state and byte 9 device state; bit 7 marks a requested update</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L69: | `raw 0x06 0x06` | CmdSetACPIPowerState | Adm | No | ? (WRITES) | Set ACPI power state |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x07</td>
+            <td class="p-2"><code>CmdGetACPIPowerState</code><br><span class="text-xs text-slate-500">0x00184408 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>none</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L70: | `raw 0x06 0x07` | CmdGetACPIPowerState | Usr | No | **YES**: `2a 2a` | System=S0/G0(working), Device=D0(on) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x08</td>
+            <td class="p-2"><code>CmdGetDeviceGUID</code><br><span class="text-xs text-slate-500">0x00184470 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L71: | `raw 0x06 0x08` | CmdGetDeviceGUID | Usr | No | **YES**: `44 45 4c 4c 58 00 10 54 80 33 b5 c0 4f 47 51 31` | GUID = &quot;DELLX..T.3..OGQ1&quot; |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x09</td>
+            <td class="p-2"><code>CmdGetNetFnSupport</code><br><span class="text-xs text-slate-500">0x00180a9c · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L72: | `raw 0x06 0x09` | CmdGetNetFnSupport | Usr | No | **YES**: 0xC7 (needs channel/LUN param) | Bitmap of supported NetFns |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x0a</td>
+            <td class="p-2"><code>CmdOEMGetCommandSupport</code><br><span class="text-xs text-slate-500">0x00065ae4 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L73: | `raw 0x06 0x0A` | CmdGetCommandSupport | Op | Yes | **YES**: 0xCC (needs NetFn/channel param) | Command support bitmap |</span><br><span class='text-xs'>L330: | `raw 0x06 0x0A` | `0x00065ae4` | `0x00180cd4` | CmdGetCommandSupport | Dell OEM firewall — reports Dell-specific command support bitmaps |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x0b</td>
+            <td class="p-2"><code>CmdGetCommandSubFnSupport</code><br><span class="text-xs text-slate-500">0x00181394 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L74: | `raw 0x06 0x0B` | CmdGetCommandSubFnSupport | Adm | No | ? | Sub-function support bitmap |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x0c</td>
+            <td class="p-2"><code>CmdGetConfigurableCommands</code><br><span class="text-xs text-slate-500">0x001819b0 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L75: | `raw 0x06 0x0C` | CmdGetConfigurableCommands | Op | Yes | ? | Configurable commands bitmap |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x0d</td>
+            <td class="p-2"><code>CmdGetConfigurableCommandSubFn</code><br><span class="text-xs text-slate-500">0x00181dcc · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L76: | `raw 0x06 0x0D` | CmdGetConfigurableCommandSubFn | Adm | No | ? | Configurable sub-functions |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x22</td>
+            <td class="p-2"><code>CmdResetWatchdogTimer</code><br><span class="text-xs text-slate-500">0x0003bd40 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one Reset Watchdog Timer operation over the currently configured watchdog state</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L77: | `raw 0x06 0x22` | CmdResetWatchdogTimer | Op | No | ? (WRITES) | Pet the watchdog timer |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x24</td>
+            <td class="p-2"><code>CmdSetWatchdogTimer</code><br><span class="text-xs text-slate-500">0x0003b854 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one composite Set Watchdog Timer operation; timer use 1..5, pre-timeout interrupt 0..3, timeout action 0..3, and volatile/nonvolatile control flags are encoded across request bytes 8..13</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L78: | `raw 0x06 0x24` | CmdSetWatchdogTimer | Adm | No | ? (WRITES) | Configure watchdog |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x25</td>
+            <td class="p-2"><code>CmdGetWatchdogTimer</code><br><span class="text-xs text-slate-500">0x0003c034 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one Get Watchdog Timer operation</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L79: | `raw 0x06 0x25` | CmdGetWatchdogTimer | Usr | No | **YES**: `c4 00 00 00 c0 12 79 12` | Watchdog config + countdown |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x2e</td>
+            <td class="p-2"><code>CmdSetBMCGlobalEnable</code><br><span class="text-xs text-slate-500">0x0015629c · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L80: | `raw 0x06 0x2E` | CmdSetBMCGlobalEnable | U | Yes | ? (WRITES) | Enable/disable message handling |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x2f</td>
+            <td class="p-2"><code>CmdGetBMCGlobalEnable</code><br><span class="text-xs text-slate-500">0x00156400 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L81: | `raw 0x06 0x2F` | CmdGetBMCGlobalEnable | Usr | No | **YES**: `0c` | Global enables: SEL+EventMsgBuf enabled |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x30</td>
+            <td class="p-2"><code>CmdClearMsgFlags</code><br><span class="text-xs text-slate-500">0x001565d4 · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L82: | `raw 0x06 0x30` | CmdClearMsgFlags | U | Yes | ? (WRITES) | Clear message flag bits |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x31</td>
+            <td class="p-2"><code>CmdGetMsgFlags</code><br><span class="text-xs text-slate-500">0x00156734 · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L83: | `raw 0x06 0x31` | CmdGetMsgFlags | U | Yes | **NO (0xC1)** | **Not available on LAN** — KCS system interface only |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x32</td>
+            <td class="p-2"><code>CmdEnableMsgChannelRecv</code><br><span class="text-xs text-slate-500">0x00156840 · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L84: | `raw 0x06 0x32` | CmdEnableMsgChannelRecv | U | Yes | ? | Enable channel receive |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x33</td>
+            <td class="p-2"><code>CmdGetMsg</code><br><span class="text-xs text-slate-500">0x00156b0c · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L85: | `raw 0x06 0x33` | CmdGetMsg | U | Yes | ? | Retrieve from receive queue |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x35</td>
+            <td class="p-2"><code>CmdReadEventMsgBuf</code><br><span class="text-xs text-slate-500">0x00156e8c · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L86: | `raw 0x06 0x35` | CmdReadEventMsgBuf | U | Yes | ? | Read from event message buffer |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x37</td>
+            <td class="p-2"><code>CmdGetSystemGUID</code><br><span class="text-xs text-slate-500">0x0015ac7c · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L87: | `raw 0x06 0x37` | CmdGetSystemGUID | U | No | **YES**: `44 45 4c 4c 58 00 10 54 80 33 b5 c0 4f 47 51 31` | Same as DeviceGUID |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x3c</td>
+            <td class="p-2"><code>CmdCloseSession</code><br><span class="text-xs text-slate-500">0x0015acbc · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L88: | `raw 0x06 0x3C` | CmdCloseSession | Adm | No | ? (WRITES) | Close IPMI session |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x3d</td>
+            <td class="p-2"><code>CmdGetSessionInfo</code><br><span class="text-xs text-slate-500">0x0015ae80 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L89: | `raw 0x06 0x3D` | CmdGetSessionInfo | Adm | Yes | **YES**: `20 05 01 02 04 01 c0 a8 00 02 b0 be 83 a2 52 c5 dd d1` | Current session: from 192.168.0.2, MAC b0:be:83:a2:52:c5 |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x3f</td>
+            <td class="p-2"><code>CmdGetAuthCode</code><br><span class="text-xs text-slate-500">0x0015b1d4 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L90: | `raw 0x06 0x3F` | CmdGetAuthCode | Op | No | ? | Generate auth code |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x40</td>
+            <td class="p-2"><code>CmdSetChannelAccess</code><br><span class="text-xs text-slate-500">0x0015b49c · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one composite Set Channel Access operation; byte 8 low nibble selects the channel, byte 9 bits 7:6 select the access-mode update target, and byte 10 bits 7:6 select the privilege-limit update target</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L91: | `raw 0x06 0x40` | CmdSetChannelAccess | Adm | No | ? (WRITES) | Set channel access mode |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x41</td>
+            <td class="p-2"><code>CmdGetChannelAccess</code><br><span class="text-xs text-slate-500">0x0015b6dc · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one Get Channel Access operation; byte 8 low nibble selects the channel and byte 9 bits 7:6 select the volatile/nonvolatile access bank</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L92: | `raw 0x06 0x41` | CmdGetChannelAccess | Usr | No | **YES**: `12 04` (ch1, volatile) | Ch1: always available, max priv=Admin |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x42</td>
+            <td class="p-2"><code>CmdGetChannelInfo</code><br><span class="text-xs text-slate-500">0x0015b8b4 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L93: | `raw 0x06 0x42` | CmdGetChannelInfo | Usr | No | **YES**: `01 04 01 81 f2 1b 00 00 00` (ch1) | Ch1: 802.3 LAN, IPMB-1.0, multi-session |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x43</td>
+            <td class="p-2"><code>CmdSetUserAccess</code><br><span class="text-xs text-slate-500">0x0015bbb8 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one composite Set User Access operation; channel is byte 8 low nibble, user ID byte 9 low six bits, privilege byte 10 low nibble</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L94: | `raw 0x06 0x43` | CmdSetUserAccess | Adm | Yes | ? (WRITES) | Set user privilege level |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x44</td>
+            <td class="p-2"><code>CmdGetUserAccess</code><br><span class="text-xs text-slate-500">0x0015be78 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one Get User Access operation; channel byte 8 low nibble and user ID byte 9 low six bits</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L95: | `raw 0x06 0x44` | CmdGetUserAccess | Op | No | **YES**: `10 88 01 0f` (ch1 user1) | 16 user slots, user1 enabled, Admin priv |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x45</td>
+            <td class="p-2"><code>CmdSetUserName</code><br><span class="text-xs text-slate-500">0x0015c0d0 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one Set User Name operation; user ID is request byte 8 low six bits</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L96: | `raw 0x06 0x45` | CmdSetUserName | Adm | No | ? (WRITES) | Write user name |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x46</td>
+            <td class="p-2"><code>CmdGetUserName</code><br><span class="text-xs text-slate-500">0x0015c1d4 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one Get User Name operation; user ID is request byte 8 low six bits</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L97: | `raw 0x06 0x46` | CmdGetUserName | Op | No | **YES**: `00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00` (user1) | User 1 name = null (anonymous/root) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x47</td>
+            <td class="p-2"><code>CmdSetUserPassword</code><br><span class="text-xs text-slate-500">0x0015c2e8 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">4 reachable / 4 operation paths<br><span class='text-xs'>request byte 9 low two bits: 0 disable, 1 enable, 2 set password, 3 test password; byte 8 bit 7 selects 20-byte instead of 16-byte password</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L98: | `raw 0x06 0x47` | CmdSetUserPassword | Adm | Yes | ? (WRITES) | Set/test user password |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x48</td>
+            <td class="p-2"><code>CmdActivatePayload</code><br><span class="text-xs text-slate-500">0x001866d4 · standard</span></td>
+            <td class="p-2">callback<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L99: | `raw 0x06 0x48` | CmdActivatePayload | CB | No | ? (WRITES) | Activate SOL/OEM payload |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x49</td>
+            <td class="p-2"><code>CmdDeactivatePayload</code><br><span class="text-xs text-slate-500">0x001869c8 · standard</span></td>
+            <td class="p-2">callback<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L100: | `raw 0x06 0x49` | CmdDeactivatePayload | CB | No | ? (WRITES) | Deactivate payload |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x4a</td>
+            <td class="p-2"><code>CmdGetPayloadActivationStatus</code><br><span class="text-xs text-slate-500">0x00186ca0 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L101: | `raw 0x06 0x4A` | CmdGetPayloadActivationStatus | Usr | No | **YES**: `01 00 00` (SOL) | SOL: 1 instance max, 0 active |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x4b</td>
+            <td class="p-2"><code>CmdGetPayloadInstanceInfo</code><br><span class="text-xs text-slate-500">0x00186e04 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L103: | `raw 0x06 0x4B` | CmdGetPayloadInstanceInfo | Usr | No | ? | Payload instance info |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x4c</td>
+            <td class="p-2"><code>CmdSetUserPayloadAccess</code><br><span class="text-xs text-slate-500">0x00186f9c · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L104: | `raw 0x06 0x4C` | CmdSetUserPayloadAccess | Adm | No | ? (WRITES) | Set user payload access |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x4d</td>
+            <td class="p-2"><code>CmdGetUserPayloadAccess</code><br><span class="text-xs text-slate-500">0x00187248 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L105: | `raw 0x06 0x4D` | CmdGetUserPayloadAccess | Usr | No | ? | User payload access bitmap |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x4e</td>
+            <td class="p-2"><code>CmdGetChannelPayloadSupport</code><br><span class="text-xs text-slate-500">0x00187444 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L102: | `raw 0x06 0x4E` | CmdGetChannelPayloadSupport | Usr | No | **YES**: `03 00 3f 00 00 00 00 00` (ch1) | Ch1: IPMI+SOL standard, 6 OEM payloads |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x4f</td>
+            <td class="p-2"><code>CmdGetChannelPayloadVersion</code><br><span class="text-xs text-slate-500">0x001875f0 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L106: | `raw 0x06 0x4F` | CmdGetChannelPayloadVersion | Usr | No | ? | Payload version |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x50</td>
+            <td class="p-2"><code>CmdGetChannelOEMPayloadInfo</code><br><span class="text-xs text-slate-500">0x0018779c · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L107: | `raw 0x06 0x50` | CmdGetChannelOEMPayloadInfo | Usr | No | ? | OEM payload info |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x52</td>
+            <td class="p-2"><code>CmdMasterWR_OEM</code><br><span class="text-xs text-slate-500">0x00064c7c · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L108: | `raw 0x06 0x52` | CmdSuspendBMCARPs | Op | Yes | Gratuitous ARP and ARP response suspend/resume for a LAN channel |</span><br><span class='text-xs'>L331: | `raw 0x06 0x52` | `0x00064c7c` | `0x00156c1c` | CmdSuspendBMCARPs | Dell-specific ARP behavior (probably iDRAC dedicated NIC vs shared mode) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x54</td>
+            <td class="p-2"><code>CmdGetChannelCipherSuites</code><br><span class="text-xs text-slate-500">0x0015c4d8 · standard</span></td>
+            <td class="p-2">unspecified<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L109: | `raw 0x06 0x54` | CmdGetChannelCipherSuites | Op | No | Enumerate supported cipher suites per channel |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x55</td>
+            <td class="p-2"><code>CmdSuspendResumePayloadEncryption</code><br><span class="text-xs text-slate-500">0x00186b3c · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L110: | `raw 0x06 0x55` | CmdSuspendResumePayloadEncryption | Usr | No | Temporarily suspend/resume payload encryption on active session |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x56</td>
+            <td class="p-2"><code>OEMCmdSetChannelSecurityKeys</code><br><span class="text-xs text-slate-500">0x00066b68 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L111: | `raw 0x06 0x56` | CmdSetChannelSecurityKeys | Adm | Yes | Set or clear integrity/confidentiality keys for a channel |</span><br><span class='text-xs'>L332: | `raw 0x06 0x56` | `0x00066b68` | `0x0015c6d8` | CmdSetChannelSecurityKeys | Dell OEM key management extensions |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x58</td>
+            <td class="p-2"><code>DellCmdSetSysInfo</code><br><span class="text-xs text-slate-500">0x00059a68 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">49 reachable / 44 operation paths<br><span class='text-xs'>request byte 8; 49 exact top-level values, all other values return 0x80</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-slate-500'>none selected</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x59</td>
+            <td class="p-2"><code>DellCmdGetSysInfo</code><br><span class="text-xs text-slate-500">0x0005c3b0 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">50 reachable / 50 operation paths<br><span class='text-xs'>request byte 9; 50 exact top-level values, all other values return 0x80</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-slate-500'>none selected</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x60</td>
+            <td class="p-2"><code>CmdSetCommandEnables</code><br><span class="text-xs text-slate-500">0x00182134 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L112: | `raw 0x06 0x60` | CmdSetCommandEnables | Adm | Yes | Enable/disable specific commands (command firewall write) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x61</td>
+            <td class="p-2"><code>CmdOEMGetCommandEnables</code><br><span class="text-xs text-slate-500">0x00065e40 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L113: | `raw 0x06 0x61` | CmdGetCommandEnables | Op | No | Read command enable bitmap |</span><br><span class='text-xs'>L333: | `raw 0x06 0x61` | `0x00065e40` | `0x001826d8` | CmdGetCommandEnables | Dell OEM firewall enable bitmap |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x62</td>
+            <td class="p-2"><code>CmdSetCommandSubFnEnables</code><br><span class="text-xs text-slate-500">0x00182c98 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L114: | `raw 0x06 0x62` | CmdSetCommandSubFnEnables | Adm | No | Enable/disable sub-functions of a specific command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x63</td>
+            <td class="p-2"><code>CmdGetCommandSubFnEnables</code><br><span class="text-xs text-slate-500">0x001832f4 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L115: | `raw 0x06 0x63` | CmdGetCommandSubFnEnables | Usr | No | Read sub-function enable bitmap |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x06/0x64</td>
+            <td class="p-2"><code>CmdGetOEMNetFnIANASupport</code><br><span class="text-xs text-slate-500">0x00183858 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L116: | `raw 0x06 0x64` | CmdSet/GetSessionLessChannelPrivilege | Op | No | Get or set privilege level on session-less channels (e.g., KCS) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x02</td>
+            <td class="p-2"><code>CmdFirmwareUpdate</code><br><span class="text-xs text-slate-500">0x0015d0f8 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>one exact eight-byte magic token, compared against firmware-resident bytes</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L122: | `raw 0x08 0x02` | CmdFirmwareUpdate | Adm | No | Initiate firmware update process |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x10</td>
+            <td class="p-2"><code>CmdFirmwareUpdatePhase1</code><br><span class="text-xs text-slate-500">0x0015dff0 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">3 reachable / 1 operation paths<br><span class='text-xs'>firmware phase state: 1=startable, 3=already complete, all others invalid</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L123: | `raw 0x08 0x10` | (FW phase cmd) | Adm | Yes | Firmware update sub-command (chunk write) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x11</td>
+            <td class="p-2"><code>CmdFirmwareUpdatePhase2</code><br><span class="text-xs text-slate-500">0x0015e1b4 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">3 reachable / 1 operation paths<br><span class='text-xs'>firmware phase state: 3 with marker 0x64=startable, 5=already complete, all others invalid</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L124: | `raw 0x08 0x11` | (FW phase cmd) | Adm | Yes | Firmware update sub-command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x12</td>
+            <td class="p-2"><code>CmdGetFirmwareUpdateStatus</code><br><span class="text-xs text-slate-500">0x0015e378 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">4 reachable / 4 operation paths<br><span class='text-xs'>request byte 8 selector 1..4</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L125: | `raw 0x08 0x12` | (FW phase cmd) | Adm | Yes | Firmware update sub-command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x13</td>
+            <td class="p-2"><code>CmdGetFirmwareVersion</code><br><span class="text-xs text-slate-500">0x0015e6cc · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">4 reachable / 4 operation paths<br><span class='text-xs'>request byte 8 selector 0..3</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L126: | `raw 0x08 0x13` | (FW phase cmd) | Adm | Yes | Firmware update sub-command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x14</td>
+            <td class="p-2"><code>CmdRollbackFirmwareVersion</code><br><span class="text-xs text-slate-500">0x0015ea08 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>none</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L127: | `raw 0x08 0x14` | (FW phase cmd) | Adm | Yes | Firmware update sub-command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x15</td>
+            <td class="p-2"><code>CmdCancelFirmwareUpdate</code><br><span class="text-xs text-slate-500">0x0015ecb4 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">1 reachable / 1 operation paths<br><span class='text-xs'>none</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L128: | `raw 0x08 0x15` | (FW phase cmd) | Adm | Yes | Firmware update sub-command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x08/0x16</td>
+            <td class="p-2"><code>CmdSetFWImageStatus</code><br><span class="text-xs text-slate-500">0x0015ed40 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L129: | `raw 0x08 0x16` | (FW phase cmd) | Adm | Yes | Firmware update sub-command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x10</td>
+            <td class="p-2"><code>CmdGetFRUInvAreaInfo</code><br><span class="text-xs text-slate-500">0x001549e0 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L139: | `raw 0x0a 0x10` | CmdGetFRUInvAreaInfo | Usr | No | **YES**: `00 10 00` (dev 0) | FRU area: 4096 bytes (0x1000), byte access |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x11</td>
+            <td class="p-2"><code>CmdReadFRUData</code><br><span class="text-xs text-slate-500">0x00154af4 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L140: | `raw 0x0a 0x11` | CmdReadFRUData | Usr | No | ? | Read bytes from FRU inventory data area |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x12</td>
+            <td class="p-2"><code>CmdWriteFRUData</code><br><span class="text-xs text-slate-500">0x00154c6c · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L141: | `raw 0x0a 0x12` | CmdWriteFRUData | Adm | No | ? (WRITES) | Write FRU data. Can overwrite serial numbers |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x20</td>
+            <td class="p-2"><code>CmdOEMGetSDRRepoInfo</code><br><span class="text-xs text-slate-500">0x00062870 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L147: | `raw 0x0a 0x20` | CmdGetSDRRepoInfo | Usr | No | **YES**: `51 7e 00 e1 05 ff ff ff ff ff ff ff ff 42` | 126 SDRs, 1505 bytes free, v1.5 |</span><br><span class='text-xs'>L334: | `raw 0x0a 0x20` | `0x00062870` | `0x00036b18` | CmdGetSDRRepoInfo | Returns Dell extended SDR metadata |</span><br><span class='text-xs'>L576: | `raw 0x0a 0x20` | `51 7e 00 e1 05 ff ff ff ff ff ff ff ff 42` | SDR v1.5, 126 records, 1505 bytes free |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x22</td>
+            <td class="p-2"><code>CmdResvSDRRepo</code><br><span class="text-xs text-slate-500">0x00036d88 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L148: | `raw 0x0a 0x22` | CmdResvSDRRepo | Usr | No | ? | Reserve SDR repository |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x23</td>
+            <td class="p-2"><code>CmdGetSDR</code><br><span class="text-xs text-slate-500">0x0003728c · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L149: | `raw 0x0a 0x23` | CmdGetSDR | Usr | No | ? | Read SDR by ID |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="disabled">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x25</td>
+            <td class="p-2"><code>NotSupportRequestHandle</code><br><span class="text-xs text-slate-500">0x00161140 · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not applicable</td>
+            <td class="p-2 text-xs">dispatch-disabled</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L150: | `raw 0x0a 0x25` | CmdPartAddSDR | Op | Yes | **DISABLED (0xC1)** | Dell stub `0x00161140` — **confirmed disabled** |</span><br><span class='text-xs'>L353: | `raw 0x0a 0x25` | `0x00161140` (STUB) | `0x00037504` | CmdPartAddSDR | **Dell locks down the SDR repository** — sensor population is factory-defined and shouldn&#x27;t be modified at </span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="disabled">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x27</td>
+            <td class="p-2"><code>NotSupportRequestHandle</code><br><span class="text-xs text-slate-500">0x00161140 · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not applicable</td>
+            <td class="p-2 text-xs">dispatch-disabled</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L151: | `raw 0x0a 0x27` | CmdClrSDR | Adm | No | **DISABLED (0xC1)** | Dell stub `0x00161140` — **confirmed disabled** |</span><br><span class='text-xs'>L354: | `raw 0x0a 0x27` | `0x00161140` (STUB) | `0x00037ca8` | CmdClrSDR | **Catastrophic if triggered** — would remove all sensor definitions, completely blinding monitoring. Dell disab</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x28</td>
+            <td class="p-2"><code>CmdGetSDRRepoTime</code><br><span class="text-xs text-slate-500">0x00037f68 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L152: | `raw 0x0a 0x28` | CmdGetSDRRepoTime | Usr | No | **YES**: `a8 e5 d3 69` | SDR repo timestamp (Unix time) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x29</td>
+            <td class="p-2"><code>CmdSetSDRRepoTime</code><br><span class="text-xs text-slate-500">0x0003804c · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L153: | `raw 0x0a 0x29` | CmdSetSDRRepoTime | Adm | No | ? (WRITES) | Set SDR timestamp |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x2c</td>
+            <td class="p-2"><code>CmdRunInitAgent</code><br><span class="text-xs text-slate-500">0x0003817c · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L154: | `raw 0x0a 0x2C` | CmdRunInitAgent | Op | No | ? (WRITES) | Run sensor init agent |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x40</td>
+            <td class="p-2"><code>CmdGetSELInfo</code><br><span class="text-xs text-slate-500">0x001659a4 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L160: | `raw 0x0a 0x40` | CmdGetSELInfo | Usr | No | **YES**: `51 07 00 90 1f 81 5b c4 69 95 fc 46 4d 02` | 7 entries, 8080 bytes free, v1.5 |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x42</td>
+            <td class="p-2"><code>CmdReserveSEL</code><br><span class="text-xs text-slate-500">0x00165c50 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L161: | `raw 0x0a 0x42` | CmdReserveSEL | Usr | No | ? | Reserve SEL |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x43</td>
+            <td class="p-2"><code>CmdGetSELEntry</code><br><span class="text-xs text-slate-500">0x00165d40 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L162: | `raw 0x0a 0x43` | CmdGetSELEntry | Usr | No | ? | Read SEL record by ID |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x44</td>
+            <td class="p-2"><code>CmdAddSELEntry</code><br><span class="text-xs text-slate-500">0x00165e74 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L163: | `raw 0x0a 0x44` | CmdAddSELEntry | Op | No | ? (WRITES) | Add event record to SEL |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x47</td>
+            <td class="p-2"><code>CmdClearSEL</code><br><span class="text-xs text-slate-500">0x00166064 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L164: | `raw 0x0a 0x47` | CmdClearSEL | Adm | No | ? (DESTRUCTIVE) | Erase entire SEL |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x48</td>
+            <td class="p-2"><code>CmdGetSELTime</code><br><span class="text-xs text-slate-500">0x0016616c · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L165: | `raw 0x0a 0x48` | CmdGetSELTime | Usr | No | **YES**: `a8 e5 d3 69` | SEL clock (Unix timestamp) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0a/0x49</td>
+            <td class="p-2"><code>CmdSetSELTime</code><br><span class="text-xs text-slate-500">0x001662d0 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L166: | `raw 0x0a 0x49` | CmdSetSELTime | Adm | No | ? (WRITES) | Set SEL clock time |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x01</td>
+            <td class="p-2"><code>DellCmdSetLANConfigParam</code><br><span class="text-xs text-slate-500">0x00066c5c · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L172: | `raw 0x0c 0x01` | CmdSetLANConfigParam | Adm | Yes | ? (WRITES) | Write LAN config: IP, subnet, gateway, VLAN |</span><br><span class='text-xs'>L335: | `raw 0x0c 0x01` | `0x00066c5c` | `0x00184890` | CmdSetLANConfigParam | Dell LAN params: iDRAC NIC selection, dedicated/shared mode, VLAN extensions |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x02</td>
+            <td class="p-2"><code>DellCmdGetLANConfigParam</code><br><span class="text-xs text-slate-500">0x0006701c · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L173: | `raw 0x0c 0x02` | CmdGetLANConfigParam | Op | No | **YES**: `11 c0 a8 00 17` (ch1 param3=IP) | LAN IP = 192.168.0.23 |</span><br><span class='text-xs'>L336: | `raw 0x0c 0x02` | `0x0006701c` | `0x0018574c` | CmdGetLANConfigParam | Read Dell-extended LAN parameters |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x10</td>
+            <td class="p-2"><code>DellCmdSetSerModemConfigParam</code><br><span class="text-xs text-slate-500">0x00064f80 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L174: | `raw 0x0c 0x10` | CmdSetSerModemConfigParam | Adm | Yes | ? (WRITES) | Write serial/modem config |</span><br><span class='text-xs'>L337: | `raw 0x0c 0x10` | `0x00064f80` | `0x00167a24` | CmdSetSerModemConfigParam | Dell serial/modem extensions |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x11</td>
+            <td class="p-2"><code>DellCmdGetSerModemConfigParam</code><br><span class="text-xs text-slate-500">0x00065348 · oem_overlay</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L175: | `raw 0x0c 0x11` | CmdGetSerModemConfigParam | Op | No | ? | Read serial/modem config |</span><br><span class='text-xs'>L338: | `raw 0x0c 0x11` | `0x00065348` | `0x00167c9c` | CmdGetSerModemConfigParam | Dell serial read extensions |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x12</td>
+            <td class="p-2"><code>CmdSetSerModemMux</code><br><span class="text-xs text-slate-500">0x00167fb8 · standard</span></td>
+            <td class="p-2">operator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L176: | `raw 0x0c 0x12` | CmdSetSerModemMux | Op | No | ? (WRITES) | Control serial port mux |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x1c</td>
+            <td class="p-2"><code>CmdSetSerRoutingMux</code><br><span class="text-xs text-slate-500">0x00168374 · standard</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L177: | `raw 0x0c 0x1C` | CmdSetSOLConfiguration | Op | No | ? (WRITES) | Set SOL parameters |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x21</td>
+            <td class="p-2"><code>DellCmdSetSOLConfiguration</code><br><span class="text-xs text-slate-500">0x00065454 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L178: | `raw 0x0c 0x21` | CmdSetSOLConfiguration (Dell) | Adm | Yes | ? (WRITES) | Dell-extended SOL config set |</span><br><span class='text-xs'>L339: | `raw 0x0c 0x21` | `0x00065454` | `0x0017f8e4` | CmdSetSOLConfiguration | Dell SOL extensions |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x22</td>
+            <td class="p-2"><code>DellCmdGetSOLConfiguration</code><br><span class="text-xs text-slate-500">0x0006556c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L179: | `raw 0x0c 0x22` | CmdGetSOLConfiguration | Usr | No | **YES**: `11 01` (ch1 param1=enable) | SOL enabled |</span><br><span class='text-xs'>L340: | `raw 0x0c 0x22` | `0x0006556c` | `0x0017f97c` | CmdGetSOLConfiguration | Dell SOL read extensions |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x31</td>
+            <td class="p-2"><code>CmdOEMSetForwardedCommands</code><br><span class="text-xs text-slate-500">0x00063338 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">4 reachable / 4 operation paths<br><span class='text-xs'>top two bits of request byte 9; values 0..3</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L341: | `raw 0x0c 0x31/0x32/0x33` | `0x00063338`/`0x000631b8`/`0x00062ecc` | (none) | Dell-only Transport cmds | Dell proprietary commands with no standard equivalent (Adm/Usr/Adm) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x32</td>
+            <td class="p-2"><code>CmdOEMGetForwardedCommands</code><br><span class="text-xs text-slate-500">0x000631b8 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">2 reachable / 2 operation paths<br><span class='text-xs'>top two bits of request byte 9; only 0 and 1 accepted</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-slate-500'>none selected</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x0c/0x33</td>
+            <td class="p-2"><code>CmdOEMEnableForwardedCommands</code><br><span class="text-xs text-slate-500">0x00062ecc · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">4 reachable / 4 operation paths<br><span class='text-xs'>request byte 8; exact values 0..3</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-slate-500'>none selected</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0x01</td>
+            <td class="p-2"><code>CmdResvExtendedConfigure</code><br><span class="text-xs text-slate-500">0x00174724 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L543: | `raw 0x2e 0x01` | 0xC7 | OEM/Group cmd — needs Dell IANA prefix + data |</span><br><span class='text-xs'>L306: | `raw 0x2e 0x01` | `0x00174724` | Usr | No | OEM/Group command (Dell IANA 0x0002A2 prefix required) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0x02</td>
+            <td class="p-2"><code>CmdGetExtendedConfigure</code><br><span class="text-xs text-slate-500">0x0017488c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L544: | `raw 0x2e 0x02` | 0xC7 | OEM/Group cmd |</span><br><span class='text-xs'>L307: | `raw 0x2e 0x02` | `0x0017488c` | Usr | Yes | OEM/Group command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0x03</td>
+            <td class="p-2"><code>CmdSetExtendedConfigure</code><br><span class="text-xs text-slate-500">0x00174c68 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L545: | `raw 0x2e 0x03` | 0xC7 | OEM/Group cmd |</span><br><span class='text-xs'>L308: | `raw 0x2e 0x03` | `0x00174c68` | Adm | Yes | OEM/Group command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0x04</td>
+            <td class="p-2"><code>CmdPOSTEvent</code><br><span class="text-xs text-slate-500">0x00175218 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L546: | `raw 0x2e 0x04` | 0xC7 | CmdPOSTEvent (confirmed symbol) |</span><br><span class='text-xs'>L309: | `raw 0x2e 0x04` | `0x00175218` | Adm | No | **CmdPOSTEvent** — POST event notification (confirmed symbol) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0x07</td>
+            <td class="p-2"><code>CmdTerminalSYS</code><br><span class="text-xs text-slate-500">0x00168528 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L185: | `raw 0x2e 0x07` | (Group Extension) | Usr | Yes | ? | OEM/Group NetFn. First 3 bytes = IANA |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0x08</td>
+            <td class="p-2"><code>CmdTerminalSYSDRAC</code><br><span class="text-xs text-slate-500">0x00168984 · standard</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, channel, completion, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L186: | `raw 0x2e 0x08` | (Group Extension) | Usr | Yes | ? | OEM/Group NetFn command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0x21</td>
+            <td class="p-2"><code>CmdResetToDefault</code><br><span class="text-xs text-slate-500">0x00188484 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">3 reachable / 3 operation paths<br><span class='text-xs'>request byte 8; exact values 0x00, 0xaa, 0xbb</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L547: | `raw 0x2e 0x21` | 0xC7 | Stub handler `0x00188484` |</span><br><span class='text-xs'>L310: | `raw 0x2e 0x21` | `0x00188484` | Adm | No | Stub/not-implemented (shared handler) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x2e/0xcc</td>
+            <td class="p-2"><code>CmdOSAOEMCmdHandler</code><br><span class="text-xs text-slate-500">0x001879dc · standard</span></td>
+            <td class="p-2">callback<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L187: | `raw 0x2e 0xCC` | CmdOSAOEMCmdHandler | CB | Yes | **YES**: 0xC7 (needs data) | OSA OEM command handler |</span><br><span class='text-xs'>L548: | `raw 0x2e 0xCC` | 0xC7 | CmdOSAOEMCmdHandler |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x18</td>
+            <td class="p-2"><code>CmdGetBladeID</code><br><span class="text-xs text-slate-500">0x00063afc · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L206: | `raw 0x30 0x18` | `0x00063afc` | CmdGetBladeID area | Usr | No | **No (0xC1)** | NOT PRESENT | NOT accessible on LAN |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x1c</td>
+            <td class="p-2"><code>DellCmdReadWriteLCD</code><br><span class="text-xs text-slate-500">0x000a8384 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L207: | `raw 0x30 0x1C` | `0x000a8384` | CmdOEMExtendedConfigure | Adm | Yes | Yes | **LIVE: 0xC7 (needs 4+ bytes)**. racadm extended config reserve/access |</span><br><span class='text-xs'>L474: | `raw 0x30 0x1C` | 0xC7 | CmdOEMExtendedConfigure | Needs 4+ bytes (group/object/index) |</span><br><span class='text-xs'>L446: | `raw 0x30 0x1C 0x01 0x00 0x00 0x00` | *(empty, success)* | CmdOEMExtendedConfigure (reserve?) | Extended configure with 4+ byte input |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x20</td>
+            <td class="p-2"><code>DellSetSerialMuxCmd</code><br><span class="text-xs text-slate-500">0x00064838 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L208: | `raw 0x30 0x20` | `0x00064838` | (OEM cmd) | Usr | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L475: | `raw 0x30 0x20` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="modeled">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x21</td>
+            <td class="p-2"><code>CmdResetToDefault</code><br><span class="text-xs text-slate-500">0x00188484 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">3 reachable / 3 operation paths<br><span class='text-xs'>request byte 8; exact values 0x00, 0xaa, 0xbb</span></td>
+            <td class="p-2 text-xs">live_activation, live_channel, live_completion</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L209: | `raw 0x30 0x21` | `0x00188484` | (stub handler) | Adm | No | — | **LIVE: 0xC7**. Stub `0x00188484` — accepts data but likely returns error |</span><br><span class='text-xs'>L476: | `raw 0x30 0x21` | 0xC7 | (stub `0x00188484`) | Needs data but likely returns error anyway |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x22</td>
+            <td class="p-2"><code>CmdExtrForceMuxToSOL</code><br><span class="text-xs text-slate-500">0x000c5fd8 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L210: | `raw 0x30 0x22` | `0x000c5fd8` | (OEM cmd) | Usr | No | Yes | **LIVE: returns empty (success)** |</span><br><span class='text-xs'>L431: | `raw 0x30 0x22` | *(empty, success)* | ? | Success with no response data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x24</td>
+            <td class="p-2"><code>DellSetTeamingMode</code><br><span class="text-xs text-slate-500">0x00189b54 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L211: | `raw 0x30 0x24` | `0x00189b54` | (OEM cmd) | Adm | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L477: | `raw 0x30 0x24` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x25</td>
+            <td class="p-2"><code>DellGetTeamingMode</code><br><span class="text-xs text-slate-500">0x00189c24 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L212: | `raw 0x30 0x25` | `0x00189c24` | CmdOEMGetPwrCapEn? | Usr | No | Yes | **LIVE: returns `00`** (power capping disabled) |</span><br><span class='text-xs'>L432: | `raw 0x30 0x25` | `00` | CmdOEMGetPwrCapEn? | Power capping disabled (0=off) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x26</td>
+            <td class="p-2"><code>DellCmdMTFL</code><br><span class="text-xs text-slate-500">0x0005de00 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L213: | `raw 0x30 0x26` | `0x0005de00` | CmdOEMResetPwrConsumptionDataCounters (near) | Adm | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L478: | `raw 0x30 0x26` | 0xC7 | CmdOEMResetPwrConsumptionDataCounters area | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x27</td>
+            <td class="p-2"><code>DellGetInternalVariable</code><br><span class="text-xs text-slate-500">0x000a7738 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L214: | `raw 0x30 0x27` | `0x000a7738` | CmdOEMExtendedConfigure (get) | Adm | Yes | Yes | **LIVE: returns data** with 4 bytes input. `0x27 grp 0x00 0x00 0x00` → racadm config backend |</span><br><span class='text-xs'>L433: | `raw 0x30 0x27 0x01 0x00 0x00 0x00` | `0a` | CmdOEMExtendedConfigure | Group 1 config read — **racadm config backend**. Returns group param count |</span><br><span class='text-xs'>L434: | `raw 0x30 0x27 0x02 0x00 0x00 0x00` | `03` | CmdOEMExtendedConfigure | Group 2 config read |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x30</td>
+            <td class="p-2"><code>DellSetFanControlParameters</code><br><span class="text-xs text-slate-500">0x00065694 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L215: | `raw 0x30 0x30` | `0x00065694` | (OEM cmd) | Adm | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L480: | `raw 0x30 0x30` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x31</td>
+            <td class="p-2"><code>DellGetFanControlParameters</code><br><span class="text-xs text-slate-500">0x000657c8 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L216: | `raw 0x30 0x31` | `0x000657c8` | (OEM cmd) | Adm | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L481: | `raw 0x30 0x31` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x32</td>
+            <td class="p-2"><code>DellQueryChassisIdentifyStatus</code><br><span class="text-xs text-slate-500">0x000a8698 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L217: | `raw 0x30 0x32` | `0x000a8698` | (OEM cmd) | Usr | No | Yes | **LIVE: returns `00`** |</span><br><span class='text-xs'>L437: | `raw 0x30 0x32` | `00` | ? | Status = 0 |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x33</td>
+            <td class="p-2"><code>DellQueryGetCPLDRevision</code><br><span class="text-xs text-slate-500">0x00065f5c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L218: | `raw 0x30 0x33` | `0x00065f5c` | (OEM cmd) | Usr | No | Yes | **LIVE: returns `01 00 01`** |</span><br><span class='text-xs'>L438: | `raw 0x30 0x33` | `01 00 01` | ? | 3-byte config/status |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x37</td>
+            <td class="p-2"><code>CmdReleaseKVM</code><br><span class="text-xs text-slate-500">0x000639f0 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L219: | `raw 0x30 0x37` | `0x000639f0` | (OEM cmd) | Usr | No | **No (0xC1)** | NOT PRESENT on LAN |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x38</td>
+            <td class="p-2"><code>CmdSetKVMOwner</code><br><span class="text-xs text-slate-500">0x0006396c · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L220: | `raw 0x30 0x38` | `0x0006396c` | (OEM cmd) | Usr | No | **No (0xC1)** | NOT PRESENT on LAN |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x39</td>
+            <td class="p-2"><code>CmdGetKVMRevision</code><br><span class="text-xs text-slate-500">0x00063a74 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L221: | `raw 0x30 0x39` | `0x00063a74` | (OEM cmd) | Usr | No | **No (0xC1)** | NOT PRESENT on LAN |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x51</td>
+            <td class="p-2"><code>CmdGetHostEventStatus</code><br><span class="text-xs text-slate-500">0x00063674 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L222: | `raw 0x30 0x51` | `0x00063674` | (OEM cmd) | Usr | No | Yes | **LIVE: returns `03 00 00 00 00`** |</span><br><span class='text-xs'>L439: | `raw 0x30 0x51` | `03 00 00 00 00` | ? | 5-byte status response |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x87</td>
+            <td class="p-2"><code>CmdGetServerBladePowerWatt</code><br><span class="text-xs text-slate-500">0x00063b9c · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L223: | `raw 0x30 0x87` | `0x00063b9c` | (OEM cmd) | Usr | No | **No (0xC1)** | NOT PRESENT on LAN |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x8b</td>
+            <td class="p-2"><code>CmdSendBladeCPUThrottle</code><br><span class="text-xs text-slate-500">0x000640fc · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L224: | `raw 0x30 0x8B` | `0x000640fc` | CmdOEMCheckMASER_IPMIcmdStatus? | Op | No | Yes | **LIVE: 0xC7** (needs &gt;6 bytes) |</span><br><span class='text-xs'>L482: | `raw 0x30 0x8B` | 0xC7 | CmdOEMCheckMASER_IPMIcmdStatus? | Strings say &quot;expected 6 bytes&quot; but 6 still fails |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x8c</td>
+            <td class="p-2"><code>DellGetFanSpeedCtrLevel</code><br><span class="text-xs text-slate-500">0x00064abc · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L225: | `raw 0x30 0x8C` | `0x00064abc` | (OEM cmd) | Usr | No | **No (0xC1)** | NOT PRESENT on LAN |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x8d</td>
+            <td class="p-2"><code>DellSetChassisFanStatus</code><br><span class="text-xs text-slate-500">0x00064bac · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L226: | `raw 0x30 0x8D` | `0x00064bac` | (OEM cmd) | Op | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L483: | `raw 0x30 0x8D` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x9c</td>
+            <td class="p-2"><code>CmdOEMGetPWRConsumptionData</code><br><span class="text-xs text-slate-500">0x00066090 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L227: | `raw 0x30 0x9C` | `0x00066090` | (OEM cmd) | Usr | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L484: | `raw 0x30 0x9C` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0x9d</td>
+            <td class="p-2"><code>CmdOEMResetPwrConsumptionDataCounters</code><br><span class="text-xs text-slate-500">0x0006612c · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L228: | `raw 0x30 0x9D` | `0x0006612c` | (OEM cmd) | Op | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L485: | `raw 0x30 0x9D` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa0</td>
+            <td class="p-2"><code>CmdGetSoftLockStatus</code><br><span class="text-xs text-slate-500">0x0017531c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L229: | `raw 0x30 0xA0` | `0x0017531c` | CmdOEMGetMASERAccessState | Usr | No | Yes | **LIVE: returns `00`** (MASER unlocked/accessible) |</span><br><span class='text-xs'>L440: | `raw 0x30 0xA0` | `00` | CmdOEMGetMASERAccessState | **MASER state = unlocked/accessible** |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa1</td>
+            <td class="p-2"><code>CmdOEMPOSTMASERAccess</code><br><span class="text-xs text-slate-500">0x0007acfc · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L230: | `raw 0x30 0xA1` | `0x0007acfc` | **CmdOEMUnLockMASER** | Usr | Yes | Yes | **LIVE: rsp=0x01** (no active MASER session). Confirmed symbol match |</span><br><span class='text-xs'>L274: | CmdOEMUnLockMASER | `raw 0x30 0xA1` | Unlock MASER session | Yes | Session-less capable |</span><br><span class='text-xs'>L457: | `raw 0x30 0xA1` | CmdOEMUnLockMASER | Needs active MASER session handle to unlock |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa2</td>
+            <td class="p-2"><code>CmdOEMMASERPartitionAccess</code><br><span class="text-xs text-slate-500">0x0006fa18 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L231: | `raw 0x30 0xA2` | `0x0006fa18` | **CmdOEMvFlash / CmdOEMMASERPartitionAccess** | Usr | Yes | Yes | **LIVE: rsp=0x01** (no active MASER session) |</span><br><span class='text-xs'>L458: | `raw 0x30 0xA2` | CmdOEMvFlash / CmdOEMMASERPartitionAccess | Partition access requires session |</span><br><span class='text-xs'>L287: | CmdOEMvFlash | `raw 0x30 0xA2` area | vFlash master dispatch | Yes | Sub-dispatches to vFlash operations |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa3</td>
+            <td class="p-2"><code>CmdOEMRemoteEnablement</code><br><span class="text-xs text-slate-500">0x0007376c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L232: | `raw 0x30 0xA3` | `0x0007376c` | CmdOEMPOST* (near CmdOEMPOSTGetBootVolLabel) | Usr | Yes | Yes | **LIVE: 0xCC** (data content wrong). Accessible on LAN but needs correct payload</span><br><span class='text-xs'>L486: | `raw 0x30 0xA3` | 0xCC | CmdOEMPOSTGetBootVolLabel area | Data content wrong |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa4</td>
+            <td class="p-2"><code>CmdOEMvFlash</code><br><span class="text-xs text-slate-500">0x000739e0 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L233: | `raw 0x30 0xA4` | `0x000739e0` | CmdOEMPOST* (near CmdOEMPOSTSetBIOSPassword) | Usr | Yes | Yes | **LIVE: rsp=0x01** (no active MASER session) |</span><br><span class='text-xs'>L459: | `raw 0x30 0xA4` | CmdOEMPOST* (MASER area) | POST-phase MASER command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa5</td>
+            <td class="p-2"><code>CmdOEMDellFactory</code><br><span class="text-xs text-slate-500">0x00175a4c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L234: | `raw 0x30 0xA5` | `0x00175a4c` | (OEM cmd) | Usr | Yes | Yes | **LIVE: rsp=0x01** (no active MASER session) |</span><br><span class='text-xs'>L460: | `raw 0x30 0xA5` | MASER area | Session-required MASER command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa6</td>
+            <td class="p-2"><code>CmdOEMBackupRestore</code><br><span class="text-xs text-slate-500">0x00073ce0 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L235: | `raw 0x30 0xA6` | `0x00073ce0` | CmdOEMPOSTMASERAccess (near) | Usr | Yes | Yes | **LIVE: 0xCC** (data content wrong). Accessible on LAN |</span><br><span class='text-xs'>L487: | `raw 0x30 0xA6` | 0xCC | CmdOEMPOSTMASERAccess area | Data content wrong |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xa9</td>
+            <td class="p-2"><code>CmdOEMMASERBonding</code><br><span class="text-xs text-slate-500">0x00072810 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L236: | `raw 0x30 0xA9` | `0x00072810` | CmdOEMPOSTSetBIOSPassword (near) | Usr | Yes | Yes | **LIVE: rsp=0x03** (Dell-specific error). **Accessible on LAN — NOT KCS-only as predicted!**</span><br><span class='text-xs'>L488: | `raw 0x30 0xA9` | 0x03 | CmdOEMPOSTSetBIOSPassword area | **0x03 = unknown Dell-specific error** |</span><br><span class='text-xs'>L641: | `raw 0x30 0xA9` area | CmdOEMPOSTSetBIOSPassword | `brorch setbiospwd -filename=/tmp/biossetuppassword` | BIOS password set |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xaa</td>
+            <td class="p-2"><code>CmdOEMMASERLCLAccess</code><br><span class="text-xs text-slate-500">0x00071134 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L237: | `raw 0x30 0xAA` | `0x00071134` | (OEM cmd) | Usr | Yes | Yes | **LIVE: rsp=0x01** (no active MASER session) |</span><br><span class='text-xs'>L461: | `raw 0x30 0xAA` | MASER area | Session-required MASER command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xab</td>
+            <td class="p-2"><code>CmdOEMGetMASERInfo</code><br><span class="text-xs text-slate-500">0x000716cc · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L238: | `raw 0x30 0xAB` | `0x000716cc` | (OEM cmd) | Usr | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L489: | `raw 0x30 0xAB` | 0xC7 | MASER area | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xac</td>
+            <td class="p-2"><code>CmdOEMRecreateMASER</code><br><span class="text-xs text-slate-500">0x00071a78 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L239: | `raw 0x30 0xAC` | `0x00071a78` | (OEM cmd) | Usr | Yes | Yes | **LIVE: rsp=0x01** (no active MASER session) |</span><br><span class='text-xs'>L462: | `raw 0x30 0xAC` | MASER area | Session-required MASER command |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xad</td>
+            <td class="p-2"><code>CmdOEMGetMASERType</code><br><span class="text-xs text-slate-500">0x0007158c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L240: | `raw 0x30 0xAD` | `0x0007158c` | **CmdOEMGetMASERType** | Usr | Yes | Yes | **LIVE: returns `00 00 00`** with 2-byte input. No SD card present |</span><br><span class='text-xs'>L441: | `raw 0x30 0xAD 0x00 0x00` | `00 00 00` | CmdOEMGetMASERType | **MASER type 0 = no SD card present** (same for type params 0-3) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xae</td>
+            <td class="p-2"><code>CmdOEMGetMASERAccessState</code><br><span class="text-xs text-slate-500">0x00071378 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L241: | `raw 0x30 0xAE` | `0x00071378` | (OEM cmd) | Usr | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L490: | `raw 0x30 0xAE` | 0xC7 | MASER area | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xaf</td>
+            <td class="p-2"><code>CmdOEMSetMASERAccessState</code><br><span class="text-xs text-slate-500">0x00071480 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L242: | `raw 0x30 0xAF` | `0x00071480` | (OEM cmd) | Usr | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L491: | `raw 0x30 0xAF` | 0xC7 | MASER area | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xb0</td>
+            <td class="p-2"><code>DellCmdPowerSupplyInfo</code><br><span class="text-xs text-slate-500">0x0005e704 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L243: | `raw 0x30 0xB0` | `0x0005e704` | CmdOEMPwrAvgInterval / CmdOEMPwrCapEn area | Usr | No | Yes | **LIVE: 0xC7** (needs &gt;1 byte) |</span><br><span class='text-xs'>L492: | `raw 0x30 0xB0` | 0xC7 | CmdOEMPwrAvgInterval | Needs data (&gt;1 byte) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xb3</td>
+            <td class="p-2"><code>DellCmdPowerConsumption</code><br><span class="text-xs text-slate-500">0x0005e388 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L244: | `raw 0x30 0xB3` | `0x0005e388` | CmdOEMPwrAvgRange area | Usr | No | Yes | **LIVE: 0xC7** (needs &gt;1 byte) |</span><br><span class='text-xs'>L493: | `raw 0x30 0xB3` | 0xC7 | CmdOEMPwrAvgRange | Needs data (&gt;1 byte) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xb5</td>
+            <td class="p-2"><code>DellCmdGetLCDInfo</code><br><span class="text-xs text-slate-500">0x000a800c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L245: | `raw 0x30 0xB5` | `0x000a800c` | **DellCmdGetLCDInfo** | Usr | No | Yes | **LIVE: returns empty (success)** with `0x00 0x00`. LCD info param 0 |</span><br><span class='text-xs'>L494: | `raw 0x30 0xB5` | 0xC7 / ok | DellCmdGetLCDInfo | **Works with 2 bytes**: `param 0x00` |</span><br><span class='text-xs'>L442: | `raw 0x30 0xB5 0x00 0x00` | *(empty, success)* | DellCmdGetLCDInfo | LCD info param 0 (empty = no LCD or no data for this param) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xb6</td>
+            <td class="p-2"><code>CmdOEMPSUFwUpd</code><br><span class="text-xs text-slate-500">0x0005f6e8 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L246: | `raw 0x30 0xB6` | `0x0005f6e8` | CmdOEMPwrHeadroom area | Op | No | Yes | **LIVE: 0xC7** (needs &gt;1 byte) |</span><br><span class='text-xs'>L495: | `raw 0x30 0xB6` | 0xC7 | CmdOEMPwrHeadroom | Needs data (&gt;1 byte) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xb7</td>
+            <td class="p-2"><code>CmdOEMPSUFwUpdStatus</code><br><span class="text-xs text-slate-500">0x0005f82c · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L247: | `raw 0x30 0xB7` | `0x0005f82c` | CmdOEMGetPWRConsumptionData | Usr | No | Yes | **LIVE: returns `00`** with `0x0A 0x00`. Power consumption param 0x0A |</span><br><span class='text-xs'>L496: | `raw 0x30 0xB7` | 0xC7 / ok | CmdOEMGetPWRConsumptionData | **Works with 2 bytes**: `0x0A 0x00` returns `00` |</span><br><span class='text-xs'>L443: | `raw 0x30 0xB7 0x0A 0x00` | `00` | CmdOEMGetPWRConsumptionData | Power consumption data, param 0x0A |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xb8</td>
+            <td class="p-2"><code>DellGetSpdDimmInfo</code><br><span class="text-xs text-slate-500">0x00066214 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L248: | `raw 0x30 0xB8` | `0x00066214` | (OEM cmd) | Usr | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L497: | `raw 0x30 0xB8` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xb9</td>
+            <td class="p-2"><code>DellSetSpdDimmInfo</code><br><span class="text-xs text-slate-500">0x0006635c · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L249: | `raw 0x30 0xB9` | `0x0006635c` | (OEM cmd) | Adm | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L498: | `raw 0x30 0xB9` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xba</td>
+            <td class="p-2"><code>CmdOEMPwrCapEn</code><br><span class="text-xs text-slate-500">0x0005f908 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L250: | `raw 0x30 0xBA` | `0x0005f908` | Power area | Usr | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L499: | `raw 0x30 0xBA` | 0xC7 | Power area | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xbb</td>
+            <td class="p-2"><code>CmdOEMPwrHeadroom</code><br><span class="text-xs text-slate-500">0x0005f9fc · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L251: | `raw 0x30 0xBB` | `0x0005f9fc` | Power area | Usr | No | Yes | **LIVE: returns `0c 05 ca 04`** |</span><br><span class='text-xs'>L444: | `raw 0x30 0xBB` | `0c 05 ca 04` | ? | 4 bytes: unknown status/config data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xbc</td>
+            <td class="p-2"><code>DellCPLDAccessStatus</code><br><span class="text-xs text-slate-500">0x00066578 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L252: | `raw 0x30 0xBC` | `0x00066578` | (OEM cmd) | Adm | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L500: | `raw 0x30 0xBC` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xbe</td>
+            <td class="p-2"><code>DellRollbackFW</code><br><span class="text-xs text-slate-500">0x00066670 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L253: | `raw 0x30 0xBE` | `0x00066670` | (OEM cmd) | Usr | Yes | **No (0xC1)** | NOT PRESENT on LAN |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xbf</td>
+            <td class="p-2"><code>DellGetFWVersion</code><br><span class="text-xs text-slate-500">0x000666b0 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L254: | `raw 0x30 0xBF` | `0x000666b0` | (OEM cmd) | Usr | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L501: | `raw 0x30 0xBF` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xc0</td>
+            <td class="p-2"><code>DellCmdThrottleCPU</code><br><span class="text-xs text-slate-500">0x000b367c · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L255: | `raw 0x30 0xC0` | `0x000b367c` | (OEM cmd) | Usr | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L502: | `raw 0x30 0xC0` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xc1</td>
+            <td class="p-2"><code>DellGetActiveLOM</code><br><span class="text-xs text-slate-500">0x00067634 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L256: | `raw 0x30 0xC1` | `0x00067634` | (OEM cmd) | Op | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L503: | `raw 0x30 0xC1` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xc2</td>
+            <td class="p-2"><code>DellCmdRIPSControl</code><br><span class="text-xs text-slate-500">0x00094bf4 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L257: | `raw 0x30 0xC2` | `0x00094bf4` | (OEM cmd) | Usr | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L504: | `raw 0x30 0xC2` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xc3</td>
+            <td class="p-2"><code>CmdEchoControl</code><br><span class="text-xs text-slate-500">0x000646f0 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L258: | `raw 0x30 0xC3` | `0x000646f0` | (OEM cmd) | Usr | Yes | Yes | **LIVE: 0xCC** (right length but wrong content) |</span><br><span class='text-xs'>L505: | `raw 0x30 0xC3` | 0xCC | ? | Right length (0 bytes) but data content wrong |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xc4</td>
+            <td class="p-2"><code>DellCmdThrottleMem</code><br><span class="text-xs text-slate-500">0x000b33e0 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L259: | `raw 0x30 0xC4` | `0x000b33e0` | (OEM cmd) | Usr | Yes | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L506: | `raw 0x30 0xC4` | 0xC7 | ? | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xca</td>
+            <td class="p-2"><code>DelleKmsCmdHlder</code><br><span class="text-xs text-slate-500">0x00177d20 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L260: | `raw 0x30 0xCA` | `0x00177d20` | **DelleKmsCmdHlder** area | Adm | Yes | Yes | **LIVE: 0xC7→0xC1 at 6+ bytes**. eKMS not enabled on this firmware |</span><br><span class='text-xs'>L507: | `raw 0x30 0xCA` | 0xC7→0xC1 | DelleKmsCmdHlder | Needs data, but **becomes 0xC1 at 6+ bytes** — eKMS not enabled? |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xcc</td>
+            <td class="p-2"><code>CmdOEMPwrAvgInterval</code><br><span class="text-xs text-slate-500">0x0005ed90 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L261: | `raw 0x30 0xCC` | `0x0005ed90` | CmdOEMPowerConsumption area | Usr | No | Yes | **LIVE: 0xCC at 4 bytes** (right length, wrong sub-cmd) |</span><br><span class='text-xs'>L508: | `raw 0x30 0xCC` | 0xC7 / ok@4 | CmdOEMPowerConsumption | **Accepts 4 bytes** (then 0xCC — wrong sub-cmd) |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xcd</td>
+            <td class="p-2"><code>CmdOEMPwrAvgRange</code><br><span class="text-xs text-slate-500">0x0005f608 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=false</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L262: | `raw 0x30 0xCD` | `0x0005f608` | Power area | Usr | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L509: | `raw 0x30 0xCD` | 0xC7 | Power area | Needs data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xd0</td>
+            <td class="p-2"><code>CmdOEMMiscCmd</code><br><span class="text-xs text-slate-500">0x000601e4 · oem_overlay</span></td>
+            <td class="p-2">administrator<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L263: | `raw 0x30 0xD0` | `0x000601e4` | CmdOEMDellFactory / MaserCmd area | Adm | No | Yes | **LIVE: 0xC7**. Reachable on LAN but needs correct payload |</span><br><span class='text-xs'>L510: | `raw 0x30 0xD0` | 0xC7 | CmdOEMDellFactory | Needs data |</span><br><span class='text-xs'>L639: | `raw 0x30 0xD0` area | CmdOEMRecreateMASER | `/bin/avct_control ... imgcreate &amp;` | Image recreation |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xd2</td>
+            <td class="p-2"><code>RacMw_TransferData</code><br><span class="text-xs text-slate-500">0x0017b830 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L264: | `raw 0x30 0xD2` | `0x0017b830` | (OEM cmd) | Usr | Yes | Yes | **LIVE: returns empty (success)** |</span><br><span class='text-xs'>L445: | `raw 0x30 0xD2` | *(empty, success)* | ? | Success with no response data |</span></td>
+          </tr>
+          <tr class="border-t border-slate-200 align-top" data-state="open">
+            <td class="p-2 font-mono whitespace-nowrap">0x30/0xd4</td>
+            <td class="p-2"><code>CmdOEMSPUSCmd</code><br><span class="text-xs text-slate-500">0x00060694 · oem_overlay</span></td>
+            <td class="p-2">user<br><span class="text-xs">sessionless=true</span></td>
+            <td class="p-2">not expanded</td>
+            <td class="p-2 text-xs">request_fields, response_fields, effect, activation, selector_paths</td>
+            <td class="p-2 max-w-xl"><span class='text-xs'>L265: | `raw 0x30 0xD4` | `0x00060694` | (OEM cmd) | Usr | No | Yes | **LIVE: 0xC7** |</span><br><span class='text-xs'>L511: | `raw 0x30 0xD4` | 0xC7 | ? | Needs data |</span></td>
+          </tr></tbody></table></div></section>
+<section class="bg-slate-900 text-slate-100 rounded p-5"><h2 class="text-xl font-semibold">Reproduce</h2><pre class="mt-3 overflow-x-auto"><code>python3 build.py --firmware /Users/zen/tmp/fullfw --decomp-dir ./ghidra-decomp
+r2 -q -c 'aaa; pdf @ sym.RequestHandleTableSearch' /Users/zen/tmp/fullfw</code></pre><p class="mt-2 text-sm">The builder rejects any firmware whose SHA-256 differs from the pinned artifact and self-checks every denominator invariant. The second command independently exposes OEM-first exact-key matching, NotSupport suppression, and standard-table fallback.</p></section>
+</main></body></html>

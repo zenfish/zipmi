@@ -1,0 +1,119 @@
+{
+  "schema": "idrac9-reset-to-default-contracts/v1",
+  "generated": "2026-10-12",
+  "artifact_uuid": "456a2dac-cfa6-47c8-a401-3f40b8bc1300",
+  "evidence_state": "Decoded static destructive-operation contracts; no live-system claims",
+  "provenance": {
+    "firmware": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/firmimgFIT.d9",
+      "sha256": "15196d6354527ed8dc77fd22dc3ecae6ca467f94eda07a597b174770dc758859"
+    },
+    "dispatch_catalog": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/.md/idrac9-dispatch-tables.md",
+      "sha256": "e780525fc45c47e323ab0e9bacb2b11b1fa6a1c26986538fb57dab741a3637b5"
+    },
+    "runtime_dispatch_map": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/idrac9_runtime_dispatch.json",
+      "sha256": "b0d7d48e1b06f0e7b5eb1967932eaa13b63de6ee2fee4738bbc339bc22e71c06"
+    },
+    "registration_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/liboemcmds.so.9.9.9",
+      "sha256": "eb169f02bb998d3a5204192dc2421c5d707c8570f8e9c73d34b6560130b3151d",
+      "symbol_state": "CmdResetToDefault is undefined/imported"
+    },
+    "provider_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libosa.so.9.9.9",
+      "sha256": "8e8dd3504aed47368a9bc327a860a703979cb33aa6a85f653bd509f37edab1c9",
+      "symbol_state": "CmdResetToDefault is defined at 0x44b061a4"
+    },
+    "decompilation_directory": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/reset-default-decomp",
+    "decompilation_sha256": {
+      "CmdResetToDefault.c": "b1f820ed716179b19a41a867bd9db2cbbc1ee254475881a9c1cc13a43a83fc7e",
+      "CmdResetToDefault.disasm.log": "700542ede29133b87c70eae44c2bc1a728a2f137005931824b9af9bdfaff3b97",
+      "helpers.c": "c2eab64fd78125db3c20f9f704237857d6240d88827484332c0599395655e2eb",
+      "threadResetToDefault.disasm.log": "62a83427f2c845c19c88562fd27cfcc3712b17552cdc228c74f45f9d8c39160e"
+    }
+  },
+  "provider_resolution": {
+    "runtime_map_fact": "Both registration slots resolve to symbol CmdResetToDefault in the liboemcmds-owned table.",
+    "import_fact": "liboemcmds has an undefined dynamic symbol named CmdResetToDefault.",
+    "provider_fact": "Across the exact usr/lib/ipmi directory, libosa.so.9.9.9 is the unique dynamic-symbol provider and defines it at 0x44b061a4.",
+    "worker_pointer_fact": "CmdResetToDefault loads GOT address 0x44b18bc4 for pthread_create; the exact libosa .rel.dyn entry at that address names threadResetToDefault.",
+    "correction": "The earlier gap ledger's liboemcmds library label identified table ownership, not implementation ownership. These closed rows identify libosa as the implementation provider."
+  },
+  "sharing_model": "The two wire addresses have byte-for-byte identical dispatcher privilege/flags and bind the same exact function. The implementation contract is recorded once, with two registration overlays; no selector-as-operation inflation and no cross-BMC sharing are claimed.",
+  "implementation": {
+    "symbol": "CmdResetToDefault",
+    "address": "0x44b061a4",
+    "binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libosa.so.9.9.9",
+    "binary_sha256": "8e8dd3504aed47368a9bc327a860a703979cb33aa6a85f653bd509f37edab1c9",
+    "request": {
+      "length": "exactly one payload byte; otherwise completion 0xc7",
+      "payload_byte_0": {
+        "0x00": "status query",
+        "0xaa": "asynchronous CfgResetConfigToDefaults(0xfffffffd,0), described by the binary as preserving network settings and user accounts; request-header byte0 high nibble 7 remaps this selector to 0xdd before the worker runs",
+        "0xcc": "asynchronous CfgResetConfigToDefaults(0xfffffffd,0), described by the binary as preserving network settings and user accounts",
+        "0xdd": "asynchronous CfgResetConfigToDefaults(0xffffffff,0), described by the binary as reset with user restored as shipped from factory (root/calvin or ToeTag)",
+        "0xee": "asynchronous CfgResetConfigToDefaults(0xffffffff,1), described by the binary as reset with user restored to root/calvin",
+        "0xff": "asynchronous CfgDAResetToDefaults(0,0), described by the binary as custom defaults",
+        "other": "rejected with 0xcc"
+      }
+    },
+    "response": {
+      "query_0x00": "one byte: 0 when /var/lock/rtd/r2default.lock exists, 1 when stat of that path fails",
+      "accepted_action": "one zero byte after successful detached-thread creation; this acknowledges scheduling, not reset completion",
+      "error": "response length is not established by every early error path; no response payload is written"
+    },
+    "authorization_and_interface": {
+      "dispatcher": "Administrator",
+      "internal": "preChecks rejects with 0xd4 when local configuration is disabled and IsKcsCommand(request) is true; non-KCS requests do not take that rejection branch",
+      "busy_lock": "non-query actions reject with 0xd4 when /var/lock/rtd/r2default.lock exists",
+      "firmware_update": "non-query actions reject with 0xc0 while IsFirmwareUpdateInProgress is nonzero",
+      "channel": "No numeric channel rejection was decoded. Behavior is interface-sensitive through IsKcsCommand and request-header byte0 high nibble 7."
+    },
+    "completion_codes": [
+      "0x00 query completed or detached reset worker successfully created",
+      "0xc0 firmware update is in progress",
+      "0xc7 request length is not exactly one",
+      "0xcc unsupported payload selector",
+      "0xd4 local-config/KCS precheck failed or reset lock exists",
+      "0xff pthread attribute, allocation, or thread creation failure"
+    ],
+    "effects": [
+      "Every action selector is copied into a one-byte heap object and executed by detached threadResetToDefault; 0xaa can be remapped to 0xdd for one request-header class.",
+      "The worker calls StartRemoveJobsEvent before its reset backend.",
+      "Selectors 0xaa/0xcc, 0xdd, and 0xee invoke CfgResetConfigToDefaults with the exact masks/flags listed in the request map; 0xff invokes CfgDAResetToDefaults.",
+      "Backend failures occur after the command has returned success and are only logged by the worker."
+    ],
+    "activation": "Static registration plus Administrator dispatcher privilege; non-query action predicates are local-config/KCS policy, reset-lock absence, and no firmware update.",
+    "runnable_codec": "absent; deliberately fail-closed because all nonzero accepted selectors launch destructive asynchronous work",
+    "live_evidence": "not assessed"
+  },
+  "address_count": 2,
+  "operation_count": 2,
+  "overlays": [
+    {
+      "wire_address": "0x2e/0x21",
+      "netfn": 46,
+      "cmd": 33,
+      "table_row": 37,
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 1,
+      "implementation": "CmdResetToDefault@libosa:0x44b061a4"
+    },
+    {
+      "wire_address": "0x30/0x21",
+      "netfn": 48,
+      "cmd": 33,
+      "table_row": 144,
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 1,
+      "implementation": "CmdResetToDefault@libosa:0x44b061a4"
+    }
+  ],
+  "limits": [
+    "The actual success/failure of the asynchronous reset backend cannot be returned by the command and was not measured.",
+    "Downstream implementations of imported reset APIs were not expanded in this bounded family pass.",
+    "No runnable codec is supplied for these destructive routes."
+  ]
+}

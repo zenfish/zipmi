@@ -1,0 +1,142 @@
+{
+  "schema": "idrac9-extended-config-contracts/v1",
+  "artifact_uuid": "543d90e2-42e1-4ab4-9d5b-65a9726ab995",
+  "generated": "2026-10-12",
+  "evidence_state": "Decoded outer transport and license gates; nested selector semantics partial; static only",
+  "provenance": {
+    "firmware": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/firmimgFIT.d9",
+      "sha256": "15196d6354527ed8dc77fd22dc3ecae6ca467f94eda07a597b174770dc758859"
+    },
+    "binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/liboemcmds.so.9.9.9",
+      "sha256": "eb169f02bb998d3a5204192dc2421c5d707c8570f8e9c73d34b6560130b3151d"
+    },
+    "dispatcher_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libmsgd.so.9.9.9",
+      "sha256": "c491459edfe9b0ee330d0041d41bf761de1549c3eb4f3a7e1e5e21a41e0bc451"
+    },
+    "dispatch_catalog": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/.md/idrac9-dispatch-tables.md",
+      "sha256": "e780525fc45c47e323ab0e9bacb2b11b1fa6a1c26986538fb57dab741a3637b5"
+    },
+    "outer_decompilations": {
+      "CmdGetExtendedConfigure.c": "19b3e1369194c0f5ee5dc1b874a0b0b7c1c080cccdcd9e764667c1b91851e40f",
+      "CmdResvExtendedConfigure.c": "58741ed722f9480dd202c57aef5ed222adebc62e9fddef9ed0bcaf1d5e673447",
+      "CmdSetExtendedConfigure.c": "4d32a0a1f93b9ba88a2b7fefcd8121d982b4e744acb9056c697c0e2da9c5a45a",
+      "ExtendedConfigResetBuffer.c": "562efecb9e1d2c1f0dbcd18786b072d8a3ce8b21fc0b53d07f17b2a55598cdd1",
+      "ExtendedConfigValidateReservation.c": "19a0dcc2ad6996939b582e3a87ad6137639dade1d18bcb3cd173bd1a57fdc399",
+      "ExtendedConfigValidateSelector.c": "638002f6bbe171ae0cfc0e52b1d890730052ab60aeef8cddc8d1ca991dbf389e"
+    },
+    "backend_evidence": {
+      "BridgeMessage.disasm.txt": "955d677486413aac1bef76fc6efd8a8d72ad4eee12a248d46ed1f59c81e581da",
+      "GetRACExtendedConfig.disasm.txt": "b126f0ee395d3446dc1fcbb5056fe3bd82aa46d1d50e4714800030ada8408cde",
+      "GetRACExtendedConfig.pdc.c": "f827dc2a951655a34fe3f2ec370a0b713f999830f785b6944dd713f7d3346cd1",
+      "IPMIMessageQueueAdd-importers.txt": "77c20ce940bb971ab64f0062c888015ca0873d59af27a652d99a4aa602eea2eb",
+      "MessageQueueAndDispatcher.disasm.txt": "b48d6990be8bdc06355388b33707608fdbabef7ad0aa0978240ef432ff295608",
+      "SetRACExtendedConfig.disasm.txt": "a7362df68398933971252489abcd6e70b1ca55fc7c7dd17d9877b1e986dcaaf5",
+      "SetRACExtendedConfig.pdc.c": "6a573e58a8529a7f26e257c958bdf221dee76e78279ac10cebefec8c631e53e8",
+      "ingress-producer-sha256.txt": "25407823edbadaf078830a931752a686fe3757d4807202531b38b065d881024c",
+      "libchnl-ingress-producers.disasm.txt": "bca32c8a14bbff2a1cfba3048195010d136137a3119f6be28c2854e6fdbdfe39",
+      "libmodular-ingress-producer.disasm.txt": "312cd8751a22aef294faec805d212e1107a46115e0a025693f63720ce8c70ed6"
+    }
+  },
+  "shared_implementation": {
+    "reservation_magic": "0x0002a2 encoded little-endian as a2 02 00",
+    "staging_capacity": 24576,
+    "maximum_get_chunk": 128,
+    "buffer_ownership": "process-global staged buffers selected by request interface/header class; not a cross-BMC shared contract",
+    "license_gates": {
+      "0x02": "feature 0x12 only when validator byte 8 equals 0x02; Set passes request+0x16 so this is payload byte 22 (staged-data byte 13), while Get passes response-data and checks its byte 8 before backend fill and again after copying",
+      "0x05": "feature 0x04",
+      "0x06": "feature 0x11",
+      "0x07, 0x1b, 0x29, 0x2d": "feature 0x13",
+      "0x08": "feature 0x2b",
+      "0x12": "feature 0x2b on Set only when validator byte 3 has any bit in mask 0xf2; because Set passes request+0x16 this is payload byte 17 (staged-data byte 8)",
+      "0x13": "feature 0x2c",
+      "0x0d": "feature 0x1a",
+      "0x0e": "feature 0x0d",
+      "0x20, 0x23": "feature 0x10",
+      "0x25": "feature 0x14",
+      "0x27": "feature 0x27",
+      "0x28": "feature 0x2d",
+      "0x2b": "feature 0x16",
+      "other": "no license rejection in ExtendedConfigValidateSelector; backend acceptance and effects remain selector-specific"
+    }
+  },
+  "address_contracts": [
+    {
+      "wire_address": "0x2e/0x01",
+      "handler": "CmdResvExtendedConfigure@0x4457f264",
+      "dispatcher": "User",
+      "request": "exactly 3 payload bytes; little-endian reservation magic 0x0002a2",
+      "response": "4 bytes: echoed 3-byte magic followed by incremented one-byte reservation sequence",
+      "completions": [
+        "0x00 accepted",
+        "0xc7 wrong length",
+        "0xcc wrong magic"
+      ],
+      "effects": "increments the global reservation byte and clears all three 24 KiB staging buffers",
+      "state": "decoded transport; dispatcher privilege known; channel and activation predicates open"
+    },
+    {
+      "wire_address": "0x2e/0x02",
+      "handler": "CmdGetExtendedConfigure@0x44580c10",
+      "dispatcher": "User",
+      "request": "exactly 9 payload bytes: bytes 0..2 magic; byte 3 reservation field; byte 4 selector; byte 5 subselector; bytes 6..7 little-endian block offset; byte 8 requested count",
+      "response": "normally byte 0..2 echoed reservation magic, byte 3 selector, byte 4 subselector, byte 5 actual returned count, then up to 128 data bytes; block offset and reservation sequence are not echoed, and count is clipped at end of data; one request-header class with selector 0x0b returns a fixed 20-byte object",
+      "completions": [
+        "0x00 accepted",
+        "0x6f selector license absent",
+        "0xc7 wrong length",
+        "0xc9 block offset changed during staged read",
+        "0xcc bad reservation/backend or selector-state mismatch"
+      ],
+      "effects": "fills and pages a shared 24 KiB staging buffer; backend selector effects remain only partially partitioned",
+      "state": "decoded transport; nested selector semantics partial"
+    },
+    {
+      "wire_address": "0x2e/0x03",
+      "handler": "CmdSetExtendedConfigure@0x44581024",
+      "dispatcher": "Administrator",
+      "request": "at least 9 payload bytes with the same reservation/selector/subselector/block header; byte 8 is final/commit flag and bytes 9.. are staged data",
+      "response": "4 bytes: echoed 3-byte magic plus number of staged bytes accepted",
+      "completions": [
+        "0x00 staged/committed",
+        "0x6f selector license absent",
+        "0xc5 reservation sequence mismatch",
+        "0xc7 shorter than 9 payload bytes",
+        "0xc9 block offset mismatch",
+        "0xcc reservation/backend or staging-state failure"
+      ],
+      "effects": "writes a shared 24 KiB staging buffer; final flag 1 invokes SetRACExtendedConfig, which includes configuration writes and Remote File Share state transitions",
+      "state": "decoded transport; nested selector effects partial"
+    }
+  ],
+  "address_count": 3,
+  "fully_closed_addresses": 0,
+  "partial_addresses": 3,
+  "backlog_accounting": "All three addresses remain in the global 123-address backlog. Reservation has decoded immediate transport semantics but still lacks channel/activation closure; Get/Set additionally lack a complete nested selector denominator and effect map.",
+  "known_backend_branches": [
+    "GetRACExtendedConfig and SetRACExtendedConfig both contain selector/token tables rather than one opaque pass-through.",
+    "Selector 0x23 contains explicit IPv6 Enable/URL handling.",
+    "SetRACExtendedConfig contains RFS.1 and RFS.2 MediaAttachState transitions and reports enable/disable failures.",
+    "Attribute forms include integer, integer-list, string, and string-key paths with distinct length validation."
+  ],
+  "security_follow_up": {
+    "state": "Decoded out-of-declared-length authorization dependency with a statically proved stale/prior-message-controlled KCS tail; allocation overrun not supported; runtime exploitability Unknown",
+    "finding": "CmdSetExtendedConfigure accepts any payload length >=9, but selector 0x02 license validation reads payload byte 22 and selector 0x12 reads payload byte 17 without a matching per-selector length check. BridgeMessage dispatches a 236-byte request object, so these are not allocation-overrun reads. KCSChannelReceiveMsg and IPMIIPCChannelReceiveMsg zero all 236 bytes before copying. In contrast, KCSPollingThread reuses one stack-resident request object inside its receive loop, copies only the declared payload, and never clears the object, so a longer KCS request can determine tail bytes later consumed by a shorter request. Exact KCSChannelInit code passes KCSPollingThread to pthread_create for each successfully initialized KCS channel, proving this is an intended receive path rather than dead code. ProcessCmcIpmiMsg likewise queues an object whose decoder writes only its header and declared payload without clearing its tail. BridgeMessage zeroes its separate 200-byte response object, so Get selector 0x02's pre-backend response-data byte 8 is zero and the meaningful Get check occurs after returned data is copied.",
+    "ingress_producers": [
+      "KCSChannelReceiveMsg: memset(request, 0, 236) before RawKCSRead; short-request tail is zero.",
+      "IPMIIPCChannelReceiveMsg: memset(request, 0, 236) before RawIPMIIPCRead; short-request tail is zero.",
+      "KCSPollingThread: one stack request object is reused across the polling loop without memset; only declared payload bytes are overwritten before queueing, making later short-request tail bytes stale and controllable by a prior longer request on that thread. KCSChannelInit passes this exact function to pthread_create for every successfully initialized KCS channel.",
+      "ProcessCmcIpmiMsg plus ChannelDecodeIPMBMsg: the queued object is not cleared; the decoder writes header fields and memcpy's only the declared payload, leaving the remaining tail uninitialized/stale."
+    ],
+    "required_proof": "Reproduce the selector 0x02/0x12 license decision with a controlled long-request/short-request KCS sequence before assigning an authorization-bypass impact, and confirm the initialized KCS channel in the tested runtime uses the statically identified polling thread. Separately determine whether the modular CMC producer is active and externally reachable on this platform."
+  },
+  "limits": [
+    "The radare2 PDC evidence is structural corroboration, not source-equivalent decompilation.",
+    "The selector/token tables and every downstream attribute effect are not yet exhaustively partitioned.",
+    "No runnable codec or live-system claim is made."
+  ]
+}

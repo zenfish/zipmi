@@ -1,0 +1,260 @@
+{
+  "schema": "idrac9-chassis-identity-config-contracts/v1",
+  "generated": "2026-10-12",
+  "artifact_uuid": "5f872887-1519-4670-8939-1037f12118fc",
+  "evidence_state": "Decoded static contracts; no live-system claims",
+  "provenance": {
+    "firmware": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/firmimgFIT.d9",
+      "sha256": "15196d6354527ed8dc77fd22dc3ecae6ca467f94eda07a597b174770dc758859"
+    },
+    "dispatch_catalog": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/.md/idrac9-dispatch-tables.md",
+      "sha256": "e780525fc45c47e323ab0e9bacb2b11b1fa6a1c26986538fb57dab741a3637b5"
+    },
+    "handler_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d"
+    },
+    "registration_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/liboemcmds.so.9.9.9",
+      "sha256": "eb169f02bb998d3a5204192dc2421c5d707c8570f8e9c73d34b6560130b3151d"
+    },
+    "dispatcher_lookup_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libipmicmdtableapi.so.9.9.9",
+      "sha256": "bc1f2707838e162615ec8d97596f9d2805019ce97e551dac69f4871f72a20e4d"
+    },
+    "handler_decompilation_directory": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp",
+    "dispatcher_decompilation_directory": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/dispatch-decomp"
+  },
+  "duplicate_precedence": {
+    "wire_address": "0x30/0x26",
+    "lookup_function": "RequestHandleTableSearch",
+    "lookup_address": "0x449a3610",
+    "lookup_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libipmicmdtableapi.so.9.9.9",
+    "lookup_binary_sha256": "bc1f2707838e162615ec8d97596f9d2805019ce97e551dac69f4871f72a20e4d",
+    "algorithm": "Linearly scan G_asOEMIPMIReqeustHandleTable from index 0 and return immediately on the first matching netfn/cmd whose handler is not NotSupportRequestHandle.",
+    "registrations": [
+      {
+        "table_row": 116,
+        "flags": 131,
+        "handler_address": "0x4452642c",
+        "handler": "DellDCSSyncChassisServiceTag",
+        "effective": true
+      },
+      {
+        "table_row": 145,
+        "flags": 138,
+        "handler_address": "0x00000000",
+        "handler": null,
+        "effective": false,
+        "reason": "shadowed by row 116 before it is examined"
+      }
+    ],
+    "result": "Row 116 wins. The later zero-target row neither disables nor overrides the command in this lookup implementation."
+  },
+  "sharing_model": "The seven wire addresses are one semantic chassis identity/config family, but each points to its own exact libscbmccore implementation. Only common envelope/auth/channel facts are shared; request layouts and effects remain per-address overlays.",
+  "common_overlay": {
+    "netfn": 48,
+    "dispatcher_privilege": "Administrator for every address",
+    "channel": "No rejecting channel gate decoded; channel 5 invokes extra I2C/synchronization behavior in some handlers",
+    "platform": "Every operation requires numeric platform type 2, although Get Service Tag reports that mismatch as 0x80 rather than 0xd5."
+  },
+  "operation_count": 7,
+  "operations": [
+    {
+      "wire_address": "0x30/0x11",
+      "netfn": 48,
+      "cmd": 17,
+      "effective_handler": "DellDCSSetChassisConfig",
+      "handler_address": 1146199456,
+      "handler_address_hex": "0x44519da0",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp/DellDCSSetChassisConfig.c",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 152,
+      "request_contract": "Checksum-bearing frame. Data byte1 is additive checksum over byte2 (count/length) and its following bytes. The handler unconditionally consumes a 24-byte fixed configuration header and, when the decoded record count is 1..8, variable six-byte records beginning at data byte24. No independent outer-length guard was decoded.",
+      "response_contract": "One-byte zero acknowledgement is initialized before processing.",
+      "completion_codes": [
+        "0x00 success",
+        "0xcc checksum invalid or record count >=9",
+        "0xd5 platform predicate false",
+        "0xff decoded configuration consistency failure"
+      ],
+      "external_effect": "Replaces in-process chassis configuration, writes shared-memory segments 0x39 and 0x2e, updates cfgdb, and triggers chassis-state refresh. Several cfgdb/shared-memory write failures are logged but do not change the completion.",
+      "activation": "Numeric platform-type global must equal 2.",
+      "channel": "No rejecting channel predicate; channel 5 may initialize or synchronize I2C state.",
+      "contract_exactness": "decoded structure; individual 24-byte header fields remain unnamed",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x12",
+      "netfn": 48,
+      "cmd": 18,
+      "effective_handler": "DellDCSGetChassisConfig",
+      "handler_address": 1146202288,
+      "handler_address_hex": "0x4451a8b0",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp/DellDCSGetChassisConfig.c",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 128,
+      "request_contract": "No handler-level request-length or payload predicate decoded.",
+      "response_contract": "Variable response: a 24-byte fixed chassis configuration header followed by zero or more records; each record is either a single zero byte or six bytes. Response length begins at 24 and grows according to the cached record list.",
+      "completion_codes": [
+        "0x00 success",
+        "0x80 chassis-config service unavailable",
+        "0x81 cached configuration not ready",
+        "0xd5 platform predicate false"
+      ],
+      "external_effect": "Reads cached configuration and one cfgdb integer. A cfgdb read failure substitutes 0xff in the returned cached field rather than failing the command.",
+      "activation": "Platform type 2 plus service-ready and cache-ready state.",
+      "channel": "No rejecting channel predicate; channel 5 may initialize or synchronize I2C state.",
+      "contract_exactness": "decoded",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x13",
+      "netfn": 48,
+      "cmd": 19,
+      "effective_handler": "DellDCSSetChassisName",
+      "handler_address": 1146248424,
+      "handler_address_hex": "0x44525ce8",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp/DellDCSSetChassisName.c",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 129,
+      "request_contract": "Data byte0 is name length (0..255); bytes1..length are copied into a 256-byte cache. The handler does not compare outer request length with the embedded length.",
+      "response_contract": "No response payload.",
+      "completion_codes": [
+        "0x00 success",
+        "0xd5 platform predicate false"
+      ],
+      "external_effect": "Replaces the cached chassis name and calls DellSetChassisInfo(type=1). Backend failure is logged but still returns success.",
+      "activation": "Numeric platform-type global must equal 2.",
+      "channel": "No rejecting channel predicate; channel 5 may initialize or synchronize I2C state.",
+      "contract_exactness": "decoded",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x14",
+      "netfn": 48,
+      "cmd": 20,
+      "effective_handler": "DellDCSGetChassisName",
+      "handler_address": 1146203016,
+      "handler_address_hex": "0x4451ab88",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp/DellDCSGetChassisName.c",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 128,
+      "request_contract": "No handler-level request-length or payload predicate decoded.",
+      "response_contract": "Length-prefixed string: byte0 is cached name length and bytes1..length are the name.",
+      "completion_codes": [
+        "0x00 success",
+        "0x80 name service unavailable",
+        "0x81 cached name not ready",
+        "0xd5 platform predicate false"
+      ],
+      "external_effect": "Reads the in-process chassis-name cache.",
+      "activation": "Platform type 2 plus service-ready and cache-ready state.",
+      "channel": "No rejecting channel predicate; channel 5 may initialize or synchronize I2C state.",
+      "contract_exactness": "decoded",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x20",
+      "netfn": 48,
+      "cmd": 32,
+      "effective_handler": "DellDCSSetChassisServiceTag",
+      "handler_address": 1146208864,
+      "handler_address_hex": "0x4451c260",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp/DellDCSSetChassisServiceTag.c",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 130,
+      "request_contract": "Data byte0 is retained as a record/type byte; byte1 is service-tag length; bytes2.. are characters. Length is truncated to 8. Each consumed character must be in byte range 0x20..0x7f. No outer-length comparison is decoded.",
+      "response_contract": "No response payload.",
+      "completion_codes": [
+        "0x00 accepted/staged",
+        "0x80 service-tag state busy",
+        "0x81 service not ready or synchronization already active",
+        "0xcc invalid character",
+        "0xd5 platform predicate false"
+      ],
+      "external_effect": "Stages an up-to-eight-byte service tag in process-global state and marks the asynchronous synchronization state active; it does not directly persist cfgdb in this handler.",
+      "activation": "Platform type 2, subsystem-ready flag set, and synchronization state exactly idle.",
+      "channel": "No rejecting channel predicate; channel 5 may initialize or synchronize I2C state.",
+      "contract_exactness": "decoded",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x25",
+      "netfn": 48,
+      "cmd": 37,
+      "effective_handler": "DellDCSGetChassisServiceTag",
+      "handler_address": 1146209040,
+      "handler_address_hex": "0x4451c310",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp/DellDCSGetChassisServiceTag.c",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 128,
+      "request_contract": "Request length 0 reads cfgdb. Request length 1 accepts selector 0 (cfgdb) or 1 (synchronized cache); other lengths or selector values are rejected.",
+      "response_contract": "[0x30, tag_length, tag bytes]. Maximum configured buffer is nine tag bytes. Selector 1 uses the synchronized cache; selector 0/no selector uses cfgdb.",
+      "completion_codes": [
+        "0x00 success",
+        "0x80 platform/config/cache unavailable",
+        "0x81 service not ready",
+        "0xd5 bad request length/selector",
+        "0xff cfgdb read failure"
+      ],
+      "external_effect": "Reads cfgdb or the synchronized service-tag cache. A channel-5 cached read also clears one synchronization state and calls validate_sync_chassis_svctag(1,10).",
+      "activation": "Platform type 2 and subsystem-ready; source-specific cache/config readiness also applies.",
+      "channel": "No rejecting channel predicate; channel 5 may initialize or synchronize I2C state.",
+      "contract_exactness": "decoded",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x26",
+      "netfn": 48,
+      "cmd": 38,
+      "effective_handler": "DellDCSSyncChassisServiceTag",
+      "handler_address": 1146250284,
+      "handler_address_hex": "0x4452642c",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/p0-decomp/DellDCSSyncChassisServiceTag.c",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 131,
+      "request_contract": "Checksum-bearing frame: data byte0 is retained metadata, byte1 is additive checksum, byte2 is declared tag length, bytes3.. are tag bytes. Checksum covers declared length plus declared bytes. Lengths >=9 are clamped to 9 but the copy is skipped in this path, so static analysis does not treat them as a valid nine-byte write.",
+      "response_contract": "No response payload.",
+      "completion_codes": [
+        "0x00 completion after attempted persistence",
+        "0x81 service not ready",
+        "0xcc checksum mismatch",
+        "0xd5 platform predicate false"
+      ],
+      "external_effect": "Updates cached chassis fields, writes three cfgdb attributes plus a synchronization flag, then calls DellSetChassisInfo(type=0). cfgdb/backend failures are logged but completion remains success.",
+      "activation": "Numeric platform-type global must equal 2 and subsystem-ready flag must be set.",
+      "channel": "No rejecting channel predicate; channel 5 may initialize or synchronize I2C state.",
+      "contract_exactness": "decoded",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    }
+  ],
+  "limits": [
+    "Static analysis does not establish which product name corresponds to numeric platform type 2.",
+    "Hardware or management-plane consequences were not exercised.",
+    "No runnable codec is claimed."
+  ]
+}

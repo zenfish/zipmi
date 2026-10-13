@@ -18,7 +18,7 @@ ONLY seriously tested on: my client system macOS 26.5 with Python 3.11-3.14. Ran
 
 Big thanks to Claude Code and ChatGPT's Codex, which worked with me over the last half-year on this project.
 
-📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->4391<!--/OEM-COUNT--> OEM catalog keys gleaned from Ghidra, firmware, source, and legwork; decoded/codec/runnable coverage is reported separately. Paired detailed reference / compact table: [Supermicro X10](docs/supermicro-x10-command-reference.html) / [table](docs/supermicro-x10-command-table.html) / [X10→X14 genealogy](docs/supermicro-x10-x14-genealogy.html) · [Supermicro X14](docs/supermicro-x14-command-reference.html) / [table](docs/supermicro-x14-command-table.html) · [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC9](docs/idrac9-command-reference.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html). The older [iDRAC6 table](docs/idrac6-command-table.md) remains compact-table-only.
+📊 **[IPMI command coverage](docs/command-table.md)** — 132/188 of the standard IPMI command set implemented (all can use the "raw" keyword to send/receive hex bytes as per other IPMI tools) · 44 with Scapy packet classes. <!--OEM-COUNT-->4391<!--/OEM-COUNT--> OEM catalog keys gleaned from Ghidra, firmware, source, and legwork; decoded/codec/runnable coverage is reported separately. Paired detailed reference / compact table: [Supermicro X10](docs/supermicro-x10-command-reference.html) / [table](docs/supermicro-x10-command-table.html) / [X10→X14 genealogy](docs/supermicro-x10-x14-genealogy.html) · [Supermicro X11](docs/supermicro-x11-command-reference.html) · [Supermicro X14](docs/supermicro-x14-command-reference.html) / [table](docs/supermicro-x14-command-table.html) · [vanilla OpenBMC zero-OEM baseline](docs/openbmc-vanilla-command-reference.html) / [table](docs/openbmc-vanilla-command-table.html) · [IEIT NF5468M6](docs/ieit-nf5468m6-command-reference.html) / [table](docs/ieit-nf5468m6-command-table.html) · [NVIDIA GB200](docs/nvidia-gb200-command-reference.html) / [table](docs/nvidia-gb200-command-table.html) · [Advantech](docs/advantech-asmb787-command-reference.html) / [table](docs/advantech-asmb787-command-table.html) · [Lenovo XCC](docs/lenovo-xcc-command-reference.html) / [table](docs/lenovo-xcc-command-table.html) · [Fujitsu iRMC](docs/fujitsu-irmc-s6-command-reference.html) / [deep-dive ledger](docs/fujitsu-irmc-s6-deep-dive.html) / [table](docs/fujitsu-irmc-s6-command-table.html) · [iDRAC6](docs/idrac6-command-reference.html) / [legacy table](docs/idrac6-command-table.md) · [iDRAC9](docs/idrac9-command-reference.html) / [deep-dive gap ledger](docs/idrac9-deep-dive.html) / [table](docs/idrac9-command-table.html) · [iDRAC10](docs/idrac10-command-reference.html) / [table](docs/idrac10-command-table.html) · [MegaRAC/YAFU](docs/megarac-command-reference.html) / [table](docs/megarac-command-table.html).
 
 <details open>
 <summary><h2>What</h2></summary>
@@ -54,11 +54,11 @@ specify "lan" to use IPMI 1.5 or "lanplus" for explicitly using 2.0.
   [docs/command-table.md](docs/command-table.md) is the authoritative list of
   which commands have packet classes (vs `⚡` = CLI verb only).
 - `zipmi.scapy_ipmi.oem.{dell, supermicro, idrac9_generated, dell_generated}`
-  — vendor OEM catalogs ingested from prior firmware RE. The iDRAC6 denominator
-  remains open because its legacy 192-row generated table conflicts with the
-  213-slot merged listing / 195-name binary overlay. iDRAC9 currently has 277
-  named keys across 349 catalog keys, plus the
-  Supermicro X11 OEM cmd/sub-cmd map + shell-injection attack primitives.
+  — vendor OEM catalogs ingested from prior firmware RE. iDRAC6 now has a closed
+  213-registration / 189-effective-route dispatch denominator, while 157 routes
+  still need semantic expansion. iDRAC9 has 277 named keys across 349 catalog
+  keys and a separate exact-image gap ledger. Supermicro X11 has a 91-route,
+  234-top-level-path exact-image ledger plus its legacy catalog and attack primitives.
 - `zipmi.attacks.dell` — named, callable Dell attack primitives (PROCHOT
   throttle, power cap, sensor threshold tamper, racadm extended config)
   with destructive=True gating.
@@ -462,8 +462,12 @@ Source-of-truth (hahah... well, for some value of truth) per vendor:
   disclosure of the BIOS admin-password salt and PBKDF2 verifier; both BIOS
   credential commands require `--unsafe`.
 - **Fujitsu iRMC S6 02.63S**: [firmware-bound zipmi reference](docs/fujitsu-irmc-s6-command-reference.html)
-  and [compact registration table](docs/fujitsu-irmc-s6-command-table.html)
-  lists 135 top-level dispatch names and 232 selector/group operations, with
+  [reachable-path deep dive](docs/fujitsu-irmc-s6-deep-dive.html), and
+  [compact registration table](docs/fujitsu-irmc-s6-command-table.html).
+  The operator catalog lists 135 top-level dispatch names and 232
+  selector/group operations; the distinct exact-image ledger proves 688
+  reachable request paths (535 Decoded, 153 Unknown) while retaining 329
+  partial contracts and 165 configuration-provider boundaries. Both views retain
   exact source hashes, evidence state, and fail-closed raw execution. The
   [zBMC binary-evidence reference](https://github.com/zenfish/zbmc/blob/main/boxes/irmc-fujitsu/irmc-s6-oem-reference.html)
   retains all 148 active registrations, 138 LUN-aware identities, and 228

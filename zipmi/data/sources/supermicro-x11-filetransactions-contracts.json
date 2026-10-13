@@ -1,0 +1,3456 @@
+{
+  "artifact_uuid": "736a464c-5ea3-44a3-b212-240df37c7a4d",
+  "cross_version_reuse": "None claimed; no X10/X14 implementation or field contract is imported.",
+  "denominator": {
+    "accepted_outer_selectors": 45,
+    "exact_callee_symbols": 45,
+    "nested_selector_families": 17,
+    "reachable_handler_paths": 91
+  },
+  "dispatch_proof": {
+    "sha256": "e5120f6923da347b61916ffe15eba764cb4bde627d557dc9168f2f4afc277c11",
+    "source": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/direct-decomp/FileTransactions.c",
+    "status": "all 45 selector-to-callee identities match"
+  },
+  "evidence": "Decoded from exact exported symbol extents with radare2/r2ghidra; immediate handler boundary only.",
+  "global_unknowns": [
+    "Dispatcher channel/interface exposure.",
+    "Live behavior and runtime file/state availability.",
+    "Downstream consumers/callback implementations listed per path."
+  ],
+  "operations": [
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Increments upload reservation, recreates /tmp/uploadfile_<id>.",
+      "handler": "GetUploadResvID",
+      "id": "30/a0/01",
+      "inner_selector": null,
+      "operation": "GetUploadResvID",
+      "outer_selector": "0x01",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e4bbc",
+        "size": 360
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 1,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored; no length check.",
+        "response": "LE16 reservation ID."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc5 reservation mismatch; 0xc7 len<7.",
+      "effect": "Stores declared upload size.",
+      "handler": "StartFileUpload",
+      "id": "30/a0/02",
+      "inner_selector": null,
+      "operation": "StartFileUpload",
+      "outer_selector": "0x02",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e4d24",
+        "size": 188
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 2,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=7; data[1:3]=LE16 reservation; data[3:7]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc5 reservation mismatch; 0xcc offset exceeds declared size.",
+      "effect": "Locks, seeks and writes chunk to /tmp/uploadfile_<id>; write result is unchecked.",
+      "handler": "FileUpload",
+      "id": "30/a0/03",
+      "inner_selector": null,
+      "operation": "FileUpload",
+      "outer_selector": "0x03",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e4de0",
+        "size": 476
+      },
+      "unknowns": [
+        "Lengths below 7 underflow the 16-bit write count; resulting behavior is not validated."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 3,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:3]=LE16 reservation; data[3:7]=LE32 offset; data[7:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc5 reservation mismatch; 0xc7 len<4.",
+      "effect": "Queues slave-task event 0xba.",
+      "handler": "ApplyFileCommand",
+      "id": "30/a0/04",
+      "inner_selector": null,
+      "operation": "ApplyFileCommand",
+      "outer_selector": "0x04",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e4fbc",
+        "size": 224
+      },
+      "unknowns": [
+        "Event-0xba consumer and eventual apply result are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 4,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=4; data[1:3]=LE16 reservation; data[3] enters queued event data.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc7 only when len=0.",
+      "effect": "Increments download reservation, clears state and queues event 0xba.",
+      "handler": "PrepareFileDownload",
+      "id": "30/a0/05",
+      "inner_selector": null,
+      "operation": "PrepareFileDownload",
+      "outer_selector": "0x05",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e509c",
+        "size": 352
+      },
+      "unknowns": [
+        "Event-0xba consumer and missing-data[1] behavior are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 5,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=1; data[1] is read despite no requirement that it exist.",
+        "response": "LE16 download reservation."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc5 reservation mismatch; 0xcc generated file open failure.",
+      "effect": "Stats /tmp/downloadfile_<id> when ready.",
+      "handler": "PrepareFileDownloadDone",
+      "id": "30/a0/06",
+      "inner_selector": null,
+      "operation": "PrepareFileDownloadDone",
+      "outer_selector": "0x06",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e51fc",
+        "size": 412
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 6,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:3]=LE16 reservation.",
+        "response": "status byte plus LE32 size; status=1 and size=0 while not ready."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc5 reservation mismatch; 0xc7 count>1500 or offset>size; 0xcc ReadFile failure.",
+      "effect": "Reads a chunk from /tmp/downloadfile_<id>.",
+      "handler": "FileDownload",
+      "id": "30/a0/07",
+      "inner_selector": null,
+      "operation": "FileDownload",
+      "outer_selector": "0x07",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5398",
+        "size": 352
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 7,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:3]=LE16 reservation; data[3:7]=LE32 offset; data[7]=requested count.",
+        "response": "Requested file bytes."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc5 reservation mismatch.",
+      "effect": "Unlinks /tmp/downloadfile_<id> and clears download state.",
+      "handler": "FileDownloadDone",
+      "id": "30/a0/08",
+      "inner_selector": null,
+      "operation": "FileDownloadDone",
+      "outer_selector": "0x08",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e54f8",
+        "size": 252
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 8,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:3]=LE16 reservation.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Stats /tmp/biosnvfile; missing/open failure is represented in response.",
+      "handler": "GetBIOSSettingFileStatus",
+      "id": "30/a0/09",
+      "inner_selector": null,
+      "operation": "GetBIOSSettingFileStatus",
+      "outer_selector": "0x09",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e55f4",
+        "size": 220
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 9,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "availability flag then LE32 file size."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc7 len<5; 0xcc ReadFile failure.",
+      "effect": "Reads /tmp/biosnvfile; offset zero acquires a mutex and emits event-log 0x0c.",
+      "handler": "BIOSSettingDownload",
+      "id": "30/a0/0a",
+      "inner_selector": null,
+      "operation": "BIOSSettingDownload",
+      "outer_selector": "0x0a",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e56d0",
+        "size": 220
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 10,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=5; data[1:5]=LE32 offset; data[5]=requested count.",
+        "response": "Requested bytes."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc7 len<2.",
+      "effect": "Releases mutex, stores status, emits event-log 0x0d and unlinks BIOS setting file.",
+      "handler": "BIOSSettingDownloadDone",
+      "id": "30/a0/0b",
+      "inner_selector": null,
+      "operation": "BIOSSettingDownloadDone",
+      "outer_selector": "0x0b",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e57ac",
+        "size": 204
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 11,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=2; data[1]=result/status.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Reads BIOS-setting update status.",
+      "handler": "GetBIOSSettingUpdateStatus",
+      "id": "30/a0/0c",
+      "inner_selector": null,
+      "operation": "GetBIOSSettingUpdateStatus",
+      "outer_selector": "0x0c",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5878",
+        "size": 60
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 12,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 even if file creation fails.",
+      "effect": "Stores size, acquires mutex, resets state and creates/truncates /tmp/bios_setting.",
+      "handler": "StartBIOSCurrentSettingUpload",
+      "id": "30/a0/0d",
+      "inner_selector": null,
+      "operation": "StartBIOSCurrentSettingUpload",
+      "outer_selector": "0x0d",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e58b4",
+        "size": 196
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 13,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:5]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xcc offset exceeds declared size.",
+      "effect": "Writes chunk to /tmp/bios_setting; helper result is ignored.",
+      "handler": "BIOSCurrentSettingUpload",
+      "id": "30/a0/0e",
+      "inner_selector": null,
+      "operation": "BIOSCurrentSettingUpload",
+      "outer_selector": "0x0e",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5978",
+        "size": 168
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 14,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:5]=LE32 offset; data[5:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Returns status and sends a one-time OOB message.",
+      "handler": "BIOSCurrentSettingUploadDone",
+      "id": "30/a0/0f",
+      "inner_selector": null,
+      "operation": "BIOSCurrentSettingUploadDone",
+      "outer_selector": "0x0f",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5a20",
+        "size": 132
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 15,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Reads current-setting status.",
+      "handler": "GetBIOSCurrentSettingStatus",
+      "id": "30/a0/10",
+      "inner_selector": null,
+      "operation": "GetBIOSCurrentSettingStatus",
+      "outer_selector": "0x10",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5aa4",
+        "size": 108
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 16,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for operation 0/1; 0xcc otherwise.",
+      "effect": "Get reads capability bytes; set reads six bytes at data[2:8], forces required bits, and commits if changed.",
+      "handler": "GetSetBiosOOBCapability",
+      "id": "30/a0/11/00",
+      "inner_selector": "0x00",
+      "operation": "get capability",
+      "outer_selector": "0x11",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5b10",
+        "size": 408
+      },
+      "unknowns": [
+        "Set consumes six bytes while get returns five; exact sixth-field meaning is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 17,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=operation.",
+        "response": "get: 5 bytes; set: none."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for operation 0/1; 0xcc otherwise.",
+      "effect": "Get reads capability bytes; set reads six bytes at data[2:8], forces required bits, and commits if changed.",
+      "handler": "GetSetBiosOOBCapability",
+      "id": "30/a0/11/01",
+      "inner_selector": "0x01",
+      "operation": "set capability",
+      "outer_selector": "0x11",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5b10",
+        "size": 408
+      },
+      "unknowns": [
+        "Set consumes six bytes while get returns five; exact sixth-field meaning is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 17,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=operation.",
+        "response": "get: 5 bytes; set: none."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for operation 0/1; 0xcc otherwise.",
+      "effect": "Get reads 10-byte identity; set writes 10 bytes from data[2:12] and commits if changed.",
+      "handler": "GetSetBiosOOBIdentify",
+      "id": "30/a0/12/00",
+      "inner_selector": "0x00",
+      "operation": "get identity",
+      "outer_selector": "0x12",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5ca8",
+        "size": 336
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 18,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=operation.",
+        "response": "get: 10 bytes; set: none."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for operation 0/1; 0xcc otherwise.",
+      "effect": "Get reads 10-byte identity; set writes 10 bytes from data[2:12] and commits if changed.",
+      "handler": "GetSetBiosOOBIdentify",
+      "id": "30/a0/12/01",
+      "inner_selector": "0x01",
+      "operation": "set identity",
+      "outer_selector": "0x12",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5ca8",
+        "size": 336
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 18,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=operation.",
+        "response": "get: 10 bytes; set: none."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 even if file creation fails.",
+      "effect": "Stores size, acquires mutex, resets DAT state and creates/truncates its staging file.",
+      "handler": "StartBIOSDATFileUpload",
+      "id": "30/a0/13",
+      "inner_selector": null,
+      "operation": "StartBIOSDATFileUpload",
+      "outer_selector": "0x13",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5df8",
+        "size": 192
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 19,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:5]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xcc offset exceeds declared size.",
+      "effect": "Writes DAT chunk; helper result is ignored.",
+      "handler": "BIOSDATFileUpload",
+      "id": "30/a0/14",
+      "inner_selector": null,
+      "operation": "BIOSDATFileUpload",
+      "outer_selector": "0x14",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5eb8",
+        "size": 168
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 20,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:5]=LE32 offset; data[5:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Returns DAT status and sends a one-time OOB message.",
+      "handler": "BIOSDATFileUploadDone",
+      "id": "30/a0/15",
+      "inner_selector": null,
+      "operation": "BIOSDATFileUploadDone",
+      "outer_selector": "0x15",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e5f60",
+        "size": 172
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 21,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Reads ten bytes from offset 16 of the DAT file; returns zeros/presence=0 on failure.",
+      "handler": "GetBIOSDATFileInfo",
+      "id": "30/a0/17",
+      "inner_selector": null,
+      "operation": "GetBIOSDATFileInfo",
+      "outer_selector": "0x17",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e600c",
+        "size": 236
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 23,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "10 info bytes plus presence flag."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Calls PltCHASSIS_PowerStatus.",
+      "handler": "GetPowerStatus",
+      "id": "30/a0/18",
+      "inner_selector": null,
+      "operation": "GetPowerStatus",
+      "outer_selector": "0x18",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e60f8",
+        "size": 40
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 24,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "One chassis-power byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Stats the DMI file; missing/open failure is represented in response.",
+      "handler": "GetDMIStatus",
+      "id": "30/a0/19",
+      "inner_selector": null,
+      "operation": "GetDMIStatus",
+      "outer_selector": "0x19",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6120",
+        "size": 204
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 25,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "availability flag then LE32 file size."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc7 len<5; 0xcc ReadFile failure.",
+      "effect": "Reads DMI file; offset zero acquires mutex and emits event-log 0x0c.",
+      "handler": "DMIDownload",
+      "id": "30/a0/1a",
+      "inner_selector": null,
+      "operation": "DMIDownload",
+      "outer_selector": "0x1a",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e61ec",
+        "size": 220
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 26,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=5; data[1:5]=LE32 offset; data[5]=requested count.",
+        "response": "Requested bytes."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xc7 len<2.",
+      "effect": "Releases mutex, stores status, emits event-log 0x0d and unlinks DMI file.",
+      "handler": "DMIDownloadDone",
+      "id": "30/a0/1b",
+      "inner_selector": null,
+      "operation": "DMIDownloadDone",
+      "outer_selector": "0x1b",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e62c8",
+        "size": 204
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 27,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=2; data[1]=result/status.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2,4,5,6; 0xcc otherwise.",
+      "effect": "Reads kind-specific OOB update status.",
+      "handler": "GetOOBUpdateStatus",
+      "id": "30/a0/1c/01",
+      "inner_selector": "0x01",
+      "operation": "BIOS setting",
+      "outer_selector": "0x1c",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6394",
+        "size": 376
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 4-6 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 28,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2,4,5,6; 0xcc otherwise.",
+      "effect": "Reads kind-specific OOB update status.",
+      "handler": "GetOOBUpdateStatus",
+      "id": "30/a0/1c/02",
+      "inner_selector": "0x02",
+      "operation": "DMI",
+      "outer_selector": "0x1c",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6394",
+        "size": 376
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 4-6 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 28,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2,4,5,6; 0xcc otherwise.",
+      "effect": "Reads kind-specific OOB update status.",
+      "handler": "GetOOBUpdateStatus",
+      "id": "30/a0/1c/04",
+      "inner_selector": "0x04",
+      "operation": "kind 4",
+      "outer_selector": "0x1c",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6394",
+        "size": 376
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 4-6 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 28,
+            "offset": 0
+          },
+          {
+            "equals": 4,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2,4,5,6; 0xcc otherwise.",
+      "effect": "Reads kind-specific OOB update status.",
+      "handler": "GetOOBUpdateStatus",
+      "id": "30/a0/1c/05",
+      "inner_selector": "0x05",
+      "operation": "kind 5",
+      "outer_selector": "0x1c",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6394",
+        "size": 376
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 4-6 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 28,
+            "offset": 0
+          },
+          {
+            "equals": 5,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2,4,5,6; 0xcc otherwise.",
+      "effect": "Reads kind-specific OOB update status.",
+      "handler": "GetOOBUpdateStatus",
+      "id": "30/a0/1c/06",
+      "inner_selector": "0x06",
+      "operation": "kind 6",
+      "outer_selector": "0x1c",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6394",
+        "size": 376
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 4-6 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 28,
+            "offset": 0
+          },
+          {
+            "equals": 6,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 even if file creation fails.",
+      "effect": "Stores size, acquires mutex, resets current-DMI state and creates/truncates staging file.",
+      "handler": "StartCurrentDMIUpload",
+      "id": "30/a0/1d",
+      "inner_selector": null,
+      "operation": "StartCurrentDMIUpload",
+      "outer_selector": "0x1d",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e650c",
+        "size": 196
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 29,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:5]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00; 0xcc offset exceeds declared size.",
+      "effect": "Writes current-DMI chunk; helper result is ignored.",
+      "handler": "CurrentDMIUpload",
+      "id": "30/a0/1e",
+      "inner_selector": null,
+      "operation": "CurrentDMIUpload",
+      "outer_selector": "0x1e",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e65d0",
+        "size": 168
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 30,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1:5]=LE32 offset; data[5:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Returns current-DMI status and sends a one-time OOB message.",
+      "handler": "CurrentDMIUploadDone",
+      "id": "30/a0/1f",
+      "inner_selector": null,
+      "operation": "CurrentDMIUploadDone",
+      "outer_selector": "0x1f",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6678",
+        "size": 168
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 31,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "Payload ignored.",
+        "response": "One status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2,4,5,6,8; 0xcc otherwise.",
+      "effect": "Reads or computes kind-specific OOB file status.",
+      "handler": "GetOOBFileStatus",
+      "id": "30/a0/20/00",
+      "inner_selector": "0x00",
+      "operation": "kind 0",
+      "outer_selector": "0x20",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6720",
+        "size": 648
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 0,4,5,6,8 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 32,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One availability/status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2,4,5,6,8; 0xcc otherwise.",
+      "effect": "Reads or computes kind-specific OOB file status.",
+      "handler": "GetOOBFileStatus",
+      "id": "30/a0/20/01",
+      "inner_selector": "0x01",
+      "operation": "BIOS current-setting status",
+      "outer_selector": "0x20",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6720",
+        "size": 648
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 0,4,5,6,8 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 32,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One availability/status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2,4,5,6,8; 0xcc otherwise.",
+      "effect": "Reads or computes kind-specific OOB file status.",
+      "handler": "GetOOBFileStatus",
+      "id": "30/a0/20/02",
+      "inner_selector": "0x02",
+      "operation": "DMI file presence",
+      "outer_selector": "0x20",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6720",
+        "size": 648
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 0,4,5,6,8 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 32,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One availability/status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2,4,5,6,8; 0xcc otherwise.",
+      "effect": "Reads or computes kind-specific OOB file status.",
+      "handler": "GetOOBFileStatus",
+      "id": "30/a0/20/04",
+      "inner_selector": "0x04",
+      "operation": "kind 4 file presence",
+      "outer_selector": "0x20",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6720",
+        "size": 648
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 0,4,5,6,8 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 32,
+            "offset": 0
+          },
+          {
+            "equals": 4,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One availability/status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2,4,5,6,8; 0xcc otherwise.",
+      "effect": "Reads or computes kind-specific OOB file status.",
+      "handler": "GetOOBFileStatus",
+      "id": "30/a0/20/05",
+      "inner_selector": "0x05",
+      "operation": "kind 5 file presence",
+      "outer_selector": "0x20",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6720",
+        "size": 648
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 0,4,5,6,8 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 32,
+            "offset": 0
+          },
+          {
+            "equals": 5,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One availability/status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2,4,5,6,8; 0xcc otherwise.",
+      "effect": "Reads or computes kind-specific OOB file status.",
+      "handler": "GetOOBFileStatus",
+      "id": "30/a0/20/06",
+      "inner_selector": "0x06",
+      "operation": "kind 6 status",
+      "outer_selector": "0x20",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6720",
+        "size": 648
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 0,4,5,6,8 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 32,
+            "offset": 0
+          },
+          {
+            "equals": 6,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One availability/status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2,4,5,6,8; 0xcc otherwise.",
+      "effect": "Reads or computes kind-specific OOB file status.",
+      "handler": "GetOOBFileStatus",
+      "id": "30/a0/20/08",
+      "inner_selector": "0x08",
+      "operation": "kind 8 status",
+      "outer_selector": "0x20",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6720",
+        "size": 648
+      },
+      "unknowns": [
+        "Exact product meaning of kinds 0,4,5,6,8 is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 32,
+            "offset": 0
+          },
+          {
+            "equals": 8,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One availability/status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2 when mapping succeeds; 0xcc otherwise.",
+      "effect": "Maps shared data, writes it to the kind-specific BMC file, clears status and sends OOB message.",
+      "handler": "DataToBMCReadyNotify",
+      "id": "30/a0/21/00",
+      "inner_selector": "0x00",
+      "operation": "kind 0",
+      "outer_selector": "0x21",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e69a8",
+        "size": 416
+      },
+      "unknowns": [
+        "Shared-memory producer and exact kind names are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 33,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind; data[2:6]=LE32 mapped length.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2 when mapping succeeds; 0xcc otherwise.",
+      "effect": "Maps shared data, writes it to the kind-specific BMC file, clears status and sends OOB message.",
+      "handler": "DataToBMCReadyNotify",
+      "id": "30/a0/21/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x21",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e69a8",
+        "size": 416
+      },
+      "unknowns": [
+        "Shared-memory producer and exact kind names are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 33,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind; data[2:6]=LE32 mapped length.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2 when mapping succeeds; 0xcc otherwise.",
+      "effect": "Maps shared data, writes it to the kind-specific BMC file, clears status and sends OOB message.",
+      "handler": "DataToBMCReadyNotify",
+      "id": "30/a0/21/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x21",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e69a8",
+        "size": 416
+      },
+      "unknowns": [
+        "Shared-memory producer and exact kind names are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 33,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind; data[2:6]=LE32 mapped length.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2 when file open and mapping succeed; 0xcc otherwise.",
+      "effect": "Reads kind-specific file into mapped memory.",
+      "handler": "DataToBIOSReadyNotify",
+      "id": "30/a0/22/00",
+      "inner_selector": "0x00",
+      "operation": "kind 0",
+      "outer_selector": "0x22",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6b48",
+        "size": 448
+      },
+      "unknowns": [
+        "Shared-memory consumer and exact kind names are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 34,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "LE32 file size."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2 when file open and mapping succeed; 0xcc otherwise.",
+      "effect": "Reads kind-specific file into mapped memory.",
+      "handler": "DataToBIOSReadyNotify",
+      "id": "30/a0/22/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x22",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6b48",
+        "size": 448
+      },
+      "unknowns": [
+        "Shared-memory consumer and exact kind names are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 34,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "LE32 file size."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2 when file open and mapping succeed; 0xcc otherwise.",
+      "effect": "Reads kind-specific file into mapped memory.",
+      "handler": "DataToBIOSReadyNotify",
+      "id": "30/a0/22/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x22",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6b48",
+        "size": 448
+      },
+      "unknowns": [
+        "Shared-memory consumer and exact kind names are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 34,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "LE32 file size."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2; 0xcc otherwise.",
+      "effect": "Stores kind-indexed completion state, emits event-log 0x17 and unlinks kind-specific file.",
+      "handler": "DataToBIOSDone",
+      "id": "30/a0/23/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x23",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6d08",
+        "size": 220
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 35,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2; 0xcc otherwise.",
+      "effect": "Stores kind-indexed completion state, emits event-log 0x17 and unlinks kind-specific file.",
+      "handler": "DataToBIOSDone",
+      "id": "30/a0/23/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x23",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6d08",
+        "size": 220
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 35,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/00",
+      "inner_selector": "0x00",
+      "operation": "kind 0",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/03",
+      "inner_selector": "0x03",
+      "operation": "kind 3",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 3,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/04",
+      "inner_selector": "0x04",
+      "operation": "kind 4",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 4,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/05",
+      "inner_selector": "0x05",
+      "operation": "kind 5",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 5,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/06",
+      "inner_selector": "0x06",
+      "operation": "kind 6",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 6,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/07",
+      "inner_selector": "0x07",
+      "operation": "kind 7",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 7,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/08",
+      "inner_selector": "0x08",
+      "operation": "kind 8",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 8,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/09",
+      "inner_selector": "0x09",
+      "operation": "kind 9",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 9,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0..10; 0xcc otherwise.",
+      "effect": "Reads kind-indexed BMC completion state.",
+      "handler": "DataToBMCDone",
+      "id": "30/a0/24/0a",
+      "inner_selector": "0x0a",
+      "operation": "kind 10",
+      "outer_selector": "0x24",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6de4",
+        "size": 208
+      },
+      "unknowns": [
+        "Exact product meaning of kind indices is unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 36,
+            "offset": 0
+          },
+          {
+            "equals": 10,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "One kind-indexed status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2; 0xcc otherwise.",
+      "effect": "Calls one of three kind-specific checksum callbacks.",
+      "handler": "GetOOBFileChecksum",
+      "id": "30/a0/25/00",
+      "inner_selector": "0x00",
+      "operation": "kind 0",
+      "outer_selector": "0x25",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6eb4",
+        "size": 180
+      },
+      "unknowns": [
+        "Checksum algorithm and callback identities are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 37,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "16-bit checksum, high byte first."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2; 0xcc otherwise.",
+      "effect": "Calls one of three kind-specific checksum callbacks.",
+      "handler": "GetOOBFileChecksum",
+      "id": "30/a0/25/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x25",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6eb4",
+        "size": 180
+      },
+      "unknowns": [
+        "Checksum algorithm and callback identities are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 37,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "16-bit checksum, high byte first."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 0,1,2; 0xcc otherwise.",
+      "effect": "Calls one of three kind-specific checksum callbacks.",
+      "handler": "GetOOBFileChecksum",
+      "id": "30/a0/25/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x25",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6eb4",
+        "size": 180
+      },
+      "unknowns": [
+        "Checksum algorithm and callback identities are unresolved."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 37,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "16-bit checksum, high byte first."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5 even if file creation fails; 0xcc otherwise.",
+      "effect": "Stores size, locks, resets kind-specific state and creates/truncates staging file.",
+      "handler": "StartBIOSUploadToBMC",
+      "id": "30/a0/26/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x26",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6f68",
+        "size": 480
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 38,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5 even if file creation fails; 0xcc otherwise.",
+      "effect": "Stores size, locks, resets kind-specific state and creates/truncates staging file.",
+      "handler": "StartBIOSUploadToBMC",
+      "id": "30/a0/26/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x26",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6f68",
+        "size": 480
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 38,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5 even if file creation fails; 0xcc otherwise.",
+      "effect": "Stores size, locks, resets kind-specific state and creates/truncates staging file.",
+      "handler": "StartBIOSUploadToBMC",
+      "id": "30/a0/26/03",
+      "inner_selector": "0x03",
+      "operation": "kind 3",
+      "outer_selector": "0x26",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6f68",
+        "size": 480
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 38,
+            "offset": 0
+          },
+          {
+            "equals": 3,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5 even if file creation fails; 0xcc otherwise.",
+      "effect": "Stores size, locks, resets kind-specific state and creates/truncates staging file.",
+      "handler": "StartBIOSUploadToBMC",
+      "id": "30/a0/26/04",
+      "inner_selector": "0x04",
+      "operation": "kind 4",
+      "outer_selector": "0x26",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6f68",
+        "size": 480
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 38,
+            "offset": 0
+          },
+          {
+            "equals": 4,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5 even if file creation fails; 0xcc otherwise.",
+      "effect": "Stores size, locks, resets kind-specific state and creates/truncates staging file.",
+      "handler": "StartBIOSUploadToBMC",
+      "id": "30/a0/26/05",
+      "inner_selector": "0x05",
+      "operation": "kind 5",
+      "outer_selector": "0x26",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e6f68",
+        "size": 480
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 38,
+            "offset": 0
+          },
+          {
+            "equals": 5,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 declared size.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 when kind valid and offset<declared size; 0xcc otherwise.",
+      "effect": "Writes chunk to kind-specific staging file; helper result is ignored.",
+      "handler": "BIOSUploadToBMC",
+      "id": "30/a0/27/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x27",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7148",
+        "size": 304
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 39,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 offset; data[6:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 when kind valid and offset<declared size; 0xcc otherwise.",
+      "effect": "Writes chunk to kind-specific staging file; helper result is ignored.",
+      "handler": "BIOSUploadToBMC",
+      "id": "30/a0/27/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x27",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7148",
+        "size": 304
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 39,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 offset; data[6:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 when kind valid and offset<declared size; 0xcc otherwise.",
+      "effect": "Writes chunk to kind-specific staging file; helper result is ignored.",
+      "handler": "BIOSUploadToBMC",
+      "id": "30/a0/27/03",
+      "inner_selector": "0x03",
+      "operation": "kind 3",
+      "outer_selector": "0x27",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7148",
+        "size": 304
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 39,
+            "offset": 0
+          },
+          {
+            "equals": 3,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 offset; data[6:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 when kind valid and offset<declared size; 0xcc otherwise.",
+      "effect": "Writes chunk to kind-specific staging file; helper result is ignored.",
+      "handler": "BIOSUploadToBMC",
+      "id": "30/a0/27/04",
+      "inner_selector": "0x04",
+      "operation": "kind 4",
+      "outer_selector": "0x27",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7148",
+        "size": 304
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 39,
+            "offset": 0
+          },
+          {
+            "equals": 4,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 offset; data[6:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 when kind valid and offset<declared size; 0xcc otherwise.",
+      "effect": "Writes chunk to kind-specific staging file; helper result is ignored.",
+      "handler": "BIOSUploadToBMC",
+      "id": "30/a0/27/05",
+      "inner_selector": "0x05",
+      "operation": "kind 5",
+      "outer_selector": "0x27",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7148",
+        "size": 304
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 39,
+            "offset": 0
+          },
+          {
+            "equals": 5,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5; data[2:6]=LE32 offset; data[6:len]=chunk.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5; 0xcc otherwise.",
+      "effect": "Emits event-log 0x11 and sends one kind-specific OOB message once.",
+      "handler": "BIOSUploadToBMCDone",
+      "id": "30/a0/28/01",
+      "inner_selector": "0x01",
+      "operation": "kind 1",
+      "outer_selector": "0x28",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7278",
+        "size": 528
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 40,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5.",
+        "response": "One kind-specific status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5; 0xcc otherwise.",
+      "effect": "Emits event-log 0x11 and sends one kind-specific OOB message once.",
+      "handler": "BIOSUploadToBMCDone",
+      "id": "30/a0/28/02",
+      "inner_selector": "0x02",
+      "operation": "kind 2",
+      "outer_selector": "0x28",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7278",
+        "size": 528
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 40,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5.",
+        "response": "One kind-specific status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5; 0xcc otherwise.",
+      "effect": "Emits event-log 0x11 and sends one kind-specific OOB message once.",
+      "handler": "BIOSUploadToBMCDone",
+      "id": "30/a0/28/03",
+      "inner_selector": "0x03",
+      "operation": "kind 3",
+      "outer_selector": "0x28",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7278",
+        "size": 528
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 40,
+            "offset": 0
+          },
+          {
+            "equals": 3,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5.",
+        "response": "One kind-specific status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5; 0xcc otherwise.",
+      "effect": "Emits event-log 0x11 and sends one kind-specific OOB message once.",
+      "handler": "BIOSUploadToBMCDone",
+      "id": "30/a0/28/04",
+      "inner_selector": "0x04",
+      "operation": "kind 4",
+      "outer_selector": "0x28",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7278",
+        "size": 528
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 40,
+            "offset": 0
+          },
+          {
+            "equals": 4,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5.",
+        "response": "One kind-specific status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1..5; 0xcc otherwise.",
+      "effect": "Emits event-log 0x11 and sends one kind-specific OOB message once.",
+      "handler": "BIOSUploadToBMCDone",
+      "id": "30/a0/28/05",
+      "inner_selector": "0x05",
+      "operation": "kind 5",
+      "outer_selector": "0x28",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7278",
+        "size": 528
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 40,
+            "offset": 0
+          },
+          {
+            "equals": 5,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind 1..5.",
+        "response": "One kind-specific status byte."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2; 0xcc otherwise.",
+      "effect": "Stats kind-specific BIOS/DMI file.",
+      "handler": "GetBIOSFileSize",
+      "id": "30/a0/29/01",
+      "inner_selector": "0x01",
+      "operation": "BIOS file",
+      "outer_selector": "0x29",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7488",
+        "size": 304
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 41,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "availability flag then LE32 size."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1,2; 0xcc otherwise.",
+      "effect": "Stats kind-specific BIOS/DMI file.",
+      "handler": "GetBIOSFileSize",
+      "id": "30/a0/29/02",
+      "inner_selector": "0x02",
+      "operation": "DMI file",
+      "outer_selector": "0x29",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7488",
+        "size": 304
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 41,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "availability flag then LE32 size."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 3/4 only when remove_oobfile returns nonzero; 0xcc otherwise.",
+      "effect": "Removes kind-specific OOB file and clears state.",
+      "handler": "ClearBIOSUploadFile",
+      "id": "30/a0/2a/03",
+      "inner_selector": "0x03",
+      "operation": "kind 3",
+      "outer_selector": "0x2a",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e75b8",
+        "size": 192
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 42,
+            "offset": 0
+          },
+          {
+            "equals": 3,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 3/4 only when remove_oobfile returns nonzero; 0xcc otherwise.",
+      "effect": "Removes kind-specific OOB file and clears state.",
+      "handler": "ClearBIOSUploadFile",
+      "id": "30/a0/2a/04",
+      "inner_selector": "0x04",
+      "operation": "kind 4",
+      "outer_selector": "0x2a",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e75b8",
+        "size": 192
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 42,
+            "offset": 0
+          },
+          {
+            "equals": 4,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=kind.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1/2 on ReadFile success; 0xc7 len<6; 0xcc otherwise.",
+      "effect": "Reads kind-specific BIOS/DMI file; offset zero locks and emits event-log 0x12.",
+      "handler": "BIOSDownloadFormBMC",
+      "id": "30/a0/30/01",
+      "inner_selector": "0x01",
+      "operation": "BIOS file",
+      "outer_selector": "0x30",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7678",
+        "size": 344
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 48,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=6; data[1]=kind; data[2:6]=LE32 offset; data[6]=requested count.",
+        "response": "Requested bytes."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1/2 on ReadFile success; 0xc7 len<6; 0xcc otherwise.",
+      "effect": "Reads kind-specific BIOS/DMI file; offset zero locks and emits event-log 0x12.",
+      "handler": "BIOSDownloadFormBMC",
+      "id": "30/a0/30/02",
+      "inner_selector": "0x02",
+      "operation": "DMI file",
+      "outer_selector": "0x30",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e7678",
+        "size": 344
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 48,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=6; data[1]=kind; data[2:6]=LE32 offset; data[6]=requested count.",
+        "response": "Requested bytes."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1/2; 0xc7 len<3; 0xcc otherwise.",
+      "effect": "Emits event-log 0x13, releases kind-specific mutex, stores status and unlinks a file.",
+      "handler": "BIOSDownloadFormBMCDone",
+      "id": "30/a0/31/01",
+      "inner_selector": "0x01",
+      "operation": "BIOS file",
+      "outer_selector": "0x31",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e77d0",
+        "size": 300
+      },
+      "unknowns": [
+        "The decompiled unlink target is not proved kind-specific."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 49,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=3; data[1]=kind; data[2]=result/status.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for kind 1/2; 0xc7 len<3; 0xcc otherwise.",
+      "effect": "Emits event-log 0x13, releases kind-specific mutex, stores status and unlinks a file.",
+      "handler": "BIOSDownloadFormBMCDone",
+      "id": "30/a0/31/02",
+      "inner_selector": "0x02",
+      "operation": "DMI file",
+      "outer_selector": "0x31",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e77d0",
+        "size": 300
+      },
+      "unknowns": [
+        "The decompiled unlink target is not proved kind-specific."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 49,
+            "offset": 0
+          },
+          {
+            "equals": 2,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len>=3; data[1]=kind; data[2]=result/status.",
+        "response": "None."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for operation 0/1 with len<51; 0xcc otherwise.",
+      "effect": "Get returns 48-byte handshake buffer; set clears it then copies request bytes beginning at data[2].",
+      "handler": "BiosSWHandShake",
+      "id": "30/a0/32/00",
+      "inner_selector": "0x00",
+      "operation": "get handshake",
+      "outer_selector": "0x32",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e78fc",
+        "size": 244
+      },
+      "unknowns": [
+        "Set copy bound follows total request length and appears off-by-one relative to data[2]; safe intended minimum is not established."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 50,
+            "offset": 0
+          },
+          {
+            "equals": 0,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len<51; data[1]=operation.",
+        "response": "get: 48 handshake bytes; set: none."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00 for operation 0/1 with len<51; 0xcc otherwise.",
+      "effect": "Get returns 48-byte handshake buffer; set clears it then copies request bytes beginning at data[2].",
+      "handler": "BiosSWHandShake",
+      "id": "30/a0/32/01",
+      "inner_selector": "0x01",
+      "operation": "set handshake",
+      "outer_selector": "0x32",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e78fc",
+        "size": 244
+      },
+      "unknowns": [
+        "Set copy bound follows total request length and appears off-by-one relative to data[2]; safe intended minimum is not established."
+      ],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 50,
+            "offset": 0
+          },
+          {
+            "equals": 1,
+            "offset": 1
+          }
+        ],
+        "netfn": "0x30",
+        "request": "len<51; data[1]=operation.",
+        "response": "get: 48 handshake bytes; set: none."
+      }
+    },
+    {
+      "activation": "FileTransactions outer selector accepted; listed state/file/helper predicates apply.",
+      "authorization": "OEMCmdTable privilege 0x04 (Administrator).",
+      "channel": "No channel/interface mask is encoded by OEMCmdTable; dispatcher exposure remains unknown.",
+      "closure": "closed_at_handler_boundary",
+      "completion": "0x00.",
+      "effect": "Writes global OOB debug flag.",
+      "handler": "SetOOBDebugFlag",
+      "id": "30/a0/ff",
+      "inner_selector": null,
+      "operation": "SetOOBDebugFlag",
+      "outer_selector": "0xff",
+      "provenance": {
+        "binary_sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864",
+        "raw_decompilation": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/supermicro-x11/filetransactions-r2ghidra.txt"
+      },
+      "symbol": {
+        "address": "0x000e79f0",
+        "size": 72
+      },
+      "unknowns": [],
+      "wire": {
+        "command": "0xa0",
+        "constraints": [
+          {
+            "equals": 255,
+            "offset": 0
+          }
+        ],
+        "netfn": "0x30",
+        "request": "No length check; data[1]=new flag.",
+        "response": "Echoes flag byte."
+      }
+    }
+  ],
+  "schema": "supermicro-x11-filetransactions-contracts/v1",
+  "target": {
+    "binary": "/Volumes/xxx/limbo/sources/phd/bmc/sm/x11-qemu-boot/extractions/BMC_X11AST2400-3101MS_20251117_1.78_STDsp.bin.extracted/400000/lib/libipmi.so",
+    "sha256": "1a75db1d6327e04932f4b324d5998f1ac2dbbe87cbab559b38ecf928e1e5d864"
+  }
+}

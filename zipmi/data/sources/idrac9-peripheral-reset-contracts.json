@@ -1,0 +1,175 @@
+{
+  "schema": "idrac9-peripheral-controller-reset-contracts/v1",
+  "generated": "2026-10-12",
+  "artifact_uuid": "fcd543ce-938e-4fe4-9f1d-83905f05595b",
+  "evidence_state": "Decoded static contracts; no live-system claims",
+  "provenance": {
+    "firmware": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/firmimgFIT.d9",
+      "sha256": "15196d6354527ed8dc77fd22dc3ecae6ca467f94eda07a597b174770dc758859"
+    },
+    "dispatch_catalog": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/.md/idrac9-dispatch-tables.md",
+      "sha256": "e780525fc45c47e323ab0e9bacb2b11b1fa6a1c26986538fb57dab741a3637b5"
+    },
+    "registration_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/liboemcmds.so.9.9.9",
+      "sha256": "eb169f02bb998d3a5204192dc2421c5d707c8570f8e9c73d34b6560130b3151d"
+    },
+    "handler_binary": {
+      "path": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d"
+    },
+    "decompilation_directory": "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp",
+    "decompilation_sha256": {
+      "handlers-and-wrappers.c": "5b2a854627844dce189e598760d27bf9315c9a5d8391f4369f9b8c43a6b8c320",
+      "helpers.c": "7e14d0f1ff673fcae9b9295f46367f00e5f8c0077e8d7131acb96d0a52f5b14c",
+      "wrappers.disasm.log": "6bbc70c624a623557c0a2628c48b25b72d1bc437b998d53a4cf2675653b3b64e"
+    }
+  },
+  "selection_reason": "This is the next coherent high-effect family: one command stages deferred peripheral-controller resets, two expose reset/status state, and one synchronizes status into cfgdb.",
+  "sharing_model": "All four addresses are distinct functions in the exact same libscbmccore binary. The state-machine relationship is shared; wire layouts, flags, side effects, and completion behavior remain per-address overlays. No implementation identity with another BMC is claimed.",
+  "common_overlay": {
+    "netfn": 48,
+    "dispatcher_privilege": "Administrator on all four registrations",
+    "internal_authorization": "No additional caller identity or role check decoded inside these four handlers",
+    "platform": "All four require numeric platform type 2",
+    "safety": "State-changing routes remain non-runnable; deferred callback and physical-device consequences are not decoded here"
+  },
+  "operation_count": 4,
+  "operations": [
+    {
+      "wire_address": "0x30/0x48",
+      "netfn": 48,
+      "cmd": 72,
+      "effective_handler": "DellDCSResetPeripheralDeviceController",
+      "handler_address": 1146245196,
+      "handler_address_hex": "0x4452504c",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 130,
+      "request_contract": "The wrapper passes the outer request length separately but the decoded helper does not consume it. Data byte0 is copied into pending-reset state. Data byte1 is a target/mask selector and must be 1, 2, or 3. The handler has no decoded outer request-length check before these reads.",
+      "response_contract": "No response bytes; the helper initializes response length to zero.",
+      "completion_codes": [
+        "0x00 request staged",
+        "0x80 reset state is non-idle",
+        "0xcc data byte1 outside 1..3",
+        "0xd5 wrong platform or reset state already marked 0x15"
+      ],
+      "external_effect": "Mutates two in-process reset masks, stores data bytes0..1, marks reset state 0x15, and creates or rearms one or two deferred timers using literal interval 6000. Timer-creation failures are logged without changing the success completion. The timer callbacks and resulting physical reset action are not decoded in this family pass.",
+      "activation": "Numeric platform-type global must equal 2. Reset state must be exactly idle (zero); state 0x15 and other nonzero states have distinct failures.",
+      "channel": "No channel predicate or channel-dependent branch is decoded in this operation.",
+      "evidence": [
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/handlers-and-wrappers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/helpers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/wrappers.disasm.log"
+      ],
+      "contract_exactness": "decoded static control/data flow; opaque cached fields and timer callbacks remain explicitly unnamed",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x49",
+      "netfn": 48,
+      "cmd": 73,
+      "effective_handler": "DellDCSGetResetPeripheralDeviceController",
+      "handler_address": 1146245636,
+      "handler_address_hex": "0x44525204",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 128,
+      "request_contract": "No payload byte is consumed by the decoded helper and no handler-level request-length predicate is present.",
+      "response_contract": "Two cached bytes are returned verbatim; response length is two.",
+      "completion_codes": [
+        "0x00 success",
+        "0xd5 numeric platform-type global is not 2"
+      ],
+      "external_effect": "Reads two in-process controller/reset bytes. On channel 5 it also clears reset state 0x15 back to zero under a mutex.",
+      "activation": "Numeric platform-type global must equal 2.",
+      "channel": "Channel 5 is accepted, logs the path, and may clear reset state 0x15; other channels return the same two-byte cache without that mutation.",
+      "evidence": [
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/handlers-and-wrappers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/helpers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/wrappers.disasm.log"
+      ],
+      "contract_exactness": "decoded static control/data flow; opaque cached fields and timer callbacks remain explicitly unnamed",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x4a",
+      "netfn": 48,
+      "cmd": 74,
+      "effective_handler": "DellDCSSyncPeripheralDeviceControllerResetStatus",
+      "handler_address": 1146242536,
+      "handler_address_hex": "0x445245e8",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 131,
+      "request_contract": "Data byte0 and data byte2 are copied into one of two cached three-byte records. Data byte1 selects record 1 or 2 and must equal 1 or 2. The handler does not consume the outer request-length field before these reads.",
+      "response_contract": "No response bytes are written by the handler.",
+      "completion_codes": [
+        "0x00 synchronized",
+        "0xcc data byte1 is not 1 or 2",
+        "0xd5 numeric platform-type global is not 2",
+        "0xff cfgdb write failure"
+      ],
+      "external_effect": "Replaces the selected cached status record, writes two selector-specific cfgdb attributes, sets the corresponding pending-status bit, and writes a further cfgdb synchronization attribute. Unlike several chassis-family setters, cfgdb failures are surfaced as 0xff.",
+      "activation": "Numeric platform-type global must equal 2.",
+      "channel": "Channel 5 is accepted and invokes setI2Comn before state/cfgdb mutation; no rejecting channel branch is decoded.",
+      "evidence": [
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/handlers-and-wrappers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/helpers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/wrappers.disasm.log"
+      ],
+      "contract_exactness": "decoded static control/data flow; opaque cached fields and timer callbacks remain explicitly unnamed",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    },
+    {
+      "wire_address": "0x30/0x4b",
+      "netfn": 48,
+      "cmd": 75,
+      "effective_handler": "DellDCSGetPeripheralDeviceControllerResetStatus",
+      "handler_address": 1146243360,
+      "handler_address_hex": "0x44524920",
+      "handler_binary": "/Users/zen/phd/bmc/dell/idrac9-firmware/extracted/rootfs/usr/lib/ipmi/libscbmccore.so.9.9.9",
+      "handler_binary_sha256": "22e571d956857c8a3504c6274a3ebd3bd89a82ce18bbe3ffc3ec2b02477ce22d",
+      "dispatcher_privilege": "Administrator",
+      "dispatcher_flags": 129,
+      "request_contract": "Data byte0 selects controller/status record 1 or 2 and must equal 1 or 2. The handler does not consume the outer request-length field before the read.",
+      "response_contract": "Two bytes: byte0 is constant 0x30; byte1 is status. Status is 2 when the selected pending bit is clear, 3 when pending is set but the selected completion bit is clear, otherwise it is read from selector-specific cfgdb.",
+      "completion_codes": [
+        "0x00 success",
+        "0xcc data byte0 is not 1 or 2",
+        "0xd5 numeric platform-type global is not 2",
+        "0xff cfgdb read failure"
+      ],
+      "external_effect": "Reads the two in-process status masks and, only for the completed branch, a selector-specific cfgdb integer. No mutation or channel-specific path is decoded.",
+      "activation": "Numeric platform-type global must equal 2.",
+      "channel": "No channel predicate or channel-dependent branch is decoded in this operation.",
+      "evidence": [
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/handlers-and-wrappers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/helpers.c",
+        "/Volumes/xxx/limbo/work/oem-deep-dive-completion-audit-20261012/idrac9/peripheral-reset-decomp/wrappers.disasm.log"
+      ],
+      "contract_exactness": "decoded static control/data flow; opaque cached fields and timer callbacks remain explicitly unnamed",
+      "runnable_codec": "absent",
+      "live_evidence": "not assessed"
+    }
+  ],
+  "state_machine": {
+    "stage": "0x30/0x48 accepts target selector 1..3, marks state 0x15, mutates masks, and schedules deferred timers",
+    "read_stage": "0x30/0x49 returns two cached bytes; a channel-5 read may clear state 0x15",
+    "sync": "0x30/0x4a accepts record selector 1..2, updates cache and cfgdb, and marks the corresponding pending-status bit",
+    "query": "0x30/0x4b maps pending/completion masks to status 2 or 3, or returns selector-specific cfgdb status"
+  },
+  "limits": [
+    "The semantic names of opaque data bytes and cached globals are not recovered beyond their observed control/data-flow roles.",
+    "Timer callbacks were not included in this bounded family pass, so an actual hardware reset is a possible downstream consequence, not a decoded fact here.",
+    "No runnable codec or live behavior is claimed."
+  ]
+}
